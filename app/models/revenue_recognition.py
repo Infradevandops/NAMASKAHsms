@@ -13,7 +13,11 @@ class RevenueRecognition(BaseModel):
     __tablename__ = "revenue_recognitions"
 
     transaction_id = Column(
-        String, ForeignKey("sms_transactions.id"), nullable=False, index=True, unique=True
+        String,
+        ForeignKey("sms_transactions.id"),
+        nullable=False,
+        index=True,
+        unique=True,
     )
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
 

@@ -318,22 +318,23 @@ async def request_verification(
                 # [Existing Admin logic...]
                 difference = -actual_cost
                 user.credits -= actual_cost
-                
+
                 from app.models.balance_transaction import BalanceTransaction
                 from app.core.constants import TransactionType
-                
+
                 balance_tx = BalanceTransaction(
                     user_id=user.id,
                     amount=difference,
                     type=TransactionType.DEBIT,
                     description=f"Purchase: {request.service}",
                     balance_after=float(user.credits),
-                    created_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(timezone.utc),
                 )
                 db.add(balance_tx)
-                
+
                 # Legacy Transaction (for History/Analytics)
                 from app.models.transaction import Transaction
+
                 legacy_tx = Transaction(
                     user_id=user.id,
                     amount=difference,
@@ -345,7 +346,7 @@ async def request_verification(
                     created_at=datetime.now(timezone.utc),
                 )
                 db.add(legacy_tx)
-                
+
                 db.flush()
                 verification.debit_transaction_id = balance_tx.id
             else:
@@ -359,7 +360,6 @@ async def request_verification(
                 )
                 if not success:
                     raise HTTPException(status_code=402, detail=error)
-
 
             # --- INSTITUTIONAL TELEMETRY ---
             # Fire-and-forget logging to Purchase Intelligence (Now with Transaction ID)

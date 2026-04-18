@@ -252,7 +252,7 @@ def create_tables():
     """Create all database tables with retry logic."""
     if not db_manager.engine:
         db_manager.initialize()
-        
+
     max_retries = 3
     for attempt in range(max_retries):
         try:

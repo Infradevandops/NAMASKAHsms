@@ -162,4 +162,3 @@ __all__ = [
     "SubAccountTransaction",
     "Activity",
 ]
-

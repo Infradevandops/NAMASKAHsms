@@ -139,7 +139,9 @@ class PurchaseIntelligenceService:
                             refund_requested_at=refund_requested_at,
                             refund_processed_at=refund_processed_at,
                             refund_latency_seconds=(
-                                (refund_processed_at - refund_requested_at).total_seconds()
+                                (
+                                    refund_processed_at - refund_requested_at
+                                ).total_seconds()
                                 if refund_processed_at and refund_requested_at
                                 else None
                             ),

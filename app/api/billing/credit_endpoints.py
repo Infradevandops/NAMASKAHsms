@@ -105,7 +105,9 @@ async def add_credits(
             "success": True,
             "amount_added": amount,
             "new_balance": result["new_balance"],
-            "transaction_id": result.get("transaction_id"),  # Note: result has transaction keys
+            "transaction_id": result.get(
+                "transaction_id"
+            ),  # Note: result has transaction keys
         }
 
     except HTTPException:

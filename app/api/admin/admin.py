@@ -153,7 +153,7 @@ def manage_user_credits(
         amount=transaction_amount,
         type="credit" if operation == "add" else "debit",
         description=description,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(transaction)
 
@@ -164,7 +164,7 @@ def manage_user_credits(
         type=TransactionType.ADJUSTMENT,
         description=description,
         balance_after=float(user.credits),
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(balance_tx)
     db.commit()
@@ -201,7 +201,7 @@ def add_user_credits(
             amount=amount,
             type="credit",
             description=f"Admin credit: {reason}" if reason else "Admin added credits",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
 
@@ -212,7 +212,7 @@ def add_user_credits(
             type=TransactionType.ADJUSTMENT,
             description=f"Admin credit: {reason}" if reason else "Admin added credits",
             balance_after=float(user.credits),
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(balance_tx)
         db.commit()
@@ -259,7 +259,7 @@ def deduct_user_credits(
             description=(
                 f"Admin debit: {reason}" if reason else "Admin deducted credits"
             ),
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
 
@@ -272,7 +272,7 @@ def deduct_user_credits(
                 f"Admin debit: {reason}" if reason else "Admin deducted credits"
             ),
             balance_after=float(user.credits),
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(balance_tx)
         db.commit()
@@ -540,24 +540,27 @@ async def admin_cancel_verification(
             type="refund",
             description=f"Admin cancelled verification {verification_id}",
             status="completed",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
 
         # Credit transaction (Audit)
         from app.models.balance_transaction import BalanceTransaction
         from app.core.constants import TransactionType
+
         balance_tx = BalanceTransaction(
             user_id=user.id,
             amount=verification.cost,
             type=TransactionType.REFUND,
             description=f"Admin cancellation refund: {verification_id}",
             balance_after=float(user.credits),
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(balance_tx)
 
-    verification.status = "failed"  # Changed from cancelled to match status system failures
+    verification.status = (
+        "failed"  # Changed from cancelled to match status system failures
+    )
     db.commit()
 
     return SuccessResponse(

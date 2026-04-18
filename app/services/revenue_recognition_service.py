@@ -348,9 +348,7 @@ class RevenueRecognitionService:
             ),
         }
 
-    async def get_deferred_revenue_summary(
-        self, user_id: Optional[str] = None
-    ) -> Dict:
+    async def get_deferred_revenue_summary(self, user_id: Optional[str] = None) -> Dict:
         """Get deferred revenue summary.
 
         Args:
@@ -377,7 +375,5 @@ class RevenueRecognitionService:
             "total_contract_value": total_value,
             "total_recognized": recognized,
             "total_deferred": total_deferred,
-            "avg_monthly_recognition": (
-                (total_value / 12) if total_value > 0 else 0
-            ),
+            "avg_monthly_recognition": ((total_value / 12) if total_value > 0 else 0),
         }

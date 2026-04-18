@@ -57,7 +57,6 @@ class SecurityHeadersMiddleware:
             "base-uri 'self';"
         )
 
-
         async def send_with_headers(message: dict) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)

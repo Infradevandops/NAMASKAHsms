@@ -104,14 +104,14 @@ class ResellerService:
         from datetime import datetime, timezone
 
         desc = f"Allocation to sub-account: {sub.email}"
-        
+
         main_tx = Transaction(
             user_id=user.id,
             amount=-amount,
             type="reseller_allocation",
             description=desc,
             status="completed",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         self.db.add(main_tx)
 
@@ -121,7 +121,7 @@ class ResellerService:
             type=TransactionType.DEBIT,
             description=desc,
             balance_after=float(user.credits),
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         self.db.add(balance_tx)
 

@@ -94,9 +94,9 @@ class FinancialStatementsService:
             statement = FinancialStatement(
                 period_start=period_start,
                 period_end=period_end,
-                period_type="monthly"
-                if (period_end - period_start).days <= 31
-                else "quarterly",
+                period_type=(
+                    "monthly" if (period_end - period_start).days <= 31 else "quarterly"
+                ),
                 reporting_entity="Namaskah SMS",
                 statement_type="income",
                 revenue=revenue,
@@ -134,9 +134,9 @@ class FinancialStatementsService:
                 "gross_profit": gross_profit,
                 "operating_income": operating_income,
                 "net_income": net_income,
-                "net_margin_percent": (net_income / revenue * 100)
-                if revenue > 0
-                else 0,
+                "net_margin_percent": (
+                    (net_income / revenue * 100) if revenue > 0 else 0
+                ),
             }
 
         except Exception as e:
@@ -238,9 +238,11 @@ class FinancialStatementsService:
                 "total_assets": total_assets,
                 "total_liabilities": total_liabilities,
                 "stockholders_equity": stockholders_equity,
-                "current_ratio": (current_assets / current_liabilities)
-                if current_liabilities > 0
-                else None,
+                "current_ratio": (
+                    (current_assets / current_liabilities)
+                    if current_liabilities > 0
+                    else None
+                ),
             }
 
         except Exception as e:
@@ -287,7 +289,11 @@ class FinancialStatementsService:
 
             # Calculate growth
             prior_revenue = revenue * 0.95  # Example prior period
-            yoy_growth = ((revenue - prior_revenue) / prior_revenue * 100) if prior_revenue > 0 else 0
+            yoy_growth = (
+                ((revenue - prior_revenue) / prior_revenue * 100)
+                if prior_revenue > 0
+                else 0
+            )
 
             # Create ratio record
             ratios = FinancialRatio(
@@ -346,12 +352,13 @@ class FinancialStatementsService:
 
             # Transaction metrics
             from sqlalchemy import extract
+
             total_transactions = (
                 self.db.query(func.count(Transaction.id))
                 .filter(
                     and_(
-                        extract('year', Transaction.created_at) == year,
-                        extract('month', Transaction.created_at) == month
+                        extract("year", Transaction.created_at) == year,
+                        extract("month", Transaction.created_at) == month,
                     )
                 )
                 .scalar()
@@ -363,8 +370,8 @@ class FinancialStatementsService:
                 .filter(
                     and_(
                         Transaction.status == "completed",
-                        extract('year', Transaction.created_at) == year,
-                        extract('month', Transaction.created_at) == month
+                        extract("year", Transaction.created_at) == year,
+                        extract("month", Transaction.created_at) == month,
                     )
                 )
                 .scalar()
@@ -385,9 +392,7 @@ class FinancialStatementsService:
                     else 0
                 ),
                 average_revenue_per_user=(
-                    (total_users * 100) / max(active_users, 1)
-                    if total_users > 0
-                    else 0
+                    (total_users * 100) / max(active_users, 1) if total_users > 0 else 0
                 ),
             )
 
@@ -461,47 +466,54 @@ class FinancialStatementsService:
         self, user_id: str, start_date: datetime = None, end_date: datetime = None
     ) -> str:
         """Export user balance transactions to CSV format.
-        
+
         This is the source-of-truth audit trail for the user.
         """
         try:
             query = self.db.query(BalanceTransaction).filter(
                 BalanceTransaction.user_id == user_id
             )
-            
+
             if start_date:
                 query = query.filter(BalanceTransaction.created_at >= start_date)
             if end_date:
                 query = query.filter(BalanceTransaction.created_at <= end_date)
-                
+
             transactions = query.order_by(BalanceTransaction.created_at.desc()).all()
-            
+
             output = io.StringIO()
             writer = csv.writer(output)
-            
+
             # Header
-            writer.writerow([
-                "Transaction ID", 
-                "Date (UTC)", 
-                "Type", 
-                "Amount ($)", 
-                "Balance After ($)", 
-                "Description"
-            ])
-            
+            writer.writerow(
+                [
+                    "Transaction ID",
+                    "Date (UTC)",
+                    "Type",
+                    "Amount ($)",
+                    "Balance After ($)",
+                    "Description",
+                ]
+            )
+
             for tx in transactions:
-                writer.writerow([
-                    tx.id,
-                    tx.created_at.strftime("%Y-%m-%d %H:%M:%S") if tx.created_at else "",
-                    tx.type.upper(),
-                    f"{float(tx.amount):.2f}",
-                    f"{float(tx.balance_after):.2f}",
-                    tx.description
-                ])
-                
+                writer.writerow(
+                    [
+                        tx.id,
+                        (
+                            tx.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                            if tx.created_at
+                            else ""
+                        ),
+                        tx.type.upper(),
+                        f"{float(tx.amount):.2f}",
+                        f"{float(tx.balance_after):.2f}",
+                        tx.description,
+                    ]
+                )
+
             return output.getvalue()
-            
+
         except Exception as e:
             logger.error(f"Failed to export CSV for user {user_id}: {e}")
             raise
-

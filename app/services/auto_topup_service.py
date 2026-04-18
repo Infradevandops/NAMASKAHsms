@@ -64,11 +64,11 @@ class AutoTopupService:
             )
             self.db.add(log)
             user.credits = type(user.credits)(float(user.credits) + topup_amount)
-            
+
             # Record in main Transaction table (Analytics)
             from app.models.transaction import Transaction
             from datetime import datetime, timezone
-            
+
             transaction = Transaction(
                 user_id=user_id,
                 reference=reference,
@@ -76,36 +76,38 @@ class AutoTopupService:
                 amount=topup_amount,
                 description=f"Auto-recharge via saved card ({reference})",
                 status="completed",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             self.db.add(transaction)
-            
+
             # Record in BalanceTransaction (Strict Audit)
             from app.core.constants import TransactionType
             from app.models.balance_transaction import BalanceTransaction
-            
+
             balance_tx = BalanceTransaction(
                 user_id=user_id,
                 amount=topup_amount,
                 type=TransactionType.CREDIT,
                 description=f"Auto-Topup: {reference}",
                 balance_after=float(user.credits),
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             self.db.add(balance_tx)
-            
+
             self.db.commit()
 
             # Notify user
             try:
                 from app.services.notification_dispatcher import NotificationDispatcher
+
                 dispatcher = NotificationDispatcher(self.db)
                 import asyncio
+
                 asyncio.create_task(
                     dispatcher.notify_payment_completed(
-                        user_id=user_id, 
-                        amount=topup_amount, 
-                        new_balance=float(user.credits)
+                        user_id=user_id,
+                        amount=topup_amount,
+                        new_balance=float(user.credits),
                     )
                 )
             except Exception:

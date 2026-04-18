@@ -55,7 +55,7 @@ class TextVerifiedAdapter(SMSProvider):
                 result = await self._service.create_reservation(
                     service=service,
                     country=country,
-                    duration_hours=duration_hours or 24.0
+                    duration_hours=duration_hours or 24.0,
                 )
             else:
                 result = await self._service.create_verification(

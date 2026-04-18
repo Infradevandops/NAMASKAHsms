@@ -67,6 +67,7 @@ class TaxService:
 
             # Calculate totals
             from sqlalchemy import extract
+
             transactions = (
                 self.db.query(Transaction)
                 .filter(
@@ -82,8 +83,7 @@ class TaxService:
             period_transactions = [
                 t
                 for t in transactions
-                if t.created_at.month in months
-                and t.created_at.year == year
+                if t.created_at.month in months and t.created_at.year == year
             ]
 
             gross_revenue = sum(
@@ -158,9 +158,7 @@ class TaxService:
             Updated report
         """
         try:
-            report = (
-                self.db.query(TaxReport).filter(TaxReport.id == report_id).first()
-            )
+            report = self.db.query(TaxReport).filter(TaxReport.id == report_id).first()
             if not report:
                 raise ValueError(f"Report {report_id} not found")
 
@@ -197,9 +195,7 @@ class TaxService:
             self.db.rollback()
             raise
 
-    async def get_tax_summary(
-        self, year: int, user_id: Optional[str] = None
-    ) -> Dict:
+    async def get_tax_summary(self, year: int, user_id: Optional[str] = None) -> Dict:
         """Get tax summary for year.
 
         Args:
@@ -210,9 +206,7 @@ class TaxService:
             Tax summary
         """
         reports = (
-            self.db.query(TaxReport)
-            .filter(TaxReport.period.like(f"{year}-%"))
-            .all()
+            self.db.query(TaxReport).filter(TaxReport.period.like(f"{year}-%")).all()
         )
 
         total_gross = sum(r.gross_revenue for r in reports)
@@ -372,9 +366,7 @@ class TaxService:
             .filter(
                 and_(
                     WithholdingTaxRecord.payer_id == payer_id,
-                    WithholdingTaxRecord.payment_date.isoformat().like(
-                        f"{year}-%"
-                    ),
+                    WithholdingTaxRecord.payment_date.isoformat().like(f"{year}-%"),
                 )
             )
             .all()

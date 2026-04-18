@@ -27,8 +27,10 @@ async def get_payment_history(
     """Get payment history for user."""
     try:
         from app.models.balance_transaction import BalanceTransaction
-        
-        query = db.query(BalanceTransaction).filter(BalanceTransaction.user_id == user_id)
+
+        query = db.query(BalanceTransaction).filter(
+            BalanceTransaction.user_id == user_id
+        )
 
         if transaction_type:
             query = query.filter(BalanceTransaction.type == transaction_type)
@@ -49,9 +51,9 @@ async def get_payment_history(
                     "amount": float(bt.amount),
                     "description": bt.description,
                     "balance_after": float(bt.balance_after or 0.0),
-                    "status": "completed", # Balance transactions are by definition completed
+                    "status": "completed",  # Balance transactions are by definition completed
                     "created_at": bt.created_at.isoformat() if bt.created_at else None,
-                    "reference": bt.id[:8], # Use prefix as short reference if needed
+                    "reference": bt.id[:8],  # Use prefix as short reference if needed
                 }
                 for bt in balance_txs
             ],

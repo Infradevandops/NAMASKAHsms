@@ -68,7 +68,9 @@ class ProviderSettlement(BaseModel):
     dispute_amount = Column(Float, default=0.0)
     dispute_reason = Column(String)
     dispute_raised_at = Column(DateTime)
-    dispute_resolution = Column(String)  # pending, resolved, awarded_to_us, awarded_to_provider
+    dispute_resolution = Column(
+        String
+    )  # pending, resolved, awarded_to_us, awarded_to_provider
     dispute_resolved_at = Column(DateTime)
 
     # Notes & audit
@@ -195,7 +197,9 @@ class ProviderReconciliation(BaseModel):
     discrepancies = Column(JSON)  # {issue_type: count}
 
     # Resolution
-    status = Column(String, default="pending", nullable=False)  # pending, reconciled, disputed
+    status = Column(
+        String, default="pending", nullable=False
+    )  # pending, reconciled, disputed
     resolved_at = Column(DateTime)
     resolution_notes = Column(String)
     adjustment_made = Column(Boolean, default=False)
@@ -220,7 +224,9 @@ class ProviderAgreement(BaseModel):
     provider_name = Column(String, nullable=False)
 
     # Agreement terms
-    agreement_type = Column(String, nullable=False)  # master_service, volume_discount, exclusive
+    agreement_type = Column(
+        String, nullable=False
+    )  # master_service, volume_discount, exclusive
     effective_from = Column(DateTime, nullable=False)
     effective_to = Column(DateTime)
     is_active = Column(Boolean, default=True)

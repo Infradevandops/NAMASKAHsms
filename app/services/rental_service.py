@@ -14,6 +14,7 @@ from app.services.providers.provider_router import ProviderRouter
 
 logger = get_logger(__name__)
 
+
 class RentalService:
     """Service to manage long-term number rentals."""
 
@@ -22,19 +23,19 @@ class RentalService:
         self.provider_router = ProviderRouter()
 
     async def purchase_rental(
-        self, 
-        user_id: str, 
-        service: str, 
-        country: str, 
-        duration_hours: float = 24.0
+        self, user_id: str, service: str, country: str, duration_hours: float = 24.0
     ) -> Dict:
         """Purchase a new number rental."""
         # 1. Calculate cost
-        pricing = PricingCalculator.calculate_rental_cost(self.db, user_id, duration_hours)
+        pricing = PricingCalculator.calculate_rental_cost(
+            self.db, user_id, duration_hours
+        )
         total_cost = pricing["total_cost"]
 
         # 2. Check balance
-        balance_check = await BalanceService.check_sufficient_balance(user_id, total_cost, self.db)
+        balance_check = await BalanceService.check_sufficient_balance(
+            user_id, total_cost, self.db
+        )
         if not balance_check["sufficient"]:
             raise ValueError(f"Insufficient balance. Required: ${total_cost:.2f}")
 
@@ -45,7 +46,7 @@ class RentalService:
             service=service,
             country=country,
             capability="rental",
-            duration_hours=duration_hours
+            duration_hours=duration_hours,
         )
 
         # 4. Deduct balance
@@ -53,10 +54,10 @@ class RentalService:
         success, error = await BalanceService.deduct_credits_for_verification(
             db=self.db,
             user=user,
-            verification=None, # Rental doesn't have a single verification record yet
+            verification=None,  # Rental doesn't have a single verification record yet
             cost=total_cost,
             service_name=f"Rental: {service}",
-            country_code=country
+            country_code=country,
         )
         if not success:
             raise RuntimeError(f"Credit deduction failed: {error}")
@@ -71,7 +72,7 @@ class RentalService:
             started_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc) + timedelta(hours=duration_hours),
             status="active",
-            auto_extend=False
+            auto_extend=False,
         )
         self.db.add(rental)
         self.db.commit()
@@ -80,20 +81,26 @@ class RentalService:
             "success": True,
             "rental_id": rental.id,
             "phone_number": rental.phone_number,
-            "expires_at": rental.expires_at.isoformat()
+            "expires_at": rental.expires_at.isoformat(),
         }
 
     async def get_active_rentals(self, user_id: str) -> List[NumberRental]:
         """Get all active rentals for a user."""
-        return self.db.query(NumberRental).filter(
-            NumberRental.user_id == user_id,
-            NumberRental.status == "active",
-            NumberRental.expires_at > datetime.now(timezone.utc)
-        ).all()
+        return (
+            self.db.query(NumberRental)
+            .filter(
+                NumberRental.user_id == user_id,
+                NumberRental.status == "active",
+                NumberRental.expires_at > datetime.now(timezone.utc),
+            )
+            .all()
+        )
 
     async def check_rental_messages(self, rental_id: int) -> List[Dict]:
         """Fetch messages received on a rental number."""
-        rental = self.db.query(NumberRental).filter(NumberRental.id == rental_id).first()
+        rental = (
+            self.db.query(NumberRental).filter(NumberRental.id == rental_id).first()
+        )
         if not rental:
             return []
 

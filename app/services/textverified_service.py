@@ -517,16 +517,19 @@ class TextVerifiedService:
                 ):
                     # Master Check: Ensure message is strictly fresh (v6.0 Institutional Grade)
                     from datetime import timezone
+
                     msg_time = sms.created_at
                     if msg_time.tzinfo is None:
                         msg_time = msg_time.replace(tzinfo=timezone.utc)
-                    
+
                     ref_time = tv_verification.created_at
                     if ref_time.tzinfo is None:
                         ref_time = ref_time.replace(tzinfo=timezone.utc)
 
                     if msg_time < ref_time:
-                        logger.warning(f"Rejected stale SMS from recycled number: {sms.sms_content}")
+                        logger.warning(
+                            f"Rejected stale SMS from recycled number: {sms.sms_content}"
+                        )
                         continue
 
                     parsed = sms.parsed_code or ""
@@ -542,7 +545,7 @@ class TextVerifiedService:
                             parsed = hyphen[-1].replace("-", "")
                         elif plain:
                             parsed = plain[-1]
-                    
+
                     return {
                         "success": True,
                         "code": parsed,
@@ -719,8 +722,12 @@ class TextVerifiedService:
                 assigned_number[2:5] if assigned_number.startswith("+1") else None
             )
 
-            # Check area code match
-            area_code_match = not area_code or assigned_area_code == area_code
+            # Check area code match (Honor preference chain for institutional flexibility)
+            area_code_match = True
+            if area_code:
+                area_code_match = assigned_area_code in (
+                    area_code_options or [area_code]
+                )
 
             # Check VOIP/landline
             phone_validation = phone_validator.validate_mobile(assigned_number, country)
@@ -843,6 +850,7 @@ class TextVerifiedService:
             "ends_at": result.ends_at.isoformat(),
             "tv_object": result,
             "attempt_count": attempt_count,
+            "retry_attempts": attempt_count - 1,  # Legacy Phase 4 compatibility
             "area_code_matched": area_code_matched,
             "voip_rejected": voip_rejected,
             "fallback_applied": fallback_applied,
@@ -855,7 +863,9 @@ class TextVerifiedService:
     def _build_carrier_preference(self, carrier: str) -> List[str]:
         """Return carrier preference list. Requested carrier is first and only option
         to ensure the assigned number matches the user's selection."""
-        normalized = carrier.lower().replace(" ", "_").replace("&", "").replace("-", "_")
+        normalized = (
+            carrier.lower().replace(" ", "_").replace("&", "").replace("-", "_")
+        )
         return [normalized]
 
     async def purchase_number(
@@ -978,10 +988,7 @@ class TextVerifiedService:
     # --- RESERVATIONS (RENTALS) ---
 
     async def create_reservation(
-        self,
-        service: str,
-        country: str = "US",
-        duration_hours: float = 24.0
+        self, service: str, country: str = "US", duration_hours: float = 24.0
     ) -> Dict[str, Any]:
         """Create a long-term reservation (rental) for a service."""
         if not self.enabled:
@@ -990,14 +997,14 @@ class TextVerifiedService:
         try:
             # Map hours to minutes for the API
             duration_minutes = int(duration_hours * 60)
-            
+
             # TextVerified reservations are US-only in standard API
             reservation = await asyncio.to_thread(
                 self.client.reservations.create,
                 service_name=service,
-                duration=duration_minutes
+                duration=duration_minutes,
             )
-            
+
             # Costs are marked up in the platform level (RentalService)
             # but we return raw cost here for accounting
             return {
@@ -1006,28 +1013,29 @@ class TextVerifiedService:
                 "cost": float(reservation.total_cost),
                 "ends_at": reservation.ends_at,
                 "status": reservation.state.value,
-                "tv_object": reservation
+                "tv_object": reservation,
             }
         except Exception as e:
             logger.error(f"TextVerified reservation creation failed: {e}")
             raise
 
-    async def get_reservation_messages(self, reservation_id: str) -> List[Dict[str, Any]]:
+    async def get_reservation_messages(
+        self, reservation_id: str
+    ) -> List[Dict[str, Any]]:
         """Fetch all messages for an active reservation."""
         if not self.enabled:
             return []
         try:
             # Reservations use a different message retrieval endpoint
             messages = await asyncio.to_thread(
-                self.client.reservations.messages,
-                reservation_id
+                self.client.reservations.messages, reservation_id
             )
             return [
                 {
                     "id": m.id,
                     "text": m.sms_content,
                     "code": m.parsed_code,
-                    "received_at": m.created_at.isoformat()
+                    "received_at": m.created_at.isoformat(),
                 }
                 for m in messages
             ]
@@ -1042,9 +1050,7 @@ class TextVerifiedService:
         try:
             extra_minutes = int(extra_hours * 60)
             await asyncio.to_thread(
-                self.client.reservations.extend,
-                reservation_id,
-                extra_minutes
+                self.client.reservations.extend, reservation_id, extra_minutes
             )
             return True
         except Exception as e:
@@ -1056,24 +1062,22 @@ class TextVerifiedService:
         if not self.enabled:
             return {"status": "unknown"}
         try:
-            res = await asyncio.to_thread(
-                self.client.reservations.get,
-                reservation_id
-            )
+            res = await asyncio.to_thread(self.client.reservations.get, reservation_id)
             from datetime import datetime, timezone
+
             now = datetime.now(timezone.utc)
             ends_at = res.ends_at
             if ends_at.tzinfo is None:
                 ends_at = ends_at.replace(tzinfo=timezone.utc)
-            
+
             remaining_minutes = (ends_at - now).total_seconds() / 60
-            
+
             return {
                 "id": res.id,
                 "status": res.state.value,
                 "remaining_minutes": remaining_minutes,
                 "is_critical": remaining_minutes < 15,
-                "ends_at": ends_at.isoformat()
+                "ends_at": ends_at.isoformat(),
             }
         except Exception as e:
             logger.error(f"Failed to check reservation expiry: {e}")

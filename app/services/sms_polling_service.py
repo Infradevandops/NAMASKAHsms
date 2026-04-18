@@ -28,7 +28,6 @@ class SMSPollingService:
         self.polling_tasks: Dict[str, asyncio.Task] = {}
         self.is_running = False
 
-
     async def start_polling(self, verification_id: str, phone_number: str = None):
         """Start polling for SMS for a specific verification."""
         if verification_id in self.polling_tasks:
@@ -179,15 +178,23 @@ class SMSPollingService:
 
             if code:
                 await self._complete_verification(
-                    verification, db, text, code,
+                    verification,
+                    db,
+                    text,
+                    code,
                     transcription=transcription,
-                    audio_url=audio_url
+                    audio_url=audio_url,
                 )
                 return
             elif verification.capability == "voice" and audio_url:
                 # Institutional Mastery: Partial success - mark as transcribing and continue
-                from app.services.verification_status_service import mark_verification_transcribing
-                await mark_verification_transcribing(db, verification, audio_url=audio_url)
+                from app.services.verification_status_service import (
+                    mark_verification_transcribing,
+                )
+
+                await mark_verification_transcribing(
+                    db, verification, audio_url=audio_url
+                )
                 logger.info(f"Verification {verification.id} marked as TRANSCRIBING")
                 # We need to re-poll because we haven't reached terminal success
                 await self._poll_textverified(verification, db, timeout_seconds - 30)
@@ -212,8 +219,10 @@ class SMSPollingService:
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
             # Phase 12: Adaptive Intelligence
-            delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
-            
+            delay = self.adaptive.get_optimal_interval(
+                db, service=verification.service_name
+            )
+
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
@@ -226,7 +235,6 @@ class SMSPollingService:
                 logger.warning(f"Telnyx polling error for {verification.id}: {e}")
 
             await asyncio.sleep(delay)
-
 
         await self._handle_timeout(verification, db, reason="sms_timeout")
 
@@ -244,7 +252,9 @@ class SMSPollingService:
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
             # Phase 12: Adaptive Intelligence
-            delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
+            delay = self.adaptive.get_optimal_interval(
+                db, service=verification.service_name
+            )
 
             try:
                 messages = await adapter.check_messages(verification.activation_id)
@@ -259,7 +269,6 @@ class SMSPollingService:
 
             await asyncio.sleep(delay)
 
-
         await self._handle_timeout(verification, db, reason="sms_timeout")
 
     async def _poll_pvapins(self, verification, db, timeout_seconds: float):
@@ -268,9 +277,13 @@ class SMSPollingService:
         await self._poll_legacy(verification, db, timeout_seconds)
 
     async def _complete_verification(
-        self, verification, db, sms_text: str, sms_code: str,
+        self,
+        verification,
+        db,
+        sms_text: str,
+        sms_code: str,
         transcription: Optional[str] = None,
-        audio_url: Optional[str] = None
+        audio_url: Optional[str] = None,
     ):
         """Shared success logic after SMS/Voice is received."""
         # Reload verification to avoid stale state
@@ -282,9 +295,7 @@ class SMSPollingService:
         from app.services.verification_status_service import mark_sms_code_received
 
         await mark_sms_code_received(
-            db, v, sms_code, sms_text, 
-            transcription=transcription, 
-            audio_url=audio_url
+            db, v, sms_code, sms_text, transcription=transcription, audio_url=audio_url
         )
 
         # Instrumentation
@@ -366,11 +377,13 @@ class SMSPollingService:
                 )
             elif provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
+
                 provider_refunded = await TelnyxAdapter().report_failed(
                     verification.activation_id
                 )
             elif provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
+
                 provider_refunded = await FiveSimAdapter().report_failed(
                     verification.activation_id
                 )
@@ -424,7 +437,9 @@ class SMSPollingService:
 
         start_time = datetime.now(timezone.utc)
         delay = 2.0
-        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
+        while (
+            datetime.now(timezone.utc) - start_time
+        ).total_seconds() < timeout_seconds:
             if verification.status != "pending":
                 break
 
@@ -435,18 +450,28 @@ class SMSPollingService:
                 )
                 if sms_data and sms_data.get("messages"):
                     latest = sms_data["messages"][-1]
-                    sms_text = latest if isinstance(latest, str) else latest.get("text", "")
-                    pre_parsed = latest.get("code", "") if isinstance(latest, dict) else ""
+                    sms_text = (
+                        latest if isinstance(latest, str) else latest.get("text", "")
+                    )
+                    pre_parsed = (
+                        latest.get("code", "") if isinstance(latest, dict) else ""
+                    )
 
                     if pre_parsed:
                         extracted_code = pre_parsed
                     else:
                         hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_text)
                         plain = re.findall(r"\b(\d{4,8})\b", sms_text)
-                        extracted_code = hyphen[-1].replace("-", "") if hyphen else plain[-1] if plain else None
+                        extracted_code = (
+                            hyphen[-1].replace("-", "")
+                            if hyphen
+                            else plain[-1] if plain else None
+                        )
 
                     if extracted_code:
-                        await self._complete_verification(verification, db, sms_text, extracted_code)
+                        await self._complete_verification(
+                            verification, db, sms_text, extracted_code
+                        )
                         return
             except Exception as e:
                 logger.warning(f"Legacy check_sms failed: {e}")
@@ -455,7 +480,6 @@ class SMSPollingService:
             delay = min(delay * 1.5, 10.0)
 
         await self._handle_timeout(verification, db, reason="sms_timeout")
-
 
     async def start_background_service(self):
         """Start the background polling service."""

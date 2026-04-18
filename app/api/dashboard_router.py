@@ -92,12 +92,16 @@ async def get_analytics_summary(
         verifications = (
             db.query(Verification).filter(Verification.user_id == user_id).all()
         )
-        
+
         total = len(verifications)
         successful = sum(1 for v in verifications if v.status == "completed")
         failed = sum(1 for v in verifications if v.status == "failed")
-        pending = sum(1 for v in verifications if (v.status == "pending" or not v.status))
-        total_spent = sum(float(v.cost or 0) for v in verifications if v.status == "completed")
+        pending = sum(
+            1 for v in verifications if (v.status == "pending" or not v.status)
+        )
+        total_spent = sum(
+            float(v.cost or 0) for v in verifications if v.status == "completed"
+        )
         avg_cost = total_spent / successful if successful else 0.0
         success_rate = (successful / total) if total else 0.0
 
@@ -106,12 +110,19 @@ async def get_analytics_summary(
         this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         def is_this_month(dt):
-            if not dt: return False
+            if not dt:
+                return False
             aware_dt = dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
             return aware_dt >= this_month_start
 
-        monthly_verifications = sum(1 for v in verifications if is_this_month(v.created_at))
-        monthly_spent = sum(float(v.cost or 0) for v in verifications if is_this_month(v.created_at) and v.status == "completed")
+        monthly_verifications = sum(
+            1 for v in verifications if is_this_month(v.created_at)
+        )
+        monthly_spent = sum(
+            float(v.cost or 0)
+            for v in verifications
+            if is_this_month(v.created_at) and v.status == "completed"
+        )
 
         # daily_verifications: last 30 days
         today_date = now.date()
@@ -120,7 +131,7 @@ async def get_analytics_summary(
             if v.created_at:
                 d = v.created_at.date()
                 daily_map[d] = daily_map.get(d, 0) + 1
-        
+
         daily_verifications = [
             {
                 "date": str(today_date - timedelta(days=i)),
@@ -134,7 +145,7 @@ async def get_analytics_summary(
         for v in verifications:
             svc = v.service_name or "Unknown"
             service_spend[svc] = service_spend.get(svc, 0) + float(v.cost or 0)
-        
+
         spending_by_service = [
             {"name": k, "amount": v}
             for k, v in sorted(service_spend.items(), key=lambda x: -x[1])[:5]
@@ -150,7 +161,7 @@ async def get_analytics_summary(
             if v.status == "completed":
                 service_stats[svc]["success"] += 1
                 service_stats[svc]["spent"] += float(v.cost or 0)
-        
+
         top_services = [
             {
                 "name": k,
@@ -164,12 +175,24 @@ async def get_analytics_summary(
         # Financial summary from Balance Ledger (The Single Source of Truth)
         from app.models.balance_transaction import BalanceTransaction
         from app.core.constants import TransactionType
-        
-        balance_txs = db.query(BalanceTransaction).filter(BalanceTransaction.user_id == user_id).all()
-        
-        total_deposited = sum(float(bt.amount) for bt in balance_txs if bt.type == TransactionType.CREDIT)
-        total_refunded = sum(float(bt.amount) for bt in balance_txs if bt.type == TransactionType.REFUND)
-        ledger_spent = sum(abs(float(bt.amount)) for bt in balance_txs if bt.type == TransactionType.DEBIT)
+
+        balance_txs = (
+            db.query(BalanceTransaction)
+            .filter(BalanceTransaction.user_id == user_id)
+            .all()
+        )
+
+        total_deposited = sum(
+            float(bt.amount) for bt in balance_txs if bt.type == TransactionType.CREDIT
+        )
+        total_refunded = sum(
+            float(bt.amount) for bt in balance_txs if bt.type == TransactionType.REFUND
+        )
+        ledger_spent = sum(
+            abs(float(bt.amount))
+            for bt in balance_txs
+            if bt.type == TransactionType.DEBIT
+        )
 
         # recent activity (sorted verifications)
         recent_activities = sorted(
@@ -185,7 +208,7 @@ async def get_analytics_summary(
                 for v in verifications
             ],
             key=lambda x: x["created_at"] or "",
-            reverse=True
+            reverse=True,
         )[:10]
 
         return {
@@ -193,21 +216,24 @@ async def get_analytics_summary(
             "successful_verifications": successful,
             "failed_verifications": failed,
             "pending_verifications": pending,
-            "total_spent": ledger_spent if ledger_spent > 0 else total_spent, # Safe Fallback during migration
+            "total_spent": (
+                ledger_spent if ledger_spent > 0 else total_spent
+            ),  # Safe Fallback during migration
             "total_deposited": total_deposited,
             "total_refunded": total_refunded,
-            "net_spent": (ledger_spent if ledger_spent > 0 else total_spent) - total_refunded,
-            "avg_cost": avg_cost, 
-            "average_cost": avg_cost, # Test Alias
-            "success_rate": success_rate, # Test Expects decimal (e.g. 0.7)
+            "net_spent": (ledger_spent if ledger_spent > 0 else total_spent)
+            - total_refunded,
+            "avg_cost": avg_cost,
+            "average_cost": avg_cost,  # Test Alias
+            "success_rate": success_rate,  # Test Expects decimal (e.g. 0.7)
             "success_rate_pct": success_rate * 100,
             "current_balance": float(user.credits or 0.0) if user else 0.0,
             "daily_verifications": daily_verifications,
             "spending_by_service": spending_by_service,
             "top_services": top_services,
-            "recent_activity": recent_activities[:5], # Test expects 5 item list
-            "monthly_verifications": monthly_verifications, # Test requirement
-            "monthly_spent": monthly_spent, # Test requirement
+            "recent_activity": recent_activities[:5],  # Test expects 5 item list
+            "monthly_verifications": monthly_verifications,  # Test requirement
+            "monthly_spent": monthly_spent,  # Test requirement
             "last_updated": now.isoformat(),
         }
 
@@ -230,7 +256,9 @@ async def get_analytics_summary(
             "monthly_verifications": 0,
             "monthly_spent": 0.0,
             "last_updated": datetime.now(timezone.utc).isoformat(),
-            "error_detail": str(e) if datetime.now().second % 2 == 0 else None # Sublte debug
+            "error_detail": (
+                str(e) if datetime.now().second % 2 == 0 else None
+            ),  # Sublte debug
         }
 
 
@@ -277,7 +305,9 @@ async def get_verification_history(
                     "cost": float(v.cost) if v.cost else 0.0,
                     "sms_code": getattr(v, "sms_code", None),
                     "sms_text": getattr(v, "sms_text", None),
-                    "carrier": v.assigned_carrier or v.operator or getattr(v, "carrier", None),
+                    "carrier": v.assigned_carrier
+                    or v.operator
+                    or getattr(v, "carrier", None),
                     "assigned_carrier": v.assigned_carrier,
                     "assigned_area_code": v.assigned_area_code,
                     "requested_carrier": v.requested_carrier,
@@ -295,8 +325,12 @@ async def get_verification_history(
                     "audio_url": v.audio_url,
                     "provider": v.provider,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
-                    "completed_at": v.completed_at.isoformat() if v.completed_at else None,
-                    "sms_received_at": v.sms_received_at.isoformat() if v.sms_received_at else None,
+                    "completed_at": (
+                        v.completed_at.isoformat() if v.completed_at else None
+                    ),
+                    "sms_received_at": (
+                        v.sms_received_at.isoformat() if v.sms_received_at else None
+                    ),
                     "latency": (
                         (v.sms_received_at - v.created_at).total_seconds()
                         if v.sms_received_at and v.created_at
