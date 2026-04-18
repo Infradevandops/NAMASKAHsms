@@ -26,6 +26,11 @@ class Transaction(BaseModel):
     idempotency_key = Column(String, unique=True, index=True)
     payment_log_id = Column(String, index=True)
 
+    # Cancellation audit trail
+    cancelled_at = Column(DateTime, nullable=True)
+    cancellation_reason = Column(String, nullable=True)
+    cancelled_by = Column(String, nullable=True)  # user_id or 'system' or admin_id
+
 
 class PaymentLog(BaseModel):
     """Payment processing log."""

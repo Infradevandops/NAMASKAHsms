@@ -26,6 +26,14 @@ class Refund(BaseModel):
     initiated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime)
     error_message = Column(String)
+
+    # Retry tracking for failed refunds
+    failed_attempts = Column(
+        String, nullable=False, index=True, default="0"
+    )  # Comma-separated attempt dates
+    max_retry_attempts = Column(String, default="3")
+    next_retry_at = Column(DateTime)
+
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True
     )
