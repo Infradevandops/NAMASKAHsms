@@ -112,7 +112,7 @@ class FailedRefundService:
             "backoff_minutes": backoff_minutes,
         }
 
-    async def get_failed_refunds_pending_retry() -> List[Dict]:
+    async def get_failed_refunds_pending_retry(self) -> List[Dict]:
         """Get all failed refunds pending retry.
 
         Returns:

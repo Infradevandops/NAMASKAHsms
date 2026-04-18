@@ -253,7 +253,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         if (!token) return;
         
         try {
-            const response = await fetch('/api/tiers/current', {
+            const response = await fetch('/api/v1/billing/tiers/current', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             

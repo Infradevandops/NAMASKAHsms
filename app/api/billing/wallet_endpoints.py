@@ -7,18 +7,21 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+
 from app.core.dependencies import get_current_user_id
 from app.models.transaction import PaymentLog, Transaction
 from app.models.balance_transaction import BalanceTransaction
 from app.models.user import User
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.services.financial_statements_service import FinancialStatementsService
 from sqlalchemy import func
+
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -143,15 +146,24 @@ async def get_wallet_stats(
     user = db.query(User).filter(User.id == user_id).first()
     
     # Get monthly spend accurately from the BalanceTransaction ledger
+    month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
     monthly_spend = db.query(func.sum(BalanceTransaction.amount)).filter(
         BalanceTransaction.user_id == user_id,
         BalanceTransaction.type == "debit",
         BalanceTransaction.created_at >= month_start
     ).scalar() or 0.0
     
+    # Calculate total refunds for perfect financial balancing
+    from app.core.constants import TransactionType
+    total_refunds = db.query(func.sum(BalanceTransaction.amount)).filter(
+        BalanceTransaction.user_id == user_id,
+        BalanceTransaction.type == TransactionType.REFUND
+    ).scalar() or 0.0
+    
     # We negate the debit sum for positive display in the UI
     monthly_spend = abs(float(monthly_spend))
-    
+
     total_spend = db.query(func.sum(BalanceTransaction.amount)).filter(
         BalanceTransaction.user_id == user_id,
         BalanceTransaction.type == "debit"
@@ -167,6 +179,34 @@ async def get_wallet_stats(
         "balance": float(user.credits or 0.0),
         "monthly_spent": float(monthly_spend),
         "total_spent": float(total_spend),
+        "total_refunds": float(total_refunds),
+        "net_spent": float(total_spend) - float(total_refunds),
         "pending_deposits": int(pending_deposits),
-        "currency": "USD"
+        "currency": "USD",
+        "last_synced": datetime.now(timezone.utc).isoformat()
     }
+
+@router.get("/export/csv")
+async def export_wallet_csv(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Generates and streams a CSV audit trail for the user."""
+    try:
+        service = FinancialStatementsService(db)
+        csv_content = await service.export_user_transactions_csv(user_id)
+        
+        filename = f"namaskah_wallet_audit_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    except Exception as e:
+        logger.error(f"CSV Export failed for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate export")
+
+

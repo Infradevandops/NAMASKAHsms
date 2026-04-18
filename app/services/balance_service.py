@@ -118,7 +118,7 @@ class BalanceService:
         return result
 
     @staticmethod
-    def deduct_credits_for_verification(
+    async def deduct_credits_for_verification(
         db: Session,
         user: User,
         verification: Verification,
@@ -140,7 +140,7 @@ class BalanceService:
 
         # Check sufficient balance
         if float(user.credits) < cost:
-            mark_verification_failed(
+            await mark_verification_failed(
                 db,
                 verification,
                 reason=FailureReason.INSUFFICIENT_BALANCE,
@@ -195,12 +195,14 @@ class BalanceService:
 
             # Notifications
             try:
-                import asyncio
-
                 from app.services.notification_dispatcher import NotificationDispatcher
 
                 dispatcher = NotificationDispatcher(db)
                 # 1. Notify balance update
+                from app.core.cache import get_redis
+                # We use a background task for notifications instead of create_task here 
+                # to keep this service focused on DB integrity.
+                import asyncio
                 asyncio.create_task(
                     dispatcher.notify_balance_deducted(
                         user_id=user.id,
@@ -227,7 +229,7 @@ class BalanceService:
         except Exception as e:
             db.rollback()
             logger.error(f"Credit deduction failed for {user.id}: {e}")
-            mark_verification_failed(
+            await mark_verification_failed(
                 db,
                 verification,
                 reason=FailureReason.DATABASE_ERROR,
@@ -235,3 +237,4 @@ class BalanceService:
                 refund_eligible=True,
             )
             return False, str(e)
+

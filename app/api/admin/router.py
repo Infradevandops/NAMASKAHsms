@@ -5,7 +5,9 @@ from app.api.admin.analytics import router as analytics_router
 from app.api.admin.area_code_analytics import router as area_code_analytics_router
 from app.api.admin.audit_compliance import router as audit_compliance_router
 from app.api.admin.dashboard import router as dashboard_router
+from app.api.admin.dashboard_v2 import router as dashboard_v2_router
 from app.api.admin.export import router as export_router
+
 from app.api.admin.logging_dashboard import router as logging_dashboard_router
 from app.api.admin.pricing_control import router as pricing_control_router
 from app.api.admin.refund_monitoring import router as refund_monitoring_router
@@ -20,7 +22,9 @@ router = APIRouter()
 
 # Mount all admin routers with /admin prefix
 router.include_router(dashboard_router, prefix="/admin", tags=["Admin"])
+router.include_router(dashboard_v2_router, prefix="/admin", tags=["Admin"])
 router.include_router(user_management_router, prefix="/admin", tags=["Admin"])
+
 router.include_router(stats_router, prefix="/admin", tags=["Admin"])
 router.include_router(verification_analytics_router, prefix="/admin", tags=["Admin"])
 router.include_router(verification_history_router, prefix="/admin", tags=["Admin"])

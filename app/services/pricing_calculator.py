@@ -186,3 +186,18 @@ class PricingCalculator:
                 db, user_id, cost_info["total_cost"]
             ),
         }
+
+    @staticmethod
+    def calculate_rental_cost(db: Session, user_id: str, duration_hours: float) -> dict:
+        """Calculate total cost for number rental."""
+        # Institutional default: $0.25 per hour ($6/day)
+        # In a production environment, this would be fetched from TierConfig
+        hourly_rate = 0.25 
+        
+        total_cost = round(hourly_rate * duration_hours, 2)
+        
+        return {
+            "total_cost": total_cost,
+            "duration_hours": duration_hours,
+            "hourly_rate": hourly_rate
+        }

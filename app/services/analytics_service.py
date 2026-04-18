@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import and_, func, text
+from sqlalchemy import and_, case, func, text
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
@@ -96,7 +96,7 @@ class AnalyticsService:
                 func.date(Verification.created_at).label("date"),
                 func.count(Verification.id).label("verifications"),
                 func.sum(
-                    func.case([(Verification.status == "completed", 1)], else_=0)
+                    case([(Verification.status == "completed", 1)], else_=0)
                 ).label("success"),
             )
             .filter(Verification.created_at >= start_date)
