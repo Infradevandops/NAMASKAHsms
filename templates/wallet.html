@@ -428,13 +428,19 @@
 
     // 1. Initializers
     async function initPage() {
-        await loadWalletStats();
-        await loadAuditTrail();
-        await loadCryptoAddresses();
-        await refreshRates();
-        
-        // Auto-refresh stats every 60s
-        setInterval(loadWalletStats, 60000);
+        try {
+            await Promise.allSettled([
+                loadWalletStats(),
+                loadAuditTrail(),
+                loadCryptoAddresses()
+            ]);
+            
+            // Auto-refresh stats every 60s
+            setInterval(loadWalletStats, 60000);
+        } catch (e) {
+            console.error('[Wallet] Initialization error:', e);
+            if (window.errorHandler) window.errorHandler.showToast('Wallet components partially loaded', 'warning');
+        }
     }
 
     async function loadWalletStats() {
@@ -464,6 +470,11 @@
         document.getElementById('section-crypto').style.display = isCard ? 'none' : 'block';
         document.getElementById('tab-card-btn').classList.toggle('active', isCard);
         document.getElementById('tab-crypto-btn').classList.toggle('active', !isCard);
+        
+        // If switching to crypto, refresh rates immediately for fresh pricing
+        if (!isCard) {
+            refreshRates().catch(e => console.error('Auto-refresh rates failed:', e));
+        }
     }
 
     // 3. Card Payment Flow
@@ -705,9 +716,33 @@
         document.getElementById('audit-modal').style.display = 'none';
     }
 
-    function exportAudit() {
-        window.errorHandler.showToast('Audit Export Initialized...', 'info');
+    async function exportAudit() {
+        try {
+            window.errorHandler.showToast('Generating audit export...', 'info');
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/v1/wallet/export/csv', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!res.ok) throw new Error('Export failed');
+            
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `namaskah_audit_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            
+            window.errorHandler.showToast('Audit trail downloaded successfully', 'success');
+        } catch (e) {
+            console.error('[Wallet] Export failed:', e);
+            window.errorHandler.showToast('Failed to generate export', 'error');
+        }
     }
+
 
     // Run on boot
     document.addEventListener('DOMContentLoaded', initPage);

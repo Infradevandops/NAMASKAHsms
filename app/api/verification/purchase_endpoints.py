@@ -349,7 +349,7 @@ async def request_verification(
                 db.flush()
                 verification.debit_transaction_id = balance_tx.id
             else:
-                success, error = BalanceService.deduct_credits_for_verification(
+                success, error = await BalanceService.deduct_credits_for_verification(
                     db=db,
                     user=user,
                     verification=verification,
@@ -359,6 +359,7 @@ async def request_verification(
                 )
                 if not success:
                     raise HTTPException(status_code=402, detail=error)
+
 
             # --- INSTITUTIONAL TELEMETRY ---
             # Fire-and-forget logging to Purchase Intelligence (Now with Transaction ID)

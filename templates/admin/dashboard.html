@@ -3,201 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Namaskah | Institutional Control</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
-        .container { padding: 12px; }
-        
-        .admin-header { background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; }
-        .admin-header h1 { font-size: 20px; margin-bottom: 4px; }
-        .admin-header p { font-size: 12px; color: #666; margin-bottom: 8px; }
-        .admin-nav { display: flex; gap: 8px; flex-wrap: wrap; }
-        .admin-nav button { padding: 6px 12px; font-size: 11px; border: none; border-radius: 3px; cursor: pointer; color: white; font-weight: 500; transition: opacity 0.2s; }
-        .admin-nav button:hover { opacity: 0.9; }
-        .admin-nav .active { background: #2c3e50; }
-        .admin-nav .nav-dashboard { background: #3498db; }
-        .admin-nav .nav-tier { background: #27ae60; }
-        .admin-nav .nav-pricing { background: #e67e22; }
-        .admin-nav .nav-history { background: #e74c3c; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
-        .card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .card h3 { font-size: 12px; color: #666; margin-bottom: 8px; text-transform: uppercase; }
-        .chart-container { position: relative; height: 200px; }
-        
-        .table-card { grid-column: span 2; }
-        .table-card table { width: 100%; font-size: 12px; border-collapse: collapse; }
-        .table-card th { background: #f8f9fa; padding: 6px; text-align: left; font-weight: 600; border-bottom: 1px solid #e9ecef; }
-        .table-card td { padding: 6px; border-bottom: 1px solid #e9ecef; }
-        .table-card tbody { max-height: 200px; overflow-y: auto; display: block; }
-        .table-card thead { display: block; width: 100%; }
-        
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
-        .badge.payg { background: #ecf0f1; color: #7f8c8d; }
-        .badge.starter { background: #d5f4e6; color: #27ae60; }
-        .badge.pro { background: #d6eaf8; color: #2980b9; }
-        .badge.custom { background: #fadbd8; color: #c0392b; }
-        
-        .actions { display: flex; gap: 4px; }
-        button { padding: 4px 8px; font-size: 10px; border: none; border-radius: 3px; cursor: pointer; background: #3498db; color: white; }
-        button:hover { background: #2980b9; }
-        button.danger { background: #e74c3c; }
-        button.danger:hover { background: #c0392b; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 20px; border-radius: 6px; max-width: 400px; width: 90%; }
-        .modal-header { font-size: 16px; font-weight: bold; margin-bottom: 12px; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 11px; margin-bottom: 3px; font-weight: 500; }
-        .form-group input, .form-group select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; }
-        .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
-        
-        .alert { padding: 8px; border-radius: 3px; font-size: 11px; margin-bottom: 8px; display: none; }
-        .alert.show { display: block; }
-        .alert.success { background: #d5f4e6; color: #27ae60; }
-        .alert.error { background: #fadbd8; color: #c0392b; }
-    </style>
 </head>
-<body>
-    <div class="container">
+<body class="premium-admin">
+    <div class="admin-v2-container">
         <!-- Header -->
-        <div class="admin-header">
-            <h1>🎯 Admin Dashboard</h1>
-            <p>Tier Management • User Stats • Quick Actions</p>
-            <div class="admin-nav">
-                <button class="nav-dashboard active" id="btn-dashboard" onclick="window.location.href='/admin'">📊 Dashboard</button>
-                <button class="nav-tier" id="btn-tier" onclick="window.location.href='/admin/tier-management'">🎯 Tier Management</button>
-                <button class="nav-pricing" id="btn-pricing" onclick="window.location.href='/admin/pricing-templates'">💰 Pricing</button>
-                <button class="nav-history" id="btn-history" onclick="window.location.href='/admin/verification-history'">📋 History</button>
+        {% include 'admin/header.html' %}
+        
+        <!-- Key Metrics Grid -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-label">👥 Total Users</div>
+                <div class="stat-value" id="stat-total-users">0</div>
+                <div class="stat-trend trend-up">↑ Institutional Growth</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">✅ Success Rate</div>
+                <div class="stat-value" id="stat-success-rate">0%</div>
+                <div class="stat-trend trend-up">↑ High Reliability</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💰 Net Revenue</div>
+                <div class="stat-value" id="stat-net-revenue">$0</div>
+                <div class="stat-trend trend-up">↑ Post-Refund Liquidity</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⚠️ Refund Rate</div>
+                <div class="stat-value" id="stat-refund-rate">0%</div>
+                <div class="stat-trend trend-down">↓ Optimized Routing</div>
             </div>
         </div>
-        
-        <!-- Charts Grid -->
-        <div class="grid">
-            <!-- Financial Integrity Alert Card -->
-            <div id="integrity-card" class="card" style="grid-column: span 3; border-left: 4px solid #f59e0b; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h3 style="color: #d97706; margin-bottom: 4px;">⚠️ Financial Integrity Warning</h3>
-                        <p id="integrity-msg" style="font-size: 13px; color: #92400e;"></p>
-                    </div>
-                    <button onclick="window.location.href='/api/v1/admin/integrity/check'" class="btn" style="background: #d97706;">Run Deep Audit</button>
-                </div>
-            </div>
 
-            <!-- Tier Distribution Donut -->
-            <div class="card">
-                <h3>Tier Distribution</h3>
-                <div class="chart-container">
-                    <canvas id="tierChart"></canvas>
+        <div class="content-grid">
+            <!-- Left Column: Volume and Inventory -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h3 class="card-title">Provider Health (Phase 12 Real-time)</h3>
+                    <button class="nav-item" onclick="loadData()" style="padding: 4px 12px; cursor: pointer;">Refresh</button>
                 </div>
-            </div>
-            
-            <!-- Verification Status Donut -->
-            <div class="card">
-                <h3>Verification Status</h3>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Quick Stats -->
-            <div class="card">
-                <h3>Quick Stats</h3>
-                <div style="font-size: 12px; line-height: 1.8;">
-                    <div>👥 Total Users: <strong id="stat-users">0</strong></div>
-                    <div>✅ Successful: <strong id="stat-success">0</strong></div>
-                    <div>⏳ Pending: <strong id="stat-pending">0</strong></div>
-                    <div>💰 Revenue: <strong id="stat-revenue">$0</strong></div>
-                </div>
-            </div>
-            
-            <!-- Users Table -->
-            <div class="card table-card">
-                <h3>Recent Users</h3>
-                <table>
+                <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Email</th>
-                            <th>Tier</th>
-                            <th>Expires</th>
-                            <th>Credits</th>
-                            <th>Actions</th>
+                            <th>Provider</th>
+                            <th>Volume</th>
+                            <th>Success Rate</th>
+                            <th>Avg Latency</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="users-table"></tbody>
+                    <tbody id="provider-table"></tbody>
                 </table>
             </div>
-            
-            <!-- Actions -->
-            <div class="card">
-                <h3>Quick Actions</h3>
-                <button onclick="openEditModal()" style="width: 100%; margin-bottom: 6px;">Edit User Tier</button>
-                <button onclick="openBulkModal()" style="width: 100%; margin-bottom: 6px;">Bulk Update</button>
-                <button onclick="loadData()" style="width: 100%;">🔄 Refresh</button>
+
+            <!-- Right Column: Activity Feed -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Intelligence</h3>
+                </div>
+                <div id="activity-feed">
+                    <!-- Activities will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Content: Financial Reconcilliation -->
+        <div class="glass-card" style="margin-top: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">Financial Audit (Last 30 Days)</h3>
+            </div>
+            <div style="display: flex; gap: 48px; padding: 20px 0;">
+                <div>
+                    <div style="color: var(--admin-text-muted); font-size: 13px;">Gross Revenue</div>
+                    <div style="font-size: 24px; font-weight: 600;" id="fin-gross">$0</div>
+                </div>
+                <div>
+                    <div style="color: var(--admin-text-muted); font-size: 13px;">Total Refunds</div>
+                    <div style="font-size: 24px; font-weight: 600; color: var(--admin-danger);" id="fin-refunds">-$0</div>
+                </div>
+                <div>
+                    <div style="color: var(--admin-text-muted); font-size: 13px;">Operational Net</div>
+                    <div style="font-size: 24px; font-weight: 600; color: var(--admin-success);" id="fin-net">$0</div>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div id="alert" class="alert"></div>
-            <div class="modal-header">Edit User Tier</div>
-            <div class="form-group">
-                <label>User Email:</label>
-                <input type="text" id="editEmail" placeholder="user@example.com">
-            </div>
-            <div class="form-group">
-                <label>New Tier:</label>
-                <select id="editTier">
-                    <option value="payg">Pay-As-You-Go</option>
-                    <option value="starter">Starter</option>
-                    <option value="pro">Pro</option>
-                    <option value="custom">Custom</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Duration (days):</label>
-                <input type="number" id="editDays" value="30" min="1" max="365">
-            </div>
-            <div class="modal-footer">
-                <button onclick="closeEditModal()">Cancel</button>
-                <button onclick="saveEdit()" style="background: #27ae60;">Save</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Bulk Modal -->
-    <div id="bulkModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">Bulk Update Tiers</div>
-            <div class="form-group">
-                <label>User IDs (comma-separated):</label>
-                <textarea id="bulkIds" style="width: 100%; height: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;"></textarea>
-            </div>
-            <div class="form-group">
-                <label>New Tier:</label>
-                <select id="bulkTier">
-                    <option value="payg">Pay-As-You-Go</option>
-                    <option value="starter">Starter</option>
-                    <option value="pro">Pro</option>
-                    <option value="custom">Custom</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Duration (days):</label>
-                <input type="number" id="bulkDays" value="30" min="1" max="365">
-            </div>
-            <div class="modal-footer">
-                <button onclick="closeBulkModal()">Cancel</button>
-                <button onclick="saveBulk()" style="background: #27ae60;">Update</button>
-            </div>
-        </div>
-    </div>
+
+    <script nonce="{{ request.state.csp_nonce }}">
+        async function loadData() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const res = await fetch('/api/v1/admin/dashboard/v2/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Status non-200');
+                const data = await res.json();
+
+                // Update Overview
+                document.getElementById('stat-total-users').textContent = data.overview.total_users;
+                document.getElementById('stat-success-rate').textContent = `${data.overview.success_rate}%`;
+                document.getElementById('stat-net-revenue').textContent = `$${data.financial.net.toFixed(2)}`;
+                document.getElementById('stat-refund-rate').textContent = `${data.financial.refund_rate}%`;
+
+                // Update Financials
+                document.getElementById('fin-gross').textContent = `$${data.financial.gross.toFixed(2)}`;
+                document.getElementById('fin-refunds').textContent = `-$${data.financial.refunds.toFixed(2)}`;
+                document.getElementById('fin-net').textContent = `$${data.financial.net.toFixed(2)}`;
+
+                // Update Providers
+                const pBody = document.getElementById('provider-table');
+                pBody.innerHTML = data.providers.map(p => `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--admin-accent);">${p.name.toUpperCase()}</td>
+                        <td>${p.total_volume} msg</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+                                    <div style="width:${p.success_rate}%; height:100%; background:${p.success_rate > 90 ? 'var(--admin-success)' : 'var(--admin-warning)'};"></div>
+                                </div>
+                                <span>${p.success_rate}%</span>
+                            </div>
+                        </td>
+                        <td>${p.avg_latency}s</td>
+                        <td><span class="badge ${p.success_rate > 80 ? 'badge-success' : 'badge-warning'}">${p.success_rate > 80 ? 'Operational' : 'Degraded'}</span></td>
+                    </tr>
+                `).join('');
+
+                // Update Activities
+                const aFeed = document.getElementById('activity-feed');
+                aFeed.innerHTML = data.activities.map(a => `
+                    <div class="activity-item">
+                        <div class="activity-icon">⚡</div>
+                        <div class="activity-info">
+                            <div class="activity-title">Verification for ${a.service}</div>
+                            <div class="activity-time">${new Date(a.time).toLocaleString()} • ${a.status.toUpperCase()}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('[Admin] Load failed:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
+
     
     <script nonce="{{ request.state.csp_nonce }}">
         const token = localStorage.getItem('access_token');

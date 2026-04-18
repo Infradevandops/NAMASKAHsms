@@ -71,17 +71,24 @@ class ProviderRouter:
         city: Optional[str] = None,
         user_tier: str = "freemium",
         prefer_enterprise: bool = False,
+        capability: str = "sms",
     ) -> Tuple[SMSProvider, bool, Optional[str]]:
         """Select provider for a request using Autonomous Predictive Scoring (Phase 12).
-
-        Logic:
-        1. Pre-filter by tier/country capability.
-        2. Calculate Predictive Scores (Sentiment + ROI + Resilience).
-        3. Select absolute winner.
+        
+        Rentals are routed specifically:
+        - US Rental -> TextVerified
+        - Intl Rental -> 5sim (best effort)
         """
         country_upper = country.upper()
-        scorer = PredictiveRouterScorer(db)
+        
+        # --- RENTAL ROUTING (V6.0.0) ---
+        if capability == "rental":
+            if country_upper == "US":
+                return self._get_textverified(), False, None
+            else:
+                return self._get_fivesim(), False, None
 
+        scorer = PredictiveRouterScorer(db)
         # Candidate pool
         candidates = []
 
@@ -110,6 +117,7 @@ class ProviderRouter:
             return self._get_textverified(), False, None
 
         # --- PHASE 12 AUTONOMOUS SCORING ---
+        # ... [Scoring logic remains same for SMS]
         scored_candidates = []
         for name, adapter in candidates:
             score = await scorer.calculate_provider_score(
@@ -117,9 +125,7 @@ class ProviderRouter:
             )
             scored_candidates.append((score, adapter, name))
 
-        # Sort by score descending
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
-
         winner_score, winner_adapter, winner_name = scored_candidates[0]
 
         logger.info(
@@ -147,13 +153,9 @@ class ProviderRouter:
         user_tier: str = "freemium",
         selected_from_alternatives: bool = False,
         original_request: Optional[str] = None,
+        duration_hours: Optional[float] = None,
     ) -> PurchaseResult:
-        """Purchase with city-aware routing and two-level rerouting.
-
-        Level 1 (within provider): Telnyx empty for city -> retry without city
-        Level 2 (across providers): Provider fails -> try next provider
-        Level 3: All providers exhausted -> raise ProviderError(all_providers_failed)
-        """
+        """Purchase with city-aware routing and two-level rerouting."""
         # Resolve area codes for US city requests
         resolved_area_code = area_code
         if country.upper() == "US" and city and not area_code:
@@ -161,40 +163,32 @@ class ProviderRouter:
 
             codes = lookup(city)
             if codes:
-                resolved_area_code = codes[
-                    0
-                ]  # TextVerified proximity chain handles the rest
-                logger.info(
-                    f"City '{city}' resolved to area codes {codes} for US request"
-                )
+                resolved_area_code = codes[0]
+                logger.info(f"City '{city}' resolved to area codes {codes} for US request")
             else:
-                logger.info(
-                    f"City '{city}' not in US map, proceeding without area code"
-                )
+                logger.info(f"City '{city}' not in US map, proceeding without area code")
 
         primary, city_attempted, pre_note = await self.get_provider(
-            db, service, country, city, user_tier
+            db, service, country, city, user_tier, capability=capability
         )
         routing_reason = (
             f"country={country}"
             + (f"_city={city}" if city else "")
             + f"_tier={user_tier}"
+            + f"_capability={capability}"
         )
 
-        # Determine city to pass to provider
-        city_for_provider = city if city_attempted else None
-
-        # Build kwargs for provider (including optional telemetry)
+        # Build kwargs for provider
         provider_kwargs = {
             "service": service,
             "country": country,
             "area_code": resolved_area_code,
-            "carrier": None,  # carrier filtering retired
+            "carrier": None,
             "capability": capability,
-            "city": city_for_provider,
+            "city": city if city_attempted else None,
+            "duration_hours": duration_hours
         }
 
-        # Only add TextVerified-specific telemetry if called on TextVerified
         if primary.name == "textverified":
             provider_kwargs["selected_from_alternatives"] = selected_from_alternatives
             provider_kwargs["original_request"] = original_request

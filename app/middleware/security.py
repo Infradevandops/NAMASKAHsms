@@ -39,7 +39,7 @@ class SecurityHeadersMiddleware:
             f"default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com "
             f"https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net "
-            f"https://cdn.tailwindcss.com"
+            f"https://cdn.tailwindcss.com https://cdnjs.cloudflare.com"
         )
 
         if is_testing:
@@ -51,10 +51,12 @@ class SecurityHeadersMiddleware:
             "https://unpkg.com; font-src 'self' https://fonts.gstatic.com "
             "https://unpkg.com; img-src 'self' data: https: "
             "https://cdn.simpleicons.org; connect-src 'self' "
-            "https://api.paystack.co https://checkout.paystack.com; "
+            "https://api.paystack.co https://checkout.paystack.com "
+            "https://min-api.cryptocompare.com; "
             "frame-src https://checkout.paystack.com; object-src 'none'; "
             "base-uri 'self';"
         )
+
 
         async def send_with_headers(message: dict) -> None:
             if message["type"] == "http.response.start":

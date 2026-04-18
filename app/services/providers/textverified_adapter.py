@@ -46,17 +46,26 @@ class TextVerifiedAdapter(SMSProvider):
         city: Optional[str] = None,
         selected_from_alternatives: bool = False,
         original_request: Optional[str] = None,
+        duration_hours: Optional[float] = None,
     ) -> PurchaseResult:
-        """Purchase number from TextVerified."""
+        """Purchase number from TextVerified. Supports SMS, Voice, and Rental."""
         try:
-            result = await self._service.create_verification(
-                service=service,
-                country=country,
-                area_code=area_code,
-                capability=capability,
-                selected_from_alternatives=selected_from_alternatives,
-                original_request=original_request,
-            )
+            # For rentals, use the reservation logic (to be added to TextVerifiedService)
+            if capability == "rental":
+                result = await self._service.create_reservation(
+                    service=service,
+                    country=country,
+                    duration_hours=duration_hours or 24.0
+                )
+            else:
+                result = await self._service.create_verification(
+                    service=service,
+                    country=country,
+                    area_code=area_code,
+                    capability=capability,
+                    selected_from_alternatives=selected_from_alternatives,
+                    original_request=original_request,
+                )
 
             return PurchaseResult(
                 phone_number=result["phone_number"],
@@ -74,12 +83,12 @@ class TextVerifiedAdapter(SMSProvider):
                 assigned_area_code=result.get("assigned_area_code"),
                 same_state_fallback=result.get("same_state_fallback", True),
                 retry_attempts=result.get("retry_attempts", 0),
-                routing_reason="country=US",
+                routing_reason=f"country=US capability={capability}",
                 tv_object=result.get("tv_object"),  # CRITICAL: Needed for polling
             )
 
         except Exception as e:
-            logger.error(f"TextVerified purchase failed: {e}")
+            logger.error(f"TextVerified purchase failed (capability={capability}): {e}")
             raise RuntimeError(f"TextVerified purchase failed: {e}")
 
     async def check_messages(

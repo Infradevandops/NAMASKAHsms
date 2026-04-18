@@ -344,7 +344,10 @@ endblock %}
         try {
             const ctrl = new AbortController();
             const tid = setTimeout(() => ctrl.abort(), 8000);
-            const res = await fetch('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+            const res = await fetch('/api/v1/billing/tiers/current', { 
+                headers: { 'Authorization': `Bearer ${token}` }, 
+                signal: ctrl.signal 
+            });
             clearTimeout(tid);
             if (!res.ok) return;
             const d = await res.json();

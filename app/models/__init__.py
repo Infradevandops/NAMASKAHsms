@@ -1,6 +1,8 @@
 """Database models package."""
 
+from .activity import Activity
 from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
+
 from .analytics import (
     AnalyticsCache,
     CustomReport,
@@ -23,6 +25,31 @@ from .notification_preference import (
     NotificationPreferenceDefaults,
 )
 from .reconciliation_log import BalanceMismatchAlert, ReconciliationLog
+from .revenue_recognition import (
+    AccrualTrackingLog,
+    DeferredRevenueSchedule,
+    RevenueAdjustment,
+    RevenueRecognition,
+)
+from .tax_report import (
+    TaxExemptionCertificate,
+    TaxJurisdictionConfig,
+    TaxReport,
+    WithholdingTaxRecord,
+)
+from .financial_statement import (
+    BudgetVsActual,
+    FinancialRatio,
+    FinancialStatement,
+    OperatingMetrics,
+)
+from .provider_settlement import (
+    PayoutSchedule,
+    ProviderAgreement,
+    ProviderCostTracking,
+    ProviderReconciliation,
+    ProviderSettlement,
+)
 from .reseller import (
     BulkOperation,
     CreditAllocation,
@@ -108,10 +135,31 @@ __all__ = [
     "CommissionTier",
     "PayoutRequest",
     "RevenueShare",
+    # Financial models - Phase C
+    "RevenueRecognition",
+    "DeferredRevenueSchedule",
+    "RevenueAdjustment",
+    "AccrualTrackingLog",
+    "TaxReport",
+    "TaxJurisdictionConfig",
+    "TaxExemptionCertificate",
+    "WithholdingTaxRecord",
+    "FinancialStatement",
+    "FinancialRatio",
+    "BudgetVsActual",
+    "OperatingMetrics",
+    # Provider settlement models - Phase C
+    "ProviderSettlement",
+    "ProviderCostTracking",
+    "PayoutSchedule",
+    "ProviderReconciliation",
+    "ProviderAgreement",
     # Reseller models
     "BulkOperation",
     "CreditAllocation",
     "ResellerAccount",
     "SubAccount",
     "SubAccountTransaction",
+    "Activity",
 ]
+

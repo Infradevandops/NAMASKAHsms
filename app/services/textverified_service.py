@@ -950,6 +950,82 @@ class TextVerifiedService:
             logger.error(f"Failed to cancel verification: {e}")
             return {"success": False, "error": str(e)}
 
+    # --- RESERVATIONS (RENTALS) ---
+
+    async def create_reservation(
+        self,
+        service: str,
+        country: str = "US",
+        duration_hours: float = 24.0
+    ) -> Dict[str, Any]:
+        """Create a long-term reservation (rental) for a service."""
+        if not self.enabled:
+            raise RuntimeError("TextVerified service disabled")
+
+        try:
+            # Map hours to minutes for the API
+            duration_minutes = int(duration_hours * 60)
+            
+            # TextVerified reservations are US-only in standard API
+            reservation = await asyncio.to_thread(
+                self.client.reservations.create,
+                service_name=service,
+                duration=duration_minutes
+            )
+            
+            # Costs are marked up in the platform level (RentalService)
+            # but we return raw cost here for accounting
+            return {
+                "id": reservation.id,
+                "phone_number": reservation.number,
+                "cost": float(reservation.total_cost),
+                "ends_at": reservation.ends_at,
+                "status": reservation.state.value,
+                "tv_object": reservation
+            }
+        except Exception as e:
+            logger.error(f"TextVerified reservation creation failed: {e}")
+            raise
+
+    async def get_reservation_messages(self, reservation_id: str) -> List[Dict[str, Any]]:
+        """Fetch all messages for an active reservation."""
+        if not self.enabled:
+            return []
+        try:
+            # Reservations use a different message retrieval endpoint
+            messages = await asyncio.to_thread(
+                self.client.reservations.messages,
+                reservation_id
+            )
+            return [
+                {
+                    "id": m.id,
+                    "text": m.sms_content,
+                    "code": m.parsed_code,
+                    "received_at": m.created_at.isoformat()
+                }
+                for m in messages
+            ]
+        except Exception as e:
+            logger.error(f"Failed to fetch reservation messages: {e}")
+            return []
+
+    async def extend_reservation(self, reservation_id: str, extra_hours: float) -> bool:
+        """Extend an existing reservation."""
+        if not self.enabled:
+            return False
+        try:
+            extra_minutes = int(extra_hours * 60)
+            await asyncio.to_thread(
+                self.client.reservations.extend,
+                reservation_id,
+                extra_minutes
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to extend reservation: {e}")
+            return False
+
     def _set_balance_cache(self, balance: float) -> None:
         """Cache balance value (used in tests)."""
         try:

@@ -380,7 +380,7 @@
         try {
             const token = localStorage.getItem('access_token');
             if (!token) { updateSidebarVisibility('freemium'); return; }
-            const response = await fetch('/api/tiers/current', {
+            const response = await fetch('/api/v1/billing/tiers/current', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {

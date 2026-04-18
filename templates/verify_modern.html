@@ -1128,100 +1128,124 @@ function showFallbackWarning(requested, assigned, sameState) {
 }
 
 // Start scanning with API polling
+// Start scanning with Server-Synced Polling
 function startPolling() {
     VerificationFlow.elapsedSeconds = 0;
-    const backoffMs = [2000, 2000, 3000, 3000, 5000, 5000];
-    let stepIdx = 0;
+    VerificationFlow.serverOffset = 0; // Offset between client and server time
+    
+    let pollCount = 0;
+    const initialDelay = 2000;
     
     async function poll() {
-        const delay = backoffMs[Math.min(stepIdx, backoffMs.length - 1)];
-        stepIdx++;
-        
-        VerificationFlow.scanInterval = setTimeout(poll, delay);
-        const startTime = Date.now();
-        
-        // Update timer UI every second or so
-        VerificationFlow.elapsedSeconds += delay / 1000;
-        const remaining = Math.max(0, 120 - VerificationFlow.elapsedSeconds);
-        const elEl = document.getElementById('elapsed-time');
-        const elapsedEl = document.getElementById('progress-elapsed');
-        const remainEl = document.getElementById('progress-remaining');
-        if (elEl) elEl.textContent = Math.round(VerificationFlow.elapsedSeconds);
-        if (elapsedEl) elapsedEl.textContent = Math.round(VerificationFlow.elapsedSeconds) + 's elapsed';
-        if (remainEl) remainEl.textContent = Math.round(remaining) + 's left';
-        const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
-        if (progressFill) progressFill.style.width = (VerificationFlow.elapsedSeconds / 120 * 100) + '%';
-        updateTimerRing(VerificationFlow.elapsedSeconds, 120);
-        // Show service name in scanning container
-        const svcEl = document.getElementById('scanning-service-name');
-        if (svcEl && VerificationFlow.selectedService) svcEl.textContent = VerificationFlow.selectedService;
-        
-        if (VerificationFlow.verificationId) {
-            try {
-                const res = await fetch(`/api/verification/status/${VerificationFlow.verificationId}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.status === 'completed' && data.sms_code) {
-                        document.getElementById('sms-code').textContent = data.sms_code;
-                        document.getElementById('code-received').style.display = 'block';
-                        document.querySelector('.scanning-container').style.display = 'none';
-                        
-                        // Update receipt details
-                        const carrier = data.assigned_carrier || data.operator || 'Auto';
-                        document.getElementById('receipt-carrier').textContent = carrier;
-                        document.getElementById('receipt-area-code').textContent = data.assigned_area_code || 'Any';
-                        
-                        if (data.fallback_applied) {
-                            document.getElementById('receipt-fallback-row').style.display = 'flex';
-                            document.getElementById('receipt-requested-ac').textContent = data.requested_area_code || '-';
-                        } else {
-                            document.getElementById('receipt-fallback-row').style.display = 'none';
-                        }
-                        
-                        window.toast.success('SMS code received');
-                        playArrivalSound();
-                        // Auto-copy if enabled
-                        if (localStorage.getItem('nsk_auto_copy') === 'true') {
-                            navigator.clipboard.writeText(data.sms_code).catch(() => {});
-                        }
-                        // Update copy button state
-                        const copyBtn = document.getElementById('copy-code-btn');
-                        if (copyBtn) copyBtn.classList.remove('copied');
-                        return;
-                    } else if (data.status === 'failed' || data.status === 'error') {
-                        clearTimeout(VerificationFlow.scanInterval);
-                        let msg = 'Verification failed.';
-                        if (data.failure_reason) {
-                            msg = data.failure_reason.replace(/_/g, ' ').toLowerCase();
-                            msg = msg.charAt(0).toUpperCase() + msg.slice(1);
-                        }
-                        showError('Verification Failed', msg);
+        if (!VerificationFlow.verificationId || VerificationFlow.currentStep !== 3) return;
+
+        try {
+            const res = await fetch(`/api/verification/status/${VerificationFlow.verificationId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                
+                // 1. Synchronize Clocks (Phase 12: Brutal Parity)
+                if (data.server_time) {
+                    const serverTime = new Date(data.server_time).getTime();
+                    VerificationFlow.serverOffset = serverTime - Date.now();
+                }
+
+                // 2. Handle Terminal States
+                if ((data.status === 'completed' || data.status === 'success') && data.sms_code) {
+                    VerificationFlow.smsReceived = true;
+                    stopPolling();
+                    
+                    document.getElementById('sms-code').textContent = data.sms_code;
+                    document.getElementById('code-received').style.display = 'block';
+                    document.querySelector('.scanning-container').style.display = 'none';
+                    
+                    document.getElementById('receipt-carrier').textContent = data.assigned_carrier || data.operator || 'Auto';
+                    document.getElementById('receipt-area-code').textContent = data.assigned_area_code || 'Any';
+                    
+                    if (data.fallback_applied) {
+                        document.getElementById('receipt-fallback-row').style.display = 'flex';
+                        document.getElementById('receipt-requested-ac').textContent = data.requested_area_code || '-';
+                    }
+                    
+                    window.toast.success('SMS code received');
+                    playArrivalSound();
+                    if (localStorage.getItem('nsk_auto_copy') === 'true') {
+                        navigator.clipboard.writeText(data.sms_code).catch(() => {});
+                    }
+                    return;
+                } else if (['failed', 'error', 'timeout', 'cancelled'].includes(data.status)) {
+                    stopPolling();
+                    let msg = data.failure_reason ? data.failure_reason.replace(/_/g, ' ') : 'Verification closed.';
+                    showError('Session Closed', msg.charAt(0).toUpperCase() + msg.slice(1));
+                    return;
+                }
+
+                // 3. Update Sync Timer
+                if (data.ends_at) {
+                    const endsAt = new Date(data.ends_at).getTime();
+                    const now = Date.now() + VerificationFlow.serverOffset;
+                    const remainingMs = Math.max(0, endsAt - now);
+                    const totalDurationMs = 120000; // 2 minutes standard
+                    
+                    const remainingSec = Math.round(remainingMs / 1000);
+                    const elapsedSec = Math.round((totalDurationMs - remainingMs) / 1000);
+                    
+                    VerificationFlow.elapsedSeconds = elapsedSec;
+                    
+                    // Update UI
+                    const elEl = document.getElementById('elapsed-time');
+                    const elapsedEl = document.getElementById('progress-elapsed');
+                    const remainEl = document.getElementById('progress-remaining');
+                    const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
+                    
+                    if (elEl) elEl.textContent = elapsedSec;
+                    if (elapsedEl) elapsedEl.textContent = elapsedSec + 's elapsed';
+                    if (remainEl) remainEl.textContent = remainingSec + 's left';
+                    if (progressFill) progressFill.style.width = Math.min(100, (elapsedSec / 120 * 100)) + '%';
+                    
+                    updateTimerRing(elapsedSec, 120);
+
+                    // Auto-timeout if server says we're done
+                    if (remainingMs <= 0) {
+                        stopPolling();
+                        window.toast.error('Verification timed out. You have not been charged.');
+                        goBack();
                         return;
                     }
                 }
-            } catch (e) { /* continue */ }
-        }
-
-         // Timeout check
-        if (VerificationFlow.elapsedSeconds >= 120) {
-            clearTimeout(VerificationFlow.scanInterval);
-            if (VerificationFlow.verificationId) {
-                fetch(`/api/verification/outcome/${VerificationFlow.verificationId}`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ outcome: 'timeout' })
-                }).catch(() => {});
             }
-            window.toast.error('Verification timed out. You have not been charged.');
-            goBack();
-            return;
-        }
+        } catch (e) { console.warn('Sync poll failed:', e); }
+
+        // 4. Adaptive Polling Interval
+        pollCount++;
+        let nextDelay = 3000;
+        if (pollCount < 5) nextDelay = 2000; // Fast start
+        else if (pollCount > 15) nextDelay = 5000; // Back off
+        
+        VerificationFlow.scanInterval = setTimeout(poll, nextDelay);
     }
     
-    poll().catch(e => console.error('Poll error:', e));
+    // Kick off first poll
+    poll();
+    
+    // Background UI ticker (keeps the ring smooth between polls)
+    const ticker = setInterval(() => {
+        if (VerificationFlow.currentStep !== 3 || VerificationFlow.smsReceived) {
+            clearInterval(ticker);
+            return;
+        }
+        // Local increment for smooth animation, will be corrected by next poll
+        const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
+        if (progressFill && VerificationFlow.elapsedSeconds < 120) {
+            const currentWidth = parseFloat(progressFill.style.width || "0");
+            progressFill.style.width = Math.min(100, currentWidth + (0.5 / 120 * 100)) + '%';
+        }
+    }, 500);
 }
+
 
 function stopPolling() {
     clearTimeout(VerificationFlow.scanInterval);

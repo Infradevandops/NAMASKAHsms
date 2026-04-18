@@ -163,7 +163,9 @@ class DisputeService:
             "balance_reversed": dispute.balance_reversed,
         }
 
-    async def get_open_disputes(self, user_id: Optional[str] = None) -> List[Dict]:
+    async def get_open_disputes(
+        self, user_id: Optional[str] = None
+    ) -> List[Dict]:
         """Get open disputes for user or all open disputes.
 
         Args:
