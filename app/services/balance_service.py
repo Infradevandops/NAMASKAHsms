@@ -1,7 +1,8 @@
 """Balance management service with dual-mode support."""
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
+from app.models.verification import Verification
 
 from sqlalchemy.orm import Session
 
@@ -110,3 +111,86 @@ class BalanceService:
             result["shortfall"] = required_amount - current_balance
 
         return result
+
+    @staticmethod
+    def deduct_credits_for_verification(
+        db: Session,
+        user: User,
+        verification: Verification,
+        cost: float,
+        service_name: str,
+        country_code: str,
+    ) -> Tuple[bool, Optional[str]]:
+        """Deduct credits and create transaction records.
+        
+        Returns:
+            Tuple of (success: bool, error_message: Optional[str])
+        """
+        from app.core.constants import FailureReason, TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+        from app.models.transaction import Transaction
+        from app.services.verification_status_service import mark_verification_failed
+        import uuid
+
+        # Check sufficient balance
+        if float(user.credits) < cost:
+            mark_verification_failed(
+                db,
+                verification,
+                reason=FailureReason.INSUFFICIENT_BALANCE,
+                error_message=f"Insufficient balance. Required: ${cost:.2f}, Available: ${user.credits:.2f}",
+                refund_eligible=False,
+            )
+            return False, "Insufficient balance"
+
+        try:
+            # Update user credits
+            old_balance = float(user.credits)
+            user.credits -= type(user.credits)(cost)
+            new_balance = float(user.credits)
+
+            # 1. Create BalanceTransaction (for accounting)
+            balance_tx = BalanceTransaction(
+                id=str(uuid.uuid4()),
+                user_id=user.id,
+                amount=-abs(cost),
+                type=TransactionType.DEBIT,
+                description=f"SMS: {service_name} ({country_code})",
+                balance_after=new_balance,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(balance_tx)
+            
+            # 2. Create Transaction (for analytics/history)
+            transaction = Transaction(
+                id=str(uuid.uuid4()),
+                user_id=user.id,
+                amount=-abs(cost),
+                type="sms_purchase",
+                description=f"SMS verification for {service_name}",
+                service=service_name,
+                status="completed",
+                reference=f"sms_{verification.id}",
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(transaction)
+            
+            # Link verification to balance transaction
+            verification.debit_transaction_id = balance_tx.id
+            
+            db.commit()
+            logger.info(f"Credits deducted for {user.id}: ${cost:.2f} (New balance: ${new_balance:.2f})")
+            
+            return True, None
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Credit deduction failed for {user.id}: {e}")
+            mark_verification_failed(
+                db,
+                verification,
+                reason=FailureReason.DATABASE_ERROR,
+                error_message=f"Transaction logging failed: {str(e)}",
+                refund_eligible=True,
+            )
+            return False, str(e)

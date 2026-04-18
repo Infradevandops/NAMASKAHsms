@@ -231,6 +231,8 @@ async def get_verification_history(
                     "requested_area_code": v.requested_area_code,
                     "fallback_applied": v.fallback_applied,
                     "same_state_fallback": v.same_state_fallback,
+                    "failure_reason": v.failure_reason,
+                    "failure_category": v.failure_category,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
                     "completed_at": (
                         v.completed_at.isoformat() if v.completed_at else None

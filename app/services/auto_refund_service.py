@@ -97,24 +97,45 @@ class AutoRefundService:
             except Exception as e:
                 logger.error(f"Failed to sync refund to PurchaseOutcome: {e}")
 
-            # Phase 11: Institutional Transparency
+            # Phase 11 & 12: Institutional Transparency & Financial Integrity
             display_reason = reason.replace("_", " ").title()
             if reason == "sms_timeout":
                 display_reason = "Carrier Delivery Failure"
             elif reason == "area_code_mismatch":
                 display_reason = "Area Code Mismatch"
 
+            from app.core.constants import TransactionType
+            from app.models.balance_transaction import BalanceTransaction
+            import uuid
+
+            # 1. Create BalanceTransaction (for accounting)
+            balance_tx = BalanceTransaction(
+                id=str(uuid.uuid4()),
+                user_id=verification.user_id,
+                amount=abs(refund_amount),
+                type=TransactionType.REFUND,
+                description=f"Refund: {verification.service_name} ({display_reason})",
+                balance_after=float(user.credits),
+                created_at=datetime.now(timezone.utc)
+            )
+            self.db.add(balance_tx)
+            self.db.flush()
+
+            # 2. Create Transaction (for analytics/history)
             transaction = Transaction(
+                id=str(uuid.uuid4()),
                 user_id=verification.user_id,
                 amount=refund_amount,
                 type="verification_refund",
                 description=f"Auto-refund: {verification.service_name} ({display_reason})",
+                status="completed",
+                reference=f"refund_{verification.id}",
+                created_at=datetime.now(timezone.utc)
             )
-
-            # Link transaction to verification
-            verification.refund_transaction_id = str(transaction.id)
-
             self.db.add(transaction)
+
+            # Link verification to balance transaction
+            verification.refund_transaction_id = balance_tx.id
             self.db.commit()
 
             new_balance = user.credits

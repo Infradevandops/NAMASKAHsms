@@ -151,12 +151,19 @@ function formatPhone(raw) {
                 statusLabel = 'SMS received';
             } else if (status === 'timeout') {
                 statusLabel = 'Timed out';
+            } else if (status === 'failed' || status === 'error') {
+                if (item.failure_reason) {
+                    statusLabel = item.failure_reason.replace(/_/g, ' ').toLowerCase();
+                    statusLabel = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
+                } else {
+                    statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                }
             }
 
             const smsCode = item.sms_code ? `<span style="font-family: monospace; font-weight: bold; background: #eee; padding: 2px 6px; border-radius: 4px;">${item.sms_code}</span>` : '<span style="color: #9ca3af;">-</span>';
             const carrier = item.assigned_carrier || item.carrier || '<span style="color: #9ca3af;">Auto</span>';
             const fallbackIndicator = item.fallback_applied ? ` <i class="fas fa-info-circle" style="color: #b45309; font-size: 11px;" title="Fallback applied (Requested ${item.requested_area_code || 'any'})"></i>` : '';
-            const cancelReasonTip = (item.cancel_reason && status !== 'cancelled') ? ` title="${item.cancel_reason}"` : '';
+            const cancelReasonTip = (item.cancel_reason && status !== 'cancelled') ? ` title="${item.cancel_reason}"` : (item.failure_category ? ` title="Category: ${item.failure_category}"` : '');
 
             return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);" data-id="${item.id}">

@@ -75,9 +75,13 @@ class RefundPolicyEnforcer:
                             Verification.status == "pending",
                             Verification.created_at < cutoff_time,
                         ),
-                        # Failed/timeout/cancelled not yet refunded
+                        # Failed/timeout/cancelled/error not yet refunded
                         and_(
-                            Verification.status.in_(["timeout", "failed", "cancelled"]),
+                            Verification.status.in_(["timeout", "failed", "cancelled", "error"]),
+                            or_(
+                                getattr(Verification, 'refund_eligible', True) == True,
+                                Verification.refund_eligible.is_(None)
+                            ),
                             or_(
                                 Verification.refunded == False,
                                 Verification.refunded.is_(None),
@@ -173,7 +177,7 @@ class RefundPolicyEnforcer:
                 return None
 
             # Check if refund needed
-            if verification.status not in ["timeout", "failed", "cancelled"]:
+            if verification.status not in ["timeout", "failed", "cancelled", "error"]:
                 logger.debug(
                     f"Verification {verification_id} status={verification.status} - no refund needed"
                 )

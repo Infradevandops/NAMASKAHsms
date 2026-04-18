@@ -1,6 +1,6 @@
 """Verification - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 
 from app.models.base import BaseModel
 
@@ -69,7 +69,11 @@ class Verification(BaseModel):
     refunded = Column(Boolean, default=False, nullable=False, index=True)
     refund_amount = Column(Float, nullable=True)
     refund_reason = Column(String, nullable=True)
-    refund_transaction_id = Column(String, nullable=True)
+    refund_transaction_id = Column(
+        String,
+        ForeignKey("balance_transactions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     refunded_at = Column(DateTime, nullable=True)
 
     # Telemetry and Routing tracking
@@ -78,6 +82,42 @@ class Verification(BaseModel):
     routing_reason = Column(String, nullable=True)
     city_honoured = Column(Boolean, default=True)
     city_note = Column(String, nullable=True)
+
+    # Financial tracking (NEW)
+    debit_transaction_id = Column(
+        String,
+        ForeignKey("balance_transactions.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="Links to balance_transactions debit record",
+    )
+    # Note: refund_transaction_id already exists in this model at line 72, 
+    # but we might want to update it to be a ForeignKey.
+    # Let's keep it and just ensure it's used correctly.
+
+    # Detailed status tracking (NEW)
+    failure_reason = Column(String(100), nullable=True, comment="Specific failure reason code")
+    failure_category = Column(
+        String(50),
+        nullable=True,
+        comment="Failure category (user_action, provider_issue, etc.)",
+    )
+
+    # SMS receipt tracking (NEW)
+    sms_received = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Whether SMS code was actually received",
+    )
+    # sms_received_at already exists at line 55.
+
+    # Refund eligibility (NEW)
+    refund_eligible = Column(
+        Boolean,
+        default=True,
+        nullable=False,
+        comment="Whether this failure qualifies for refund",
+    )
 
     def __init__(self, **kwargs):
         # Set defaults for retry tracking fields

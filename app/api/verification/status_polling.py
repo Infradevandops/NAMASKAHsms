@@ -56,6 +56,8 @@ class VerificationStatusService:
                         if verification.updated_at
                         else None
                     ),
+                    "failure_reason": verification.failure_reason,
+                    "failure_category": verification.failure_category,
                 }
 
             if verification.activation_id:
@@ -119,6 +121,8 @@ class VerificationStatusService:
                     if verification.updated_at
                     else None
                 ),
+                "failure_reason": verification.failure_reason,
+                "failure_category": verification.failure_category,
             }
 
         except Exception as e:

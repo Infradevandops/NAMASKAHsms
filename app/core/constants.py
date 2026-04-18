@@ -56,3 +56,89 @@ REFERRAL_CODE_LENGTH = 6
 SESSION_TIMEOUT_MINUTES = 30
 REFRESH_TOKEN_EXPIRY_DAYS = 7
 ACCESS_TOKEN_EXPIRY_HOURS = 24
+
+
+class FailureReason:
+    """Detailed failure reasons for verifications."""
+
+    # User Actions
+    USER_CANCELLED = "user_cancelled"
+    USER_TIMEOUT = "user_timeout"
+
+    # Provider Issues
+    NUMBER_UNAVAILABLE = "number_unavailable"
+    PROVIDER_API_ERROR = "provider_api_error"
+    PROVIDER_TIMEOUT = "provider_timeout"
+    SMS_NOT_DELIVERED = "sms_not_delivered"
+
+    # System Validation
+    VOIP_REJECTED = "voip_rejected"
+    CARRIER_MISMATCH = "carrier_mismatch"
+    AREA_CODE_UNAVAILABLE = "area_code_unavailable"
+    RETRY_EXHAUSTED = "retry_exhausted"
+
+    # Payment Issues
+    INSUFFICIENT_BALANCE = "insufficient_balance"
+    PAYMENT_FAILED = "payment_failed"
+
+    # Internal Errors
+    INTERNAL_ERROR = "internal_error"
+    DATABASE_ERROR = "database_error"
+    CONFIGURATION_ERROR = "configuration_error"
+
+    ALL = [
+        USER_CANCELLED,
+        USER_TIMEOUT,
+        NUMBER_UNAVAILABLE,
+        PROVIDER_API_ERROR,
+        PROVIDER_TIMEOUT,
+        SMS_NOT_DELIVERED,
+        VOIP_REJECTED,
+        CARRIER_MISMATCH,
+        AREA_CODE_UNAVAILABLE,
+        RETRY_EXHAUSTED,
+        INSUFFICIENT_BALANCE,
+        PAYMENT_FAILED,
+        INTERNAL_ERROR,
+        DATABASE_ERROR,
+        CONFIGURATION_ERROR,
+    ]
+
+
+class FailureCategory:
+    """High-level failure categories."""
+
+    USER_ACTION = "user_action"
+    PROVIDER_ISSUE = "provider_issue"
+    SYSTEM_VALIDATION = "system_validation"
+    PAYMENT_ISSUE = "payment_issue"
+    INTERNAL_ERROR = "internal_error"
+
+
+# Mapping of reason to category
+REASON_TO_CATEGORY = {
+    FailureReason.USER_CANCELLED: FailureCategory.USER_ACTION,
+    FailureReason.USER_TIMEOUT: FailureCategory.USER_ACTION,
+    FailureReason.NUMBER_UNAVAILABLE: FailureCategory.PROVIDER_ISSUE,
+    FailureReason.PROVIDER_API_ERROR: FailureCategory.PROVIDER_ISSUE,
+    FailureReason.PROVIDER_TIMEOUT: FailureCategory.PROVIDER_ISSUE,
+    FailureReason.SMS_NOT_DELIVERED: FailureCategory.PROVIDER_ISSUE,
+    FailureReason.VOIP_REJECTED: FailureCategory.SYSTEM_VALIDATION,
+    FailureReason.CARRIER_MISMATCH: FailureCategory.SYSTEM_VALIDATION,
+    FailureReason.AREA_CODE_UNAVAILABLE: FailureCategory.SYSTEM_VALIDATION,
+    FailureReason.RETRY_EXHAUSTED: FailureCategory.SYSTEM_VALIDATION,
+    FailureReason.INSUFFICIENT_BALANCE: FailureCategory.PAYMENT_ISSUE,
+    FailureReason.PAYMENT_FAILED: FailureCategory.PAYMENT_ISSUE,
+    FailureReason.INTERNAL_ERROR: FailureCategory.INTERNAL_ERROR,
+    FailureReason.DATABASE_ERROR: FailureCategory.INTERNAL_ERROR,
+    FailureReason.CONFIGURATION_ERROR: FailureCategory.INTERNAL_ERROR,
+}
+
+
+class TransactionType:
+    """Balance transaction types."""
+
+    DEBIT = "debit"
+    REFUND = "refund"
+    CREDIT = "credit"
+    ADJUSTMENT = "adjustment"

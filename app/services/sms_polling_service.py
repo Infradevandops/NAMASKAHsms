@@ -274,12 +274,8 @@ class SMSPollingService:
         if not v or v.status != "pending":
             return
 
-        v.status = "completed"
-        v.outcome = "completed"
-        v.completed_at = datetime.now(timezone.utc)
-        v.sms_text = sms_text
-        v.sms_code = sms_code
-        db.commit()
+        from app.services.verification_status_service import mark_sms_code_received
+        mark_sms_code_received(db, v, sms_code, sms_text)
 
         # Instrumentation
         latency = None
@@ -328,10 +324,21 @@ class SMSPollingService:
     async def _handle_timeout(
         self, verification: Verification, db, reason: str = "timeout"
     ):
-        """Handle verification timeout."""
-        verification.status = "timeout"
-        verification.outcome = "timeout"
-        db.commit()
+        from app.core.constants import FailureReason
+        from app.services.verification_status_service import mark_verification_failed
+        
+        # Calculate reason
+        failure_reason = FailureReason.SMS_NOT_DELIVERED
+        if reason == "timeout":
+            failure_reason = FailureReason.PROVIDER_TIMEOUT
+            
+        mark_verification_failed(
+            db, 
+            verification, 
+            reason=failure_reason,
+            error_message=f"SMS not received within timeframe: {reason}",
+            refund_eligible=True
+        )
 
         # Phase 10: Categorization
         outcome_category = "NETWORK"
