@@ -40,6 +40,7 @@ class VerificationStatusService:
 
             # Calculate expiry (Phase 12: Elite Timer Sync)
             from app.core.config import settings
+
             timeout_minutes = getattr(settings, "sms_polling_max_minutes", 2)
             ends_at = None
             if verification.created_at:
@@ -63,7 +64,11 @@ class VerificationStatusService:
                 "requested_area_code": verification.requested_area_code,
                 "fallback_applied": verification.fallback_applied,
                 "same_state_fallback": verification.same_state_fallback,
-                "created_at": verification.created_at.isoformat() if verification.created_at else None,
+                "created_at": (
+                    verification.created_at.isoformat()
+                    if verification.created_at
+                    else None
+                ),
                 "updated_at": (
                     verification.updated_at.isoformat()
                     if verification.updated_at
@@ -85,7 +90,7 @@ class VerificationStatusService:
                     incoming_code = None
                     incoming_text = None
                     new_status = verification.status
-                    
+
                     if provider == "textverified":
                         tv_status = await self.textverified.get_verification_status(
                             verification.activation_id
@@ -94,17 +99,25 @@ class VerificationStatusService:
                         incoming_text = tv_status.get("sms_text")
                         new_status = tv_status.get("status", verification.status)
                     elif provider == "5sim":
-                        from app.services.providers.fivesim_adapter import FiveSimAdapter
+                        from app.services.providers.fivesim_adapter import (
+                            FiveSimAdapter,
+                        )
+
                         adapter = FiveSimAdapter()
-                        messages = await adapter.check_messages(verification.activation_id)
+                        messages = await adapter.check_messages(
+                            verification.activation_id
+                        )
                         if messages:
                             incoming_code = messages[-1].code
                             incoming_text = messages[-1].text
                             new_status = "completed"
                     elif provider == "telnyx":
                         from app.services.providers.telnyx_adapter import TelnyxAdapter
+
                         adapter = TelnyxAdapter()
-                        messages = await adapter.check_messages(verification.activation_id)
+                        messages = await adapter.check_messages(
+                            verification.activation_id
+                        )
                         if messages:
                             incoming_code = messages[-1].code
                             incoming_text = messages[-1].text
@@ -114,7 +127,10 @@ class VerificationStatusService:
 
                     if incoming_code and incoming_code != verification.sms_code:
                         # Success path
-                        from app.services.verification_status_service import mark_sms_code_received
+                        from app.services.verification_status_service import (
+                            mark_sms_code_received,
+                        )
+
                         await mark_sms_code_received(
                             self.db, verification, incoming_code, incoming_text
                         )
@@ -130,17 +146,22 @@ class VerificationStatusService:
 
                         # Terminal failure handling
                         if verification.status in ["failed", "timeout", "cancelled"]:
-                            from app.services.auto_refund_service import AutoRefundService
+                            from app.services.auto_refund_service import (
+                                AutoRefundService,
+                            )
+
                             refund_service = AutoRefundService(self.db)
                             await refund_service.process_verification_refund(
                                 verification_id, verification.status
                             )
-                            
+
                         # Update base_response with new status/text
                         base_response["status"] = verification.status
                         base_response["sms_code"] = verification.sms_code
                         base_response["sms_text"] = verification.sms_text
-                        base_response["updated_at"] = verification.updated_at.isoformat()
+                        base_response["updated_at"] = (
+                            verification.updated_at.isoformat()
+                        )
 
                 except Exception as e:
                     logger.error(
@@ -154,7 +175,6 @@ class VerificationStatusService:
             raise HTTPException(
                 status_code=500, detail=f"Status polling failed: {str(e)}"
             )
-
 
         except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")

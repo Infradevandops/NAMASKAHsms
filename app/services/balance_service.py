@@ -37,7 +37,9 @@ class BalanceService:
             # Admin: Always fetch from TextVerified with row-level locking for sync
             try:
                 # Use a fresh lock-protected query for the update phase
-                admin_user = db.query(User).filter(User.id == user_id).with_for_update().first()
+                admin_user = (
+                    db.query(User).filter(User.id == user_id).with_for_update().first()
+                )
                 if not admin_user:
                     raise ValueError("Admin user lost during sync")
 
@@ -183,7 +185,7 @@ class BalanceService:
 
             # Fix: Ensure verification points to the audit ledger
             verification.debit_transaction_id = balance_tx.id
-            
+
             # Atomic Sync: Mirror IDs for parity
             transaction.payment_log_id = balance_tx.id
 
@@ -200,9 +202,11 @@ class BalanceService:
                 dispatcher = NotificationDispatcher(db)
                 # 1. Notify balance update
                 from app.core.cache import get_redis
-                # We use a background task for notifications instead of create_task here 
+
+                # We use a background task for notifications instead of create_task here
                 # to keep this service focused on DB integrity.
                 import asyncio
+
                 asyncio.create_task(
                     dispatcher.notify_balance_deducted(
                         user_id=user.id,
@@ -237,4 +241,3 @@ class BalanceService:
                 refund_eligible=True,
             )
             return False, str(e)
-

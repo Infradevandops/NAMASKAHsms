@@ -137,30 +137,30 @@ class AutoRefundService:
 
             # Link verification to balance transaction
             verification.refund_transaction_id = balance_tx.id
-            
+
             # ATOMIC COMMIT: Only commit once all ledger and tracking records are staged
             self.db.commit()
 
             # --- INSTITUTIONAL TELEMETRY ---
             # Sync refund details to PurchaseOutcome
             from app.services.purchase_intelligence import PurchaseIntelligenceService
-            
+
             # Use current time as processed_at
             processed_at = datetime.now(timezone.utc)
-            
+
             # If verification.refunded_at was set earlier in this method (line 79)
-            # we can use it as a reference for requested_at if needed, 
+            # we can use it as a reference for requested_at if needed,
             # but usually requested_at is when the decision to refund was made.
-            
+
             import asyncio
-            
+
             asyncio.create_task(
                 PurchaseIntelligenceService.update_sms_received(
                     verification_id=str(verification.id),
                     sms_received=False,  # Still False since it's a refund
                     refund_reason=reason,
                     refund_transaction_id=balance_tx.id,
-                    refund_requested_at=verification.refunded_at, # already set at line 79
+                    refund_requested_at=verification.refunded_at,  # already set at line 79
                     refund_processed_at=processed_at,
                 )
             )

@@ -20,6 +20,7 @@ async def get_recent_activity(
 ):
     return await _get_activity_internal(user_id, db, page, limit)
 
+
 @router.get("/activity/recent")
 async def get_recent_activity_list(
     user_id: str = Depends(get_current_user_id),
@@ -27,6 +28,7 @@ async def get_recent_activity_list(
 ):
     result = await _get_activity_internal(user_id, db, 1, 10)
     return result["verifications"]
+
 
 async def _get_activity_internal(user_id: str, db: Session, page: int, limit: int):
     offset = (page - 1) * limit

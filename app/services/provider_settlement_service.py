@@ -50,9 +50,9 @@ class ProviderSettlementService:
             year, month = map(int, period.split("-"))
             settlement_start = datetime(year, month, 1, tzinfo=timezone.utc)
             if month == 12:
-                settlement_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(
-                    seconds=1
-                )
+                settlement_end = datetime(
+                    year + 1, 1, 1, tzinfo=timezone.utc
+                ) - timedelta(seconds=1)
             else:
                 settlement_end = datetime(
                     year, month + 1, 1, tzinfo=timezone.utc
@@ -62,7 +62,11 @@ class ProviderSettlementService:
             message_cost = total_messages * per_message_cost
             other_fees = message_cost * 0.05  # 5% in other fees
             total_cost = message_cost + other_fees
-            delivery_rate = (successful_messages / total_messages * 100) if total_messages > 0 else 0
+            delivery_rate = (
+                (successful_messages / total_messages * 100)
+                if total_messages > 0
+                else 0
+            )
 
             # Create settlement
             settlement = ProviderSettlement(
@@ -135,7 +139,9 @@ class ProviderSettlementService:
                 raise ValueError(f"Settlement {settlement_id} not found")
 
             settlement.paid_amount += paid_amount
-            settlement.remaining_balance = settlement.total_cost - settlement.paid_amount
+            settlement.remaining_balance = (
+                settlement.total_cost - settlement.paid_amount
+            )
             settlement.paid_date = datetime.now(timezone.utc)
             settlement.payment_method = payment_method
             settlement.payment_reference = payment_reference
@@ -187,7 +193,9 @@ class ProviderSettlementService:
         """
         try:
             daily_cost = messages_sent * per_message_rate
-            success_rate = (successful_sends / messages_sent * 100) if messages_sent > 0 else 0
+            success_rate = (
+                (successful_sends / messages_sent * 100) if messages_sent > 0 else 0
+            )
 
             tracking = ProviderCostTracking(
                 provider_id=provider_id,
@@ -203,9 +211,7 @@ class ProviderSettlementService:
             self.db.add(tracking)
             self.db.commit()
 
-            logger.info(
-                f"Daily costs tracked for {provider_id}: ${daily_cost:.2f}"
-            )
+            logger.info(f"Daily costs tracked for {provider_id}: ${daily_cost:.2f}")
 
             return {
                 "status": "success",
@@ -305,9 +311,15 @@ class ProviderSettlementService:
                 raise ValueError(f"Settlement {settlement_id} not found")
 
             # Calculate variance
-            message_variance = int(settlement.total_messages_sent) - provider_invoice_count
+            message_variance = (
+                int(settlement.total_messages_sent) - provider_invoice_count
+            )
             cost_variance = settlement.total_cost - provider_invoice_cost
-            variance_percent = (abs(cost_variance) / settlement.total_cost * 100) if settlement.total_cost > 0 else 0
+            variance_percent = (
+                (abs(cost_variance) / settlement.total_cost * 100)
+                if settlement.total_cost > 0
+                else 0
+            )
 
             # Create reconciliation
             reconciliation = ProviderReconciliation(

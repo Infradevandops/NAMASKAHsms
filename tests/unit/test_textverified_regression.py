@@ -8,6 +8,12 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
+import os
+
+# Institutional Stability: Force test environment before any imports
+os.environ["ALLOW_SQLITE_FALLBACK"] = "true"
+os.environ["USE_TEST_DB"] = "true"
+os.environ["ENVIRONMENT"] = "testing"
 
 
 def _make_service():
@@ -22,6 +28,10 @@ def _make_service():
             "ENVIRONMENT": "testing",
         },
     ):
+        from app.core.config import get_settings
+
+        get_settings.cache_clear()
+
         with patch("app.services.textverified_service.textverified") as mock_tv_module:
             mock_tv_module.TextVerified.return_value = MagicMock()
             from app.services.textverified_service import TextVerifiedService
@@ -136,7 +146,7 @@ async def test_create_verification_returns_ends_at_and_tv_object():
     with patch(
         "asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result
     ), patch.object(
-        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415"]
+        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415", "202"]
     ), patch.object(
         svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
     ):
@@ -343,7 +353,7 @@ async def test_voip_rejection_triggers_retry():
         return mobile_result
 
     with patch("asyncio.to_thread", side_effect=_mock_to_thread), patch.object(
-        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=None
+        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["202"]
     ), patch.object(
         svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
     ), patch.object(

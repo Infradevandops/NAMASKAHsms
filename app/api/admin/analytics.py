@@ -29,12 +29,12 @@ async def get_analytics_overview(
 ):
     """Get analytics overview using the hardened AnalyticsService."""
     from app.services.analytics_service import AnalyticsService
-    
+
     try:
         service = AnalyticsService(db)
         overview = await service.get_overview()
         refund_stats = await service.get_refund_stats()
-        
+
         return {
             "overview": overview,
             "refund_stats": refund_stats,
@@ -54,6 +54,7 @@ async def get_analytics_timeseries(
 ):
     """Get timeseries data for charts."""
     from app.services.analytics_service import AnalyticsService
+
     try:
         service = AnalyticsService(db)
         return await service.get_timeseries(days=days)
@@ -70,6 +71,7 @@ async def get_analytics_services(
 ):
     """Get per-service statistics."""
     from app.services.analytics_service import AnalyticsService
+
     try:
         service = AnalyticsService(db)
         return await service.get_services_stats()

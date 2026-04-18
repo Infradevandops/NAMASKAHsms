@@ -42,7 +42,7 @@ class VerificationPricingService:
         """
         user = db.query(User).filter(User.id == user_id).first()
         resolved_tier = tier or user.subscription_tier
-        
+
         description = "SMS Verification"
         credits_deducted = 0.0
 
@@ -78,7 +78,7 @@ class VerificationPricingService:
                 type="sms_purchase",
                 description=description,
                 status="completed",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(tx)
 
@@ -88,7 +88,7 @@ class VerificationPricingService:
                 type=TransactionType.DEBIT,
                 description=description,
                 balance_after=float(user.credits),
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
 

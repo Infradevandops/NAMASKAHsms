@@ -76,16 +76,18 @@ class ProviderRouter:
         """Fetch balances for all enabled providers concurrently (V6.0 Mastery)."""
         import asyncio
         from app.services.providers.base_provider import SMSProvider
-        
+
         provider_map = {
             "textverified": self._get_textverified(),
             "telnyx": self._get_telnyx(),
             "5sim": self._get_fivesim(),
-            "pvapins": self._get_pvapins()
+            "pvapins": self._get_pvapins(),
         }
-        
-        enabled_map = {name: adapter for name, adapter in provider_map.items() if adapter.enabled}
-        
+
+        enabled_map = {
+            name: adapter for name, adapter in provider_map.items() if adapter.enabled
+        }
+
         async def _safe_balance(name: str, adapter: SMSProvider) -> float:
             try:
                 # Add a 5s timeout to avoid hanging the audit
@@ -97,7 +99,7 @@ class ProviderRouter:
         names = list(enabled_map.keys())
         tasks = [_safe_balance(name, adapter) for name, adapter in enabled_map.items()]
         results = await asyncio.gather(*tasks)
-        
+
         return dict(zip(names, results))
 
     def _pvapins_covers(self, country: str) -> bool:
@@ -115,13 +117,13 @@ class ProviderRouter:
         capability: str = "sms",
     ) -> Tuple[SMSProvider, bool, Optional[str]]:
         """Select provider for a request using Autonomous Predictive Scoring (Phase 12).
-        
+
         Rentals are routed specifically:
         - US Rental -> TextVerified
         - Intl Rental -> 5sim (best effort)
         """
         country_upper = country.upper()
-        
+
         # --- RENTAL ROUTING (V6.0.0) ---
         if capability == "rental":
             if country_upper == "US":
@@ -137,14 +139,17 @@ class ProviderRouter:
         # US is specialized (TextVerified preferred for proximity accuracy)
         if country_upper == "US":
             from app.core.textverified_health import get_health_monitor
+
             metrics = get_health_monitor().get_metrics()
-            
+
             # If healthy, return TV immediately
             if metrics["status"] == "healthy":
                 return self._get_textverified(), bool(city), None
-            
+
             # If unhealthy/degraded, don't return immediately, allow candidates to compete
-            logger.warning(f"TextVerified US status is {metrics['status']}, evaluating alternatives...")
+            logger.warning(
+                f"TextVerified US status is {metrics['status']}, evaluating alternatives..."
+            )
 
         # Gather enabled and capable providers
         if self._get_textverified().enabled:
@@ -213,9 +218,13 @@ class ProviderRouter:
             codes = lookup(city)
             if codes:
                 resolved_area_code = codes[0]
-                logger.info(f"City '{city}' resolved to area codes {codes} for US request")
+                logger.info(
+                    f"City '{city}' resolved to area codes {codes} for US request"
+                )
             else:
-                logger.info(f"City '{city}' not in US map, proceeding without area code")
+                logger.info(
+                    f"City '{city}' not in US map, proceeding without area code"
+                )
 
         primary, city_attempted, pre_note = await self.get_provider(
             db, service, country, city, user_tier, capability=capability
@@ -235,9 +244,9 @@ class ProviderRouter:
             "carrier": None,
             "capability": capability,
             "city": city if city_attempted else None,
-            "duration_hours": duration_hours
+            "duration_hours": duration_hours,
         }
-        
+
         city_for_provider = city if city_attempted else None
 
         if primary.name == "textverified":

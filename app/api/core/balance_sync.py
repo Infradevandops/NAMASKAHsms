@@ -40,32 +40,34 @@ class BalanceSyncService:
             if api_balance is not None and abs(db_balance - api_balance) > 0.01:
                 difference = api_balance - db_balance
                 user.credits = api_balance
-                
+
                 # 1. Analytics Record
                 from app.models.transaction import Transaction
+
                 sync_tx = Transaction(
                     user_id=user.id,
                     amount=difference,
                     type="credit" if difference > 0 else "debit",
                     description=f"Auto-sync from Provider API: ${api_balance:.2f} (diff: ${difference:+.2f})",
                     status="completed",
-                    created_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(timezone.utc),
                 )
                 self.db.add(sync_tx)
 
                 # 2. Audit Record
                 from app.models.balance_transaction import BalanceTransaction
                 from app.core.constants import TransactionType
+
                 audit_tx = BalanceTransaction(
                     user_id=user.id,
                     amount=difference,
                     type=TransactionType.ADJUSTMENT,
                     description=f"Balance Sync: Provider API (${api_balance:.2f})",
                     balance_after=float(api_balance),
-                    created_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(timezone.utc),
                 )
                 self.db.add(audit_tx)
-                
+
                 self.db.commit()
                 logger.info(
                     f"Updated admin user {user.id} balance from {db_balance} to {api_balance}"

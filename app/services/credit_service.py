@@ -93,9 +93,11 @@ class CreditService:
         balance_tx = BalanceTransaction(
             user_id=user_id,
             amount=amount,
-            type=transaction_type
-            if transaction_type in [TransactionType.CREDIT, TransactionType.REFUND]
-            else TransactionType.CREDIT,
+            type=(
+                transaction_type
+                if transaction_type in [TransactionType.CREDIT, TransactionType.REFUND]
+                else TransactionType.CREDIT
+            ),
             description=description,
             balance_after=new_balance,
             created_at=datetime.now(timezone.utc),

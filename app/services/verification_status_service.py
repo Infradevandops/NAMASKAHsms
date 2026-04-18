@@ -34,23 +34,22 @@ async def mark_verification_failed(
     verification.refund_eligible = refund_eligible
     verification.sms_received = False
     verification.completed_at = datetime.now(timezone.utc)
-    
+
     # Critical Fix: Process refund if eligible (Phase 12: Atomic Integrity)
     if refund_eligible and not getattr(verification, "refunded", False):
         from app.services.auto_refund_service import AutoRefundService
-        
+
         try:
             # Create refund service
             refund_service = AutoRefundService(db)
             # Await the refund process directly for atomic completion
-            await refund_service.process_verification_refund(
-                verification.id, reason
-            )
+            await refund_service.process_verification_refund(verification.id, reason)
         except Exception as e:
             from app.core.logging import get_logger
+
             logger = get_logger(__name__)
             logger.error(f"Failed to process atomic refund for {verification.id}: {e}")
-            
+
     db.commit()
 
 
@@ -81,20 +80,18 @@ async def mark_sms_code_received(
     verification.refund_eligible = False  # No refund if message received
     verification.failure_reason = None
     verification.failure_category = None
-    
+
     # Store voice metadata
     if transcription:
         verification.transcription = transcription
     if audio_url:
         verification.audio_url = audio_url
-        
+
     db.commit()
 
 
 async def mark_verification_transcribing(
-    db: Session,
-    verification: Verification,
-    audio_url: Optional[str] = None
+    db: Session, verification: Verification, audio_url: Optional[str] = None
 ) -> None:
     """Mark voice verification as transcribing (Phase 6 Mastery)."""
     verification.status = "transcribing"
@@ -115,4 +112,3 @@ async def mark_verification_cancelled_by_user(
         error_message="User cancelled verification",
         refund_eligible=True,
     )
-

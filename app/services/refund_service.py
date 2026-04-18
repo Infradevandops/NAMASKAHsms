@@ -111,7 +111,7 @@ class RefundService:
                     created_at=datetime.now(timezone.utc),
                 )
                 db.add(balance_tx)
-                
+
                 if hasattr(db, "commit"):
                     db.commit()
 
@@ -162,7 +162,7 @@ class RefundService:
                 created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
-            
+
             if hasattr(db, "commit"):
                 db.commit()
 
