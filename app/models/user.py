@@ -64,6 +64,12 @@ class User(BaseModel):
     commission_tier = Column(String(50), nullable=True)
     is_affiliate = Column(Boolean, default=False, nullable=False)
 
+    # Credit hold for failed refunds
+    credit_hold_amount = Column(Numeric(10, 4), default=0.0, nullable=False)
+    credit_hold_reason = Column(String, nullable=True)
+    credit_hold_until = Column(DateTime, nullable=True)
+    last_reconciliation_at = Column(DateTime, nullable=True)
+
     # Admin management fields
 
     is_active = Column(Boolean, default=True, nullable=False)
