@@ -1,13 +1,14 @@
 """Rental verification endpoints."""
 
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.services.rental_service import RentalService
 from app.schemas.verification import VerificationRequest
+from app.services.rental_service import RentalService
 
 router = APIRouter(prefix="/rentals", tags=["Rentals"])
 

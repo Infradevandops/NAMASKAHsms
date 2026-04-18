@@ -60,9 +60,10 @@ async def check_financial_integrity(
     offset: int = 0,
 ):
     """Deep audit: Verify that User.credits matches Sum(BalanceTransaction)."""
+    from sqlalchemy import func
+
     from app.models.balance_transaction import BalanceTransaction
     from app.models.user import User
-    from sqlalchemy import func
 
     users = db.query(User).offset(offset).limit(limit).all()
     discrepancies = []

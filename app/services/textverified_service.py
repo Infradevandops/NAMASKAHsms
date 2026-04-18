@@ -11,8 +11,8 @@ from requests.adapters import HTTPAdapter
 from app.core.config import get_settings
 from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
-from app.services.carrier_lookup import CarrierLookupService
 from app.services.area_code_geo import get_ranked_alternatives
+from app.services.carrier_lookup import CarrierLookupService
 from app.services.phone_validator import PhoneValidator
 from app.services.purchase_intelligence import PurchaseIntelligenceService
 

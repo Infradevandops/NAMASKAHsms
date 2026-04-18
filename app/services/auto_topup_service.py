@@ -66,8 +66,9 @@ class AutoTopupService:
             user.credits = type(user.credits)(float(user.credits) + topup_amount)
 
             # Record in main Transaction table (Analytics)
-            from app.models.transaction import Transaction
             from datetime import datetime, timezone
+
+            from app.models.transaction import Transaction
 
             transaction = Transaction(
                 user_id=user_id,

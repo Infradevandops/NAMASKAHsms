@@ -55,8 +55,8 @@ class BalanceSyncService:
                 self.db.add(sync_tx)
 
                 # 2. Audit Record
-                from app.models.balance_transaction import BalanceTransaction
                 from app.core.constants import TransactionType
+                from app.models.balance_transaction import BalanceTransaction
 
                 audit_tx = BalanceTransaction(
                     user_id=user.id,

@@ -319,8 +319,8 @@ async def request_verification(
                 difference = -actual_cost
                 user.credits -= actual_cost
 
-                from app.models.balance_transaction import BalanceTransaction
                 from app.core.constants import TransactionType
+                from app.models.balance_transaction import BalanceTransaction
 
                 balance_tx = BalanceTransaction(
                     user_id=user.id,

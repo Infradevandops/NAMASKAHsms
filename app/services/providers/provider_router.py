@@ -75,6 +75,7 @@ class ProviderRouter:
     async def get_provider_balances(self) -> Dict[str, float]:
         """Fetch balances for all enabled providers concurrently (V6.0 Mastery)."""
         import asyncio
+
         from app.services.providers.base_provider import SMSProvider
 
         provider_map = {

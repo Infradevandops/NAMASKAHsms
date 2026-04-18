@@ -5,7 +5,6 @@ import io
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
@@ -20,7 +19,6 @@ from app.models.financial_statement import (
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-
 
 logger = get_logger(__name__)
 

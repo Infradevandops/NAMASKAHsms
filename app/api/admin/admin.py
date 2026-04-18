@@ -144,8 +144,9 @@ def manage_user_credits(
 
     # Create transaction records
     from datetime import datetime, timezone
-    from app.models.balance_transaction import BalanceTransaction
+
     from app.core.constants import TransactionType
+    from app.models.balance_transaction import BalanceTransaction
 
     # Analytics record
     transaction = Transaction(
@@ -192,8 +193,9 @@ def add_user_credits(
         user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
 
         from datetime import datetime, timezone
-        from app.models.balance_transaction import BalanceTransaction
+
         from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
 
         # Analytics record
         transaction = Transaction(
@@ -248,8 +250,9 @@ def deduct_user_credits(
         user.credits -= amount
 
         from datetime import datetime, timezone
-        from app.models.balance_transaction import BalanceTransaction
+
         from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
 
         # Analytics record
         transaction = Transaction(
@@ -545,8 +548,8 @@ async def admin_cancel_verification(
         db.add(transaction)
 
         # Credit transaction (Audit)
-        from app.models.balance_transaction import BalanceTransaction
         from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
 
         balance_tx = BalanceTransaction(
             user_id=user.id,

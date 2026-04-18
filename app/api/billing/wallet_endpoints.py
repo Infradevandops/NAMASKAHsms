@@ -4,24 +4,22 @@ Handles transaction intents, crypto confirmations, and high-density wallet analy
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-
-from app.core.dependencies import get_current_user_id
-from app.models.transaction import PaymentLog, Transaction
-from app.models.balance_transaction import BalanceTransaction
-from app.models.user import User
 from app.core.config import settings
+from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
+from app.models.balance_transaction import BalanceTransaction
+from app.models.transaction import PaymentLog, Transaction
+from app.models.user import User
 from app.services.financial_statements_service import FinancialStatementsService
-from sqlalchemy import func
-
 
 logger = get_logger(__name__)
 router = APIRouter()
