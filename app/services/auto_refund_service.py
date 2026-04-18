@@ -133,7 +133,7 @@ class AutoRefundService:
                 reference=f"refund_{verification.id}",
                 created_at=datetime.now(timezone.utc),
             )
-            db.add(transaction)
+            self.db.add(transaction)
 
             # Link verification to balance transaction
             verification.refund_transaction_id = balance_tx.id
@@ -151,6 +151,8 @@ class AutoRefundService:
             # If verification.refunded_at was set earlier in this method (line 79)
             # we can use it as a reference for requested_at if needed, 
             # but usually requested_at is when the decision to refund was made.
+            
+            import asyncio
             
             asyncio.create_task(
                 PurchaseIntelligenceService.update_sms_received(

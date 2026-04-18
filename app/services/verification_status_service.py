@@ -91,6 +91,18 @@ async def mark_sms_code_received(
     db.commit()
 
 
+async def mark_verification_transcribing(
+    db: Session,
+    verification: Verification,
+    audio_url: Optional[str] = None
+) -> None:
+    """Mark voice verification as transcribing (Phase 6 Mastery)."""
+    verification.status = "transcribing"
+    if audio_url:
+        verification.audio_url = audio_url
+    db.commit()
+
+
 async def mark_verification_cancelled_by_user(
     db: Session,
     verification: Verification,

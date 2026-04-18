@@ -17,6 +17,9 @@ def _make_service():
         {
             "TEXTVERIFIED_API_KEY": "test-key",
             "TEXTVERIFIED_EMAIL": "test@example.com",
+            "ALLOW_SQLITE_FALLBACK": "true",
+            "USE_TEST_DB": "true",
+            "ENVIRONMENT": "testing",
         },
     ):
         with patch("app.services.textverified_service.textverified") as mock_tv_module:
@@ -149,8 +152,12 @@ async def test_create_verification_returns_ends_at_and_tv_object():
 
             with patch(
                 "app.services.textverified_service.CarrierLookupService"
-            ) as MockCL:
+            ) as MockCL, patch(
+                "app.services.textverified_service.PurchaseIntelligenceService"
+            ) as MockPI:
                 MockCL.return_value.enabled = False
+                MockPI.log_outcome = AsyncMock()
+                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
 
                 result = await svc.create_verification(
                     service="whatsapp",
@@ -289,8 +296,12 @@ async def test_area_code_fallback_same_state():
                 "is_voip": False,
             }
             MockCL.return_value.enabled = False
+            
+            with patch("app.services.textverified_service.PurchaseIntelligenceService") as MockPI:
+                MockPI.log_outcome = AsyncMock()
+                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
 
-            result = await svc.create_verification(
+                result = await svc.create_verification(
                 service="whatsapp",
                 country="US",
                 area_code="415",
@@ -350,7 +361,11 @@ async def test_voip_rejection_triggers_retry():
             ]
             MockCL.return_value.enabled = False
 
-            result = await svc.create_verification(
+            with patch("app.services.textverified_service.PurchaseIntelligenceService") as MockPI:
+                MockPI.log_outcome = AsyncMock()
+                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
+
+                result = await svc.create_verification(
                 service="whatsapp",
                 country="US",
                 max_retries=3,

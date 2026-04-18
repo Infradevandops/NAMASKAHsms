@@ -74,6 +74,7 @@ class CreditService:
         # Add credits
         old_balance = float(user.credits or 0.0)
         user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
+        new_balance = float(user.credits)
 
         # Create transaction record
         transaction = Transaction(
@@ -101,8 +102,6 @@ class CreditService:
         )
         self.db.add(balance_tx)
         self.db.commit()
-
-        new_balance = float(user.credits)
 
         logger.info(
             f"Added {amount} credits to user {user_id}. "
@@ -193,6 +192,7 @@ class CreditService:
         # Deduct credits
         old_balance = current_balance
         user.credits = current_balance - amount
+        new_balance = float(user.credits)
 
         # Create transaction record
         transaction = Transaction(
@@ -218,8 +218,6 @@ class CreditService:
         )
         self.db.add(balance_tx)
         self.db.commit()
-
-        new_balance = float(user.credits)
 
         # Trigger auto-recharge if balance dropped below threshold
         try:
@@ -367,14 +365,14 @@ class CreditService:
 
         for t in transactions:
             amount = float(t.amount)
-        if t.type == "credit":
-            summary["total_credits_added"] += max(0, amount)
-        elif t.type == "debit":
-            summary["total_credits_deducted"] += abs(min(0, amount))
-        elif t.type == "bonus":
-            summary["total_bonuses"] += max(0, amount)
-        elif t.type == "refund":
-            summary["total_refunds"] += max(0, amount)
+            if t.type == "credit":
+                summary["total_credits_added"] += max(0, amount)
+            elif t.type == "debit":
+                summary["total_credits_deducted"] += abs(min(0, amount))
+            elif t.type == "bonus":
+                summary["total_bonuses"] += max(0, amount)
+            elif t.type == "refund":
+                summary["total_refunds"] += max(0, amount)
 
         logger.info(f"Generated transaction summary for user {user_id}")
 
