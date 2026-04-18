@@ -20,24 +20,25 @@
     </div>
 </div>
 
-<div class="card">
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+        <thead style="background: #f8fafc;">
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Country</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Carrier</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Number</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Code</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Cost</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Actions</th>
+                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px;">SERVICE / COUNTRY</th>
+                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px;">NUMBER / CARRIER</th>
+                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">TX ID</th>
+                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">SMS CODE</th>
+                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px;">STATUS / STATE</th>
+                <th style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px;">NET COST</th>
+                <th style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px;">DATE</th>
             </tr>
         </thead>
         <tbody id="history-body">
             <tr>
-                <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
+                    Loading your audit trail...
+                </td>
             </tr>
         </tbody>
     </table>
@@ -137,68 +138,215 @@ function formatPhone(raw) {
                     statusColor = '#fee2e2';
                     statusText = '#991b1b';
                     break;
-                case 'error':
-                    statusColor = '#fce7f3';
-                    statusText = '#9d174d';
-                    break;
             }
 
-            // Build human-readable status label
-            let statusLabel = status;
-            if (status === 'cancelled' && item.cancel_reason) {
-                statusLabel = item.cancel_reason; // e.g. "User cancelled"
-            } else if (status === 'completed' && item.sms_code) {
-                statusLabel = 'SMS received';
-            } else if (status === 'timeout') {
-                statusLabel = 'Timed out';
-            } else if (status === 'failed' || status === 'error') {
-                if (item.failure_reason) {
-                    statusLabel = item.failure_reason.replace(/_/g, ' ').toLowerCase();
-                    statusLabel = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
-                } else {
-                    statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-                }
+            let stateLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            if (item.failure_reason) {
+                stateLabel = item.failure_reason.replace(/_/g, ' ');
+                stateLabel = stateLabel.charAt(0).toUpperCase() + stateLabel.slice(1);
             }
 
-            const smsCode = item.sms_code ? `<span style="font-family: monospace; font-weight: bold; background: #eee; padding: 2px 6px; border-radius: 4px;">${item.sms_code}</span>` : '<span style="color: #9ca3af;">-</span>';
-            const carrier = item.assigned_carrier || item.carrier || '<span style="color: #9ca3af;">Auto</span>';
-            const fallbackIndicator = item.fallback_applied ? ` <i class="fas fa-info-circle" style="color: #b45309; font-size: 11px;" title="Fallback applied (Requested ${item.requested_area_code || 'any'})"></i>` : '';
-            const cancelReasonTip = (item.cancel_reason && status !== 'cancelled') ? ` title="${item.cancel_reason}"` : (item.failure_category ? ` title="Category: ${item.failure_category}"` : '');
-
+            const txIdShort = item.debit_transaction_id ? item.debit_transaction_id.slice(0, 8) : '-';
+            const carrier = (item.assigned_carrier || item.operator || 'Auto').slice(0, 15);
+            const dateObj = new Date(item.created_at);
+            
             return `
-            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);" data-id="${item.id}">
-                <td style="padding: 12px; text-transform: capitalize;">${item.service_name || item.service || '-'}</td>
-                <td style="padding: 12px;">${item.country || 'US'}</td>
-                <td style="padding: 12px;">${carrier}${fallbackIndicator}</td>
-                <td style="padding: 12px;">${formatPhone(item.phone_number)}</td>
-                <td style="padding: 12px;">${smsCode}</td>
-                <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${statusColor}; color: ${statusText};"${cancelReasonTip}>${statusLabel}</span></td>
-                <td style="padding: 12px;">$${item.cost.toFixed(2)}</td>
-                <td style="padding: 12px;">${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                <td style="padding: 12px;">
-                    ${item.sms_text ? `<button onclick="viewDetails('${item.id}')" style="padding: 4px 8px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Msg</button>` : ''}
-                    <button onclick="reuseVerification('${item.service_name || item.service || ''}')" style="padding: 4px 8px; font-size: 12px; background: var(--primary, #fe3c72); color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 4px; white-space: nowrap;">Verify Again</button>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer;" onclick="viewDetails('${item.id}')" data-id="${item.id}">
+                <td style="padding: 10px 12px;">
+                    <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-size: 13px;">${formatPhone(item.phone_number)}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${carrier}</div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-size: 11px; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; display: inline-block;" title="${item.debit_transaction_id}">
+                        #${txIdShort}
+                    </div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-weight: bold; color: var(--primary);">${item.sms_code || '-'}</div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${statusColor}; color: ${statusText}; display: inline-block;">
+                        ${stateLabel}
+                    </span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${item.failure_category || ''}</div>
+                </td>
+                <td style="padding: 10px 12px; text-align: right; font-weight: 600;">
+                    $${(item.cost || 0).toFixed(2)}
+                </td>
+                <td style="padding: 10px 12px; text-align: right;">
+                    <div style="font-size: 12px;">${dateObj.toLocaleDateString()}</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </td>
             </tr>
-        `;
+            `;
         }).join('');
     }
 
+<!-- Audit Detail Modal -->
+<div id="audit-modal" class="modal-backdrop" style="display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); animation: fadeIn 0.2s ease;">
+    <div class="modal-content" style="background: white; max-width: 550px; margin: 60px auto; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); transform: translateY(0); animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <!-- Modal Header -->
+        <div style="padding: 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f172a;">Verification Audit</h3>
+                <div id="audit-subtitle" style="font-size: 13px; color: #64748b; margin-top: 2px;">Institutional Telemetry Record</div>
+            </div>
+            <button onclick="closeAudit()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; transition: 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div id="audit-body" style="padding: 24px; max-height: 70vh; overflow-y: auto;">
+            <!-- Content will be injected here -->
+        </div>
+
+        <!-- Modal Footer -->
+        <div style="padding: 20px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="btn-secondary" onclick="closeAudit()" style="padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; background: white; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s;">Close Audit</button>
+            <button class="btn-primary" id="copy-audit-btn" onclick="copyAuditId()" style="padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i class="far fa-copy"></i> Copy Audit ID
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .audit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .audit-card { padding: 16px; border-radius: 16px; border: 1px solid #f1f5f9; }
+    .audit-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .audit-value { font-size: 15px; font-weight: 600; color: #1e293b; }
+    .audit-mono { font-family: 'JetBrains Mono', 'Roboto Mono', monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; }
+</style>
+
+<script>
+    let currentAuditId = null;
+
     function viewDetails(id) {
         const item = allHistory.find(x => x.id === id);
-        if (!item || !item.sms_text) return;
-        const row = document.querySelector(`[data-id="${id}"]`);
-        if (row) {
-            const existing = row.nextElementSibling;
-            if (existing && existing.classList.contains('detail-row')) {
-                existing.remove();
-                return;
-            }
-            const tr = document.createElement('tr');
-            tr.className = 'detail-row';
-            tr.innerHTML = `<td colspan="9" style="padding: 12px; background: rgba(0,0,0,0.02); font-size: 13px; color: var(--text-secondary);">${escapeHtml(item.sms_text)}</td>`;
-            row.insertAdjacentElement('afterend', tr);
-        }
+        if (!item) return;
+
+        currentAuditId = item.debit_transaction_id || item.id;
+        const modal = document.getElementById('audit-modal');
+        const body = document.getElementById('audit-body');
+        
+        // Subtitle Update
+        document.getElementById('audit-subtitle').textContent = `Record Date: ${new Date(item.created_at).toLocaleString()}`;
+
+        // Latency and Cost Breakdown
+        const deliveryLatency = item.latency ? `${item.latency.toFixed(1)}s` : (item.status === 'completed' ? 'Processing...' : 'N/A');
+        const baseCost = (item.cost || 0) - (item.area_code_surcharge || 0) - (item.carrier_surcharge || 0);
+
+        let contentHtml = `
+            <!-- SMS / Voice Content Section -->
+            <div style="margin-bottom: 24px;">
+                <div class="audit-label">Message Payload</div>
+                <div style="padding: 16px; background: #f1f5f9; border-radius: 16px; border-left: 5px solid var(--primary); position: relative;">
+                    ${item.sms_text ? `
+                        <div style="font-family: inherit; font-size: 14px; line-height: 1.6; color: #334155; word-break: break-all;">
+                            ${escapeHtml(item.sms_text)}
+                        </div>
+                    ` : `
+                        <div style="color: #94a3b8; font-style: italic; font-size: 14px;">
+                            ${item.status === 'pending' ? 'Waiting for SMS payload...' : 'No message content captured for this transaction.'}
+                        </div>
+                    `}
+                </div>
+            </div>
+
+            <!-- Double Card Grid -->
+            <div class="audit-grid">
+                <div class="audit-card" style="background: #f8fafc;">
+                    <div class="audit-label">Financial Audit</div>
+                    <div style="margin-top: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
+                            <span>Base Rate</span>
+                            <span>$${baseCost.toFixed(2)}</span>
+                        </div>
+                        ${item.area_code_surcharge > 0 ? `
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
+                            <span>Niche Premium</span>
+                            <span>$${item.area_code_surcharge.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px dashed #e2e8f0; padding-top: 6px; margin-top: 6px;">
+                            <span>Total Net Spent</span>
+                            <span>$${(item.cost || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="audit-card" style="background: #f0fdf4; border-color: #dcfce7;">
+                    <div class="audit-label" style="color: #166534;">Performance</div>
+                    <div style="margin-top: 8px;">
+                        <div style="font-size: 28px; font-weight: 800; color: #166534; line-height: 1;">${deliveryLatency}</div>
+                        <div style="font-size: 12px; color: #166534; font-weight: 500; margin-top: 4px;">Delivery Latency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Intelligence (If applies) -->
+            ${(item.audio_url || item.transcription) ? `
+            <div style="margin-bottom: 24px; padding: 16px; background: #fff7ed; border-radius: 16px; border: 1px solid #ffedd5;">
+                <div class="audit-label" style="color: #9a3412;">Voice Intelligence Transcription</div>
+                ${item.audio_url ? `
+                    <div style="margin-bottom: 12px;">
+                        <audio controls style="width: 100%; height: 36px; border-radius: 8px;">
+                            <source src="${item.audio_url}" type="audio/mpeg">
+                        </audio>
+                    </div>
+                ` : ''}
+                <div style="font-size: 14px; color: #431407; font-style: italic; line-height: 1.5;">
+                    "${item.transcription || 'Analysis in progress...'}"
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- Technical Detail Footer -->
+            <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 16px;">
+                <div class="audit-label">Technical Trace Elements</div>
+                <div style="display: grid; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: #64748b;">PROVIDER ORDER ID</span>
+                        <span class="audit-mono">${item.activation_id || 'LOCAL_SIM'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: #64748b;">SERVICE ROUTING</span>
+                        <span class="audit-mono">${item.provider || 'NAMASKAH_NET'} / ${item.country || 'N/A'}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                        <span style="font-size: 12px; color: #64748b;">AUDIT TRANSACTION ID</span>
+                        <span class="audit-mono" style="font-size: 10px; word-break: break-all;">${item.debit_transaction_id || item.id}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        body.innerHTML = contentHtml;
+        modal.style.display = 'block';
+    }
+
+    function closeAudit() {
+        document.getElementById('audit-modal').style.display = 'none';
+    }
+
+    function copyAuditId() {
+        if (!currentAuditId) return;
+        navigator.clipboard.writeText(currentAuditId).then(() => {
+            const btn = document.getElementById('copy-audit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.background = 'var(--primary)';
+            }, 2000);
+        });
     }
 
     function escapeHtml(text) {
@@ -212,16 +360,13 @@ function formatPhone(raw) {
         const date = document.getElementById('filter-date').value;
 
         let filtered = [...allHistory];
-
         if (status) {
             filtered = filtered.filter(tx => tx.status === status);
         }
-
         if (date) {
             const filterDate = new Date(date).toDateString();
             filtered = filtered.filter(tx => new Date(tx.created_at).toDateString() === filterDate);
         }
-
         renderHistory(filtered);
     }
 
@@ -236,9 +381,8 @@ function formatPhone(raw) {
             alert("No history to export.");
             return;
         }
-
         const csv = [
-            ['Service', 'Phone', 'Code', 'Carrier', 'Status', 'Cost', 'Date', 'Message'],
+            ['Service', 'Phone', 'Code', 'Carrier', 'Status', 'Cost', 'Date', 'Latency', 'TransactionID'],
             ...allHistory.map(tx => [
                 tx.service_name,
                 tx.phone_number,
@@ -247,7 +391,8 @@ function formatPhone(raw) {
                 tx.status,
                 tx.cost.toFixed(2),
                 new Date(tx.created_at).toISOString(),
-                `"${(tx.sms_text || '').replace(/"/g, '""')}"` // Escape quotes
+                tx.latency || '',
+                tx.debit_transaction_id || tx.id
             ])
         ].map(row => row.join(',')).join('\n');
 
@@ -255,7 +400,7 @@ function formatPhone(raw) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `verification-history-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `namaskah-audit-trail-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
     }
 
@@ -266,16 +411,28 @@ function formatPhone(raw) {
 
     document.addEventListener('DOMContentLoaded', async () => {
         await loadHistory();
+        
+        // Handle external links to specific verifications
         const targetId = new URLSearchParams(window.location.search).get('id');
         if (targetId) {
-            const row = document.querySelector(`[data-id="${targetId}"]`);
-            if (row) {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                row.style.transition = 'background 0.3s';
-                row.style.background = 'rgba(99, 102, 241, 0.12)';
-                setTimeout(() => row.style.background = '', 2500);
-            }
+            setTimeout(() => {
+                const row = document.querySelector(`[data-id="${targetId}"]`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.style.background = 'rgba(99, 102, 241, 0.1)';
+                    viewDetails(targetId);
+                    setTimeout(() => row.style.background = '', 3000);
+                }
+            }, 500);
         }
     });
+
+    // Close modal on click outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('audit-modal');
+        if (event.target == modal) {
+            closeAudit();
+        }
+    }
 </script>
 {% endblock %}

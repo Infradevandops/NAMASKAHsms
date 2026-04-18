@@ -97,6 +97,35 @@ class ResellerService:
         user.credits = type(user.credits)(float(user.credits) - amount)
         sub.credits = type(sub.credits)(float(sub.credits or 0) + float(amount))
 
+        # 1. Main System Audit (Reseller Balance Drop)
+        from app.models.transaction import Transaction
+        from app.models.balance_transaction import BalanceTransaction
+        from app.core.constants import TransactionType
+        from datetime import datetime, timezone
+
+        desc = f"Allocation to sub-account: {sub.email}"
+        
+        main_tx = Transaction(
+            user_id=user.id,
+            amount=-amount,
+            type="reseller_allocation",
+            description=desc,
+            status="completed",
+            created_at=datetime.now(timezone.utc)
+        )
+        self.db.add(main_tx)
+
+        balance_tx = BalanceTransaction(
+            user_id=user.id,
+            amount=-amount,
+            type=TransactionType.DEBIT,
+            description=desc,
+            balance_after=float(user.credits),
+            created_at=datetime.now(timezone.utc)
+        )
+        self.db.add(balance_tx)
+
+        # 2. Reseller-Specific Transaction (Legacy/Internal)
         tx = SubAccountTransaction(
             sub_account_id=sub.id,
             transaction_type="credit",

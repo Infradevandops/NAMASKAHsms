@@ -311,3 +311,19 @@ class NotificationDispatcher:
         except Exception as e:
             logger.error(f"Failed to create sms_received notification: {e}")
         return False
+
+    async def notify_low_balance(self, user_id: str, balance: float) -> bool:
+        """Notify when user balance falls below threshold ($5.00)."""
+        try:
+            notification = self.notification_service.create_notification(
+                user_id=user_id,
+                notification_type="low_balance_warning",
+                title="⚠️ Low Balance Alert",
+                message=f"Your balance is low (${balance:.2f}). Please top up to avoid service interruption.",
+            )
+            self._broadcast_notification(user_id, notification)
+            logger.info(f"Created low_balance_warning for {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create low_balance notification: {e}")
+        return False

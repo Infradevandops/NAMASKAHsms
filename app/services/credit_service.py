@@ -81,9 +81,25 @@ class CreditService:
             amount=amount,
             type=transaction_type,
             description=description,
+            created_at=datetime.now(timezone.utc),
         )
-
         self.db.add(transaction)
+
+        # Create BalanceTransaction (strict audit trail)
+        from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+
+        balance_tx = BalanceTransaction(
+            user_id=user_id,
+            amount=amount,
+            type=transaction_type
+            if transaction_type in [TransactionType.CREDIT, TransactionType.REFUND]
+            else TransactionType.CREDIT,
+            description=description,
+            balance_after=new_balance,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.db.add(balance_tx)
         self.db.commit()
 
         new_balance = float(user.credits)
@@ -184,9 +200,23 @@ class CreditService:
             amount=-amount,  # Negative for debit
             type=transaction_type,
             description=description,
+            created_at=datetime.now(timezone.utc),
         )
-
         self.db.add(transaction)
+
+        # Create BalanceTransaction (strict audit trail)
+        from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+
+        balance_tx = BalanceTransaction(
+            user_id=user_id,
+            amount=-amount,
+            type=TransactionType.DEBIT,
+            description=description,
+            balance_after=new_balance,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.db.add(balance_tx)
         self.db.commit()
 
         new_balance = float(user.credits)
@@ -404,6 +434,7 @@ class CreditService:
             amount=-amount,
             type="transfer",
             description=f"Transfer to {to_user_id}: {description}",
+            created_at=datetime.now(timezone.utc),
         )
 
         to_transaction = Transaction(
@@ -411,10 +442,36 @@ class CreditService:
             amount=amount,
             type="transfer",
             description=f"Transfer from {from_user_id}: {description}",
+            created_at=datetime.now(timezone.utc),
         )
 
         self.db.add(from_transaction)
         self.db.add(to_transaction)
+
+        # Create BalanceTransactions
+        from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+
+        from_balance_tx = BalanceTransaction(
+            user_id=from_user_id,
+            amount=-amount,
+            type=TransactionType.ADJUSTMENT,
+            description=f"Transfer to {to_user_id}: {description}",
+            balance_after=float(from_user.credits),
+            created_at=datetime.now(timezone.utc),
+        )
+
+        to_balance_tx = BalanceTransaction(
+            user_id=to_user_id,
+            amount=amount,
+            type=TransactionType.ADJUSTMENT,
+            description=f"Transfer from {from_user_id}: {description}",
+            balance_after=float(to_user.credits),
+            created_at=datetime.now(timezone.utc),
+        )
+
+        self.db.add(from_balance_tx)
+        self.db.add(to_balance_tx)
         self.db.commit()
 
         logger.info(
@@ -463,9 +520,23 @@ class CreditService:
             amount=new_amount - old_balance,
             type="admin_reset",
             description=f"Admin reset from {old_balance} to {new_amount}",
+            created_at=datetime.now(timezone.utc),
         )
-
         self.db.add(transaction)
+
+        # Create BalanceTransaction (strict audit trail)
+        from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+
+        balance_tx = BalanceTransaction(
+            user_id=user_id,
+            amount=new_amount - old_balance,
+            type=TransactionType.ADJUSTMENT,
+            description=f"Admin reset from {old_balance} to {new_amount}",
+            balance_after=float(new_amount),
+            created_at=datetime.now(timezone.utc),
+        )
+        self.db.add(balance_tx)
         self.db.commit()
 
         logger.warning(

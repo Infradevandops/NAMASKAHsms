@@ -184,7 +184,7 @@ class PaymentService:
             payment_log.state = "completed"
             payment_log.processing_completed_at = datetime.now(timezone.utc)
 
-            # Create transaction record
+            # Create Transaction record (for history/analytics)
             transaction = Transaction(
                 user_id=user_id,
                 reference=reference,
@@ -193,12 +193,42 @@ class PaymentService:
                 amount=amount,
                 description=f"Payment credit via Paystack - {reference}",
                 status="completed",
+                created_at=datetime.now(timezone.utc),
             )
-
             self.db.add(transaction)
+
+            # Create BalanceTransaction (strict audit trail)
+            from app.core.constants import TransactionType
+            from app.models.balance_transaction import BalanceTransaction
+
+            balance_tx = BalanceTransaction(
+                user_id=user_id,
+                amount=amount,
+                type=TransactionType.CREDIT,
+                description=f"Deposit: Paystack ({reference})",
+                balance_after=float(user.credits),
+                created_at=datetime.now(timezone.utc),
+            )
+            self.db.add(balance_tx)
             self.db.commit()
 
             logger.info(f"Credited {amount} to user {user_id}")
+
+            # Notify user
+            try:
+                from app.services.notification_dispatcher import NotificationDispatcher
+
+                dispatcher = NotificationDispatcher(self.db)
+                import asyncio
+
+                asyncio.create_task(
+                    dispatcher.notify_payment_completed(
+                        user_id=user_id, amount=amount, new_balance=float(user.credits)
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Failed to send payment notification: {e}")
+
             return True
 
         except IntegrityError:

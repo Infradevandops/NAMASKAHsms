@@ -301,8 +301,67 @@ async def request_verification(
             db.add(verification)
             db.flush()  # Get the ID before commit
 
+            # Step 2.3: Process automatic refunds (Surcharges/Overages)
+            refund_service = RefundService()
+            refund_result = await refund_service.process_refund(verification, user, db)
+
+            if refund_result["refund_issued"]:
+                logger.info(
+                    f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
+                    f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
+                )
+                actual_cost -= refund_result["refund_amount"]
+
+            # Step 2.4: Deduct credits
+            old_balance = float(user.credits or 0)
+            if user.is_admin:
+                # [Existing Admin logic...]
+                difference = -actual_cost
+                user.credits -= actual_cost
+                
+                from app.models.balance_transaction import BalanceTransaction
+                from app.core.constants import TransactionType
+                
+                balance_tx = BalanceTransaction(
+                    user_id=user.id,
+                    amount=difference,
+                    type=TransactionType.DEBIT,
+                    description=f"Purchase: {request.service}",
+                    balance_after=float(user.credits),
+                    created_at=datetime.now(timezone.utc)
+                )
+                db.add(balance_tx)
+                
+                # Legacy Transaction (for History/Analytics)
+                from app.models.transaction import Transaction
+                legacy_tx = Transaction(
+                    user_id=user.id,
+                    amount=difference,
+                    type="sms_purchase",
+                    description=f"SMS verification for {request.service}",
+                    service=request.service,
+                    status="completed",
+                    reference=f"sms_{verification.id}",
+                    created_at=datetime.now(timezone.utc),
+                )
+                db.add(legacy_tx)
+                
+                db.flush()
+                verification.debit_transaction_id = balance_tx.id
+            else:
+                success, error = BalanceService.deduct_credits_for_verification(
+                    db=db,
+                    user=user,
+                    verification=verification,
+                    cost=actual_cost,
+                    service_name=request.service,
+                    country_code=request.country,
+                )
+                if not success:
+                    raise HTTPException(status_code=402, detail=error)
+
             # --- INSTITUTIONAL TELEMETRY ---
-            # Fire-and-forget logging to Purchase Intelligence
+            # Fire-and-forget logging to Purchase Intelligence (Now with Transaction ID)
             asyncio.create_task(
                 PurchaseIntelligenceService.log_outcome(
                     service=request.service,
@@ -315,58 +374,14 @@ async def request_verification(
                     country=request.country,
                     provider_cost=purchase_result.cost,
                     user_price=actual_cost,
+                    debit_transaction_id=verification.debit_transaction_id,
                 )
             )
-
-            # Step 2.3: Process automatic refunds
-            refund_service = RefundService()
-            refund_result = await refund_service.process_refund(verification, user, db)
-
-            if refund_result["refund_issued"]:
-                logger.info(
-                    f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
-                    f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
-                )
-                actual_cost -= refund_result["refund_amount"]
-                verification.cost = type(verification.cost)(actual_cost)
+            verification.cost = type(verification.cost)(actual_cost)
 
             logger.info(f"Verification record created with ID: {verification.id}")
 
-            # Step 3: Deduct credits and record transaction
-            # For admin users, sync from live provider balance if available
-            if user.is_admin:
-                try:
-                    balances = await provider_router.get_provider_balances()
-                    new_balance = balances.get(
-                        purchase_result.provider, old_balance - actual_cost
-                    )
-                    user.credits = new_balance
-                    logger.info(
-                        f"Admin balance synced after purchase: ${old_balance:.2f} → ${new_balance:.2f}"
-                    )
-                except Exception as sync_err:
-                    logger.warning(f"Post-purchase balance sync failed: {sync_err}")
-                    new_balance = old_balance - actual_cost
-                    user.credits = new_balance
-            else:
-                # Use unified deduction service (Phase 2.4/5)
-                success, error = BalanceService.deduct_credits_for_verification(
-                    db=db,
-                    user=user,
-                    verification=verification,
-                    cost=actual_cost,
-                    service_name=request.service,
-                    country_code=request.country,
-                )
-
-                if not success:
-                    # Error handling handled within service (verification marked failed)
-                    raise HTTPException(
-                        status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                        detail=error or "Credit deduction failed",
-                    )
-
-                new_balance = float(user.credits)
+            new_balance = float(user.credits)
 
             # Notify user of credit deduction
             try:
@@ -426,15 +441,9 @@ async def request_verification(
         # Low balance warning
         if new_balance < 5.0 and old_balance >= 5.0:
             try:
-                notif_service = NotificationService(db)
-                notif_service.create_notification(
-                    user_id=user_id,
-                    notification_type="low_balance",
-                    title="Low Balance Warning",
-                    message=f"Your balance is ${new_balance:.2f}. Add credits to continue.",
-                )
-            except Exception:
-                pass
+                await notification_dispatcher.notify_low_balance(user_id, new_balance)
+            except Exception as e:
+                logger.warning(f"Failed to send low balance notification: {e}")
 
         # Notification: Balance Updated
         try:

@@ -72,6 +72,35 @@ class PurchaseOutcome(Base):
     selected_from_alternatives = Column(Boolean, nullable=True, default=False)
     original_request = Column(String(10), nullable=True)
 
+    # Phase 13: Institutional Financial Tracking
+    debit_transaction_id = Column(
+        String,
+        ForeignKey("balance_transactions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    refund_transaction_id = Column(
+        String,
+        ForeignKey("balance_transactions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    refund_requested_at = Column(DateTime(timezone=True), nullable=True)
+    refund_processed_at = Column(DateTime(timezone=True), nullable=True)
+    refund_latency_seconds = Column(Float, nullable=True)
+
+    @property
+    def net_cost(self) -> float:
+        """User price minus refund amount."""
+        return (self.user_price or 0.0) - (self.refund_amount or 0.0)
+
+    @property
+    def provider_net_cost(self) -> float:
+        """Provider cost minus recouped amount."""
+        # Note: we don't have provider_refund_amount yet, but can assume full if boolean is set
+        recouped = self.provider_cost if self.provider_refunded else 0.0
+        return (self.provider_cost or 0.0) - recouped
+
     # Relationships (optional but useful if needed)
     # user = relationship("User", back_populates="purchase_outcomes")
     # verification = relationship("Verification", back_populates="purchase_outcome")

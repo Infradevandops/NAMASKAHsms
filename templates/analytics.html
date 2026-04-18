@@ -205,47 +205,43 @@ endblock %}
 
 <!-- Summary Stats -->
 <div class="analytics-grid" id="stats-grid" aria-label="Analytics summary">
-    <div class="stat-card">
-        <div class="stat-label">Total Verifications</div>
-        <div class="stat-value" id="stat-total">
-            <span class="skeleton" style="width: 80px; height: 32px; display: inline-block;"></span>
-        </div>
-        <div class="stat-change neutral" id="stat-total-change">Loading...</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Successful</div>
-        <div class="stat-value" id="stat-successful" style="color: #10b981;">
-            <span class="skeleton" style="width: 60px; height: 32px; display: inline-block;"></span>
-        </div>
-        <div class="stat-change neutral" id="stat-success-rate">Loading...</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Failed</div>
-        <div class="stat-value" id="stat-failed" style="color: #ef4444;">
-            <span class="skeleton" style="width: 60px; height: 32px; display: inline-block;"></span>
-        </div>
-        <div class="stat-change neutral" id="stat-failed-change">Loading...</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Spent</div>
-        <div class="stat-value" id="stat-spent">
+    <!-- Row 1: The Cash Flow -->
+    <div class="stat-card" style="border-left: 4px solid var(--primary);">
+        <div class="stat-label">Net Spent</div>
+        <div class="stat-value" id="stat-net-spent">
             <span class="skeleton" style="width: 100px; height: 32px; display: inline-block;"></span>
         </div>
-        <div class="stat-change neutral" id="stat-spent-change">Loading...</div>
+        <div class="stat-change neutral" id="stat-spent-vs-prev">True Cost of Service</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Avg. Cost</div>
-        <div class="stat-value" id="stat-avg-cost">
-            <span class="skeleton" style="width: 80px; height: 32px; display: inline-block;"></span>
+        <div class="stat-label">Gross Volume</div>
+        <div class="stat-value" id="stat-gross-volume" style="font-size: 24px;">
+            <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
         </div>
-        <div class="stat-change neutral" id="stat-avg-change">Per verification</div>
+        <div class="stat-change neutral" id="stat-spent-gross">Total Initiated</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Refunds</div>
+        <div class="stat-value" id="stat-refunded" style="color: #f59e0b; font-size: 24px;">
+            <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
+        </div>
+        <div class="stat-change neutral" id="stat-refund-rate">Loading Rate...</div>
+    </div>
+
+    <!-- Row 2: Performance -->
     <div class="stat-card">
         <div class="stat-label">Success Rate</div>
-        <div class="stat-value" id="stat-rate">
-            <span class="skeleton" style="width: 70px; height: 32px; display: inline-block;"></span>
+        <div class="stat-value" id="stat-success-rate-val" style="color: #10b981;">
+            <span class="skeleton" style="width: 60px; height: 32px; display: inline-block;"></span>
         </div>
-        <div class="stat-change neutral" id="stat-rate-change">Loading...</div>
+        <div class="stat-change neutral" id="stat-total-verifs">Loading Total...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Efficiency</div>
+        <div class="stat-value" id="stat-avg-cost" style="font-size: 24px;">
+            <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
+        </div>
+        <div class="stat-change neutral">Avg. per Success</div>
     </div>
 </div>
 
@@ -456,31 +452,27 @@ endblock %}
 
     // Render summary stats
     function renderStats(data) {
-        document.getElementById('stat-total').textContent = formatNumber(data.total_verifications || 0);
-        document.getElementById('stat-successful').textContent = formatNumber(data.successful_verifications || 0);
-        document.getElementById('stat-failed').textContent = formatNumber(data.failed_verifications || 0);
-        document.getElementById('stat-spent').textContent = formatCurrency(data.total_spent || 0);
+        document.getElementById('stat-net-spent').textContent = formatCurrency(data.net_spent || 0);
+        document.getElementById('stat-gross-volume').textContent = formatCurrency(data.total_spent || 0);
+        document.getElementById('stat-refunded').textContent = formatCurrency(data.total_refunded || 0);
+        document.getElementById('stat-success-rate-val').textContent = formatPercent(data.success_rate || 0);
         document.getElementById('stat-avg-cost').textContent = formatCurrency(data.avg_cost || 0);
-        document.getElementById('stat-rate').textContent = formatPercent(data.success_rate || 0);
 
-        // Update change indicators
-        const monthlyChange = data.monthly_change || 0;
-        const changeEl = document.getElementById('stat-total-change');
-        if (monthlyChange > 0) {
-            changeEl.textContent = `↑ ${monthlyChange}% vs last month`;
-            changeEl.className = 'stat-change positive';
-        } else if (monthlyChange < 0) {
-            changeEl.textContent = `↓ ${Math.abs(monthlyChange)}% vs last month`;
-            changeEl.className = 'stat-change negative';
-        } else {
-            changeEl.textContent = 'No change vs last month';
-            changeEl.className = 'stat-change neutral';
+        // Subtitles
+        const refundRate = (data.total_refunded / data.total_spent * 100) || 0;
+        document.getElementById('stat-refund-rate').textContent = `${refundRate.toFixed(1)}% Refund Rate`;
+        document.getElementById('stat-total-verifs').textContent = `${formatNumber(data.total_verifications || 0)} Initiated`;
+        
+        // Change logic (optional but helpful)
+        const spentVsPrev = data.monthly_change || 0;
+        const netSpentChangeEl = document.getElementById('stat-spent-vs-prev');
+        if (spentVsPrev > 0) {
+            netSpentChangeEl.textContent = `↑ ${spentVsPrev}% vs last month`;
+            netSpentChangeEl.style.color = '#ef4444'; // More spending = red for cost
+        } else if (spentVsPrev < 0) {
+            netSpentChangeEl.textContent = `↓ ${Math.abs(spentVsPrev)}% vs last month`;
+            netSpentChangeEl.style.color = '#10b981'; // Less spending = green
         }
-
-        document.getElementById('stat-success-rate').textContent = `${formatPercent(data.success_rate || 0)} success rate`;
-        document.getElementById('stat-failed-change').textContent = `${formatNumber(data.pending_verifications || 0)} pending`;
-        document.getElementById('stat-spent-change').textContent = `This period`;
-        document.getElementById('stat-rate-change').textContent = data.success_rate >= 90 ? '✓ Excellent' : data.success_rate >= 70 ? '○ Good' : '⚠ Needs attention';
     }
 
     // Render charts using ApexCharts

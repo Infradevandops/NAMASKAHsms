@@ -338,3 +338,81 @@ def get_spending_summary(
     except Exception as e:
         logger.error(f"Failed to get spending summary: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve summary")
+
+
+@router.get("/financial-history")
+async def get_financial_history(
+    user_id: str = Depends(get_current_user_id),
+    limit: int = Query(50, le=100),
+    offset: int = Query(0),
+    db: Session = Depends(get_db),
+):
+    """Get complete financial history with transaction links.
+
+    Returns unified view of all balance changes (debits, credits, refunds)
+    with links to verifications for complete audit trail.
+    """
+    try:
+        from app.models.balance_transaction import BalanceTransaction
+        from app.models.verification import Verification
+
+        # Get all balance transactions for user
+        balance_txs = (
+            db.query(BalanceTransaction)
+            .filter(BalanceTransaction.user_id == user_id)
+            .order_by(BalanceTransaction.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        # Get total count for pagination
+        total_count = (
+            db.query(func.count(BalanceTransaction.id))
+            .filter(BalanceTransaction.user_id == user_id)
+            .scalar()
+        )
+
+        history = []
+        for bt in balance_txs:
+            # Find linked verification
+            verification = None
+            if bt.type == "debit":
+                verification = (
+                    db.query(Verification)
+                    .filter(Verification.debit_transaction_id == bt.id)
+                    .first()
+                )
+            elif bt.type == "refund":
+                verification = (
+                    db.query(Verification)
+                    .filter(Verification.refund_transaction_id == bt.id)
+                    .first()
+                )
+
+            history.append(
+                {
+                    "timestamp": bt.created_at.isoformat() if bt.created_at else None,
+                    "type": bt.type,
+                    "amount": float(bt.amount),
+                    "balance_after": float(bt.balance_after),
+                    "transaction_id": bt.id,
+                    "verification_id": verification.id if verification else None,
+                    "service": verification.service_name if verification else None,
+                    "description": bt.description,
+                    "status": verification.status if verification else None,
+                }
+            )
+
+        return {
+            "history": history,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get financial history: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve financial history"
+        )

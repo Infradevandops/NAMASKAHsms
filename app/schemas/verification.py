@@ -210,6 +210,19 @@ class VerificationDetail(BaseModel):
     completed_at: Optional[datetime] = None
     sms_received_at: Optional[datetime] = None
 
+    # Transaction linking for audit trail
+    debit_transaction_id: Optional[str] = Field(
+        None,
+        description="Balance transaction ID for the debit that charged this verification",
+    )
+    refund_transaction_id: Optional[str] = Field(
+        None,
+        description="Balance transaction ID for the refund if verification was refunded",
+    )
+    refunded: bool = Field(False, description="Whether this verification was refunded")
+    refund_amount: Optional[float] = Field(None, description="Amount refunded")
+    refund_reason: Optional[str] = Field(None, description="Reason for refund")
+
 
 class VerificationHistory(BaseModel):
     """Verification history item."""
@@ -222,6 +235,12 @@ class VerificationHistory(BaseModel):
     cost: float
     created_at: datetime
     completed_at: Optional[datetime] = None
+
+    # Transaction linking for history view
+    debit_transaction_id: Optional[str] = None
+    refund_transaction_id: Optional[str] = None
+    refunded: bool = False
+    refund_amount: Optional[float] = None
 
 
 class VerificationHistoryResponse(BaseModel):

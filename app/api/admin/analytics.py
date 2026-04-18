@@ -27,18 +27,53 @@ async def get_analytics_overview(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    """Get analytics overview."""
+    """Get analytics overview using the hardened AnalyticsService."""
+    from app.services.analytics_service import AnalyticsService
+    
     try:
+        service = AnalyticsService(db)
+        overview = await service.get_overview()
+        refund_stats = await service.get_refund_stats()
+        
         return {
-            "overview": {
-                "total_users": 0,
-                "total_verifications": 0,
-                "success_rate": 0.0,
-                "revenue": 0.0,
-            },
+            "overview": overview,
+            "refund_stats": refund_stats,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get analytics: {str(e)}"
+        )
+
+
+@router.get("/analytics/timeseries")
+async def get_analytics_timeseries(
+    days: int = 30,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get timeseries data for charts."""
+    from app.services.analytics_service import AnalyticsService
+    try:
+        service = AnalyticsService(db)
+        return await service.get_timeseries(days=days)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get timeseries: {str(e)}"
+        )
+
+
+@router.get("/analytics/services")
+async def get_analytics_services(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get per-service statistics."""
+    from app.services.analytics_service import AnalyticsService
+    try:
+        service = AnalyticsService(db)
+        return await service.get_services_stats()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get service stats: {str(e)}"
         )
