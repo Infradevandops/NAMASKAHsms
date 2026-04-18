@@ -35,6 +35,7 @@ from app.api.verification.area_code_endpoints import router as area_code_router
 from app.api.verification.carrier_endpoints import router as carrier_router
 from app.api.verification.pricing_endpoints import router as pricing_router
 from app.api.verification.router import router as verification_router
+from app.api.verification.rental_endpoints import router as rental_router
 from app.api.verification.outcome_endpoint import router as outcome_router
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -188,11 +189,12 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")
 
-    # Verification Feature Routers - Temporarily disabled for CI fix
+    # Verification Feature Routers
     fastapi_app.include_router(area_code_router, prefix="/api")
     fastapi_app.include_router(outcome_router, prefix="/api")
     fastapi_app.include_router(carrier_router, prefix="/api")
     fastapi_app.include_router(pricing_router, prefix="/api")
+    fastapi_app.include_router(rental_router, prefix="/api")  # V6.0 Rental System
 
     # Version 1 API
     fastapi_app.include_router(v1_router)
