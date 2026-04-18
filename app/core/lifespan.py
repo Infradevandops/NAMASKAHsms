@@ -117,6 +117,16 @@ async def lifespan(app):
                 refund_policy_enforcer.start_enforcement()
             )
             startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
+
+            # Start institutional health audit loop (V6.0 Mastery)
+            from app.services.providers.provider_health_check import start_health_audit_loop
+            asyncio.create_task(start_health_audit_loop())
+            startup_logger.info("✅ Institutional health audit loop started (every 4 hours)")
+
+            # Start rental expiry monitor (V6.0)
+            from app.services.rental_service import start_rental_expiry_monitor
+            asyncio.create_task(start_rental_expiry_monitor())
+            startup_logger.info("✅ Rental expiry monitor started (every 30 minutes)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

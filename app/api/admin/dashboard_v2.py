@@ -108,3 +108,107 @@ async def get_dashboard_v2_stats(
         raise HTTPException(
             status_code=500, detail="Failed to aggregate institutional stats"
         )
+
+
+@router.get("/dashboard/v2/rentals", summary="V6.0 Rental Overview")
+async def get_rental_overview(
+    admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
+):
+    """Institutional rental overview — all active rentals across all users.
+
+    Returns aggregate stats and a list of active/expiring rentals for the admin panel.
+    """
+    try:
+        from datetime import datetime, timedelta, timezone
+        from app.models.verification import NumberRental
+
+        now = datetime.now(timezone.utc)
+        warning_threshold = now + timedelta(minutes=30)
+
+        active_rentals = (
+            db.query(NumberRental)
+            .filter(NumberRental.status == "active")
+            .order_by(NumberRental.expires_at.asc())
+            .all()
+        )
+
+        expiring_soon = []
+        healthy = []
+
+        for r in active_rentals:
+            expires_at = r.expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            remaining_minutes = (expires_at - now).total_seconds() / 60
+            entry = {
+                "id": r.id,
+                "user_id": r.user_id,
+                "phone_number": r.phone_number,
+                "service": r.service_name,
+                "expires_at": r.expires_at.isoformat() if r.expires_at else None,
+                "remaining_minutes": round(remaining_minutes, 1),
+                "cost": r.cost,
+                "warning_sent": r.warning_sent,
+            }
+            if remaining_minutes <= 30:
+                expiring_soon.append(entry)
+            else:
+                healthy.append(entry)
+
+        return {
+            "summary": {
+                "total_active": len(active_rentals),
+                "expiring_within_30min": len(expiring_soon),
+                "healthy": len(healthy),
+            },
+            "expiring_soon": expiring_soon,
+            "healthy_rentals": healthy,
+            "timestamp": now.isoformat(),
+        }
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Rental overview failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get rental overview")
+
+
+@router.get("/dashboard/v2/liquidity-alarms", summary="V6.0 Liquidity Alarms Feed")
+async def get_liquidity_alarms(
+    limit: int = 20,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Returns the most recent LIQUIDITY_ALARM entries from the ActivityLog.
+
+    These are emitted by the institutional health audit loop when a provider
+    balance falls below the $10.00 threshold.
+    """
+    try:
+        from app.models.system import ActivityLog
+
+        alarms = (
+            db.query(ActivityLog)
+            .filter(ActivityLog.action == "LIQUIDITY_ALARM")
+            .order_by(ActivityLog.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "alarms": [
+                {
+                    "id": a.id,
+                    "provider": a.element,
+                    "status": a.status,
+                    "details": a.details,
+                    "error_message": a.error_message,
+                    "created_at": a.created_at.isoformat() if a.created_at else None,
+                }
+                for a in alarms
+            ],
+            "total": len(alarms),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Liquidity alarms fetch failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch liquidity alarms")
