@@ -11,7 +11,7 @@ Routing rules:
 Provider names never appear in user-facing errors.
 """
 
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -59,6 +59,47 @@ class ProviderRouter:
             self._pvapins = PVAPinsAdapter()
         return self._pvapins
 
+    def get_enabled_providers(self) -> List[str]:
+        """Return list of enabled provider names (V6.0 Mastery)."""
+        enabled = []
+        if self._get_textverified().enabled:
+            enabled.append("textverified")
+        if self._get_telnyx().enabled:
+            enabled.append("telnyx")
+        if self._get_fivesim().enabled:
+            enabled.append("5sim")
+        if self._get_pvapins().enabled:
+            enabled.append("pvapins")
+        return enabled
+
+    async def get_provider_balances(self) -> Dict[str, float]:
+        """Fetch balances for all enabled providers concurrently (V6.0 Mastery)."""
+        import asyncio
+        from app.services.providers.base_provider import SMSProvider
+        
+        provider_map = {
+            "textverified": self._get_textverified(),
+            "telnyx": self._get_telnyx(),
+            "5sim": self._get_fivesim(),
+            "pvapins": self._get_pvapins()
+        }
+        
+        enabled_map = {name: adapter for name, adapter in provider_map.items() if adapter.enabled}
+        
+        async def _safe_balance(name: str, adapter: SMSProvider) -> float:
+            try:
+                # Add a 5s timeout to avoid hanging the audit
+                return await asyncio.wait_for(adapter.get_balance(), timeout=5.0)
+            except Exception as e:
+                logger.warning(f"Failed to fetch balance for {name}: {e}")
+                return 0.0
+
+        names = list(enabled_map.keys())
+        tasks = [_safe_balance(name, adapter) for name, adapter in enabled_map.items()]
+        results = await asyncio.gather(*tasks)
+        
+        return dict(zip(names, results))
+
     def _pvapins_covers(self, country: str) -> bool:
         """True if PVApins has a country mapping for this ISO code."""
         return country.upper() in PVAPINS_COUNTRIES
@@ -95,7 +136,15 @@ class ProviderRouter:
         # --- PHASE 12 TIER-BASED PRE-FILTERING ---
         # US is specialized (TextVerified preferred for proximity accuracy)
         if country_upper == "US":
-            return self._get_textverified(), bool(city), None
+            from app.core.textverified_health import get_health_monitor
+            metrics = get_health_monitor().get_metrics()
+            
+            # If healthy, return TV immediately
+            if metrics["status"] == "healthy":
+                return self._get_textverified(), bool(city), None
+            
+            # If unhealthy/degraded, don't return immediately, allow candidates to compete
+            logger.warning(f"TextVerified US status is {metrics['status']}, evaluating alternatives...")
 
         # Gather enabled and capable providers
         if self._get_textverified().enabled:
@@ -188,6 +237,8 @@ class ProviderRouter:
             "city": city if city_attempted else None,
             "duration_hours": duration_hours
         }
+        
+        city_for_provider = city if city_attempted else None
 
         if primary.name == "textverified":
             provider_kwargs["selected_from_alternatives"] = selected_from_alternatives

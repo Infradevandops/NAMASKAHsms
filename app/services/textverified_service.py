@@ -11,6 +11,10 @@ from requests.adapters import HTTPAdapter
 from app.core.config import get_settings
 from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
+from app.services.carrier_lookup import CarrierLookupService
+from app.services.area_code_geo import get_ranked_alternatives
+from app.services.phone_validator import PhoneValidator
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 settings = get_settings()
 
@@ -511,22 +515,39 @@ class TextVerifiedService:
                     timeout=timeout_seconds,
                     polling_interval=3.0,
                 ):
+                    # Master Check: Ensure message is strictly fresh (v6.0 Institutional Grade)
+                    from datetime import timezone
+                    msg_time = sms.created_at
+                    if msg_time.tzinfo is None:
+                        msg_time = msg_time.replace(tzinfo=timezone.utc)
+                    
+                    ref_time = tv_verification.created_at
+                    if ref_time.tzinfo is None:
+                        ref_time = ref_time.replace(tzinfo=timezone.utc)
+
+                    if msg_time < ref_time:
+                        logger.warning(f"Rejected stale SMS from recycled number: {sms.sms_content}")
+                        continue
+
                     parsed = sms.parsed_code or ""
+                    # ... [rest as before]
                     if not parsed:
                         import re
 
                         text = sms.sms_content or ""
+                        # TextVerified voice transcription often has codes in brackets or quotes
                         hyphen = re.findall(r"\b(\d{3}-\d{3})\b", text)
                         plain = re.findall(r"\b(\d{4,8})\b", text)
                         if hyphen:
                             parsed = hyphen[-1].replace("-", "")
                         elif plain:
                             parsed = plain[-1]
+                    
                     return {
                         "success": True,
                         "code": parsed,
                         "sms": sms.sms_content or "",
-                        "received_at": sms.created_at.isoformat(),
+                        "received_at": msg_time.isoformat(),
                     }
                 return {"success": False, "timed_out": True}
             except Exception as e:
@@ -633,9 +654,11 @@ class TextVerifiedService:
         service: str,
         country: str = "US",
         area_code: Optional[str] = None,
+        carrier: Optional[str] = None,
         capability: str = "sms",
         selected_from_alternatives: Optional[bool] = False,
         original_request: Optional[str] = None,
+        max_retries: int = 2,
     ) -> Dict[str, Any]:
         """
         Purchase a verification number with Phase 5 logic.
@@ -666,15 +689,16 @@ class TextVerifiedService:
                 f"({len(area_code_options)} options)"
             )
 
-        # Initialize validators (Phase 5)
-        from app.services.area_code_geo import get_ranked_alternatives
-        from app.services.phone_validator import PhoneValidator
-        from app.services.purchase_intelligence import PurchaseIntelligenceService
+        # Build carrier preference if provided (Regression Fix)
+        carrier_options: Optional[List[str]] = None
+        if carrier:
+            carrier_options = self._build_carrier_preference(carrier)
 
+        # Initialize validators (Phase 5)
         phone_validator = PhoneValidator()
 
-        # Retry loop (Phase 5: Single informed retry max 2 attempts)
-        max_attempts = 2
+        # Retry loop (Phase 5: Single informed retry max_retries attempts)
+        max_attempts = max_retries
         attempt_count = 0
         area_code_matched = False
         voip_rejected = False
@@ -687,6 +711,7 @@ class TextVerifiedService:
                 service_name=service,
                 capability=cap,
                 area_code_select_option=area_code_options,
+                carrier_select_option=carrier_options,
             )
 
             assigned_number = result.number
@@ -830,7 +855,7 @@ class TextVerifiedService:
     def _build_carrier_preference(self, carrier: str) -> List[str]:
         """Return carrier preference list. Requested carrier is first and only option
         to ensure the assigned number matches the user's selection."""
-        normalized = carrier.lower().replace(" ", "_").replace("&", "")
+        normalized = carrier.lower().replace(" ", "_").replace("&", "").replace("-", "_")
         return [normalized]
 
     async def purchase_number(
@@ -1025,6 +1050,34 @@ class TextVerifiedService:
         except Exception as e:
             logger.error(f"Failed to extend reservation: {e}")
             return False
+
+    async def check_reservation_expiry(self, reservation_id: str) -> Dict[str, Any]:
+        """Check if a reservation is nearing expiry (v6.0 Institutional Mastery)."""
+        if not self.enabled:
+            return {"status": "unknown"}
+        try:
+            res = await asyncio.to_thread(
+                self.client.reservations.get,
+                reservation_id
+            )
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            ends_at = res.ends_at
+            if ends_at.tzinfo is None:
+                ends_at = ends_at.replace(tzinfo=timezone.utc)
+            
+            remaining_minutes = (ends_at - now).total_seconds() / 60
+            
+            return {
+                "id": res.id,
+                "status": res.state.value,
+                "remaining_minutes": remaining_minutes,
+                "is_critical": remaining_minutes < 15,
+                "ends_at": ends_at.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Failed to check reservation expiry: {e}")
+            return {"status": "error"}
 
     def _set_balance_cache(self, balance: float) -> None:
         """Cache balance value (used in tests)."""

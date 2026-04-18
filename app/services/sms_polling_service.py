@@ -184,6 +184,14 @@ class SMSPollingService:
                     audio_url=audio_url
                 )
                 return
+            elif verification.capability == "voice" and audio_url:
+                # Institutional Mastery: Partial success - mark as transcribing and continue
+                from app.services.verification_status_service import mark_verification_transcribing
+                await mark_verification_transcribing(db, verification, audio_url=audio_url)
+                logger.info(f"Verification {verification.id} marked as TRANSCRIBING")
+                # We need to re-poll because we haven't reached terminal success
+                await self._poll_textverified(verification, db, timeout_seconds - 30)
+                return
             else:
                 logger.warning(f"Poll success but no usable code for {verification.id}")
                 await self._handle_timeout(verification, db, reason="sms_timeout")

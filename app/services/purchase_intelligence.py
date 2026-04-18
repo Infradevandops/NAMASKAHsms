@@ -208,8 +208,9 @@ class PurchaseIntelligenceService:
         seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         two_hours_ago = datetime.now(timezone.utc) - timedelta(hours=2)
 
-        db = SessionLocal()
+        db = None
         try:
+            db = SessionLocal()
             outcomes = (
                 db.query(PurchaseOutcome)
                 .filter(
@@ -223,10 +224,11 @@ class PurchaseIntelligenceService:
                 .all()
             )
         except Exception as err:
-            logger.error(f"score_availability DB query failed: {err}")
+            logger.error(f"score_availability DB initialization or query failed: {err}")
             return _UNKNOWN
         finally:
-            db.close()
+            if db:
+                db.close()
 
         if not outcomes:
             await cache.set(cache_key, _UNKNOWN.model_dump(mode="json"), 600)
