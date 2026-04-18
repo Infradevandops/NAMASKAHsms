@@ -90,12 +90,14 @@ class Verification(BaseModel):
         nullable=True,
         comment="Links to balance_transactions debit record",
     )
-    # Note: refund_transaction_id already exists in this model at line 72, 
+    # Note: refund_transaction_id already exists in this model at line 72,
     # but we might want to update it to be a ForeignKey.
     # Let's keep it and just ensure it's used correctly.
 
     # Detailed status tracking (NEW)
-    failure_reason = Column(String(100), nullable=True, comment="Specific failure reason code")
+    failure_reason = Column(
+        String(100), nullable=True, comment="Specific failure reason code"
+    )
     failure_category = Column(
         String(50),
         nullable=True,

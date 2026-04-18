@@ -3,32 +3,32 @@
 
 class FailureReason:
     """Detailed failure reasons for verifications."""
-    
+
     # User Actions
     USER_CANCELLED = "user_cancelled"
     USER_TIMEOUT = "user_timeout"
-    
+
     # Provider Issues
     NUMBER_UNAVAILABLE = "number_unavailable"
     PROVIDER_API_ERROR = "provider_api_error"
     PROVIDER_TIMEOUT = "provider_timeout"
     SMS_NOT_DELIVERED = "sms_not_delivered"
-    
+
     # System Validation
     VOIP_REJECTED = "voip_rejected"
     CARRIER_MISMATCH = "carrier_mismatch"
     AREA_CODE_UNAVAILABLE = "area_code_unavailable"
     RETRY_EXHAUSTED = "retry_exhausted"
-    
+
     # Payment Issues
     INSUFFICIENT_BALANCE = "insufficient_balance"
     PAYMENT_FAILED = "payment_failed"
-    
+
     # Internal Errors
     INTERNAL_ERROR = "internal_error"
     DATABASE_ERROR = "database_error"
     CONFIGURATION_ERROR = "configuration_error"
-    
+
     ALL = [
         USER_CANCELLED,
         USER_TIMEOUT,
@@ -50,6 +50,7 @@ class FailureReason:
 
 class FailureCategory:
     """High-level failure categories."""
+
     USER_ACTION = "user_action"
     PROVIDER_ISSUE = "provider_issue"
     SYSTEM_VALIDATION = "system_validation"
@@ -79,6 +80,7 @@ REASON_TO_CATEGORY = {
 
 class TransactionType:
     """Balance transaction types."""
+
     DEBIT = "debit"
     REFUND = "refund"
     CREDIT = "credit"
@@ -98,7 +100,6 @@ FAILURE_MESSAGES = {
         "message": "Verification expired - you didn't check for the code in time",
         "refundable": True,
     },
-    
     # Provider Issues
     FailureReason.NUMBER_UNAVAILABLE: {
         "label": "Number Unavailable",
@@ -120,7 +121,6 @@ FAILURE_MESSAGES = {
         "message": "SMS code was not delivered within 10 minutes. Your payment has been refunded.",
         "refundable": True,
     },
-    
     # System Validation
     FailureReason.VOIP_REJECTED: {
         "label": "VOIP Rejected",
@@ -142,7 +142,6 @@ FAILURE_MESSAGES = {
         "message": "Maximum retry attempts reached (3/3). Your payment has been refunded.",
         "refundable": True,
     },
-    
     # Payment Issues
     FailureReason.INSUFFICIENT_BALANCE: {
         "label": "Insufficient Balance",
@@ -154,7 +153,6 @@ FAILURE_MESSAGES = {
         "message": "Payment processing failed. Please try again.",
         "refundable": False,
     },
-    
     # Internal Errors
     FailureReason.INTERNAL_ERROR: {
         "label": "Internal Error",
@@ -178,11 +176,11 @@ def format_failure_message(failure_reason: str, error_message: str = None) -> st
     """Get user-friendly failure message."""
     if not failure_reason:
         return error_message or "Verification failed"
-    
+
     msg_data = FAILURE_MESSAGES.get(failure_reason)
     if msg_data:
         return msg_data.get("message", error_message or "Verification failed")
-    
+
     return error_message or "Verification failed"
 
 
@@ -203,4 +201,7 @@ def format_category_label(category_code: str) -> str:
         FailureCategory.PAYMENT_ISSUE: "Payment Issue",
         FailureCategory.INTERNAL_ERROR: "Internal Error",
     }
-    return labels.get(category_code, category_code.replace("_", " ").title() if category_code else "Unknown")
+    return labels.get(
+        category_code,
+        category_code.replace("_", " ").title() if category_code else "Unknown",
+    )

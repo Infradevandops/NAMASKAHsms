@@ -77,10 +77,12 @@ class RefundPolicyEnforcer:
                         ),
                         # Failed/timeout/cancelled/error not yet refunded
                         and_(
-                            Verification.status.in_(["timeout", "failed", "cancelled", "error"]),
+                            Verification.status.in_(
+                                ["timeout", "failed", "cancelled", "error"]
+                            ),
                             or_(
-                                getattr(Verification, 'refund_eligible', True) == True,
-                                Verification.refund_eligible.is_(None)
+                                getattr(Verification, "refund_eligible", True) == True,
+                                Verification.refund_eligible.is_(None),
                             ),
                             or_(
                                 Verification.refunded == False,

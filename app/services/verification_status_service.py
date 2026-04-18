@@ -5,11 +5,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.core.constants import (
-    REASON_TO_CATEGORY,
-    FailureCategory,
-    FailureReason,
-)
+from app.core.constants import REASON_TO_CATEGORY, FailureCategory, FailureReason
 from app.models.verification import Verification
 
 

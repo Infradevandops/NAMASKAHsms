@@ -356,16 +356,16 @@ async def request_verification(
                     verification=verification,
                     cost=actual_cost,
                     service_name=request.service,
-                    country_code=request.country
+                    country_code=request.country,
                 )
-                
+
                 if not success:
                     # Error handling handled within service (verification marked failed)
                     raise HTTPException(
                         status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                        detail=error or "Credit deduction failed"
+                        detail=error or "Credit deduction failed",
                     )
-                
+
                 new_balance = float(user.credits)
 
             # Notify user of credit deduction
