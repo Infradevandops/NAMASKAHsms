@@ -118,6 +118,14 @@ class TransactionResponse(BaseModel):
     status: str = Field(..., description="Transaction status")
     created_at: datetime = Field(..., description="Transaction creation time")
 
+    # Transaction linking for audit trail
+    balance_transaction_id: Optional[str] = Field(
+        None, description="Balance transaction ID for accounting audit trail"
+    )
+    verification_id: Optional[str] = Field(
+        None, description="Linked verification ID if transaction is for SMS purchase"
+    )
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -128,6 +136,8 @@ class TransactionResponse(BaseModel):
                 "description": "Wallet top-up via Paystack",
                 "status": "completed",
                 "created_at": "2024-01-20T10:00:00Z",
+                "balance_transaction_id": "bt_abc123",
+                "verification_id": None,
             }
         },
     }

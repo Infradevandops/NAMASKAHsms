@@ -42,18 +42,55 @@ class VerificationPricingService:
         """
         user = db.query(User).filter(User.id == user_id).first()
         resolved_tier = tier or user.subscription_tier
+        
+        description = "SMS Verification"
+        credits_deducted = 0.0
 
         if resolved_tier == "freemium":
             user.bonus_sms_balance -= 1
+            description = "SMS Verification (Bonus Balance)"
         elif resolved_tier in ("pro", "custom"):
             overage = QuotaService.calculate_overage(
                 db, user_id, cost, tier=resolved_tier
             )
             if overage > 0:
                 user.credits = float(user.credits) - overage
+                credits_deducted = overage
+                description = f"SMS Verification (Overage: ${overage:.2f})"
+            else:
+                description = "SMS Verification (Within Quota)"
         else:
             # payg
             user.credits = float(user.credits) - cost
+            credits_deducted = cost
+            description = f"SMS Verification (${cost:.2f})"
+
+        # Create main records if credits were actually taken
+        if credits_deducted > 0:
+            from app.models.transaction import Transaction
+            from app.models.balance_transaction import BalanceTransaction
+            from app.core.constants import TransactionType
+            from datetime import datetime, timezone
+
+            tx = Transaction(
+                user_id=user_id,
+                amount=-credits_deducted,
+                type="sms_purchase",
+                description=description,
+                status="completed",
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(tx)
+
+            balance_tx = BalanceTransaction(
+                user_id=user_id,
+                amount=-credits_deducted,
+                type=TransactionType.DEBIT,
+                description=description,
+                balance_after=float(user.credits),
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(balance_tx)
 
         QuotaService.add_quota_usage(db, user_id, cost)
         db.commit()

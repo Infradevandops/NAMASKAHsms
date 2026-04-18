@@ -75,20 +75,19 @@
             </div>
         </div>
 
-        <div class="table-container">
+        <div class="table-container" style="padding: 0;">
             <div id="loading" class="loading">Load recent verifications or search...</div>
-            <table id="history-table" style="display: none;">
-                <thead>
+            <table id="history-table" style="display: none; width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <thead style="background: #f8fafc;">
                     <tr>
-                        <th>Transaction ID</th>
-                        <th>User</th>
-                        <th>Service</th>
-                        <th>Phone</th>
-                        <th>Country</th>
-                        <th>Status</th>
-                        <th>Cost</th>
-                        <th>Date</th>
-                        <th>Actions</th>
+                        <th style="width: 100px;">AUDIT ID</th>
+                        <th style="width: 180px;">USER / EMAIL</th>
+                        <th style="width: 150px;">SERVICE / COUNTRY</th>
+                        <th style="width: 150px;">PHONE / CARRIER</th>
+                        <th style="width: 100px;">SMS CODE</th>
+                        <th style="width: 150px;">STATUS / STATE</th>
+                        <th style="text-align: right; width: 80px;">COST</th>
+                        <th style="text-align: right; width: 140px;">TIMESTAMP</th>
                     </tr>
                 </thead>
                 <tbody id="history-tbody"></tbody>
@@ -217,20 +216,35 @@
 
             currentData.forEach(item => {
                 const row = document.createElement('tr');
-                
                 const statusClass = item.status === 'completed' ? 'status-completed' : 
                                    item.status === 'pending' ? 'status-pending' : 'status-failed';
+                
+                const txId = item.debit_transaction_id || item.transaction_id || '-';
+                const dateObj = new Date(item.created_at);
 
                 row.innerHTML = `
-                    <td><code>${item.transaction_id.substring(0, 8)}...</code></td>
-                    <td><a href="#" onclick="viewUserHistory('${item.user_id}'); return false;">${item.user_email}</a></td>
-                    <td>${item.service_name}</td>
-                    <td>${item.phone_number || 'N/A'}</td>
-                    <td>${item.country}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>$${item.cost.toFixed(2)}</td>
-                    <td>${new Date(item.created_at).toLocaleString()}</td>
-                    <td><button class="btn btn-primary" onclick="viewDetails('${item.transaction_id}')">View</button></td>
+                    <td style="padding: 10px 12px; font-family: monospace; font-size: 11px;" title="${txId}">#${txId.substring(0, 8)}</td>
+                    <td style="padding: 10px 12px;">
+                        <a href="#" onclick="viewUserHistory('${item.user_id}'); return false;" style="font-weight: 600; font-size: 13px; color: #4f46e5; text-decoration: none;">${item.user_email}</a>
+                    </td>
+                    <td style="padding: 10px 12px;">
+                        <div style="font-weight: 500; font-size: 13px;">${item.service_name}</div>
+                        <div style="font-size: 11px; color: #6b7280;">${item.country}</div>
+                    </td>
+                    <td style="padding: 10px 12px;">
+                        <div style="font-family: monospace; font-size: 13px;">${item.phone_number || 'N/A'}</div>
+                        <div style="font-size: 11px; color: #6b7280;">Carrier: ${item.assigned_carrier || 'Auto'}</div>
+                    </td>
+                    <td style="padding: 10px 12px; font-family: monospace; font-weight: bold;">${item.sms_code || '-'}</td>
+                    <td style="padding: 10px 12px;">
+                        <span class="status-badge ${statusClass}">${item.status.toUpperCase()}</span>
+                        <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">${item.failure_reason || ''}</div>
+                    </td>
+                    <td style="padding: 10px 12px; text-align: right; font-weight: 600;">$${(item.cost || 0).toFixed(2)}</td>
+                    <td style="padding: 10px 12px; text-align: right;">
+                        <div style="font-size: 12px;">${dateObj.toLocaleDateString()}</div>
+                        <div style="font-size: 10px; color: #6b7280;">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </td>
                 `;
 
                 tbody.appendChild(row);

@@ -26,14 +26,16 @@ async def get_payment_history(
 ):
     """Get payment history for user."""
     try:
-        query = db.query(Transaction).filter(Transaction.user_id == user_id)
+        from app.models.balance_transaction import BalanceTransaction
+        
+        query = db.query(BalanceTransaction).filter(BalanceTransaction.user_id == user_id)
 
         if transaction_type:
-            query = query.filter(Transaction.type == transaction_type)
+            query = query.filter(BalanceTransaction.type == transaction_type)
 
         total = query.count()
-        transactions = (
-            query.order_by(Transaction.created_at.desc())
+        balance_txs = (
+            query.order_by(BalanceTransaction.created_at.desc())
             .offset(offset)
             .limit(limit)
             .all()
@@ -42,15 +44,16 @@ async def get_payment_history(
         return {
             "transactions": [
                 {
-                    "id": t.id,
-                    "type": t.type,
-                    "amount": t.amount,
-                    "description": t.description,
-                    "status": t.status,
-                    "created_at": t.created_at.isoformat() if t.created_at else None,
-                    "reference": getattr(t, "reference", None),
+                    "id": bt.id,
+                    "type": bt.type,
+                    "amount": float(bt.amount),
+                    "description": bt.description,
+                    "balance_after": float(bt.balance_after or 0.0),
+                    "status": "completed", # Balance transactions are by definition completed
+                    "created_at": bt.created_at.isoformat() if bt.created_at else None,
+                    "reference": bt.id[:8], # Use prefix as short reference if needed
                 }
-                for t in transactions
+                for bt in balance_txs
             ],
             "total": total,
             "limit": limit,

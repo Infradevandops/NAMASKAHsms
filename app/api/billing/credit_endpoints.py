@@ -90,30 +90,22 @@ async def add_credits(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Add credits
-        user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
+        # Use CreditService for consistent auditing
+        from app.services.credit_service import CreditService
 
-        # Create transaction record
-        transaction = Transaction(
+        credit_service = CreditService(db)
+        result = credit_service.add_credits(
             user_id=user_id,
-            type="credit",
             amount=amount,
-            description=f"Manual credit addition",
-            status="completed",
-            created_at=datetime.now(timezone.utc),
+            description="Manual credit addition",
+            transaction_type="credit",
         )
-
-        db.add(transaction)
-        db.commit()
-        db.refresh(user)
-
-        logger.info(f"Added {amount} credits to user {user_id}")
 
         return {
             "success": True,
             "amount_added": amount,
-            "new_balance": user.credits,
-            "transaction_id": transaction.id,
+            "new_balance": result["new_balance"],
+            "transaction_id": result.get("transaction_id"),  # Note: result has transaction keys
         }
 
     except HTTPException:

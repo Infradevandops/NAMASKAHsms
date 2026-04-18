@@ -52,26 +52,43 @@ async def get_audit_logs(
         )
 
 
-@router.get("/compliance-report")
-async def get_compliance_report(
+@router.get("/integrity/check")
+async def check_financial_integrity(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0
 ):
-    """Generate compliance report."""
-    try:
-        return {
-            "report_id": f"compliance_{int(datetime.now().timestamp())}",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "generated_by": admin_id,
-            "summary": {
-                "total_users": 0,
-                "active_users": 0,
-                "admin_actions": 0,
-                "compliance_score": 100,
-            },
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate compliance report: {str(e)}"
-        )
+    """Deep audit: Verify that User.credits matches Sum(BalanceTransaction)."""
+    from app.models.balance_transaction import BalanceTransaction
+    from app.models.user import User
+    from sqlalchemy import func
+    
+    users = db.query(User).offset(offset).limit(limit).all()
+    discrepancies = []
+    
+    for user in users:
+        # Sum all transactions for this user
+        tx_sum = db.query(func.sum(BalanceTransaction.amount)).filter(
+            BalanceTransaction.user_id == user.id
+        ).scalar() or 0.0
+        
+        balance = float(user.credits or 0.0)
+        diff = abs(balance - float(tx_sum))
+        
+        if diff > 0.01: # Small epsilon for float precision
+            discrepancies.append({
+                "user_id": user.id,
+                "email": user.email,
+                "cached_balance": balance,
+                "ledger_sum": float(tx_sum),
+                "drift": balance - float(tx_sum)
+            })
+            
+    return {
+        "status": "healthy" if not discrepancies else "drift_detected",
+        "check_timestamp": datetime.now(timezone.utc).isoformat(),
+        "users_checked": len(users),
+        "discrepancies": discrepancies,
+        "total_discrepancy_count": len(discrepancies)
+    }

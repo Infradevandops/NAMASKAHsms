@@ -92,10 +92,28 @@ class RefundService:
                     float(user.credits or 0) + float(refund_amount)
                 )
 
-                # Create transaction record
+                # Create Transaction (Analytics)
                 await self._create_refund_transaction(
                     db, user, verification, refund_amount, "surcharge", reasons
                 )
+
+                # Create BalanceTransaction (Strict Audit)
+                from app.core.constants import TransactionType
+                from app.models.balance_transaction import BalanceTransaction
+                from datetime import datetime, timezone
+
+                balance_tx = BalanceTransaction(
+                    user_id=user.id,
+                    amount=refund_amount,
+                    type=TransactionType.REFUND,
+                    description=f"Surcharge refund: {', '.join(reasons)}",
+                    balance_after=float(user.credits),
+                    created_at=datetime.now(timezone.utc),
+                )
+                db.add(balance_tx)
+                
+                if hasattr(db, "commit"):
+                    db.commit()
 
                 logger.info(
                     f"PAYG refund issued: user={user.id}, amount=${refund_amount:.2f}, "
@@ -125,10 +143,28 @@ class RefundService:
                 float(user.credits or 0) + float(refund_amount)
             )
 
-            # Create transaction record
+            # Create Transaction (Analytics)
             await self._create_refund_transaction(
                 db, user, verification, refund_amount, "overage", reasons
             )
+
+            # Create BalanceTransaction (Strict Audit)
+            from app.core.constants import TransactionType
+            from app.models.balance_transaction import BalanceTransaction
+            from datetime import datetime, timezone
+
+            balance_tx = BalanceTransaction(
+                user_id=user.id,
+                amount=refund_amount,
+                type=TransactionType.REFUND,
+                description=f"Overage refund: {', '.join(reasons)}",
+                balance_after=float(user.credits),
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(balance_tx)
+            
+            if hasattr(db, "commit"):
+                db.commit()
 
             logger.info(
                 f"{tier.upper()} refund issued: user={user.id}, amount=${refund_amount:.2f}, "

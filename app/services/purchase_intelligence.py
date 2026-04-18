@@ -43,6 +43,7 @@ class PurchaseIntelligenceService:
         latency_seconds: Optional[float] = None,
         provider_cost: Optional[float] = None,
         user_price: Optional[float] = None,
+        debit_transaction_id: Optional[str] = None,
     ):
         """Fire-and-forget logging of purchase outcome, enriched with geo data."""
 
@@ -77,6 +78,7 @@ class PurchaseIntelligenceService:
                         latency_seconds=latency_seconds,
                         provider_cost=provider_cost,
                         user_price=user_price,
+                        debit_transaction_id=debit_transaction_id,
                         created_at=now_utc,
                         hour_utc=now_utc.hour,
                         day_of_week=now_utc.weekday(),
@@ -109,6 +111,9 @@ class PurchaseIntelligenceService:
         outcome_category: Optional[str] = None,
         provider_refunded: bool = False,
         provider_error_code: Optional[str] = None,
+        refund_transaction_id: Optional[str] = None,
+        refund_requested_at: Optional[datetime] = None,
+        refund_processed_at: Optional[datetime] = None,
     ):
         """Called after polling completes."""
         if not verification_id:
@@ -130,6 +135,14 @@ class PurchaseIntelligenceService:
                             outcome_category=outcome_category,
                             provider_refunded=provider_refunded,
                             provider_error_code=provider_error_code,
+                            refund_transaction_id=refund_transaction_id,
+                            refund_requested_at=refund_requested_at,
+                            refund_processed_at=refund_processed_at,
+                            refund_latency_seconds=(
+                                (refund_processed_at - refund_requested_at).total_seconds()
+                                if refund_processed_at and refund_requested_at
+                                else None
+                            ),
                         )
                     )
                     db.execute(stmt)

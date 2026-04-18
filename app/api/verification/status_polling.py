@@ -97,6 +97,15 @@ class VerificationStatusService:
                             f"Verification {verification_id} status changed: {old_status} -> {verification.status}"
                         )
 
+                        # CRITICAL STABILITY: Trigger AutoRefund if terminal failure and NOT completed
+                        if verification.status in ["failed", "timeout", "cancelled"]:
+                            from app.services.auto_refund_service import AutoRefundService
+                            
+                            refund_service = AutoRefundService(self.db)
+                            await refund_service.process_verification_refund(
+                                verification_id, verification.status
+                            )
+
                 except Exception as e:
                     logger.error(
                         f"TextVerified API polling failed for {verification_id}: {e}"

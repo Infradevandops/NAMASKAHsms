@@ -28,19 +28,27 @@ async def get_dashboard_stats(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    """Get dashboard statistics."""
+    """Get dashboard statistics using real service data."""
+    from app.services.analytics_service import AnalyticsService
     try:
         total_users = db.query(User).count()
         admin_users = db.query(User).filter(User.is_admin == True).count()
+        
+        analytics = AnalyticsService(db)
+        overview = await analytics.get_overview()
+        refund_stats = await analytics.get_refund_stats()
 
         return {
             "total_users": total_users,
             "admin_users": admin_users,
             "active_users": total_users - admin_users,
-            "total_verifications": 0,
-            "successful_verifications": 0,
-            "failed_verifications": 0,
-            "total_revenue": 0.0,
+            "total_verifications": overview["verifications"]["total"],
+            "successful_verifications": overview["verifications"]["success"],
+            "failed_verifications": overview["verifications"]["total"] - overview["verifications"]["success"],
+            "success_rate": overview["verifications"]["rate"],
+            "gross_revenue": overview["revenue"]["gross"],
+            "total_refunds": refund_stats["total_refunded"],
+            "net_revenue": refund_stats["net_revenue"],
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 

@@ -34,34 +34,39 @@ class BalanceService:
             raise ValueError("User not found")
 
         if user.is_admin:
-            # Admin: Always fetch from TextVerified
+            # Admin: Always fetch from TextVerified with row-level locking for sync
             try:
+                # Use a fresh lock-protected query for the update phase
+                admin_user = db.query(User).filter(User.id == user_id).with_for_update().first()
+                if not admin_user:
+                    raise ValueError("Admin user lost during sync")
+
                 tv_service = TextVerifiedService()
                 if not tv_service.enabled:
                     logger.warning("TextVerified service not enabled for admin")
                     return {
-                        "balance": user.credits,
+                        "balance": float(admin_user.credits),
                         "source": "cached",
                         "is_admin": True,
                         "error": "TextVerified service not configured",
-                        "last_synced": getattr(user, "balance_last_synced", None),
+                        "last_synced": getattr(admin_user, "balance_last_synced", None),
                     }
 
                 tv_balance = await tv_service.get_balance()
                 live_balance = tv_balance.get("balance", 0.0)
 
-                # Update local cache for analytics
-                user.credits = live_balance
-                user.balance_last_synced = datetime.now(timezone.utc)
+                # Update local cache for analytics atomically
+                admin_user.credits = live_balance
+                admin_user.balance_last_synced = datetime.now(timezone.utc)
                 db.commit()
 
-                logger.info(f"Admin balance synced: ${live_balance:.2f}")
+                logger.info(f"Admin balance sync-locked: ${live_balance:.2f}")
 
                 return {
                     "balance": live_balance,
                     "source": "textverified",
                     "is_admin": True,
-                    "last_synced": user.balance_last_synced,
+                    "last_synced": admin_user.balance_last_synced,
                 }
             except Exception as e:
                 logger.error(f"TextVerified balance fetch failed: {e}")
@@ -162,7 +167,7 @@ class BalanceService:
             )
             db.add(balance_tx)
 
-            # 2. Create Transaction (for analytics/history)
+            # 2. Create Transaction (for analytics/history - Legacy Parity)
             transaction = Transaction(
                 id=str(uuid.uuid4()),
                 user_id=user.id,
@@ -176,13 +181,46 @@ class BalanceService:
             )
             db.add(transaction)
 
-            # Link verification to balance transaction
+            # Fix: Ensure verification points to the audit ledger
             verification.debit_transaction_id = balance_tx.id
+            
+            # Atomic Sync: Mirror IDs for parity
+            transaction.payment_log_id = balance_tx.id
 
-            db.commit()
+            # Use flush instead of commit to allow caller to manage the transaction boundary
+            db.flush()
             logger.info(
-                f"Credits deducted for {user.id}: ${cost:.2f} (New balance: ${new_balance:.2f})"
+                f"Ledger Synced for {user.id}: -${cost:.2f} (Ref: {verification.id})"
             )
+
+            # Notifications
+            try:
+                import asyncio
+
+                from app.services.notification_dispatcher import NotificationDispatcher
+
+                dispatcher = NotificationDispatcher(db)
+                # 1. Notify balance update
+                asyncio.create_task(
+                    dispatcher.notify_balance_deducted(
+                        user_id=user.id,
+                        amount=cost,
+                        service=service_name,
+                        new_balance=new_balance,
+                    )
+                )
+                # 2. Notify verification started
+                asyncio.create_task(
+                    dispatcher.notify_verification_started(
+                        user_id=user.id,
+                        verification_id=str(verification.id),
+                        service=service_name,
+                        phone_number=verification.phone_number or "assigned number",
+                        cost=cost,
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Failed to send verification notifications: {e}")
 
             return True, None
 

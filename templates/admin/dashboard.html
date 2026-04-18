@@ -77,6 +77,17 @@
         
         <!-- Charts Grid -->
         <div class="grid">
+            <!-- Financial Integrity Alert Card -->
+            <div id="integrity-card" class="card" style="grid-column: span 3; border-left: 4px solid #f59e0b; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: #d97706; margin-bottom: 4px;">⚠️ Financial Integrity Warning</h3>
+                        <p id="integrity-msg" style="font-size: 13px; color: #92400e;"></p>
+                    </div>
+                    <button onclick="window.location.href='/api/v1/admin/integrity/check'" class="btn" style="background: #d97706;">Run Deep Audit</button>
+                </div>
+            </div>
+
             <!-- Tier Distribution Donut -->
             <div class="card">
                 <h3>Tier Distribution</h3>
@@ -212,8 +223,32 @@
                 });
                 const expiring = await expiringRes.json();
                 renderStatusChart(users.users);
+                
+                // CRITICAL: Integrity Check
+                checkIntegrity();
             } catch (e) {
                 console.error(e);
+            }
+        }
+        
+        async function checkIntegrity() {
+            try {
+                const res = await fetch('/api/v1/admin/integrity/check', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const card = document.getElementById('integrity-card');
+                    if (data.status === 'drift_detected') {
+                        card.style.display = 'block';
+                        document.getElementById('integrity-msg').textContent = 
+                            `Detected financial drift across ${data.total_discrepancy_count} user accounts. Ledger sum does not match cached credits.`;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.error('Integrity check failed:', e);
             }
         }
         
