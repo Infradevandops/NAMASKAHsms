@@ -120,6 +120,7 @@ async def get_rental_overview(
     """
     try:
         from datetime import datetime, timedelta, timezone
+
         from app.models.verification import NumberRental
 
         now = datetime.now(timezone.utc)
@@ -167,6 +168,7 @@ async def get_rental_overview(
         }
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Rental overview failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get rental overview")
 
@@ -210,5 +212,6 @@ async def get_liquidity_alarms(
         }
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Liquidity alarms fetch failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch liquidity alarms")

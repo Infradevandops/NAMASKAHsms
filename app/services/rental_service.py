@@ -91,11 +91,14 @@ class RentalService:
             # Roll back the provider reservation on billing failure
             try:
                 from app.services.textverified_service import TextVerifiedService
+
                 tv = TextVerifiedService()
                 if hasattr(purchase_result, "order_id") and purchase_result.order_id:
                     await tv._cancel_safe(purchase_result.order_id)
             except Exception as cancel_err:
-                logger.error(f"Failed to cancel reservation after billing failure: {cancel_err}")
+                logger.error(
+                    f"Failed to cancel reservation after billing failure: {cancel_err}"
+                )
             raise RuntimeError(f"Credit deduction failed: {error}")
 
         # 5. Create Rental Record
@@ -155,7 +158,9 @@ class RentalService:
         if not rental:
             raise ValueError(f"Rental {rental_id} not found for user {user_id}")
         if rental.status != "active":
-            raise ValueError(f"Rental {rental_id} is not active (status: {rental.status})")
+            raise ValueError(
+                f"Rental {rental_id} is not active (status: {rental.status})"
+            )
 
         now = datetime.now(timezone.utc)
         expires_at = rental.expires_at
@@ -163,7 +168,9 @@ class RentalService:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
 
         # Prorated refund calculation
-        total_duration = (expires_at - rental.started_at.replace(tzinfo=timezone.utc)).total_seconds()
+        total_duration = (
+            expires_at - rental.started_at.replace(tzinfo=timezone.utc)
+        ).total_seconds()
         remaining = max(0.0, (expires_at - now).total_seconds())
         unused_fraction = remaining / total_duration if total_duration > 0 else 0.0
         refund_amount = round(rental.cost * unused_fraction, 2)
@@ -174,6 +181,7 @@ class RentalService:
         if reservation_id:
             try:
                 from app.services.textverified_service import TextVerifiedService
+
                 tv = TextVerifiedService()
                 cancelled_at_provider = await tv._cancel_safe(reservation_id)
             except Exception as e:
@@ -217,12 +225,12 @@ class RentalService:
         if not rental:
             raise ValueError(f"Rental {rental_id} not found for user {user_id}")
         if rental.status != "active":
-            raise ValueError(f"Rental {rental_id} is not active (status: {rental.status})")
+            raise ValueError(
+                f"Rental {rental_id} is not active (status: {rental.status})"
+            )
 
         # Calculate cost for the extension
-        pricing = PricingCalculator.calculate_rental_cost(
-            self.db, user_id, extra_hours
-        )
+        pricing = PricingCalculator.calculate_rental_cost(self.db, user_id, extra_hours)
         extra_cost = pricing["total_cost"]
 
         balance_check = await BalanceService.check_sufficient_balance(
@@ -239,6 +247,7 @@ class RentalService:
         if reservation_id:
             try:
                 from app.services.textverified_service import TextVerifiedService
+
                 tv = TextVerifiedService()
                 extended_at_provider = await tv.extend_reservation(
                     reservation_id, extra_hours
@@ -303,7 +312,9 @@ class RentalService:
 
     # ── Messages ──────────────────────────────────────────────────────────────
 
-    async def check_rental_messages(self, rental_id: int, user_id: Optional[str] = None) -> List[Dict]:
+    async def check_rental_messages(
+        self, rental_id: int, user_id: Optional[str] = None
+    ) -> List[Dict]:
         """Fetch all messages received on a rental number from TextVerified.
 
         Returns a list of normalized message dicts:
@@ -327,6 +338,7 @@ class RentalService:
 
         try:
             from app.services.textverified_service import TextVerifiedService
+
             tv = TextVerifiedService()
             raw_messages = await tv.get_reservation_messages(reservation_id)
 
@@ -361,6 +373,7 @@ class RentalService:
         if reservation_id:
             try:
                 from app.services.textverified_service import TextVerifiedService
+
                 tv = TextVerifiedService()
                 provider_status = await tv.check_reservation_expiry(reservation_id)
                 return {
@@ -412,9 +425,7 @@ async def _run_expiry_check():
         now = datetime.now(timezone.utc)
 
         active_rentals = (
-            db.query(NumberRental)
-            .filter(NumberRental.status == "active")
-            .all()
+            db.query(NumberRental).filter(NumberRental.status == "active").all()
         )
 
         expired_count = 0
@@ -432,7 +443,9 @@ async def _run_expiry_check():
                 rental.status = "expired"
                 rental.released_at = now
                 expired_count += 1
-                logger.info(f"Rental {rental.id} ({rental.phone_number}) marked as expired.")
+                logger.info(
+                    f"Rental {rental.id} ({rental.phone_number}) marked as expired."
+                )
 
             elif remaining <= EXPIRY_WARNING_MINUTES and not rental.warning_sent:
                 # Issue warning
@@ -445,6 +458,7 @@ async def _run_expiry_check():
                 # Log to ActivityLog for admin dashboard visibility
                 try:
                     from app.models.system import ActivityLog
+
                     log = ActivityLog(
                         user_id=rental.user_id,
                         action="RENTAL_EXPIRY_WARNING",
@@ -454,7 +468,9 @@ async def _run_expiry_check():
                     )
                     db.add(log)
                 except Exception as log_err:
-                    logger.warning(f"Failed to log expiry warning to ActivityLog: {log_err}")
+                    logger.warning(
+                        f"Failed to log expiry warning to ActivityLog: {log_err}"
+                    )
 
         if expired_count > 0 or warning_count > 0:
             db.commit()
