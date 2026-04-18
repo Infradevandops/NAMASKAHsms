@@ -1,7 +1,7 @@
 """Analytics and reporting models."""
 
-from sqlalchemy import Boolean, Column, Date, DateTime, Float, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -33,7 +33,7 @@ class VerificationEvent(BaseModel):
     event_type = Column(
         String, nullable=False
     )  # created, retry, timeout, completed, refunded, cancelled
-    event_data = Column(JSONB)
+    event_data = Column(JSON)
 
 
 class CustomReport(BaseModel):
@@ -44,7 +44,7 @@ class CustomReport(BaseModel):
     user_id = Column(String, nullable=False, index=True)
     report_name = Column(String, nullable=False)
     report_type = Column(String, nullable=False)  # daily, weekly, monthly, custom
-    filters = Column(JSONB)
+    filters = Column(JSON)
     schedule = Column(String)  # cron expression
     last_run = Column(DateTime)
     next_run = Column(DateTime, index=True)
@@ -58,7 +58,7 @@ class ScheduledReport(BaseModel):
 
     report_id = Column(UUID)
     user_id = Column(String, nullable=False, index=True)
-    report_data = Column(JSONB)
+    report_data = Column(JSON)
     generated_at = Column(DateTime, nullable=False)
     sent_at = Column(DateTime)
     status = Column(String, default="pending", nullable=False)  # pending, sent, failed

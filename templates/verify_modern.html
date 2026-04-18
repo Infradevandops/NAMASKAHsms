@@ -1190,6 +1190,15 @@ function startPolling() {
                         const copyBtn = document.getElementById('copy-code-btn');
                         if (copyBtn) copyBtn.classList.remove('copied');
                         return;
+                    } else if (data.status === 'failed' || data.status === 'error') {
+                        clearTimeout(VerificationFlow.scanInterval);
+                        let msg = 'Verification failed.';
+                        if (data.failure_reason) {
+                            msg = data.failure_reason.replace(/_/g, ' ').toLowerCase();
+                            msg = msg.charAt(0).toUpperCase() + msg.slice(1);
+                        }
+                        showError('Verification Failed', msg);
+                        return;
                     }
                 }
             } catch (e) { /* continue */ }

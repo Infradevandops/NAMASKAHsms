@@ -349,24 +349,24 @@ async def request_verification(
                     new_balance = old_balance - actual_cost
                     user.credits = new_balance
             else:
-                user.credits -= type(user.credits)(actual_cost)
-                new_balance = float(user.credits)
-                logger.info(
-                    f"User balance deducted: ${old_balance:.2f} → ${new_balance:.2f}"
+                # Use unified deduction service (Phase 2.4/5)
+                success, error = BalanceService.deduct_credits_for_verification(
+                    db=db,
+                    user=user,
+                    verification=verification,
+                    cost=actual_cost,
+                    service_name=request.service,
+                    country_code=request.country
                 )
-
-            # Record transaction
-            TransactionService.record_sms_purchase(
-                db=db,
-                user_id=user_id,
-                amount=actual_cost,
-                service=request.service,
-                verification_id=str(verification.id),
-                old_balance=old_balance,
-                new_balance=new_balance,
-                filters={"area_code": area_code} if area_code else None,
-                tier=user_tier,
-            )
+                
+                if not success:
+                    # Error handling handled within service (verification marked failed)
+                    raise HTTPException(
+                        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                        detail=error or "Credit deduction failed"
+                    )
+                
+                new_balance = float(user.credits)
 
             # Notify user of credit deduction
             try:
