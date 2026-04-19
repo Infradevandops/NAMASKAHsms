@@ -6,9 +6,8 @@
   <meta name="description" content="White label setup - Namaskah">
   <title>White Label Setup - Namaskah</title>
   
-  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
-  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
-  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/design-tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     .setup-container {
@@ -295,6 +294,6 @@
   </footer>
 
   
-  <script src="/static/js/design-system.js') }}"></script>
+  <script src="{{ url_for('static', path='js/design-system.js') }}"></script>
 </body>
 </html>
