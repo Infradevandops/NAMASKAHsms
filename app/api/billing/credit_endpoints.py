@@ -38,35 +38,31 @@ async def get_credit_balance(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
+        # Always return user.credits as the canonical balance
+        # (TextVerified API balance is an operational metric, not the user's wallet)
+        result = {
+            "credits": user.credits or 0.0,
+            "free_verifications": getattr(user, "free_verifications", 0),
+            "currency": "USD",
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+        }
+
         if user.is_admin:
             from app.core.unified_cache import cache
 
             _BALANCE_CACHE_KEY = "tv:admin_balance"
             cached = await cache.get(_BALANCE_CACHE_KEY)
             if cached is not None:
-                balance = cached
+                tv_balance = cached
             else:
                 bal_data = await _get_tv_service().get_balance()
-                balance = bal_data.get("balance", 0.0)
-                await cache.set(_BALANCE_CACHE_KEY, balance, ttl=60)
-                logger.info(
-                    f"Retrieved TextVerified balance for admin {user_id}: {balance}"
-                )
-            return {
-                "credits": balance,
-                "free_verifications": getattr(user, "free_verifications", 0),
-                "currency": "USD",
-                "source": "textverified",
-                "last_updated": datetime.now(timezone.utc).isoformat(),
-            }
+                tv_balance = bal_data.get("balance", 0.0)
+                await cache.set(_BALANCE_CACHE_KEY, tv_balance, ttl=60)
+            result["provider_balance"] = tv_balance
+            result["source"] = "database"
 
         logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
-        return {
-            "credits": user.credits or 0.0,
-            "free_verifications": getattr(user, "free_verifications", 0),
-            "currency": "USD",
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-        }
+        return result
 
     except HTTPException:
         raise
