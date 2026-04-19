@@ -1,0 +1,585 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}<span data-i18n="rentals.title">Number Rentals</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="rentals.subtitle">Rent dedicated numbers for long-term use</span>{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/verification-design-system.css">
+<style>
+.rental-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+}
+.rental-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.rental-phone {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+.rental-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+.status-expiring {
+    background: #fef3c7;
+    color: #92400e;
+}
+.rental-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+.info-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+.info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+.rental-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.duration-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+.duration-option {
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.duration-option:hover {
+    border-color: #FE3C72;
+    background: #fff0f5;
+}
+.duration-option.selected {
+    border-color: #FE3C72;
+    background: #fff0f5;
+}
+.duration-hours {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+.duration-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+.duration-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #FE3C72;
+    margin-top: 8px;
+}
+.messages-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+}
+.message-item {
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.message-text {
+    font-size: 14px;
+    color: #111827;
+    margin-bottom: 4px;
+}
+.message-time {
+    font-size: 12px;
+    color: #6b7280;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <!-- Header -->
+    <div class="verification-header">
+        <h1>Number Rentals</h1>
+        <p>Rent dedicated phone numbers for long-term verification needs</p>
+    </div>
+
+    <!-- Create New Rental Section -->
+    <div class="verification-card" id="create-rental-card">
+        <h2>Rent a New Number</h2>
+        <p>Get a dedicated number that stays active for your chosen duration</p>
+
+        <div class="form-group">
+            <label class="form-label">Service <span class="required">*</span></label>
+            <select class="form-select" id="service-select">
+                <option value="">Loading services...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Duration <span class="required">*</span></label>
+            <div class="duration-selector">
+                <div class="duration-option" onclick="selectDuration(24, 15)">
+                    <div class="duration-hours">24h</div>
+                    <div class="duration-label">1 Day</div>
+                    <div class="duration-price">$15.00</div>
+                </div>
+                <div class="duration-option" onclick="selectDuration(72, 35)">
+                    <div class="duration-hours">72h</div>
+                    <div class="duration-label">3 Days</div>
+                    <div class="duration-price">$35.00</div>
+                </div>
+                <div class="duration-option" onclick="selectDuration(168, 65)">
+                    <div class="duration-hours">168h</div>
+                    <div class="duration-label">1 Week</div>
+                    <div class="duration-price">$65.00</div>
+                </div>
+                <div class="duration-option" onclick="selectDuration(720, 200)">
+                    <div class="duration-hours">720h</div>
+                    <div class="duration-label">30 Days</div>
+                    <div class="duration-price">$200.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Country</label>
+            <select class="form-select" id="country-select">
+                <option value="US">United States</option>
+            </select>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <div style="font-size: 14px; color: #374151; line-height: 1.6;">
+                <strong>How Rentals Work:</strong><br>
+                • Get a dedicated number for your chosen duration<br>
+                • Receive all SMS messages sent to this number<br>
+                • Extend anytime before expiry<br>
+                • Cancel anytime for prorated refund<br>
+                • Perfect for ongoing verification needs
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
+            <button class="btn btn-primary btn-block" id="create-rental-btn" onclick="createRental()" disabled>
+                <span>Rent Number</span>
+                <span id="rental-cost">$0.00</span>
+            </button>
+            <div style="font-size: 14px; color: #6b7280;">
+                Balance: <span id="user-balance">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Rentals Section -->
+    <div class="verification-card" style="margin-top: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="margin: 0;">Active Rentals</h2>
+            <button class="btn btn-secondary" onclick="loadRentals()">
+                <span>🔄</span>
+                <span>Refresh</span>
+            </button>
+        </div>
+
+        <div id="rentals-container">
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                Loading rentals...
+            </div>
+        </div>
+    </div>
+
+    <!-- Rental Details Modal -->
+    <div id="rental-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0;">Rental Details</h2>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+
+            <div id="modal-content"></div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ request.state.csp_nonce }}">
+let selectedDuration = null;
+let selectedDurationCost = null;
+let selectedService = null;
+let rentals = [];
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();
+    loadBalance();
+    loadRentals();
+    
+    // Auto-refresh rentals every 30 seconds
+    setInterval(loadRentals, 30000);
+});
+
+// Load services
+async function loadServices() {
+    const sel = document.getElementById('service-select');
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/countries/US/services', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const services = data.services || [];
+        
+        sel.innerHTML = '<option value="">-- Select a service --</option>' +
+            services.map(s => `<option value="${s.name || s.id}">${s.name || s.id}</option>`).join('');
+        
+        sel.addEventListener('change', (e) => {
+            selectedService = e.target.value;
+            updateCreateButton();
+        });
+    } catch (e) {
+        sel.innerHTML = '<option value="">Failed to load services</option>';
+        console.error('Failed to load services:', e);
+    }
+}
+
+// Select duration
+function selectDuration(hours, cost) {
+    selectedDuration = hours;
+    selectedDurationCost = cost;
+    
+    // Update UI
+    document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
+    event.target.closest('.duration-option').classList.add('selected');
+    
+    document.getElementById('rental-cost').textContent = `$${cost.toFixed(2)}`;
+    updateCreateButton();
+}
+
+// Update create button state
+function updateCreateButton() {
+    const btn = document.getElementById('create-rental-btn');
+    btn.disabled = !selectedService || !selectedDuration;
+}
+
+// Load balance
+async function loadBalance() {
+    try {
+        const res = await fetch('/api/billing/balance', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            const balance = data.balance ?? data.credits ?? 0;
+            document.getElementById('user-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+        }
+    } catch (e) {
+        console.error('Failed to load balance:', e);
+    }
+}
+
+// Create rental
+async function createRental() {
+    if (!selectedService || !selectedDuration) {
+        window.toast?.error('Please select a service and duration');
+        return;
+    }
+
+    const btn = document.getElementById('create-rental-btn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span>Creating rental...</span>';
+
+    try {
+        const response = await fetch('/api/rentals/request', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                service: selectedService,
+                country: document.getElementById('country-select').value,
+                duration_hours: selectedDuration
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to create rental');
+        }
+
+        const data = await response.json();
+        window.toast?.success(`Rental created! Number: ${data.phone_number}`);
+        
+        // Reset form
+        selectedService = null;
+        selectedDuration = null;
+        selectedDurationCost = null;
+        document.getElementById('service-select').value = '';
+        document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('rental-cost').textContent = '$0.00';
+        
+        // Reload data
+        loadBalance();
+        loadRentals();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        window.toast?.error(error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        updateCreateButton();
+    }
+}
+
+// Load rentals
+async function loadRentals() {
+    const container = document.getElementById('rentals-container');
+    
+    try {
+        const response = await fetch('/api/rentals/active', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to load rentals');
+
+        const data = await response.json();
+        rentals = data.rentals || [];
+
+        if (rentals.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Active Rentals</div>
+                    <div style="font-size: 14px;">Rent a number above to get started</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = rentals.map(rental => renderRentalCard(rental)).join('');
+        
+    } catch (error) {
+        console.error('Error loading rentals:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Failed to Load Rentals</div>
+                <div style="font-size: 14px; margin-bottom: 16px;">${error.message}</div>
+                <button class="btn btn-secondary" onclick="loadRentals()">Try Again</button>
+            </div>
+        `;
+    }
+}
+
+// Render rental card
+function renderRentalCard(rental) {
+    const expiresAt = new Date(rental.expires_at);
+    const now = new Date();
+    const remainingMs = expiresAt - now;
+    const remainingHours = Math.max(0, remainingMs / (1000 * 60 * 60));
+    const isExpiring = remainingHours < 24;
+    
+    const statusClass = isExpiring ? 'status-expiring' : 'status-active';
+    const statusText = isExpiring ? '⚠️ Expiring Soon' : '✅ Active';
+    
+    return `
+        <div class="rental-card">
+            <div class="rental-header">
+                <div class="rental-phone">${rental.phone_number}</div>
+                <div class="rental-status ${statusClass}">${statusText}</div>
+            </div>
+            
+            <div class="rental-info">
+                <div class="info-item">
+                    <div class="info-label">Service</div>
+                    <div class="info-value">${rental.service}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Expires</div>
+                    <div class="info-value">${expiresAt.toLocaleString()}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Remaining</div>
+                    <div class="info-value">${remainingHours.toFixed(1)} hours</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Cost</div>
+                    <div class="info-value">$${parseFloat(rental.cost).toFixed(2)}</div>
+                </div>
+            </div>
+            
+            <div class="rental-actions">
+                <button class="btn btn-primary" onclick="viewMessages(${rental.id})">
+                    <span>📨</span>
+                    <span>View Messages</span>
+                </button>
+                <button class="btn btn-secondary" onclick="extendRental(${rental.id})">
+                    <span>⏱️</span>
+                    <span>Extend</span>
+                </button>
+                <button class="btn btn-danger" onclick="cancelRental(${rental.id})">
+                    <span>❌</span>
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// View messages
+async function viewMessages(rentalId) {
+    const modal = document.getElementById('rental-modal');
+    const content = document.getElementById('modal-content');
+    
+    content.innerHTML = '<div style="text-align: center; padding: 40px;">Loading messages...</div>';
+    modal.style.display = 'block';
+    
+    try {
+        const response = await fetch(`/api/rentals/${rentalId}/messages`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load messages');
+        
+        const data = await response.json();
+        const messages = data.messages || [];
+        
+        if (messages.length === 0) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                    <div style="font-size: 16px; font-weight: 600;">No Messages Yet</div>
+                    <div style="font-size: 14px; margin-top: 8px;">Messages will appear here when received</div>
+                </div>
+            `;
+        } else {
+            content.innerHTML = `
+                <div class="messages-list">
+                    ${messages.map(msg => `
+                        <div class="message-item">
+                            <div class="message-text">${msg.text || 'No text'}</div>
+                            ${msg.code ? `<div style="font-weight: 600; color: #FE3C72; margin-top: 4px;">Code: ${msg.code}</div>` : ''}
+                            <div class="message-time">${msg.received_at ? new Date(msg.received_at).toLocaleString() : 'Unknown time'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn btn-secondary" onclick="viewMessages(${rentalId})" style="margin-top: 16px; width: 100%;">
+                    🔄 Refresh Messages
+                </button>
+            `;
+        }
+    } catch (error) {
+        content.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Failed to Load Messages</div>
+                <div style="font-size: 14px;">${error.message}</div>
+            </div>
+        `;
+    }
+}
+
+// Extend rental
+async function extendRental(rentalId) {
+    const hours = prompt('How many hours to extend? (1-720)', '24');
+    if (!hours) return;
+    
+    const extraHours = parseFloat(hours);
+    if (isNaN(extraHours) || extraHours <= 0 || extraHours > 720) {
+        window.toast?.error('Please enter a valid number of hours (1-720)');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/rentals/${rentalId}/extend`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ extra_hours: extraHours })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to extend rental');
+        }
+        
+        const data = await response.json();
+        window.toast?.success(`Rental extended by ${extraHours} hours! Cost: $${data.extra_cost.toFixed(2)}`);
+        loadBalance();
+        loadRentals();
+        
+    } catch (error) {
+        window.toast?.error(error.message);
+    }
+}
+
+// Cancel rental
+async function cancelRental(rentalId) {
+    if (!confirm('Are you sure you want to cancel this rental? You will receive a prorated refund for unused time.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/rentals/${rentalId}/cancel`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to cancel rental');
+        }
+        
+        const data = await response.json();
+        window.toast?.success(`Rental cancelled! Refund: $${data.refund_amount.toFixed(2)}`);
+        loadBalance();
+        loadRentals();
+        
+    } catch (error) {
+        window.toast?.error(error.message);
+    }
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById('rental-modal').style.display = 'none';
+}
+
+// Close modal on background click
+document.getElementById('rental-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'rental-modal') closeModal();
+});
+</script>
+{% endblock %}
