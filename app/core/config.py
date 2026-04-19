@@ -144,14 +144,14 @@ class Settings(BaseSettings):
     # SMS settings
     sms_provider: str = "textverified"
     sms_timeout: int = 300  # 5 minutes
-    price_markup: float = 1.8
+    price_markup: float = 1.1
 
     # Payment settings
     payment_provider: str = "paystack"
     payment_webhook_timeout: int = 30
     # NGN/USD rate — update this when rate drifts significantly.
-    # Last updated: March 2026. Current market rate ~1600.
-    ngn_usd_rate: float = 1600.0
+    # Last updated: April 2026. Current market rate ~1500.
+    ngn_usd_rate: float = 1500.0
 
     # Crypto Settlement Addresses (Placeholders for Institutional Liquidity)
     btc_address: str = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"

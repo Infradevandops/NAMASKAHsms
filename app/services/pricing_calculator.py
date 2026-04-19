@@ -1,7 +1,15 @@
-"""Pricing calculation service."""
+"""Pricing calculation service.
+
+v4.5.0: Provider-price-driven billing.
+The base cost for every purchase is now derived from the ACTUAL provider price
+(TextVerified, Telnyx, etc.) × the platform markup.  The old hardcoded
+`base_sms_cost` from tier config is used ONLY as a last-resort fallback when
+the provider price is unavailable.
+"""
 
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.tier_config import TierConfig
 from app.models.user import User
 from app.services.quota_service import QuotaService
@@ -17,7 +25,6 @@ class PricingCalculator:
         "t-mobile": 0.25,
         "att": 0.20,
         "at&t": 0.20,
-        # Sprint merged with T-Mobile in 2020 - removed in v4.4.1
     }
 
     # Area code premiums (PAYG tier only)
@@ -33,10 +40,35 @@ class PricingCalculator:
     }
 
     @staticmethod
-    def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
+    def _resolve_base_cost(
+        provider_price: float = None, tier: dict = None
+    ) -> tuple:
+        """Return (base_cost, price_source) using provider price when available.
+
+        Priority:
+          1. provider_price × markup  (real cost from TextVerified / other provider)
+          2. tier["base_sms_cost"]    (hardcoded fallback — legacy)
+        """
+        settings = get_settings()
+        if provider_price is not None and provider_price > 0:
+            return round(provider_price * settings.price_markup, 2), "provider"
+        fallback = tier.get("base_sms_cost", 2.50) if tier else 2.50
+        return fallback, "fallback"
+
+    @staticmethod
+    def calculate_sms_cost(
+        db: Session,
+        user_id: str,
+        filters: dict = None,
+        provider_price: float = None,
+    ) -> dict:
         """Calculate total cost for SMS verification.
 
-        Raises ValueError if price is None (validation for Task 4.2).
+        Args:
+            provider_price: The raw cost the provider (e.g. TextVerified) charges
+                            for this specific service.  When supplied the user is
+                            billed provider_price × markup instead of the static
+                            tier base_sms_cost.
         """
         if not filters:
             filters = {}
@@ -45,10 +77,11 @@ class PricingCalculator:
         tier_name = user.subscription_tier
         tier = TierConfig.get_tier_config(tier_name, db)
 
-        base_cost = tier.get("base_sms_cost", 2.50)
+        base_cost, price_source = PricingCalculator._resolve_base_cost(
+            provider_price, tier
+        )
 
-        # VALIDATION: Block purchase without price (Task 4.2)
-        if base_cost is None:
+        if base_cost is None or base_cost <= 0:
             raise ValueError(
                 f"Cannot purchase SMS: base cost is not configured for tier '{tier_name}'. "
                 "Please contact support."
@@ -59,14 +92,11 @@ class PricingCalculator:
         area_code_premium = 0.0
 
         if tier_name == "payg":
-            # Area code premiums
             ac = filters.get("area_code")
             if ac:
                 area_code_premium = PricingCalculator.AREA_CODE_PREMIUMS.get(
                     str(ac), 0.25
                 )
-
-            # Carrier premiums
             carrier = filters.get("carrier")
             if carrier:
                 carrier_premium = PricingCalculator.CARRIER_PREMIUMS.get(
@@ -81,9 +111,8 @@ class PricingCalculator:
         overage_charge = QuotaService.calculate_overage(
             db, user_id, base_cost + filter_charges, tier=tier_name
         )
-        total_cost = base_cost + filter_charges + overage_charge
+        total_cost = round(base_cost + filter_charges + overage_charge, 2)
 
-        # VALIDATION: Block purchase without total price (Task 4.2)
         if total_cost is None or total_cost <= 0:
             raise ValueError(
                 f"Invalid pricing calculation: total_cost={total_cost}. "
@@ -96,8 +125,10 @@ class PricingCalculator:
             "overage_charge": overage_charge,
             "total_cost": total_cost,
             "tier": user.subscription_tier,
-            "carrier_surcharge": carrier_premium,  # NEW (v4.4.1)
-            "area_code_surcharge": area_code_premium,  # NEW (v4.4.1)
+            "carrier_surcharge": carrier_premium,
+            "area_code_surcharge": area_code_premium,
+            "price_source": price_source,
+            "provider_cost": provider_price,
         }
 
     @staticmethod
@@ -129,12 +160,7 @@ class PricingCalculator:
     def validate_balance(
         db: Session, user_id: str, cost: float, tier: str = None
     ) -> bool:
-        """Check if user has sufficient balance.
-
-        For pro/custom: passes if remaining quota covers the base cost.
-        Credits are only required for the overage portion.
-        `tier` should be the value from TierManager.get_user_tier() when available.
-        """
+        """Check if user has sufficient balance."""
         user = db.query(User).filter(User.id == user_id).first()
         resolved_tier = tier or user.subscription_tier
 
@@ -144,11 +170,8 @@ class PricingCalculator:
         if resolved_tier in ("pro", "custom"):
             usage = QuotaService.get_monthly_usage(db, user_id, tier=resolved_tier)
             quota_remaining = usage["remaining"]
-            tier_config = TierConfig.get_tier_config(resolved_tier, db)
-            base_cost = tier_config.get("base_sms_cost", 0.30)
-            if quota_remaining >= base_cost:
-                return True  # within quota — subscription covers it
-            # In overage: check credits cover the overage amount
+            if quota_remaining >= cost:
+                return True
             overage = QuotaService.calculate_overage(
                 db, user_id, cost, tier=resolved_tier
             )
@@ -157,7 +180,9 @@ class PricingCalculator:
         return user.credits >= cost
 
     @staticmethod
-    def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
+    def get_pricing_breakdown(
+        db: Session, user_id: str, filters: dict = None, provider_price: float = None
+    ) -> dict:
         """Get detailed pricing breakdown."""
         if not filters:
             filters = {}
@@ -165,7 +190,9 @@ class PricingCalculator:
         user = db.query(User).filter(User.id == user_id).first()
         tier = TierConfig.get_tier_config(user.subscription_tier, db)
 
-        cost_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
+        cost_info = PricingCalculator.calculate_sms_cost(
+            db, user_id, filters, provider_price=provider_price
+        )
         quota_info = QuotaService.get_monthly_usage(db, user_id)
 
         return {
@@ -175,6 +202,8 @@ class PricingCalculator:
             "filter_charges": cost_info["filter_charges"],
             "overage_charge": cost_info["overage_charge"],
             "total_cost": cost_info["total_cost"],
+            "price_source": cost_info["price_source"],
+            "provider_cost": cost_info["provider_cost"],
             "quota_limit": quota_info["quota_limit"],
             "quota_used": quota_info["quota_used"],
             "quota_remaining": quota_info["remaining"],
@@ -188,16 +217,38 @@ class PricingCalculator:
         }
 
     @staticmethod
-    def calculate_rental_cost(db: Session, user_id: str, duration_hours: float) -> dict:
-        """Calculate total cost for number rental."""
-        # Institutional default: $0.25 per hour ($6/day)
-        # In a production environment, this would be fetched from TierConfig
+    def calculate_rental_cost(
+        db: Session,
+        user_id: str,
+        duration_hours: float,
+        provider_cost: float = None,
+    ) -> dict:
+        """Calculate total cost for number rental.
+
+        Args:
+            provider_cost: Actual cost returned by the provider for this
+                           reservation.  When available, the user is charged
+                           provider_cost × markup.  Falls back to $0.25/hr.
+        """
+        settings = get_settings()
+
+        if provider_cost is not None and provider_cost > 0:
+            total_cost = round(provider_cost * settings.price_markup, 2)
+            return {
+                "total_cost": total_cost,
+                "duration_hours": duration_hours,
+                "hourly_rate": round(total_cost / max(duration_hours, 1), 4),
+                "price_source": "provider",
+                "provider_cost": provider_cost,
+            }
+
+        # Fallback: flat hourly rate
         hourly_rate = 0.25
-
         total_cost = round(hourly_rate * duration_hours, 2)
-
         return {
             "total_cost": total_cost,
             "duration_hours": duration_hours,
             "hourly_rate": hourly_rate,
+            "price_source": "fallback",
+            "provider_cost": None,
         }

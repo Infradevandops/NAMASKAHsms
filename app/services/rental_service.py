@@ -52,23 +52,7 @@ class RentalService:
           3. Purchase reservation from TextVerified
           4. Persist NumberRental record
         """
-        # 1. Calculate cost
-        pricing = PricingCalculator.calculate_rental_cost(
-            self.db, user_id, duration_hours
-        )
-        total_cost = pricing["total_cost"]
-
-        # 2. Check balance
-        balance_check = await BalanceService.check_sufficient_balance(
-            user_id, total_cost, self.db
-        )
-        if not balance_check["sufficient"]:
-            raise ValueError(
-                f"Insufficient balance. Required: ${total_cost:.2f}, "
-                f"Available: ${balance_check.get('balance', 0):.2f}"
-            )
-
-        # 3. Purchase from provider
+        # 1. Purchase from provider FIRST to get real cost
         purchase_result = await self.provider_router.purchase_with_failover(
             db=self.db,
             service=service,
@@ -76,6 +60,34 @@ class RentalService:
             capability="rental",
             duration_hours=duration_hours,
         )
+
+        # 2. Calculate cost using the actual provider cost
+        provider_cost = getattr(purchase_result, "cost", None) or (
+            purchase_result.cost if hasattr(purchase_result, "cost") else None
+        )
+        pricing = PricingCalculator.calculate_rental_cost(
+            self.db, user_id, duration_hours, provider_cost=provider_cost
+        )
+        total_cost = pricing["total_cost"]
+
+        # 3. Check balance
+        balance_check = await BalanceService.check_sufficient_balance(
+            user_id, total_cost, self.db
+        )
+        if not balance_check["sufficient"]:
+            # Cancel the reservation since user can't afford it
+            try:
+                from app.services.textverified_service import TextVerifiedService
+                tv = TextVerifiedService()
+                order_id = getattr(purchase_result, "order_id", None)
+                if order_id:
+                    await tv._cancel_safe(order_id)
+            except Exception:
+                pass
+            raise ValueError(
+                f"Insufficient balance. Required: ${total_cost:.2f}, "
+                f"Available: ${balance_check.get('balance', 0):.2f}"
+            )
 
         # 4. Debit balance (atomic)
         user = self.db.query(User).filter(User.id == user_id).first()
