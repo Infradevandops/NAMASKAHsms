@@ -14,6 +14,7 @@ class UserCreate(BaseModel):
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
+    terms_accepted: bool = Field(..., description="Terms of service acceptance")
     referral_code: Optional[str] = Field(None, description="Referral code")
 
     @field_validator("email", mode="before")
@@ -28,6 +29,13 @@ class UserCreate(BaseModel):
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
 
+    @field_validator("terms_accepted", mode="before")
+    @classmethod
+    def validate_terms(cls, v):
+        if not v:
+            raise ValueError("You must accept the Terms of Service and Privacy Policy")
+        return v
+
     @field_validator("referral_code", mode="before")
     @classmethod
     def validate_referral_field(cls, v):
@@ -40,6 +48,7 @@ class UserCreate(BaseModel):
             "example": {
                 "email": "user@example.com",
                 "password": "SecurePass123!",
+                "terms_accepted": True,
                 "referral_code": "ABC123",
             }
         }
