@@ -54,26 +54,10 @@
 
         <!-- Preferences -->
         <div class="form-group">
-            <label class="form-label">Preferences</label>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
-                <div>
-                    <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
-                    <select class="form-select" id="area-code-select" onchange="updatePricing()">
-                        <option value="">Loading area codes...</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
-                    <select class="form-select" id="carrier-select" onchange="updatePricing()">
-                        <option value="">Any Carrier</option>
-                        <option value="att">AT&T</option>
-                        <option value="verizon">Verizon</option>
-                        <option value="tmobile">T-Mobile</option>
-                    </select>
-                </div>
-            </div>
+            <label class="form-label">Area Code (Optional)</label>
+            <select class="form-select" id="area-code-select" onchange="updatePricing()">
+                <option value="">Loading area codes...</option>
+            </select>
         </div>
 
         <!-- Info Box -->
@@ -284,8 +268,7 @@ async function createVerification() {
                 service: selectedService,
                 country: 'US',
                 capability: 'voice',
-                area_codes: document.getElementById('area-code-select').value ? [document.getElementById('area-code-select').value] : [],
-                carriers: document.getElementById('carrier-select').value ? [document.getElementById('carrier-select').value] : [],
+                area_codes: document.getElementById('area-code-select').value ? [document.getElementById('area-code-select').value] : []
             })
         });
 
@@ -462,10 +445,8 @@ async function loadBalance() {
 
 function updatePricing() {
     const areaCode = document.getElementById('area-code-select').value;
-    const carrier = document.getElementById('carrier-select').value;
     let price = selectedServicePrice || 0;
     if (areaCode) price += 0.25;
-    if (carrier) price += 0.50;
     if (price > 0) document.getElementById('pricing-cost').textContent = `$${price.toFixed(2)}`;
 }
 </script>

@@ -299,6 +299,21 @@ async def voice_verify_page(
     )
 
 
+@router.get("/rentals", response_class=HTMLResponse)
+async def rentals_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Number Rentals page - Rent dedicated numbers for long-term use."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "rentals_modern.html", {"request": request, "user": user}
+    )
+
+
 # ============================================
 # ADDITIONAL PAGES
 # ============================================
