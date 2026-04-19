@@ -559,13 +559,14 @@
 
 ### 🔴 CRITICAL - Quick Wins (Do First)
 
-- [ ] **TASK 1: Remove localStorage password storage**
+- [x] **TASK 1: Remove localStorage password storage** ✅ COMPLETED
   - **File**: `templates/login.html` (lines 95-97)
   - **Fix**: Delete `localStorage.setItem('saved_password', password)` and related code
   - **Why**: MAJOR security vulnerability - passwords visible in browser dev tools
   - **Effort**: 15 minutes
+  - **Commit**: 3dca462f
 
-- [ ] **TASK 2: Implement Google OAuth (remove fake social logins)**
+- [x] **TASK 2: Implement Google OAuth (remove fake social logins)** ✅ COMPLETED
   - **Files**: `templates/login.html`, `templates/register.html`
   - **Fix**: 
     - Keep only Google button
@@ -574,6 +575,8 @@
     - Add Google OAuth client ID to config
   - **Why**: Currently misleading users with fake buttons
   - **Effort**: 2 hours
+  - **Commit**: 3dca462f
+  - **Note**: Backend OAuth endpoint needs implementation
 
 - [ ] **TASK 3: Fix About page design**
   - **File**: `templates/about.html`
