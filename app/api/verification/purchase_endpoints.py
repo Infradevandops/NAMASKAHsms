@@ -540,9 +540,15 @@ async def request_verification(
     except ValueError as e:
         db.rollback()
         logger.warning(f"Validation error in verification request: {str(e)}")
+        detail = str(e)
+        if "provider price unavailable" in detail.lower():
+            detail = (
+                "Price unavailable for this service right now. "
+                "Please try again in a moment."
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid request. Please check your inputs and try again.",
+            detail=detail,
         )
     except ConnectionError as e:
         db.rollback()

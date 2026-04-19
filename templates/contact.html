@@ -1,187 +1,331 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - Namaskah</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 40px 20px; text-align: center; border-radius: 16px; margin-bottom: 40px; }
-        .header h1 { font-size: 36px; margin-bottom: 12px; }
-        .header p { opacity: 0.9; }
-        .content { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-        .contact-info { background: #1e293b; border-radius: 12px; padding: 30px; border: 1px solid #475569; }
-        .contact-info h2 { font-size: 24px; color: #6366f1; margin-bottom: 24px; }
-        .contact-item { margin-bottom: 24px; }
-        .contact-item h3 { color: #10b981; margin-bottom: 8px; font-size: 16px; }
-        .contact-item p { opacity: 0.8; }
-        .contact-item a { color: #6366f1; text-decoration: none; }
-        .contact-item a:hover { text-decoration: underline; }
-        .form-container { background: #1e293b; border-radius: 12px; padding: 30px; border: 1px solid #475569; }
-        .form-container h2 { font-size: 24px; color: #6366f1; margin-bottom: 24px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; font-family: inherit; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #6366f1; }
-        .form-group textarea { resize: vertical; min-height: 120px; }
-        .btn { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        .btn:hover { background: #4f46e5; transform: translateY(-2px); }
-        .btn:disabled { background: #999; cursor: not-allowed; }
-        .back-btn { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #475569; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; }
-        .back-btn:hover { background: #64748b; }
-        .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; }
-        .message.show { display: block; }
-        .message.success { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #86efac; }
-        .message.error { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #fca5a5; }
-        .social-links { display: flex; gap: 12px; margin-top: 20px; }
-        .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #334155; border-radius: 8px; color: #f8fafc; text-decoration: none; transition: all 0.3s; }
-        .social-links a:hover { background: #6366f1; }
-        @media (max-width: 768px) {
-            .content { grid-template-columns: 1fr; }
+{% extends "public_base.html" %}
+
+{% block page_title %}Contact Us{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+    .contact-hero {
+        background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 24px;
+        margin-bottom: 60px;
+        color: white;
+    }
+    .contact-hero h1 {
+        font-size: 42px;
+        margin-bottom: 12px;
+        font-weight: 800;
+    }
+    .contact-hero p {
+        font-size: 18px;
+        opacity: 0.95;
+    }
+    .contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+    .contact-info {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 40px;
+    }
+    .contact-info h2 {
+        font-size: 28px;
+        color: #37352F;
+        margin-bottom: 32px;
+        font-weight: 700;
+    }
+    .contact-item {
+        margin-bottom: 32px;
+    }
+    .contact-item h3 {
+        color: #FE3C72;
+        margin-bottom: 8px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .contact-item p {
+        color: #6b7280;
+        margin-bottom: 4px;
+        font-size: 15px;
+    }
+    .contact-item a {
+        color: #FE3C72;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .contact-item a:hover {
+        text-decoration: underline;
+    }
+    .form-container {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 40px;
+    }
+    .form-container h2 {
+        font-size: 28px;
+        color: #37352F;
+        margin-bottom: 32px;
+        font-weight: 700;
+    }
+    .form-group {
+        margin-bottom: 24px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #37352F;
+        font-size: 14px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        color: #37352F;
+        font-size: 15px;
+        font-family: inherit;
+        transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #FE3C72;
+    }
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: #FE3C72;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    .btn-submit:hover {
+        background: #E0245E;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(254, 60, 114, 0.3);
+    }
+    .btn-submit:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .message {
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+        font-size: 14px;
+    }
+    .message.show {
+        display: block;
+    }
+    .message.success {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+        color: #065f46;
+    }
+    .message.error {
+        background: #fee2e2;
+        border: 2px solid #ef4444;
+        color: #991b1b;
+    }
+    .social-links {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    .social-links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        color: #37352F;
+        text-decoration: none;
+        transition: all 0.3s;
+        font-size: 20px;
+    }
+    .social-links a:hover {
+        background: #FE3C72;
+        border-color: #FE3C72;
+        color: white;
+        transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+        .contact-grid {
+            grid-template-columns: 1fr;
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="/" class="back-btn">← Back to Home</a>
-        
-        <div class="header">
-            <h1>Contact Us</h1>
-            <p>Get in touch with our team. We're here to help!</p>
-        </div>
+    }
+</style>
+{% endblock %}
 
-        <div class="content">
-            <div class="contact-info">
-                <h2>Get in Touch</h2>
-                
-                <div class="contact-item">
-                    <h3>📧 Email</h3>
-                    <p>For general inquiries:</p>
-                    <a href="mailto:support@namaskah.com">support@namaskah.com</a>
-                    <p style="margin-top: 8px; font-size: 14px;">Response time: 2 hours</p>
-                </div>
-
-                <div class="contact-item">
-                    <h3>💼 Business</h3>
-                    <p>For partnerships and enterprise:</p>
-                    <a href="mailto:business@namaskah.com">business@namaskah.com</a>
-                </div>
-
-                <div class="contact-item">
-                    <h3>🔒 Security</h3>
-                    <p>Report security issues:</p>
-                    <a href="mailto:security@namaskah.com">security@namaskah.com</a>
-                </div>
-
-                <div class="contact-item">
-                    <h3>⚖️ Legal</h3>
-                    <p>Legal inquiries:</p>
-                    <a href="mailto:legal@namaskah.com">legal@namaskah.com</a>
-                </div>
-
-                <div class="contact-item">
-                    <h3>🕐 Business Hours</h3>
-                    <p>Monday - Friday: 9:00 AM - 6:00 PM UTC</p>
-                    <p>Saturday - Sunday: Limited support</p>
-                </div>
-
-                <div class="contact-item">
-                    <h3>📍 Headquarters</h3>
-                    <p>Namaskah Inc.<br>Global Operations Center<br>Available worldwide</p>
-                </div>
-
-                <div class="contact-item">
-                    <h3>🌐 Follow Us</h3>
-                    <div class="social-links">
-                        <a href="#" title="Twitter">𝕏</a>
-                        <a href="#" title="LinkedIn">in</a>
-                        <a href="#" title="GitHub">⚙️</a>
-                        <a href="#" title="Discord">💬</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-container">
-                <h2>Send us a Message</h2>
-                <div id="message" class="message"></div>
-                
-                <form id="contactForm">
-                    <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="subject">Subject *</label>
-                        <input type="text" id="subject" name="subject" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <select id="category" name="category" style="width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: #f8fafc;">
-                            <option value="support">Support</option>
-                            <option value="sales">Sales Inquiry</option>
-                            <option value="partnership">Partnership</option>
-                            <option value="feedback">Feedback</option>
-                            <option value="bug">Bug Report</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="message">Message *</label>
-                        <textarea id="message-text" name="message" required placeholder="Tell us how we can help..."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn" id="submitBtn">Send Message</button>
-                </form>
-            </div>
-        </div>
+{% block public_content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    
+    <div class="contact-hero">
+        <h1>Get in Touch</h1>
+        <p>We're here to help. Reach out anytime!</p>
     </div>
 
-    <script nonce="{{ request.state.csp_nonce }}">
-        document.getElementById('contactForm').onsubmit = async (e) => {
-            e.preventDefault();
+    <div class="contact-grid">
+        <div class="contact-info">
+            <h2>Contact Information</h2>
             
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const subject = document.getElementById('subject').value.trim();
-            const category = document.getElementById('category').value;
-            const message = document.getElementById('message-text').value.trim();
-            const submitBtn = document.getElementById('submitBtn');
-            const messageDiv = document.getElementById('message');
+            <div class="contact-item">
+                <h3>📧 Email Support</h3>
+                <p>For general inquiries and support:</p>
+                <a href="mailto:support@namaskah.app">support@namaskah.app</a>
+                <p style="margin-top: 8px; font-size: 13px; color: #9ca3af;">Response time: Within 24 hours</p>
+            </div>
+
+            <div class="contact-item">
+                <h3>💼 Business Inquiries</h3>
+                <p>For partnerships and enterprise:</p>
+                <a href="mailto:business@namaskah.app">business@namaskah.app</a>
+            </div>
+
+            <div class="contact-item">
+                <h3>🔒 Security Issues</h3>
+                <p>Report security vulnerabilities:</p>
+                <a href="mailto:security@namaskah.app">security@namaskah.app</a>
+            </div>
+
+            <div class="contact-item">
+                <h3>⚖️ Legal</h3>
+                <p>Legal inquiries and compliance:</p>
+                <a href="mailto:legal@namaskah.app">legal@namaskah.app</a>
+            </div>
+
+            <div class="contact-item">
+                <h3>🕐 Business Hours</h3>
+                <p>Monday - Friday: 9:00 AM - 6:00 PM UTC</p>
+                <p>Saturday - Sunday: Limited support</p>
+            </div>
+
+            <div class="contact-item">
+                <h3>🌐 Follow Us</h3>
+                <div class="social-links">
+                    <a href="https://twitter.com/namaskah" title="Twitter/X" target="_blank">𝕏</a>
+                    <a href="https://github.com/namaskah" title="GitHub" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h2>Send us a Message</h2>
+            <div id="message" class="message"></div>
             
-            if (!name || !email || !subject || !message) {
-                showMessage('Please fill in all required fields', 'error');
-                return;
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required placeholder="john@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject *</label>
+                    <input type="text" id="subject" name="subject" required placeholder="How can we help?">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="support">Support</option>
+                        <option value="sales">Sales Inquiry</option>
+                        <option value="partnership">Partnership</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message-text">Message *</label>
+                    <textarea id="message-text" name="message" required placeholder="Tell us how we can help..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ request.state.csp_nonce }}">
+    document.getElementById('contactForm').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const subject = document.getElementById('subject').value.trim();
+        const category = document.getElementById('category').value;
+        const message = document.getElementById('message-text').value.trim();
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+        
+        if (!name || !email || !subject || !message) {
+            showMessage('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+        
+        try {
+            const response = await fetch('/api/contact/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, subject, category, message })
+            });
+            
+            if (response.ok) {
+                showMessage('Message sent successfully! We\'ll get back to you soon.', 'success');
+                document.getElementById('contactForm').reset();
+            } else {
+                showMessage('Failed to send message. Please email us directly at support@namaskah.app', 'error');
             }
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Sending...';
-            
-            try {
-                const response = await fetch('/api/contact/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, subject, category, message })
-                });
-                
-                if (response.ok) {
-                    showMessage('Message sent successfully! We\'ll get back to you soon.', 'success');
-                    document.getElementById('contactForm').reset();
-                } else {
-                    showMessage('Failed to send message. Please try again.', 'error');
-                }
-            } catch (error) {
-                console.error('Contact form error:', error);
-                showMessage('Network error. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Send Message';\n            }\n        };\n        \n        function showMessage(text, type) {\n            const messageDiv = document.getElementById('message');\n            messageDiv.textContent = text;\n            messageDiv.className = `message show ${type}`;\n            setTimeout(() => messageDiv.classList.remove('show'), 5000);\n        }\n    </script>\n</body>\n</html>
+        } catch (error) {
+            console.error('Contact form error:', error);
+            showMessage('Network error. Please email us directly at support@namaskah.app', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+        }
+    };
+    
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = text;
+        messageDiv.className = `message show ${type}`;
+        setTimeout(() => messageDiv.classList.remove('show'), 5000);
+    }
+</script>
+{% endblock %}

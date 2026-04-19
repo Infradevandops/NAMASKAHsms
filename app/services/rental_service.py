@@ -241,9 +241,10 @@ class RentalService:
                 f"Rental {rental_id} is not active (status: {rental.status})"
             )
 
-        # Calculate cost for the extension
-        pricing = PricingCalculator.calculate_rental_cost(self.db, user_id, extra_hours)
-        extra_cost = pricing["total_cost"]
+        # Calculate extension cost: prorate from original rental's hourly rate
+        # The original rental.cost was already provider_cost × markup
+        original_hourly = rental.cost / max(rental.duration_hours, 1)
+        extra_cost = round(original_hourly * extra_hours, 2)
 
         balance_check = await BalanceService.check_sufficient_balance(
             user_id, extra_cost, self.db
