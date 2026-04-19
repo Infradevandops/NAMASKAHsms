@@ -48,12 +48,16 @@ async def get_services(country: str):
                     "price": (
                         round(s["price"] * settings.price_markup, 2)
                         if s.get("price")
-                        else round(2.50 * settings.price_markup, 2)  # Default fallback price
+                        else round(
+                            2.50 * settings.price_markup, 2
+                        )  # Default fallback price
                     ),
                     "cost": (
                         round(s["price"] * settings.price_markup, 2)
                         if s.get("price")
-                        else round(2.50 * settings.price_markup, 2)  # Default fallback price
+                        else round(
+                            2.50 * settings.price_markup, 2
+                        )  # Default fallback price
                     ),
                 }
                 for s in raw
@@ -141,12 +145,16 @@ async def get_services_batch_pricing(country: str):
                         "price": (
                             round(s["price"] * settings.price_markup, 2)
                             if s.get("price")
-                            else round(2.50 * settings.price_markup, 2)  # Default fallback
+                            else round(
+                                2.50 * settings.price_markup, 2
+                            )  # Default fallback
                         ),
                         "cost": (
                             round(s["price"] * settings.price_markup, 2)
                             if s.get("price")
-                            else round(2.50 * settings.price_markup, 2)  # Default fallback
+                            else round(
+                                2.50 * settings.price_markup, 2
+                            )  # Default fallback
                         ),
                     }
                     for s in cached
@@ -175,12 +183,16 @@ async def get_services_batch_pricing(country: str):
                     "price": (
                         round(s["price"] * settings.price_markup, 2)
                         if s.get("price")
-                        else round(2.50 * settings.price_markup, 2)  # Default fallback price
+                        else round(
+                            2.50 * settings.price_markup, 2
+                        )  # Default fallback price
                     ),
                     "cost": (
                         round(s["price"] * settings.price_markup, 2)
                         if s.get("price")
-                        else round(2.50 * settings.price_markup, 2)  # Default fallback price
+                        else round(
+                            2.50 * settings.price_markup, 2
+                        )  # Default fallback price
                     ),
                 }
                 for s in raw
