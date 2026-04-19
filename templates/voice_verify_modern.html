@@ -6,6 +6,7 @@
 {% block head_extra %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/verification-design-system.css">
+<script src="/static/js/service-store.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -42,20 +43,27 @@
         <h2>Select Service</h2>
         <p>Choose the service you want to verify via voice call</p>
 
-        <div class="form-group">
+        <div class="form-group" style="position:relative;">
             <label class="form-label">Service <span class="required">*</span></label>
-            <select class="form-select" id="service-select" onchange="onServiceChange(this)">
-                <option value="">Loading services...</option>
-            </select>
-            <input type="text" class="form-input" id="custom-service-input"
-                placeholder="Enter service name" style="display:none; margin-top: 8px;"
-                oninput="onCustomServiceInput(this)">
+            <div style="position:relative;">
+                <input type="text" id="voice-service-search" placeholder="Search services e.g. Telegram, WhatsApp..."
+                    onclick="openVoiceServiceModal()" readonly
+                    aria-label="Search and select a service for voice verification"
+                    style="width:100%; padding:10px 36px 10px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px; box-sizing:border-box; cursor:pointer; background:#fff;" />
+            </div>
+            <div id="voice-service-display" style="display:none; margin-top:8px; padding:10px 12px; background:#fff0f0; border:1px solid #ffd1d1; border-radius:8px; font-size:14px; justify-content:space-between; align-items:center;">
+                <span id="voice-service-name"></span>
+                <button onclick="clearVoiceService()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:16px;">&#x2715;</button>
+            </div>
         </div>
+
+        <!-- Voice Service Modal -->
+        <div id="voice-modal-container"></div>
 
         <!-- Preferences -->
         <div class="form-group">
             <label class="form-label">Area Code <span class="required" style="color: #ef4444;">*</span></label>
-            <select class="form-select" id="area-code-select" onchange="updatePricing()">
+            <select class="form-select" id="area-code-select" onchange="updatePricing()" aria-label="Select area code">
                 <option value="">Loading area codes...</option>
             </select>
         </div>
@@ -144,8 +152,8 @@
 
         <!-- Actions -->
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
-            <button class="btn btn-danger btn-block" id="cancel-btn" onclick="cancelVerification()">Cancel</button>
-            <button class="btn btn-danger btn-block" id="cancel-confirm-btn" onclick="confirmCancel()" style="display:none;">Confirm Cancel</button>
+            <button class="btn btn-danger btn-block" id="cancel-btn" onclick="cancelVerification()" aria-label="Cancel verification">Cancel</button>
+            <button class="btn btn-danger btn-block" id="cancel-confirm-btn" onclick="confirmCancel()" style="display:none;" aria-label="Confirm cancellation">Confirm Cancel</button>
         </div>
     </div>
 
@@ -166,9 +174,121 @@
 <script nonce="{{ request.state.csp_nonce }}">
 let currentStep = 1;
 let selectedService = null;
+let selectedServicePrice = null;
 let verificationId = null;
 let elapsedSeconds = 0;
 let scanInterval = null;
+let _voiceServices = [];
+let _voicePinned = JSON.parse(localStorage.getItem('nsk_pinned_services') || '[]');
+let _voiceRecent = JSON.parse(localStorage.getItem('nsk_recent_services') || '[]');
+
+// --- Voice Service Modal ---
+function _getServiceIcon(serviceId) {
+    const iconMap = {
+        whatsapp:'whatsapp',telegram:'telegram',google:'google',facebook:'facebook',
+        instagram:'instagram',discord:'discord',twitter:'x',tinder:'tinder',
+        microsoft:'microsoft',amazon:'amazon',uber:'uber',netflix:'netflix',
+        spotify:'spotify',paypal:'paypal',snapchat:'snapchat',tiktok:'tiktok'
+    };
+    return `https://cdn.simpleicons.org/${iconMap[serviceId.toLowerCase()] || 'circle'}/E8003D`;
+}
+
+function openVoiceServiceModal() {
+    if (!_voiceServices.length) {
+        window.toast?.error('Services unavailable. Please refresh.');
+        return;
+    }
+    const container = document.getElementById('voice-modal-container');
+    container.innerHTML = `
+        <div id="voice-modal-backdrop" style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);z-index:1100;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;">
+            <div style="background:var(--bg-card,#1e293b);max-width:500px;width:90%;max-height:80vh;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;">
+                <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div><h2 style="margin:0;font-size:20px;font-weight:700;">Select Service</h2><p style="margin:4px 0 0;font-size:13px;color:var(--text-muted);">Select a platform for voice verification — ${_voiceServices.length} available</p></div>
+                        <button onclick="closeVoiceModal()" style="background:rgba(255,255,255,0.1);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--text-muted);font-size:16px;">✕</button>
+                    </div>
+                    <div style="margin-top:12px;"><input type="text" id="voice-modal-search" placeholder="Search service..." oninput="renderVoiceModalList(this.value)" style="width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--text-main);font-size:14px;outline:none;"></div>
+                </div>
+                <div id="voice-modal-list" style="overflow-y:auto;flex:1;padding:8px 0;"></div>
+            </div>
+        </div>
+    `;
+    document.getElementById('voice-modal-backdrop').addEventListener('click', (e) => {
+        if (e.target.id === 'voice-modal-backdrop') closeVoiceModal();
+    });
+    renderVoiceModalList('');
+    setTimeout(() => document.getElementById('voice-modal-search')?.focus(), 100);
+}
+
+function closeVoiceModal() {
+    document.getElementById('voice-modal-container').innerHTML = '';
+}
+
+function renderVoiceModalList(query) {
+    const list = document.getElementById('voice-modal-list');
+    const q = (query || '').toLowerCase();
+    const filtered = _voiceServices.filter(s => s.label.toLowerCase().includes(q) || s.value.toLowerCase().includes(q));
+    const popularIds = ['telegram','whatsapp','google','facebook','instagram','twitter','discord','tinder'];
+    const pinned = filtered.filter(s => _voicePinned.includes(s.value));
+    const recent = filtered.filter(s => !_voicePinned.includes(s.value) && _voiceRecent.includes(s.value));
+    const popular = filtered.filter(s => !_voicePinned.includes(s.value) && !_voiceRecent.includes(s.value) && popularIds.includes(s.value.toLowerCase()));
+    const rest = filtered.filter(s => !_voicePinned.includes(s.value) && !_voiceRecent.includes(s.value) && !popularIds.includes(s.value.toLowerCase()));
+
+    if (!filtered.length) {
+        list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">No results found</div>';
+        return;
+    }
+
+    let html = '';
+    const renderSection = (title, items) => {
+        if (!items.length) return '';
+        let h = `<div style="padding:4px 24px 8px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${title}</div>`;
+        items.forEach(s => {
+            const isPinned = _voicePinned.includes(s.value);
+            const costDisplay = s.price ? `$${s.price.toFixed(2)}` : 'Market';
+            h += `<div onclick="selectVoiceService('${s.value.replace(/'/g,"\\\'")}','${s.label.replace(/'/g,"\\\'")}',${s.price||0})" style="display:flex;align-items:center;padding:12px 24px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid rgba(255,255,255,0.05);" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                <img src="${_getServiceIcon(s.value)}" style="width:24px;height:24px;margin-right:12px;" onerror="this.style.display='none'">
+                <span style="flex:1;font-size:14px;font-weight:500;">${s.label}</span>
+                <span style="font-size:13px;color:var(--text-muted);margin-right:12px;">${costDisplay}</span>
+                <span onclick="event.stopPropagation();toggleVoicePin('${s.value.replace(/'/g,"\\\'")}')" style="cursor:pointer;font-size:16px;color:${isPinned?'#f59e0b':'var(--text-muted)'};">${isPinned?'★':'☆'}</span>
+            </div>`;
+        });
+        return h;
+    };
+    html += renderSection('PINNED', pinned);
+    if (!q) html += renderSection('RECENTLY USED', recent);
+    html += renderSection('POPULAR', popular);
+    html += renderSection('ALL SERVICES', rest);
+    list.innerHTML = html;
+}
+
+function selectVoiceService(value, label, price) {
+    selectedService = value;
+    selectedServicePrice = price;
+    // Track recently used (shared with SMS)
+    _voiceRecent = [value, ..._voiceRecent.filter(x => x !== value)].slice(0, 5);
+    localStorage.setItem('nsk_recent_services', JSON.stringify(_voiceRecent));
+    document.getElementById('voice-service-search').value = label;
+    document.getElementById('voice-service-display').style.display = 'flex';
+    document.getElementById('voice-service-name').textContent = label;
+    closeVoiceModal();
+    confirmService();
+}
+
+function clearVoiceService() {
+    selectedService = null;
+    selectedServicePrice = null;
+    document.getElementById('voice-service-search').value = '';
+    document.getElementById('voice-service-display').style.display = 'none';
+}
+
+function toggleVoicePin(id) {
+    if (_voicePinned.includes(id)) _voicePinned = _voicePinned.filter(x => x !== id);
+    else _voicePinned.push(id);
+    localStorage.setItem('nsk_pinned_services', JSON.stringify(_voicePinned));
+    const searchVal = document.getElementById('voice-modal-search')?.value || '';
+    renderVoiceModalList(searchVal);
+}
 
 function updateProgress(step) {
     currentStep = step;
@@ -194,32 +314,6 @@ function updateProgress(step) {
     document.getElementById('progress-fill').style.width = progress + '%';
 }
 
-let selectedServicePrice = null;
-
-function onServiceChange(sel) {
-    const customInput = document.getElementById('custom-service-input');
-    if (sel.value === 'other') {
-        customInput.style.display = 'block';
-        customInput.focus();
-        selectedService = null;
-        selectedServicePrice = null;
-    } else if (sel.value) {
-        customInput.style.display = 'none';
-        selectedService = sel.value;
-        selectedServicePrice = parseFloat(sel.selectedOptions[0].dataset.price) || null;
-        confirmService();
-    } else {
-        customInput.style.display = 'none';
-        selectedService = null;
-        selectedServicePrice = null;
-    }
-}
-
-function onCustomServiceInput(input) {
-    selectedService = input.value.trim() || null;
-    selectedServicePrice = null;
-    if (selectedService) confirmService();
-}
 
 function confirmService() {
     // Validate area code is selected
@@ -238,18 +332,24 @@ function confirmService() {
 }
 
 async function loadServices() {
-    const sel = document.getElementById('service-select');
     try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = res.ok ? await res.json() : { services: [] };
-        const services = data.services || [];
-        sel.innerHTML = '<option value="">-- Select a service --</option>' +
-            services.map(s => `<option value="${s.name || s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
-            '<option value="other">Other (type service name)</option>';
+        await window.ServiceStore.init();
+        const services = window.ServiceStore.getAll();
+        if (!services || services.length === 0) throw new Error('No services');
+        _voiceServices = services.map(s => ({ value: s.id, label: s.name || s.id, price: s.price }));
+        console.log(`✅ Voice: Loaded ${services.length} services`);
     } catch (e) {
-        sel.innerHTML = '<option value="">Failed to load — type below</option><option value="other">Other (type service name)</option>';
-        document.getElementById('custom-service-input').style.display = 'block';
+        console.error('❌ Voice: Failed to load services:', e);
+        // Fallback to country endpoint
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = res.ok ? await res.json() : { services: [] };
+            _voiceServices = (data.services || []).map(s => ({ value: s.name || s.id, label: s.name || s.id, price: s.price }));
+        } catch (e2) {
+            _voiceServices = [];
+            window.toast?.error('Failed to load services. Please refresh.');
+        }
     }
 }
 

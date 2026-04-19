@@ -19,7 +19,6 @@
     "subtitle": "您的短信验证活动概览",
     "total_sms": "总短信数",
     "successful": "成功",
-    "total_spent": "总花费",
     "success_rate": "成功率",
     "recent_activity": "最近活动",
     "no_activity": "没有最近的活动",
@@ -29,7 +28,8 @@
     "time": "时间",
     "your_plan": "您的计划",
     "upgrade": "升级",
-    "features": "功能"
+    "features": "功能",
+    "net_spent": "净花费"
   },
   "tiers": {
     "freemium": "免费增值",

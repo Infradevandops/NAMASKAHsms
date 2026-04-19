@@ -77,12 +77,14 @@ endblock %}
         <div class="nsk-stat-value green" id="successful-sms">0</div>
     </div>
     <div class="nsk-stat" style="border-left: 3px solid #f59e0b;">
-        <div class="nsk-stat-label" data-i18n="dashboard.total_spent">Total Spent</div>
+        <div class="nsk-stat-label" data-i18n="dashboard.net_spent">Net Spent</div>
         <div class="nsk-stat-value" id="total-spent" data-currency data-amount="0" data-from="USD">$0.00</div>
+        <div id="refund-info" style="font-size: 11px; color: #f59e0b; margin-top: 4px; display: none;"></div>
     </div>
     <div class="nsk-stat" style="border-left: 3px solid #0ea5e9;">
         <div class="nsk-stat-label" data-i18n="dashboard.success_rate">Success Rate</div>
         <div class="nsk-stat-value" id="success-rate">0%</div>
+        <div id="failure-info" style="font-size: 11px; color: #ef4444; margin-top: 4px; display: none;"></div>
     </div>
 </div>
 
@@ -146,6 +148,7 @@ endblock %}
 <!-- ULTRA-STABLE DASHBOARD - Production Grade -->
 <script src="/static/js/dashboard-ultra-stable.js?v=20260208-ultra"></script>
 <script src="/static/js/pagination.js"></script>
+<script src="/static/js/service-store.js"></script>
 
 <!-- Core utilities (non-module for backward compatibility) -->
 <script type="module" src="/static/js/frontend-logger.js?v=20260112"></script>
@@ -159,6 +162,30 @@ endblock %}
      */
     import { TIMEOUTS, ENDPOINTS } from '/static/js/constants.js';
     import { hasAuthToken, getAuthHeaders } from '/static/js/auth-helpers.js';
+
+    // ============================================
+    // SERVICE NAME RESOLVER
+    // ============================================
+    let _serviceNameCache = {};
+    async function resolveServiceName(rawId) {
+        if (!rawId) return 'Unknown';
+        if (_serviceNameCache[rawId]) return _serviceNameCache[rawId];
+        try {
+            if (window.ServiceStore) {
+                await window.ServiceStore.init();
+                const svc = window.ServiceStore.get(rawId);
+                if (svc && svc.name) {
+                    _serviceNameCache[rawId] = svc.name;
+                    return svc.name;
+                }
+            }
+        } catch (e) {}
+        // Fallback: capitalize if it looks like a slug
+        if (/^[a-z0-9]+$/i.test(rawId) && rawId.length < 30) {
+            return rawId.charAt(0).toUpperCase() + rawId.slice(1);
+        }
+        return rawId;
+    }
 
     // ============================================
     // ANALYTICS WIDGET
@@ -179,12 +206,26 @@ endblock %}
             document.getElementById('total-sms').textContent = data.total_verifications || 0;
             document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
 
-            const spent = data.revenue || data.total_spent || 0;
-            document.getElementById('total-spent').textContent = `$${spent.toFixed(2)}`;
-            document.getElementById('total-spent').setAttribute('data-amount', spent);
+            const netSpent = data.net_spent ?? data.revenue ?? data.total_spent ?? 0;
+            document.getElementById('total-spent').textContent = `$${netSpent.toFixed(2)}`;
+            document.getElementById('total-spent').setAttribute('data-amount', netSpent);
+
+            const refunded = data.total_refunded || 0;
+            if (refunded > 0) {
+                const refundEl = document.getElementById('refund-info');
+                refundEl.textContent = `$${refunded.toFixed(2)} refunded`;
+                refundEl.style.display = 'block';
+            }
 
             const rate = data.success_rate || 0;
-            document.getElementById('success-rate').textContent = `${rate.toFixed(1)}%`;
+            document.getElementById('success-rate').textContent = `${(rate * 100).toFixed(1)}%`;
+
+            const failed = data.failed_verifications || 0;
+            if (failed > 0 && rate < 0.2) {
+                const failEl = document.getElementById('failure-info');
+                failEl.innerHTML = `${failed} failed · <a href="/history" style="color: #ef4444; text-decoration: underline;">View details</a>`;
+                failEl.style.display = 'block';
+            }
 
             if (window.FrontendLogger) {
                 window.FrontendLogger.logAnalyticsLoad(true, data);
@@ -242,13 +283,17 @@ endblock %}
                 const statusColor = activity.status === 'completed' ? '#10b981'
                     : activity.status === 'failed' ? '#ef4444'
                         : '#f59e0b';
+                const displayName = await resolveServiceName(activity.service_name);
 
                 html += `
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <td style="padding: 12px;" data-label="Service">${escapeHtml(activity.service_name || 'Unknown')}</td>
+                    <td style="padding: 12px;" data-label="Service">${escapeHtml(displayName)}</td>
                     <td style="padding: 12px;" data-label="Number">${escapeHtml(activity.phone_number || '-')}</td>
                     <td style="padding: 12px;" data-label="Time">${formatTime(activity.created_at)}</td>
-                    <td style="padding: 12px; color: ${statusColor};" data-label="Status">${escapeHtml(activity.status || 'pending')}</td>
+                    <td style="padding: 12px; color: ${statusColor};" data-label="Status">
+                        ${escapeHtml(activity.status || 'pending')}
+                        ${activity.status === 'failed' && (activity.cost === 0 || !activity.cost) ? '<span style="font-size:10px; background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:4px; margin-left:4px;">refunded</span>' : ''}
+                    </td>
                 </tr>
             `;
             }

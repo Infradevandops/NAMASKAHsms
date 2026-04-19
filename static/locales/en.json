@@ -19,7 +19,7 @@
     "subtitle": "Overview of your SMS verification activity",
     "total_sms": "Total SMS",
     "successful": "Successful",
-    "total_spent": "Total Spent",
+    "net_spent": "Net Spent",
     "success_rate": "Success Rate",
     "recent_activity": "Recent Activity",
     "no_activity": "No recent activity",

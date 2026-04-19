@@ -23,6 +23,7 @@ from app.api.core.user_settings import router as user_settings_router
 from app.api.core.user_settings_endpoints import (
     router as user_settings_endpoints_router,
 )
+from app.api.core.user_insights import router as user_insights_router
 from app.api.core.wallet import router as wallet_router
 from app.api.core.webhooks import router as webhooks_router
 
@@ -43,6 +44,7 @@ router.include_router(user_settings_endpoints_router)
 router.include_router(preferences_router)
 router.include_router(affiliate_router)
 router.include_router(analytics_enhanced_router)
+router.include_router(user_insights_router)
 router.include_router(balance_sync_router)
 router.include_router(wallet_router)
 router.include_router(blacklist_router)
