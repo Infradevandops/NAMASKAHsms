@@ -156,6 +156,84 @@
 }
 
 /* ============================================
+   IMMERSIVE MODAL MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .immersive-modal {
+        width: 100% !important;
+        max-height: 100vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        position: fixed !important;
+        bottom: 0;
+        max-width: 100% !important;
+    }
+
+    .immersive-modal-backdrop {
+        align-items: flex-end !important;
+        padding: 0 !important;
+    }
+
+    .modal-content-list {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    .list-item {
+        min-height: 48px;
+        padding: 14px 0;
+    }
+
+    .list-item-pin {
+        padding: 8px 12px;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   WALLET MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .glass-card {
+        padding: 16px !important;
+    }
+
+    .payment-tabs {
+        width: 100% !important;
+    }
+
+    .payment-tab {
+        flex: 1;
+        text-align: center;
+        min-height: 44px;
+    }
+
+    .grid-presets {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .preset-btn {
+        min-height: 48px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ============================================
    UTILITY CLASSES
    ============================================ */
 

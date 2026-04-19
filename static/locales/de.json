@@ -19,7 +19,6 @@
     "subtitle": "Übersicht Ihrer SMS-Verifizierungsaktivität",
     "total_sms": "Gesamt SMS",
     "successful": "Erfolgreich",
-    "total_spent": "Gesamt ausgegeben",
     "success_rate": "Erfolgsquote",
     "recent_activity": "Letzte Aktivität",
     "no_activity": "Keine aktuelle Aktivität",
@@ -29,7 +28,8 @@
     "time": "Zeit",
     "your_plan": "Ihr Plan",
     "upgrade": "Upgrade",
-    "features": "Funktionen"
+    "features": "Funktionen",
+    "net_spent": "Netto ausgegeben"
   },
   "tiers": {
     "freemium": "Freemium",

@@ -3,7 +3,8 @@
 {% block page_title %}<span data-i18n="wallet.title">Financial Hub</span>{% endblock %}
 {% block page_subtitle %}<span data-i18n="wallet.subtitle">Manage institutional liquidity and audit logs</span>{% endblock %}
 
-{% block extra_css %}
+{% block head_extra %}
+{{ super() }}
 <style>
     /* Institutional Glassmorphism Design System */
     :root {
@@ -248,6 +249,18 @@
             <div class="stat-value" id="stat-monthly">$0.00</div>
         </div>
         <div class="glass-card stat-box">
+            <div class="stat-label">Total Spent</div>
+            <div class="stat-value" id="stat-total-spent">$0.00</div>
+        </div>
+        <div class="glass-card stat-box">
+            <div class="stat-label">Total Refunds</div>
+            <div class="stat-value" id="stat-total-refunds" style="color: #10b981;">$0.00</div>
+        </div>
+        <div class="glass-card stat-box">
+            <div class="stat-label">Net Spent</div>
+            <div class="stat-value" id="stat-net-spent">$0.00</div>
+        </div>
+        <div class="glass-card stat-box">
             <div class="stat-label">Pending Inbound</div>
             <div class="stat-value" id="stat-pending">0</div>
         </div>
@@ -272,7 +285,7 @@
                     <button class="preset-btn" onclick="initSettlement(100, this)">$100 <span class="bonus">+15%</span></button>
                 </div>
                 <div class="input-group">
-                    <input type="number" id="custom-usd" class="premium-input" placeholder="Custom Settlement Amount (USD)">
+                    <input type="number" id="custom-usd" class="premium-input" placeholder="Custom Settlement Amount (USD)" aria-label="Custom deposit amount in USD">
                     <button class="btn nsk-btn-primary" onclick="initSettlement(null, this)" style="padding: 14px 24px;">Initialize</button>
                 </div>
             </div>
@@ -331,13 +344,13 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="font-size: 18px; font-weight: 700;">Financial Audit Trail</h2>
             <div style="display: flex; gap: 8px;">
-                <select id="audit-filter" class="premium-input" style="padding: 8px; font-size: 13px;" onchange="loadAuditTrail()">
+                <select id="audit-filter" class="premium-input" style="padding: 8px; font-size: 13px;" onchange="loadAuditTrail()" aria-label="Filter audit trail">
                     <option value="all">All Entries</option>
                     <option value="credit">Deposits</option>
                     <option value="debit">Spend</option>
                     <option value="refund">Refunds</option>
                 </select>
-                <button onclick="exportAudit()" class="btn" style="padding: 8px 16px; font-size: 13px;">Export CSV</button>
+                <button onclick="exportAudit()" class="btn" style="padding: 8px 16px; font-size: 13px;" aria-label="Export audit trail as CSV">Export CSV</button>
             </div>
         </div>
         <div class="table-responsive">
@@ -447,16 +460,31 @@
         try {
             const token = localStorage.getItem('access_token');
             const res = await fetch('/api/v1/wallet/stats', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}`, 'Cache-Control': 'no-cache' }
             });
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('stat-balance').textContent = `$${data.balance.toFixed(2)}`;
                 document.getElementById('stat-monthly').textContent = `$${data.monthly_spent.toFixed(2)}`;
+                document.getElementById('stat-total-spent').textContent = `$${(data.total_spent || 0).toFixed(2)}`;
+                document.getElementById('stat-total-refunds').textContent = `$${(data.total_refunds || 0).toFixed(2)}`;
+                document.getElementById('stat-net-spent').textContent = `$${(data.net_spent || 0).toFixed(2)}`;
                 document.getElementById('stat-pending').textContent = data.pending_deposits;
+                
+                // Sync navbar balance to match wallet
+                const navBalance = document.getElementById('balance-display');
+                if (navBalance) navBalance.textContent = `$${data.balance.toFixed(2)}`;
                 
                 // Colors
                 document.getElementById('stat-balance').style.color = data.balance < 5 ? '#ef4444' : '#FE3C72';
+                
+                // Empty state for $0 balance
+                if (data.balance === 0 && data.total_spent === 0) {
+                    const grid = document.querySelector('.stat-grid');
+                    if (grid && !document.getElementById('wallet-empty-hint')) {
+                        grid.insertAdjacentHTML('afterend', `<div id="wallet-empty-hint" style="text-align:center;padding:16px;background:rgba(254,60,114,0.05);border:1px solid rgba(254,60,114,0.15);border-radius:12px;margin-bottom:20px;font-size:14px;color:#FE3C72;">💡 Add credits below to start verifying phone numbers</div>`);
+                    }
+                }
             }
         } catch (e) {
             console.error('Failed to load wallet stats', e);

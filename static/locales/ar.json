@@ -19,7 +19,7 @@
     "subtitle": "نظرة عامة على نشاط التحقق من الرسائل القصيرة",
     "total_sms": "إجمالي الرسائل القصيرة",
     "successful": "ناجح",
-    "total_spent": "إجمالي الإنفاق",
+    "net_spent": "صافي الإنفاق",
     "success_rate": "معدل النجاح",
     "recent_activity": "النشاط الأخير",
     "no_activity": "لا يوجد نشاط حديث",
@@ -56,12 +56,13 @@
     "subtitle": "إدارة أرصدتك والفواتير",
     "current_balance": "الرصيد الحالي",
     "this_month": "هذا الشهر",
-    "total_spent": "إجمالي الإنفاق",
+    "net_spent": "صافي الإنفاق",
     "add_credits": "إضافة أرصدة",
     "transaction_history": "سجل المعاملات",
     "pay_with_crypto": "الدفع بالعملات المشفرة",
     "pay_with_card": "الدفع بالبطاقة",
-    "credit_history": "Credit History"
+    "credit_history": "Credit History",
+    "total_spent": "إجمالي الإنفاق"
   },
   "verify": {
     "title": "التحقق من الرسائل القصيرة",

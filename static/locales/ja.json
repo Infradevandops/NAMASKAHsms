@@ -19,7 +19,6 @@
     "subtitle": "SMS認証アクティビティの概要",
     "total_sms": "合計SMS",
     "successful": "成功",
-    "total_spent": "合計支出",
     "success_rate": "成功率",
     "recent_activity": "最近のアクティビティ",
     "no_activity": "最近のアクティビティはありません",
@@ -29,7 +28,8 @@
     "time": "時間",
     "your_plan": "あなたのプラン",
     "upgrade": "アップグレード",
-    "features": "機能"
+    "features": "機能",
+    "net_spent": "純支出"
   },
   "tiers": {
     "freemium": "フリーミアム",

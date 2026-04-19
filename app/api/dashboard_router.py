@@ -124,6 +124,21 @@ async def get_analytics_summary(
             if is_this_month(v.created_at) and v.status == "completed"
         )
 
+        # Monthly change: compare current month vs previous month
+        prev_month_start = (this_month_start - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_month_spent = sum(
+            float(v.cost or 0)
+            for v in db.query(Verification).filter(
+                Verification.user_id == user_id,
+                Verification.created_at >= prev_month_start,
+                Verification.created_at < this_month_start,
+                Verification.status == "completed"
+            ).all()
+        )
+        monthly_change = 0.0
+        if prev_month_spent > 0:
+            monthly_change = round(((monthly_spent - prev_month_spent) / prev_month_spent) * 100, 1)
+
         # daily_verifications: last 30 days
         today_date = now.date()
         daily_map = {}
@@ -234,6 +249,7 @@ async def get_analytics_summary(
             "recent_activity": recent_activities[:5],  # Test expects 5 item list
             "monthly_verifications": monthly_verifications,  # Test requirement
             "monthly_spent": monthly_spent,  # Test requirement
+            "monthly_change": monthly_change,
             "last_updated": now.isoformat(),
         }
 

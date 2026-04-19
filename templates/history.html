@@ -34,12 +34,9 @@
             </tr>
         </thead>
         <tbody id="history-body">
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                    <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-                    Loading your audit trail...
-                </td>
-            </tr>
+            <tr class="skeleton-row"><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:120px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:60px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:70px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div></td></tr>
+            <tr class="skeleton-row"><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:90px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:110px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:60px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:70px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div></td></tr>
+            <tr class="skeleton-row"><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:70px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:130px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:60px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:70px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:50px;border-radius:4px;"></div></td><td style="padding:14px 12px;"><div class="skeleton" style="height:14px;width:80px;border-radius:4px;"></div></td></tr>
         </tbody>
     </table>
 </div>
@@ -70,6 +67,17 @@ function formatPhone(raw) {
             return;
         }
 
+        // Timeout: show retry after 10s
+        const timeoutId = setTimeout(() => {
+            const tbody = document.getElementById('history-body');
+            if (tbody.querySelector('.skeleton-row')) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+                    Taking longer than expected...
+                    <button onclick="loadHistory()" style="margin-left:8px; padding:4px 12px; background:var(--primary,#FE3C72); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px;">Retry</button>
+                </td></tr>`;
+            }
+        }, 10000);
+
         try {
             // Use the correct Verification API endpoint
             const res = await fetch('/api/verify/history?limit=100', {
@@ -79,6 +87,7 @@ function formatPhone(raw) {
             const emptyState = document.getElementById('empty-state');
 
             if (res.ok) {
+                clearTimeout(timeoutId);
                 const data = await res.json();
                 // Data structure: { verifications: [...], total_count: 5 }
                 allHistory = data.verifications || [];
@@ -243,6 +252,14 @@ function formatPhone(raw) {
         const deliveryLatency = item.latency ? `${item.latency.toFixed(1)}s` : (item.status === 'completed' ? 'Processing...' : 'N/A');
         const baseCost = (item.cost || 0) - (item.area_code_surcharge || 0) - (item.carrier_surcharge || 0);
 
+        // Timestamps
+        const completedAt = item.completed_at ? new Date(item.completed_at).toLocaleString() : null;
+        const smsReceivedAt = item.sms_received_at ? new Date(item.sms_received_at).toLocaleString() : null;
+
+        // Outcome label
+        const outcomeLabel = item.outcome ? item.outcome.charAt(0).toUpperCase() + item.outcome.slice(1) : null;
+        const cancelLabel = item.cancel_reason ? item.cancel_reason.replace(/_/g, ' ') : null;
+
         let contentHtml = `
             <!-- SMS / Voice Content Section -->
             <div style="margin-bottom: 24px;">
@@ -260,6 +277,30 @@ function formatPhone(raw) {
                 </div>
             </div>
 
+            <!-- Request vs Assignment -->
+            ${(item.requested_area_code || item.requested_carrier) ? `
+            <div style="margin-bottom: 24px; padding: 16px; background: #eff6ff; border-radius: 16px; border: 1px solid #bfdbfe;">
+                <div class="audit-label" style="color: #1d4ed8;">Request vs Assignment</div>
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-top: 8px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">Requested</div>
+                        ${item.requested_area_code ? `<div style="font-size: 14px; font-weight: 600;">${item.requested_area_code}</div>` : ''}
+                        ${item.requested_carrier ? `<div style="font-size: 12px; color: #64748b;">${item.requested_carrier}</div>` : ''}
+                    </div>
+                    <div style="font-size: 18px; color: #94a3b8;">→</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">Assigned</div>
+                        ${item.assigned_area_code ? `<div style="font-size: 14px; font-weight: 600;">${item.assigned_area_code}</div>` : '<div style="font-size: 14px; font-weight: 600;">Auto</div>'}
+                        ${item.assigned_carrier ? `<div style="font-size: 12px; color: #64748b;">${item.assigned_carrier}</div>` : ''}
+                    </div>
+                </div>
+                ${item.fallback_applied ? `
+                <div style="margin-top: 10px; padding: 6px 10px; background: ${item.same_state_fallback ? '#f0fdf4' : '#fffbeb'}; border-radius: 8px; font-size: 12px; color: ${item.same_state_fallback ? '#166534' : '#92400e'};">
+                    ⚡ Fallback applied${item.same_state_fallback ? ' (same state)' : ' (different state)'}
+                </div>` : ''}
+            </div>
+            ` : ''}
+
             <!-- Double Card Grid -->
             <div class="audit-grid">
                 <div class="audit-card" style="background: #f8fafc;">
@@ -271,8 +312,14 @@ function formatPhone(raw) {
                         </div>
                         ${item.area_code_surcharge > 0 ? `
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
-                            <span>Niche Premium</span>
+                            <span>Area Code Premium</span>
                             <span>$${item.area_code_surcharge.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        ${item.carrier_surcharge > 0 ? `
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
+                            <span>Carrier Premium</span>
+                            <span>$${item.carrier_surcharge.toFixed(2)}</span>
                         </div>
                         ` : ''}
                         <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px dashed #e2e8f0; padding-top: 6px; margin-top: 6px;">
@@ -307,6 +354,20 @@ function formatPhone(raw) {
             </div>
             ` : ''}
 
+            <!-- Outcome & Timestamps -->
+            ${(outcomeLabel || cancelLabel || completedAt || smsReceivedAt) ? `
+            <div style="margin-bottom: 24px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 16px;">
+                <div class="audit-label">Session Lifecycle</div>
+                <div style="display: grid; gap: 8px;">
+                    ${outcomeLabel ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#64748b;">OUTCOME</span><span class="audit-mono">${outcomeLabel}</span></div>` : ''}
+                    ${cancelLabel ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#64748b;">CANCEL REASON</span><span class="audit-mono">${cancelLabel}</span></div>` : ''}
+                    ${completedAt ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#64748b;">COMPLETED AT</span><span style="font-size:12px;">${completedAt}</span></div>` : ''}
+                    ${smsReceivedAt ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#64748b;">SMS RECEIVED AT</span><span style="font-size:12px;">${smsReceivedAt}</span></div>` : ''}
+                    ${item.refund_transaction_id ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#64748b;">REFUND TX</span><span class="audit-mono" style="font-size:10px;">${item.refund_transaction_id.slice(0,12)}...</span></div>` : ''}
+                </div>
+            </div>
+            ` : ''}
+
             <!-- Technical Detail Footer -->
             <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 16px;">
                 <div class="audit-label">Technical Trace Elements</div>
@@ -319,6 +380,16 @@ function formatPhone(raw) {
                         <span style="font-size: 12px; color: #64748b;">SERVICE ROUTING</span>
                         <span class="audit-mono">${item.provider || 'NAMASKAH_NET'} / ${item.country || 'N/A'}</span>
                     </div>
+                    ${item.retry_attempts > 0 ? `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: #64748b;">RETRY ATTEMPTS</span>
+                        <span class="audit-mono">${item.retry_attempts}</span>
+                    </div>` : ''}
+                    ${item.voip_rejected ? `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: #64748b;">VOIP REJECTED</span>
+                        <span style="font-size: 12px; color: #ef4444; font-weight: 600;">Yes</span>
+                    </div>` : ''}
                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
                         <span style="font-size: 12px; color: #64748b;">AUDIT TRANSACTION ID</span>
                         <span class="audit-mono" style="font-size: 10px; word-break: break-all;">${item.debit_transaction_id || item.id}</span>

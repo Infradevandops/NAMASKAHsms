@@ -51,16 +51,38 @@
     --radius-xl: 16px;
     --radius-full: 9999px;
     
-    /* Shadows */
+    /* Shadows — Design Tokens */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-focus: 0 0 0 3px rgba(254, 60, 114, 0.25);
     
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   FOCUS INDICATORS (Accessibility)
+   ============================================ */
+
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: var(--shadow-focus);
 }
 
 /* ============================================
@@ -726,6 +748,12 @@
     gap: var(--spacing-md);
 }
 
+@keyframes copyPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -1086,6 +1114,32 @@ input:checked + .slider:before { transform: translateX(18px); }
 .list-item-pin.active {
     color: var(--accent, #FE3C72);
     opacity: 1;
+}
+
+.copy-code-btn.copied {
+    animation: copyPulse 0.3s ease;
+    background: var(--success) !important;
+    color: white !important;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.empty-state-inline {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+}
+
+.empty-state-inline .empty-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.empty-state-inline p {
+    font-size: var(--font-size-sm);
+    margin: 0;
 }
 
 /* Custom Scrollbar */

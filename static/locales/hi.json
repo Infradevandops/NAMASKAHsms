@@ -19,7 +19,6 @@
     "subtitle": "आपकी एसएमएस सत्यापन गतिविधि का अवलोकन",
     "total_sms": "कुल एसएमएस",
     "successful": "सफल",
-    "total_spent": "कुल खर्च",
     "success_rate": "सफलता दर",
     "recent_activity": "हाल की गतिविधि",
     "no_activity": "कोई हालिया गतिविधि नहीं",
@@ -29,7 +28,8 @@
     "time": "समय",
     "your_plan": "आपकी योजना",
     "upgrade": "अपग्रेड",
-    "features": "विशेषताएं"
+    "features": "विशेषताएं",
+    "net_spent": "शुद्ध खर्च"
   },
   "tiers": {
     "freemium": "फ्रीमियम",

@@ -243,6 +243,13 @@ endblock %}
         </div>
         <div class="stat-change neutral">Avg. per Success</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Deposited</div>
+        <div class="stat-value" id="stat-deposited" style="color: #10b981; font-size: 24px;">
+            <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
+        </div>
+        <div class="stat-change neutral" id="stat-balance">Loading Balance...</div>
+    </div>
 </div>
 
 <!-- Verifications Over Time Chart -->
@@ -313,6 +320,80 @@ endblock %}
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Carrier & Outcome Insights -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3 class="chart-title">Carrier Match Rate</h3>
+        </div>
+        <div id="carrier-chart" class="chart-canvas" aria-label="Carrier match rate chart">
+            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No carrier data yet</div>
+        </div>
+    </div>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h3 class="chart-title">Outcome Categories</h3>
+        </div>
+        <div id="outcome-chart" class="chart-canvas" aria-label="Outcome category chart">
+            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No outcome data yet</div>
+        </div>
+    </div>
+</div>
+
+<!-- Latency & Recoup Stats -->
+<div class="analytics-grid" id="insights-stats" style="display: none; margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="stat-label">Avg Delivery Latency</div>
+        <div class="stat-value" id="stat-avg-latency" style="font-size: 24px;">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Carrier Match Rate</div>
+        <div class="stat-value" id="stat-carrier-match" style="font-size: 24px; color: #10b981;">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Refund Recoup Rate</div>
+        <div class="stat-value" id="stat-recoup" style="font-size: 24px; color: #f59e0b;">-</div>
+    </div>
+</div>
+
+<!-- Notification & Refund Insights -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
+    <div class="chart-container" id="notification-insights-card" style="display: none;">
+        <div class="chart-header">
+            <h3 class="chart-title">Notification Delivery</h3>
+        </div>
+        <div class="analytics-grid" style="margin-bottom: 0;">
+            <div class="stat-card" style="padding: 16px;">
+                <div class="stat-label">Delivery Rate</div>
+                <div class="stat-value" id="stat-notif-delivery" style="font-size: 20px; color: #10b981;">-</div>
+            </div>
+            <div class="stat-card" style="padding: 16px;">
+                <div class="stat-label">Avg Delivery</div>
+                <div class="stat-value" id="stat-notif-speed" style="font-size: 20px;">-</div>
+            </div>
+        </div>
+        <div id="notif-status-chart" style="min-height: 200px; margin-top: 16px;">
+            <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-muted);">Loading...</div>
+        </div>
+    </div>
+    <div class="chart-container" id="refund-insights-card" style="display: none;">
+        <div class="chart-header">
+            <h3 class="chart-title">Refund Transparency</h3>
+        </div>
+        <div class="analytics-grid" style="margin-bottom: 0;">
+            <div class="stat-card" style="padding: 16px;">
+                <div class="stat-label">Total Refunded</div>
+                <div class="stat-value" id="stat-refund-total" style="font-size: 20px; color: #f59e0b;">-</div>
+            </div>
+            <div class="stat-card" style="padding: 16px;">
+                <div class="stat-label">Stuck Refunds</div>
+                <div class="stat-value" id="stat-refund-stuck" style="font-size: 20px; color: #ef4444;">0</div>
+            </div>
+        </div>
+        <div id="refund-timeline" style="margin-top: 16px;"></div>
     </div>
 </div>
 
@@ -418,6 +499,7 @@ endblock %}
             await loadApexCharts();
             renderCharts(analyticsData);
             renderServicesTable(analyticsData);
+            await loadInsights();
             hideLoadingSkeletons();
 
         } catch (error) {
@@ -458,12 +540,16 @@ endblock %}
         document.getElementById('stat-success-rate-val').textContent = formatPercent(data.success_rate || 0);
         document.getElementById('stat-avg-cost').textContent = formatCurrency(data.avg_cost || 0);
 
-        // Subtitles
+        // Total deposited & current balance
+        document.getElementById('stat-deposited').textContent = formatCurrency(data.total_deposited || 0);
+        document.getElementById('stat-balance').textContent = `Balance: ${formatCurrency(data.current_balance || 0)}`;
+
+        // Refund rate
         const refundRate = (data.total_refunded / data.total_spent * 100) || 0;
         document.getElementById('stat-refund-rate').textContent = `${refundRate.toFixed(1)}% Refund Rate`;
         document.getElementById('stat-total-verifs').textContent = `${formatNumber(data.total_verifications || 0)} Initiated`;
         
-        // Change logic (optional but helpful)
+        // Monthly change
         const spentVsPrev = data.monthly_change || 0;
         const netSpentChangeEl = document.getElementById('stat-spent-vs-prev');
         if (spentVsPrev > 0) {
@@ -673,6 +759,147 @@ endblock %}
         }
 
         tbody.innerHTML = html;
+    }
+
+    async function loadInsights() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        try {
+            const [carrierRes, outcomeRes, notifRes, refundRes] = await Promise.allSettled([
+                fetch('/api/analytics/carrier-insights', { headers }),
+                fetch('/api/analytics/outcome-insights', { headers }),
+                fetch('/api/analytics/notification-insights', { headers }),
+                fetch('/api/analytics/refund-insights', { headers })
+            ]);
+
+            // Carrier insights
+            if (carrierRes.status === 'fulfilled' && carrierRes.value.ok) {
+                const data = await carrierRes.value.json();
+                if (data.total > 0) {
+                    document.getElementById('stat-carrier-match').textContent = `${data.exact_match_rate}%`;
+                    document.getElementById('insights-stats').style.display = 'grid';
+
+                    if (data.top_carriers.length > 0) {
+                        const container = document.getElementById('carrier-chart');
+                        const options = {
+                            series: data.top_carriers.slice(0, 5).map(c => c.count),
+                            chart: { type: 'donut', height: 300, foreColor: '#94a3b8' },
+                            labels: data.top_carriers.slice(0, 5).map(c => c.carrier),
+                            colors: ['#FE3C72', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'],
+                            plotOptions: { pie: { donut: { size: '65%' } } },
+                            legend: { position: 'bottom' },
+                            stroke: { show: false },
+                            tooltip: { theme: 'dark' }
+                        };
+                        container.innerHTML = '';
+                        new ApexCharts(container, options).render();
+                    }
+                }
+            }
+
+            // Outcome insights
+            if (outcomeRes.status === 'fulfilled' && outcomeRes.value.ok) {
+                const data = await outcomeRes.value.json();
+                if (data.total > 0) {
+                    document.getElementById('insights-stats').style.display = 'grid';
+                    if (data.avg_latency !== null) {
+                        document.getElementById('stat-avg-latency').textContent = `${data.avg_latency}s`;
+                    }
+                    document.getElementById('stat-recoup').textContent = `${data.refund_recoup_rate}%`;
+
+                    const cats = Object.entries(data.outcome_categories);
+                    if (cats.length > 0) {
+                        const container = document.getElementById('outcome-chart');
+                        const options = {
+                            series: cats.map(([, v]) => v),
+                            chart: { type: 'donut', height: 300, foreColor: '#94a3b8' },
+                            labels: cats.map(([k]) => k),
+                            colors: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#94a3b8'],
+                            plotOptions: { pie: { donut: { size: '65%' } } },
+                            legend: { position: 'bottom' },
+                            stroke: { show: false },
+                            tooltip: { theme: 'dark' }
+                        };
+                        container.innerHTML = '';
+                        new ApexCharts(container, options).render();
+                    }
+                }
+            }
+
+            // Notification insights
+            if (notifRes.status === 'fulfilled' && notifRes.value.ok) {
+                const data = await notifRes.value.json();
+                if (data.total > 0) {
+                    const card = document.getElementById('notification-insights-card');
+                    card.style.display = 'block';
+                    document.getElementById('stat-notif-delivery').textContent = `${data.delivery_rate}%`;
+                    document.getElementById('stat-notif-speed').textContent = data.avg_delivery_ms ? `${data.avg_delivery_ms}ms` : '-';
+
+                    const statuses = Object.entries(data.by_status);
+                    if (statuses.length > 0) {
+                        const container = document.getElementById('notif-status-chart');
+                        const statusColors = { delivered: '#10b981', read: '#3b82f6', clicked: '#8b5cf6', sent: '#f59e0b', failed: '#ef4444' };
+                        const options = {
+                            series: statuses.map(([, v]) => v),
+                            chart: { type: 'donut', height: 200, foreColor: '#94a3b8' },
+                            labels: statuses.map(([k]) => k.charAt(0).toUpperCase() + k.slice(1)),
+                            colors: statuses.map(([k]) => statusColors[k] || '#94a3b8'),
+                            plotOptions: { pie: { donut: { size: '60%' } } },
+                            legend: { position: 'bottom', fontSize: '12px' },
+                            stroke: { show: false },
+                            tooltip: { theme: 'dark' }
+                        };
+                        container.innerHTML = '';
+                        new ApexCharts(container, options).render();
+                    }
+                }
+            }
+
+            // Refund insights
+            if (refundRes.status === 'fulfilled' && refundRes.value.ok) {
+                const data = await refundRes.value.json();
+                if (data.total > 0) {
+                    const card = document.getElementById('refund-insights-card');
+                    card.style.display = 'block';
+                    document.getElementById('stat-refund-total').textContent = formatCurrency(data.total_amount);
+                    document.getElementById('stat-refund-stuck').textContent = data.stuck.length;
+
+                    // Render recent refund timeline
+                    const timeline = document.getElementById('refund-timeline');
+                    if (data.recent.length > 0) {
+                        timeline.innerHTML = data.recent.slice(0, 5).map(r => {
+                            const statusColor = { success: '#10b981', pending: '#f59e0b', failed: '#ef4444' }[r.status] || '#94a3b8';
+                            const date = r.initiated_at ? new Date(r.initiated_at).toLocaleDateString() : '-';
+                            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-color,#e5e7eb);font-size:13px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};"></span>
+                                    <span>${r.reason || 'Refund'}</span>
+                                </div>
+                                <div style="display:flex;gap:16px;align-items:center;">
+                                    <span style="font-weight:600;">${formatCurrency(r.amount)}</span>
+                                    <span style="color:var(--text-muted);">${date}</span>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        timeline.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">No refund records</div>';
+                    }
+
+                    // Stuck refund warning
+                    if (data.stuck.length > 0) {
+                        document.getElementById('stat-refund-stuck').style.color = '#ef4444';
+                        timeline.insertAdjacentHTML('beforebegin',
+                            `<div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#ef4444;">
+                                ⚠️ ${data.stuck.length} refund(s) stuck — next retry: ${data.stuck[0].next_retry_at ? new Date(data.stuck[0].next_retry_at).toLocaleString() : 'pending'}
+                            </div>`);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[Analytics] Insights load failed:', e);
+        }
     }
 
     // Set chart range
