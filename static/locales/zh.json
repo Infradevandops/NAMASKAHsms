@@ -73,5 +73,9 @@
   "voice": {
     "title": "语音验证",
     "subtitle": "通过电话获取验证码"
+  },
+  "rentals": {
+    "title": "号码租赁",
+    "subtitle": "租用专用电话号码"
   }
 }
