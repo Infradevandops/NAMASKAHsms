@@ -247,12 +247,25 @@
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const termsAccepted = document.getElementById('terms').checked;
+
+        // Validate terms acceptance
+        if (!termsAccepted) {
+            showError("You must accept the Terms of Service and Privacy Policy");
+            btn.disabled = false;
+            btn.textContent = "Create Account";
+            return;
+        }
 
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ 
+                    email, 
+                    password,
+                    terms_accepted: termsAccepted 
+                })
             });
 
             if (res.ok) {
