@@ -47,14 +47,14 @@ async def get_services(country: str):
                     "name": s["name"],
                     "price": (
                         round(s["price"] * settings.price_markup, 2)
-                        if s.get("price")
+                        if s.get("price") is not None and s["price"] > 0
                         else round(
                             2.50 * settings.price_markup, 2
                         )  # Default fallback price
                     ),
                     "cost": (
                         round(s["price"] * settings.price_markup, 2)
-                        if s.get("price")
+                        if s.get("price") is not None and s["price"] > 0
                         else round(
                             2.50 * settings.price_markup, 2
                         )  # Default fallback price
@@ -144,14 +144,14 @@ async def get_services_batch_pricing(country: str):
                         "name": s["name"],
                         "price": (
                             round(s["price"] * settings.price_markup, 2)
-                            if s.get("price")
+                            if s.get("price") is not None and s["price"] > 0
                             else round(
                                 2.50 * settings.price_markup, 2
                             )  # Default fallback
                         ),
                         "cost": (
                             round(s["price"] * settings.price_markup, 2)
-                            if s.get("price")
+                            if s.get("price") is not None and s["price"] > 0
                             else round(
                                 2.50 * settings.price_markup, 2
                             )  # Default fallback
@@ -182,14 +182,14 @@ async def get_services_batch_pricing(country: str):
                     "name": s["name"],
                     "price": (
                         round(s["price"] * settings.price_markup, 2)
-                        if s.get("price")
+                        if s.get("price") is not None and s["price"] > 0
                         else round(
                             2.50 * settings.price_markup, 2
                         )  # Default fallback price
                     ),
                     "cost": (
                         round(s["price"] * settings.price_markup, 2)
-                        if s.get("price")
+                        if s.get("price") is not None and s["price"] > 0
                         else round(
                             2.50 * settings.price_markup, 2
                         )  # Default fallback price
