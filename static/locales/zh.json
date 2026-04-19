@@ -69,5 +69,9 @@
     "select_service": "选择服务",
     "select_country": "选择国家",
     "buy_number": "购买号码"
+  },
+  "voice": {
+    "title": "语音验证",
+    "subtitle": "通过电话获取验证码"
   }
 }

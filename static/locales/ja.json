@@ -69,5 +69,9 @@
     "select_service": "サービスを選択",
     "select_country": "国を選択",
     "buy_number": "番号を購入"
+  },
+  "voice": {
+    "title": "音声認証",
+    "subtitle": "電話で認証コードを受け取る"
   }
 }

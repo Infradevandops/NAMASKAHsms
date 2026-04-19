@@ -69,5 +69,9 @@
     "select_service": "Dienst auswählen",
     "select_country": "Land auswählen",
     "buy_number": "Nummer kaufen"
+  },
+  "voice": {
+    "title": "Sprachverifizierung",
+    "subtitle": "Bestätigungscodes per Anruf erhalten"
   }
 }
