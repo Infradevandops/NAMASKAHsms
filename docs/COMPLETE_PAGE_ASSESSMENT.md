@@ -578,7 +578,7 @@
   - **Commit**: 3dca462f
   - **Note**: Backend OAuth endpoint needs implementation
 
-- [ ] **TASK 3: Fix About page design**
+- [x] **TASK 3: Fix About page design** ✅ COMPLETED
   - **File**: `templates/about.html`
   - **Fix**: 
     - Change background from `#0f172a` to `#FDFBF7`
@@ -587,8 +587,9 @@
     - Match landing page card styles (white bg, subtle shadow)
   - **Why**: Dark theme doesn't match brand identity
   - **Effort**: 1 hour
+  - **Commit**: 1314b1d8
 
-- [ ] **TASK 4: Fix Contact page design**
+- [x] **TASK 4: Fix Contact page design** ✅ COMPLETED
   - **File**: `templates/contact.html`
   - **Fix**: 
     - Change background from `#0f172a` to `#FDFBF7`
@@ -597,8 +598,9 @@
     - Match landing page form styles
   - **Why**: Dark theme doesn't match brand identity
   - **Effort**: 1 hour
+  - **Commit**: 1314b1d8
 
-- [ ] **TASK 5: Fix Pricing page design**
+- [x] **TASK 5: Fix Pricing page design** ✅ COMPLETED
   - **File**: `templates/pricing.html`
   - **Fix**: 
     - Change gradient header to match landing page style
@@ -607,6 +609,7 @@
     - Fix "Save 88%" badge (recalculate or remove)
   - **Why**: Inconsistent color scheme and styling
   - **Effort**: 1.5 hours
+  - **Commit**: 1314b1d8
 
 ### 🟠 HIGH PRIORITY
 
