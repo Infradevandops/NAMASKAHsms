@@ -69,5 +69,9 @@
     "select_service": "Seleccionar Servicio",
     "select_country": "Seleccionar País",
     "buy_number": "Comprar Número"
+  },
+  "voice": {
+    "title": "Verificación por Voz",
+    "subtitle": "Recibe códigos de verificación por llamada"
   }
 }

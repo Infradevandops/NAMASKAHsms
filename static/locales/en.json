@@ -101,5 +101,9 @@
   "privacy": {
     "title": "Privacy",
     "subtitle": "Manage your privacy settings"
+  },
+  "voice": {
+    "title": "Voice Verification",
+    "subtitle": "Get verification codes via phone call"
   }
 }

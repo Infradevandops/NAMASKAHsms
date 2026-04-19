@@ -68,6 +68,8 @@
             </select>
         </div>
 
+        <button id="voice-continue-btn" class="btn btn-primary btn-block" onclick="confirmService()" style="display:none; margin-top: var(--spacing-md);">Continue →</button>
+
         <!-- Info Box -->
         <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-lg); padding: var(--spacing-md); margin-top: var(--spacing-lg);">
             <div style="font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6;">
@@ -272,7 +274,7 @@ function selectVoiceService(value, label, price) {
     document.getElementById('voice-service-display').style.display = 'flex';
     document.getElementById('voice-service-name').textContent = label;
     closeVoiceModal();
-    confirmService();
+    document.getElementById('voice-continue-btn').style.display = 'block';
 }
 
 function clearVoiceService() {
@@ -280,6 +282,7 @@ function clearVoiceService() {
     selectedServicePrice = null;
     document.getElementById('voice-service-search').value = '';
     document.getElementById('voice-service-display').style.display = 'none';
+    document.getElementById('voice-continue-btn').style.display = 'none';
 }
 
 function toggleVoicePin(id) {
