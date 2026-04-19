@@ -3,6 +3,7 @@
 import asyncio
 import json
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -29,6 +30,22 @@ from app.services.transaction_service import TransactionService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
+
+
+async def _get_provider_price(service: str) -> Optional[float]:
+    """Look up the real TextVerified price for a service from cache/API.
+
+    Returns the raw provider cost (before markup) or None if unavailable.
+    """
+    try:
+        tv = TextVerifiedService()
+        services = await tv.get_services_list()
+        for s in services:
+            if s["id"] == service:
+                return s.get("price")  # raw provider cost, no markup
+    except Exception:
+        pass
+    return None
 
 
 @router.post("/request", status_code=status.HTTP_201_CREATED)
@@ -162,10 +179,14 @@ async def request_verification(
                     detail="City filtering requires PAYG tier or higher. Upgrade your plan.",
                 )
 
-        # Calculate SMS cost using new pricing system
-        # Get pricing for this SMS
+        # Fetch real provider price for this specific service
+        provider_price = await _get_provider_price(request.service)
+
+        # Calculate SMS cost using real provider price
         filters = {"area_code": area_code, "city": city} if area_code or city else None
-        pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
+        pricing_info = PricingCalculator.calculate_sms_cost(
+            db, user_id, filters, provider_price=provider_price
+        )
         sms_cost = pricing_info["total_cost"]
 
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")

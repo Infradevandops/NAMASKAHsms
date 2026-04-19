@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Namaskah - Premium SMS Verification Platform</title>
+  <meta name="description" content="Real SIM cards. No VoIP. 100% success rate. Trusted by {{ user_count|default(10000) }}+ developers worldwide.">
+  
+  <!-- Preconnect to CDNs for faster loading -->
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Config - must be AFTER script loads -->
+  <script nonce="{{ request.state.csp_nonce }}">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              400: '#FF6B9D',
+              500: '#FE3C72',
+              600: '#E0245E',
+            },
+            success: {
+              500: '#01DF8A',
+            },
+            tier: {
+              freemium: '#01DF8A',
+              payg: '#FF7854',
+              pro: '#FE3C72',
+              custom: '#8B5CF6',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  
+  <!-- Debug: Check if Alpine loads -->
+  <script nonce="{{ request.state.csp_nonce }}">
+    window.addEventListener('alpine:init', () => {
+      console.log('Alpine.js initialized successfully');
+    });
+  </script>
+  
+  <style>
+    /* Base styles - Always load even if Tailwind fails */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #FDFBF7;
+      color: #37352F; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+    .glass { 
+      background: rgba(255, 255, 255, 0.05); 
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    
+    /* Fallback styles if Tailwind doesn't load */
+    a { color: #06b6d4; text-decoration: none; }
+    a:hover { color: #22d3ee; }
+    button { cursor: pointer; border: none; background: none; }
+    input { 
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 1rem;
+      border-radius: 1rem;
+      width: 100%;
+      font-size: 1rem;
+    }
+    input:focus { outline: 2px solid #06b6d4; }
+    
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+    
+    /* Loading animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.6s ease-out; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav x-data="{ open: false }" class="fixed top-0 w-full backdrop-blur-xl bg-white/95 border-b border-black/5 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2">
+        <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
+        <span class="font-bold text-xl tracking-tight">Namaskah</span>
+      </a>
+      
+      <div class="hidden md:flex gap-8 text-sm">
+        <a href="#pricing" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="pricing">Pricing</a>
+        <a href="#features" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="features">Features</a>
+        <a href="/docs" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="apiDocs">API Docs</a>
+      </div>
+      
+      <div class="hidden md:flex gap-4 items-center">
+        {% if user %}
+        <a href="/dashboard" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition">Dashboard</a>
+        <span class="px-4 py-2 text-sm text-brand-400">${{ user.credits|round(2) }}</span>
+        {% else %}
+        <a href="/auth/login" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition" data-i18n="login">Login</a>
+        <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white" data-i18n="startVerifying">Start Verifying →</a>
+        {% endif %}
+        
+        <!-- Language/Currency Selector -->
+        <div x-data="{ 
+          open: false,
+          currency: localStorage.getItem('currency') || 'USD',
+          language: localStorage.getItem('language') || 'en',
+          getCurrencyFlag() {
+            const flags = {'USD': '🇺🇸', 'EUR': '🇪🇺', 'GBP': '🇬🇧', 'NGN': '🇳🇬', 'INR': '🇮🇳'};
+            return flags[this.currency] || '🌍';
+          },
+          setPreference(type, value) {
+            if (type === 'currency') this.currency = value;
+            if (type === 'language') this.language = value;
+            localStorage.setItem(type, value);
+            document.cookie = `${type}=${value}; path=/; max-age=31536000`;
+            document.cookie = `preferences_set=true; path=/; max-age=31536000`;
+            
+            // Save to database if authenticated
+            fetch('/api/user/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ language: this.language, currency: this.currency })
+            }).catch(() => {});
+            
+            // Reload page to apply changes
+            setTimeout(() => location.reload(), 100);
+          }
+        }" class="relative">
+          <button @click="open = !open" class="px-3 py-2 rounded-lg border border-white/10 hover:bg-white/5 transition flex items-center gap-2">
+            <span class="text-lg" x-text="getCurrencyFlag()"></span>
+            <span class="text-sm font-semibold" x-text="currency"></span>
+            <i class="ph ph-caret-down text-xs" :class="open ? 'rotate-180' : ''"></i>
+          </button>
+          <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-56 bg-zinc-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl z-50 overflow-hidden">
+            <div class="p-3">
+              <div class="text-xs font-bold text-zinc-500 px-3 py-2 uppercase tracking-wider">Currency</div>
+              <button @click="setPreference('currency', 'USD')" :class="currency === 'USD' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇺🇸</span> USD - US Dollar
+              </button>
+              <button @click="setPreference('currency', 'EUR')" :class="currency === 'EUR' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇪🇺</span> EUR - Euro
+              </button>
+              <button @click="setPreference('currency', 'GBP')" :class="currency === 'GBP' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇬🇧</span> GBP - British Pound
+              </button>
+              <button @click="setPreference('currency', 'NGN')" :class="currency === 'NGN' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇳🇬</span> NGN - Nigerian Naira
+              </button>
+              <button @click="setPreference('currency', 'INR')" :class="currency === 'INR' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇮🇳</span> INR - Indian Rupee
+              </button>
+              
+              <div class="border-t border-white/10 my-2"></div>
+              
+              <div class="text-xs font-bold text-zinc-500 px-3 py-2 uppercase tracking-wider">Language</div>
+              <button @click="setPreference('language', 'en')" :class="language === 'en' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇺🇸</span> English
+              </button>
+              <button @click="setPreference('language', 'es')" :class="language === 'es' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇪🇸</span> Español
+              </button>
+              <button @click="setPreference('language', 'fr')" :class="language === 'fr' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇫🇷</span> Français
+              </button>
+              <button @click="setPreference('language', 'de')" :class="language === 'de' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇩🇪</span> Deutsch
+              </button>
+              <button @click="setPreference('language', 'pt')" :class="language === 'pt' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇵🇹</span> Português
+              </button>
+              <button @click="setPreference('language', 'zh')" :class="language === 'zh' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇨🇳</span> 中文
+              </button>
+              <button @click="setPreference('language', 'ja')" :class="language === 'ja' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇯🇵</span> 日本語
+              </button>
+              <button @click="setPreference('language', 'ar')" :class="language === 'ar' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇸🇦</span> العربية
+              </button>
+              <button @click="setPreference('language', 'hi')" :class="language === 'hi' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇮🇳</span> हिन्दी
+              </button>
+              <button @click="setPreference('language', 'yo')" :class="language === 'yo' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
+                <span>🇳🇬</span> Yorùbá
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <button @click="open = !open" class="md:hidden">
+        <i class="ph ph-list text-2xl"></i>
+      </button>
+    </div>
+    
+    <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-[#16213e]/95 backdrop-blur-xl">
+      <div class="px-6 py-4 space-y-4">
+        <a href="#pricing" class="block text-zinc-600">Pricing</a>
+        <a href="#features" class="block text-zinc-600">Features</a>
+        <a href="/docs" class="block text-zinc-600">API Docs</a>
+        {% if user %}
+        <a href="/dashboard" class="block text-zinc-600">Dashboard</a>
+        {% else %}
+        <a href="/auth/login" class="block text-zinc-600">Login</a>
+        <a href="/auth/register" class="block px-6 py-2 bg-brand-500 rounded-lg text-center">Start Verifying</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl md:text-6xl font-bold text-[#37352F] mb-6 leading-tight">
+        <span data-i18n="title">Instant SMS Verification</span><br>
+        <span class="text-brand-400" data-i18n="subtitle">That Actually Works</span>
+      </h1>
+      <p class="text-xl text-zinc-600 mb-12 max-w-2xl mx-auto">
+        <span data-i18n="description">Real SIM cards. No VoIP. 100% success rate. Trusted by</span> {{ user_count|default(10000) }}+ <span data-i18n="developers">developers worldwide</span>.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        {% if user %}
+        <a href="/dashboard" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white" data-i18n="dashboard">
+          Go to Dashboard →
+        </a>
+        {% else %}
+        <a href="/auth/register" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white" data-i18n="startVerifying">
+          Start Verifying →
+        </a>
+        <a href="/docs" class="px-8 py-4 border border-white/20 rounded-xl text-lg hover:bg-white/5 transition" data-i18n="viewDocs">
+          View API Docs
+        </a>
+        {% endif %}
+      </div>
+      
+      <!-- Search Bar with Autocomplete -->
+      <script nonce="{{ request.state.csp_nonce }}">
+        window.servicesData = {{ services|tojson|safe }};
+      </script>
+      <div x-data="{
+        search: '',
+        services: window.servicesData || [],
+        showDropdown: false,
+        filteredServices() {
+          if (!this.search || this.search.length < 2) return [];
+          return this.services.filter(s => s.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 8);
+        },
+        selectService(serviceName) {
+          window.location.href = '/verify?service=' + serviceName;
+        }
+      }" class="relative max-w-2xl mx-auto">
+        <i class="ph ph-magnifying-glass absolute left-6 top-6 text-brand-400 text-xl"></i>
+        <input 
+          x-model="search"
+          type="text" 
+          data-i18n-placeholder="searchPlaceholder"
+          placeholder="Which service do you need to verify?"
+          class="w-full glass border border-white/20 rounded-2xl py-6 pl-16 pr-24 text-xl focus:outline-none focus:ring-4 focus:ring-brand-500/30 focus:border-brand-500 transition placeholder:text-zinc-500 bg-white/5"
+          @keyup.enter="search.length > 0 && selectService(search)"
+          @focus="showDropdown = true"
+          @blur="setTimeout(() => showDropdown = false, 200)"
+        >
+        <kbd class="absolute right-4 top-6 px-3 py-1 bg-zinc-800/50 rounded-lg border border-white/10 text-xs text-zinc-500 font-mono hidden sm:block">ENTER</kbd>
+        
+        <!-- Autocomplete Dropdown -->
+        <div 
+          x-show="showDropdown && filteredServices().length > 0" 
+          x-transition
+          class="absolute top-full mt-2 w-full bg-zinc-900/95 backdrop-blur-xl rounded-2xl border border-white/10 max-h-80 overflow-y-auto shadow-2xl z-50"
+        >
+          <template x-for="service in filteredServices()" :key="service.name">
+            <div 
+              @click="selectService(service.name)"
+              class="p-4 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 transition flex items-center justify-between"
+            >
+              <div>
+                <div class="font-semibold text-[#37352F]" x-text="service.name"></div>
+                <div class="text-sm text-zinc-500">SMS Verification</div>
+              </div>
+              <div class="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">Available</div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bento Grid Features -->
+  <section id="features" class="py-24 max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      
+      <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform overflow-hidden relative group">
+        <div class="relative z-10">
+          <div class="w-12 h-12 bg-brand-500/20 rounded-2xl flex items-center justify-center text-brand-400 mb-6">
+            <i class="ph ph-device-mobile text-3xl"></i>
+          </div>
+          <h3 class="text-3xl font-bold text-[#37352F] mb-4 leading-tight">Real SIM Cards<br>Not Virtual Numbers</h3>
+          <p class="text-zinc-600 text-lg max-w-md leading-relaxed">
+            Unlike competitors, we use physical mobile devices. Pass 100% of non-VoIP checks with guaranteed delivery.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-4">
+            <span class="flex items-center gap-2 text-xs font-bold text-brand-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> No Bans
+            </span>
+            <span class="flex items-center gap-2 text-xs font-bold text-brand-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> High Success
+            </span>
+            <span class="flex items-center gap-2 text-xs font-bold text-brand-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> Auto-Refund
+            </span>
+          </div>
+        </div>
+        <i class="ph ph-device-mobile absolute -right-10 top-10 text-[400px] opacity-5 group-hover:opacity-10 transition"></i>
+      </div>
+      
+      <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
+        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+          <i class="ph ph-lock text-2xl text-zinc-600"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-[#37352F] mb-3">Pure Privacy</h3>
+          <p class="text-zinc-600 leading-relaxed">No personal info required. Pay with crypto and stay anonymous.</p>
+        </div>
+      </div>
+      
+      <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
+        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+          <i class="ph ph-code text-2xl text-zinc-600"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-[#37352F] mb-3">API Built for Scale</h3>
+          <p class="text-zinc-600 leading-relaxed">Integrate in minutes. Fetch numbers programmatically at speed.</p>
+        </div>
+      </div>
+      
+      <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="text-2xl font-bold text-[#37352F]">Live Availability</h3>
+          <span class="text-xs font-mono text-zinc-500 uppercase">Updated 1s ago</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <script nonce="{{ request.state.csp_nonce }}">
+            window.servicesDataGrid = {{ services|tojson|safe }};
+          </script>
+          <div x-data="{ services: window.servicesDataGrid || [] }">
+            <template x-for="service in services.slice(0, 6)" :key="service.name">
+            <div 
+              @click="window.location.href='/verify?service=' + service.name"
+              class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-brand-500/30 transition cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-3">
+                <span class="text-2xl group-hover:scale-110 transition">📱</span>
+                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+              </div>
+              <div class="font-bold text-[#37352F]" x-text="service.name"></div>
+              <div class="text-sm text-zinc-500">From $2.00</div>
+            </div>
+          </template>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-24 max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] text-center mb-4">Choose Your Plan</h2>
+    <p class="text-xl text-zinc-600 text-center mb-16">Start free, upgrade as you grow</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <!-- Freemium Tier -->
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-freemium text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">FREE PLAN</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Freemium</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">Namaskah provides the tools you need to quickly verify SMS at scale.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$0</span>
+            <span class="text-zinc-500 text-base ml-1">/ month</span>
+          </div>
+        </div>
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">9 SMS per $20 deposit</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$2.22/SMS effective rate</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Random numbers only</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Basic support</span>
+          </li>
+        </ul>
+        <a 
+          href="/auth/register?tier=freemium"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
+        >
+          Get it now
+        </a>
+      </div>
+      
+      <!-- Pay-As-You-Go Tier -->
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-payg text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">FLEXIBLE</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Pay-As-You-Go</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">Perfect for occasional users who need advanced filtering options.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$2.50</span>
+            <span class="text-zinc-500 text-base ml-1">/ SMS</span>
+          </div>
+        </div>
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Custom balance funding</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">State/City filters (+$0.25)</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">ISP filters (+$0.50)</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">No monthly commitment</span>
+          </li>
+        </ul>
+        <a 
+          href="/auth/register?tier=payg"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
+        >
+          Get it now
+        </a>
+      </div>
+      
+      <!-- Pro Tier -->
+      <div class="p-8 rounded-3xl bg-[#37352F] border-2 border-[#37352F] hover:shadow-2xl transition-all relative">
+        <span class="absolute -top-3 right-6 bg-white text-[#37352F] text-xs font-bold px-4 py-1.5 rounded-full shadow-md">Best Seller</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-white mb-2">PRO PLAN</h3>
+          <p class="text-sm text-zinc-300 mb-4 min-h-[40px]">For businesses and developers who need API access and priority support.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-white">$25</span>
+            <span class="text-zinc-300 text-base ml-1">/ month</span>
+          </div>
+        </div>
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$15 quota (~50 SMS)</span>
+          </li>
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">All filters included</span>
+          </li>
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">10 API keys</span>
+          </li>
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Priority support</span>
+          </li>
+        </ul>
+        <a 
+          href="/auth/register?tier=pro"
+          class="block w-full bg-white hover:bg-zinc-100 py-3.5 rounded-xl font-semibold text-center transition text-[#37352F]"
+        >
+          Get it now
+        </a>
+      </div>
+      
+      <!-- Custom Tier -->
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">ENTERPRISE</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Custom</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">For enterprises and high-volume users with unlimited API access.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$35</span>
+            <span class="text-zinc-500 text-base ml-1">/ month</span>
+          </div>
+        </div>
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$25 quota (~125 SMS)</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Unlimited API keys</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Enhanced affiliate</span>
+          </li>
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Dedicated support</span>
+          </li>
+        </ul>
+        <a 
+          href="/auth/register?tier=custom"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
+        >
+          Get it now
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="relative mt-32 overflow-hidden">
+    <!-- Gradient Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f1419]"></div>
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+    
+    <div class="relative z-10">
+      <!-- Main Footer Content -->
+      <div class="max-w-7xl mx-auto px-6 pt-20 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+          
+          <!-- Brand Column -->
+          <div class="md:col-span-4">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <i class="ph-fill ph-device-mobile text-white text-2xl"></i>
+              </div>
+              <span class="font-bold text-2xl text-white">Namaskah</span>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-8 max-w-sm">
+              Premium SMS verification platform. Trusted by <span class="text-brand-400 font-semibold">{{ user_count|default(10000) }}+</span> developers worldwide.
+            </p>
+            <div class="flex gap-3">
+              <a href="https://twitter.com/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-twitter-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://github.com/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-github-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://discord.gg/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-discord-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://linkedin.com/company/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-linkedin-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+            </div>
+          </div>
+          
+          <!-- Platform Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Platform</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/verify" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Verifications</span>
+                </a>
+              </li>
+              <li>
+                <a href="/pricing" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Pricing</span>
+                </a>
+              </li>
+              <li>
+                <a href="/api-docs" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">API</span>
+                </a>
+              </li>
+              <li>
+                <a href="/affiliate" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Affiliate Program</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Resources Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Resources</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/docs" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">API Docs</span>
+                </a>
+              </li>
+              <li>
+                <a href="/status" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Status</span>
+                </a>
+              </li>
+              <li>
+                <a href="/support" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Support</span>
+                </a>
+              </li>
+              <li>
+                <a href="/faq" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">FAQ</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Company Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Company</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/about" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">About Us</span>
+                </a>
+              </li>
+              <li>
+                <a href="/blog" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Blog</span>
+                </a>
+              </li>
+              <li>
+                <a href="/careers" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Careers</span>
+                </a>
+              </li>
+              <li>
+                <a href="/contact" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Contact</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Legal Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Legal</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/terms" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Terms</span>
+                </a>
+              </li>
+              <li>
+                <a href="/privacy" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Privacy</span>
+                </a>
+              </li>
+              <li>
+                <a href="/cookies" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Cookies</span>
+                </a>
+              </li>
+              <li>
+                <a href="/privacy-settings" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">GDPR</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Divider -->
+        <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8"></div>
+        
+        <!-- Bottom Bar -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <!-- Copyright -->
+          <p class="text-zinc-500 text-sm flex items-center gap-2">
+            <span>© 2025 Namaskah.</span>
+            <span class="hidden md:inline">•</span>
+            <span>All rights reserved.</span>
+          </p>
+          
+          <!-- Language/Currency Selector -->
+          <div x-data="{ 
+            lang: localStorage.getItem('language') || 'en', 
+            curr: localStorage.getItem('currency') || 'USD',
+            langOpen: false,
+            currOpen: false
+          }" class="flex gap-3 items-center">
+            <!-- Language Dropdown -->
+            <div class="relative">
+              <button @click="langOpen = !langOpen; currOpen = false" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm">
+                <i class="ph ph-translate text-brand-400"></i>
+                <span class="text-zinc-300 font-medium" x-text="lang.toUpperCase()"></span>
+                <i class="ph ph-caret-down text-zinc-500 text-xs" :class="langOpen ? 'rotate-180' : ''"></i>
+              </button>
+              <div x-show="langOpen" @click.away="langOpen = false" x-transition class="absolute bottom-full mb-2 right-0 w-48 bg-zinc-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+                <button @click="lang = 'en'; localStorage.setItem('language', 'en'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇺🇸</span> English
+                </button>
+                <button @click="lang = 'es'; localStorage.setItem('language', 'es'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇪🇸</span> Español
+                </button>
+                <button @click="lang = 'fr'; localStorage.setItem('language', 'fr'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇫🇷</span> Français
+                </button>
+                <button @click="lang = 'de'; localStorage.setItem('language', 'de'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇩🇪</span> Deutsch
+                </button>
+                <button @click="lang = 'pt'; localStorage.setItem('language', 'pt'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇵🇹</span> Português
+                </button>
+              </div>
+            </div>
+            
+            <!-- Currency Dropdown -->
+            <div class="relative">
+              <button @click="currOpen = !currOpen; langOpen = false" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm">
+                <i class="ph ph-currency-circle-dollar text-brand-400"></i>
+                <span class="text-zinc-300 font-medium" x-text="curr"></span>
+                <i class="ph ph-caret-down text-zinc-500 text-xs" :class="currOpen ? 'rotate-180' : ''"></i>
+              </button>
+              <div x-show="currOpen" @click.away="currOpen = false" x-transition class="absolute bottom-full mb-2 right-0 w-48 bg-zinc-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+                <button @click="curr = 'USD'; localStorage.setItem('currency', 'USD'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇺🇸</span> USD
+                </button>
+                <button @click="curr = 'EUR'; localStorage.setItem('currency', 'EUR'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇪🇺</span> EUR
+                </button>
+                <button @click="curr = 'GBP'; localStorage.setItem('currency', 'GBP'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇬🇧</span> GBP
+                </button>
+                <button @click="curr = 'NGN'; localStorage.setItem('currency', 'NGN'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇳🇬</span> NGN
+                </button>
+                <button @click="curr = 'INR'; localStorage.setItem('currency', 'INR'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇮🇳</span> INR
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment Methods -->
+          <div class="flex items-center gap-4">
+            <span class="text-zinc-600 text-xs uppercase tracking-wider font-semibold">We Accept</span>
+            <div class="flex gap-3 items-center">
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-currency-btc text-orange-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">BTC</span>
+              </div>
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-currency-eth text-purple-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">ETH</span>
+              </div>
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-credit-card text-blue-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">CARD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Translation & Currency Script -->
+  <script nonce="{{ request.state.csp_nonce }}">
+    const translations = {
+      en: {
+        title: 'Instant SMS Verification',
+        subtitle: 'That Actually Works',
+        description: 'Real SIM cards. No VoIP. 100% success rate. Trusted by',
+        developers: 'developers worldwide',
+        startVerifying: 'Start Verifying',
+        viewDocs: 'View API Docs',
+        searchPlaceholder: 'Which service do you need to verify?',
+        pricing: 'Pricing',
+        features: 'Features',
+        apiDocs: 'API Docs',
+        login: 'Login',
+        dashboard: 'Dashboard',
+        getStarted: 'Get Started',
+        perMonth: '/mo'
+      },
+      es: {
+        title: 'Verificación SMS Instantánea',
+        subtitle: 'Que Realmente Funciona',
+        description: 'Tarjetas SIM reales. Sin VoIP. 100% de éxito. Confiado por',
+        developers: 'desarrolladores en todo el mundo',
+        startVerifying: 'Comenzar Verificación',
+        viewDocs: 'Ver Documentación',
+        searchPlaceholder: '¿Qué servicio necesitas verificar?',
+        pricing: 'Precios',
+        features: 'Características',
+        apiDocs: 'Documentación API',
+        login: 'Iniciar Sesión',
+        dashboard: 'Panel',
+        getStarted: 'Comenzar',
+        perMonth: '/mes'
+      }
+    };
+
+    const currencySymbols = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      NGN: '₦',
+      INR: '₹',
+      CNY: '¥',
+      JPY: '¥',
+      BRL: 'R$',
+      CAD: 'C$',
+      AUD: 'A$'
+    };
+
+    const currencyRates = {
+      USD: 1,
+      EUR: 0.92,
+      GBP: 0.79,
+      NGN: 1650,
+      INR: 83,
+      CNY: 7.24,
+      JPY: 149,
+      BRL: 4.97,
+      CAD: 1.35,
+      AUD: 1.52
+    };
+
+    function formatPrice(usdPrice, currency) {
+      const rate = currencyRates[currency] || 1;
+      const symbol = currencySymbols[currency] || '$';
+      const price = (usdPrice * rate).toFixed(currency === 'JPY' ? 0 : 2);
+      return `${symbol}${price}`;
+    }
+
+    function applyTranslations() {
+      const lang = localStorage.getItem('language') || 'en';
+      const currency = localStorage.getItem('currency') || 'USD';
+      const t = translations[lang] || translations.en;
+      
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+      
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.placeholder = t[key];
+      });
+      
+      document.querySelectorAll('[data-price]').forEach(el => {
+        const usdPrice = parseFloat(el.getAttribute('data-price'));
+        el.textContent = formatPrice(usdPrice, currency);
+      });
+      
+      document.querySelectorAll('[data-i18n="perMonth"]').forEach(el => {
+        el.textContent = t.perMonth;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', applyTranslations);
+  </script>
+
+</body>
+</html>
