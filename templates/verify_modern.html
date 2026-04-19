@@ -567,7 +567,7 @@ function renderImmersiveList(type, query = '') {
 function renderImmersiveItem(item, isPinned) {
     if (_modalType === 'service') {
         const iconUrl = _getServiceIcon(item.value);
-        const costDisplay = item.price ? `$${item.price.toFixed(2)}` : 'Market';
+        const costDisplay = (item.price && item.price > 0) ? `$${item.price.toFixed(2)}` : '$2.50';
         return `
             <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
                 <div class="list-item-icon">
@@ -732,7 +732,7 @@ function selectImmersiveItem(value, label, price) {
         display.style.display = 'flex';
         document.getElementById('service-display').textContent = label;
         const costEl = document.getElementById('selected-service-cost');
-        if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
+        if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : '$2.50';
         
         applyTierGating();
         
