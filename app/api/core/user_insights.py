@@ -26,9 +26,7 @@ async def get_carrier_insights(
 ) -> Dict[str, Any]:
     """Carrier match rates and top carriers for the current user."""
     records = (
-        db.query(CarrierAnalytics)
-        .filter(CarrierAnalytics.user_id == user_id)
-        .all()
+        db.query(CarrierAnalytics).filter(CarrierAnalytics.user_id == user_id).all()
     )
 
     if not records:
@@ -51,7 +49,9 @@ async def get_carrier_insights(
         {
             "carrier": k,
             "count": v["count"],
-            "match_rate": round(v["matched"] / v["count"] * 100, 1) if v["count"] else 0,
+            "match_rate": (
+                round(v["matched"] / v["count"] * 100, 1) if v["count"] else 0
+            ),
         }
         for k, v in sorted(carrier_counts.items(), key=lambda x: -x[1]["count"])[:10]
     ]
@@ -76,11 +76,7 @@ async def get_outcome_insights(
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Purchase outcome telemetry — latency, categories, refund recoup."""
-    records = (
-        db.query(PurchaseOutcome)
-        .filter(PurchaseOutcome.user_id == user_id)
-        .all()
-    )
+    records = db.query(PurchaseOutcome).filter(PurchaseOutcome.user_id == user_id).all()
 
     if not records:
         return {
@@ -94,7 +90,11 @@ async def get_outcome_insights(
     total = len(records)
 
     # Average delivery latency
-    latencies = [r.latency_seconds for r in records if r.latency_seconds and r.latency_seconds > 0]
+    latencies = [
+        r.latency_seconds
+        for r in records
+        if r.latency_seconds and r.latency_seconds > 0
+    ]
     avg_latency = round(sum(latencies) / len(latencies), 1) if latencies else None
 
     # Outcome category breakdown
@@ -141,23 +141,40 @@ async def get_notification_insights(
     )
 
     if not records:
-        return {"total": 0, "delivery_rate": 0, "avg_delivery_ms": None, "avg_read_ms": None, "by_status": {}, "by_method": {}}
+        return {
+            "total": 0,
+            "delivery_rate": 0,
+            "avg_delivery_ms": None,
+            "avg_read_ms": None,
+            "by_status": {},
+            "by_method": {},
+        }
 
     total = len(records)
     delivered = sum(1 for r in records if r.status in ("delivered", "read", "clicked"))
-    delivery_times = [r.delivery_time_ms for r in records if r.delivery_time_ms and r.delivery_time_ms > 0]
-    read_times = [r.read_time_ms for r in records if r.read_time_ms and r.read_time_ms > 0]
+    delivery_times = [
+        r.delivery_time_ms
+        for r in records
+        if r.delivery_time_ms and r.delivery_time_ms > 0
+    ]
+    read_times = [
+        r.read_time_ms for r in records if r.read_time_ms and r.read_time_ms > 0
+    ]
 
     by_status: Dict[str, int] = {}
     by_method: Dict[str, int] = {}
     for r in records:
         by_status[r.status or "unknown"] = by_status.get(r.status or "unknown", 0) + 1
-        by_method[r.delivery_method or "unknown"] = by_method.get(r.delivery_method or "unknown", 0) + 1
+        by_method[r.delivery_method or "unknown"] = (
+            by_method.get(r.delivery_method or "unknown", 0) + 1
+        )
 
     return {
         "total": total,
         "delivery_rate": round(delivered / total * 100, 1) if total else 0,
-        "avg_delivery_ms": round(sum(delivery_times) / len(delivery_times)) if delivery_times else None,
+        "avg_delivery_ms": (
+            round(sum(delivery_times) / len(delivery_times)) if delivery_times else None
+        ),
         "avg_read_ms": round(sum(read_times) / len(read_times)) if read_times else None,
         "by_status": by_status,
         "by_method": by_method,
@@ -179,7 +196,13 @@ async def get_refund_insights(
     )
 
     if not records:
-        return {"total": 0, "total_amount": 0, "by_status": {}, "recent": [], "stuck": []}
+        return {
+            "total": 0,
+            "total_amount": 0,
+            "by_status": {},
+            "recent": [],
+            "stuck": [],
+        }
 
     total = len(records)
     total_amount = sum(r.amount for r in records if r.amount)
