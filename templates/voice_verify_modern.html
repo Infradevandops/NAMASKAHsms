@@ -54,7 +54,7 @@
 
         <!-- Preferences -->
         <div class="form-group">
-            <label class="form-label">Area Code (Optional)</label>
+            <label class="form-label">Area Code <span class="required" style="color: #ef4444;">*</span></label>
             <select class="form-select" id="area-code-select" onchange="updatePricing()">
                 <option value="">Loading area codes...</option>
             </select>
@@ -79,6 +79,11 @@
         <div class="pricing-row">
             <span class="pricing-label">Service</span>
             <span class="pricing-value" id="pricing-service">-</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Area Code</span>
+            <span class="pricing-value" id="pricing-area-code">-</span>
         </div>
 
         <div class="pricing-row">
@@ -217,7 +222,15 @@ function onCustomServiceInput(input) {
 }
 
 function confirmService() {
+    // Validate area code is selected
+    const areaCode = document.getElementById('area-code-select').value;
+    if (!areaCode) {
+        window.toast?.error('Please select an area code for voice verification');
+        return;
+    }
+    
     document.getElementById('pricing-service').textContent = selectedService;
+    document.getElementById('pricing-area-code').textContent = areaCode;
     const price = selectedServicePrice ? `$${selectedServicePrice.toFixed(2)}` : 'Market rate';
     document.getElementById('pricing-cost').textContent = price;
     updateProgress(2);
@@ -249,7 +262,13 @@ function selectService(serviceName) {
 
 async function createVerification() {
     if (!selectedService) {
-        window.toast.error('Please select a service');
+        window.toast?.error('Please select a service');
+        return;
+    }
+    
+    const areaCode = document.getElementById('area-code-select').value;
+    if (!areaCode) {
+        window.toast?.error('Please select an area code');
         return;
     }
 
