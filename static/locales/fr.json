@@ -73,5 +73,9 @@
   "voice": {
     "title": "Vérification Vocale",
     "subtitle": "Recevez des codes par appel téléphonique"
+  },
+  "rentals": {
+    "title": "Location de Numéros",
+    "subtitle": "Louez des numéros de téléphone dédiés"
   }
 }

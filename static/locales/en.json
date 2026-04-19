@@ -105,5 +105,9 @@
   "voice": {
     "title": "Voice Verification",
     "subtitle": "Get verification codes via phone call"
+  },
+  "rentals": {
+    "title": "Number Rentals",
+    "subtitle": "Rent dedicated phone numbers"
   }
 }

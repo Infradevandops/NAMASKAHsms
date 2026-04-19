@@ -73,5 +73,9 @@
   "voice": {
     "title": "音声認証",
     "subtitle": "電話で認証コードを受け取る"
+  },
+  "rentals": {
+    "title": "番号レンタル",
+    "subtitle": "専用電話番号をレンタル"
   }
 }

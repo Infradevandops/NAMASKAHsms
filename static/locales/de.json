@@ -73,5 +73,9 @@
   "voice": {
     "title": "Sprachverifizierung",
     "subtitle": "Bestätigungscodes per Anruf erhalten"
+  },
+  "rentals": {
+    "title": "Nummernmiete",
+    "subtitle": "Mieten Sie dedizierte Telefonnummern"
   }
 }
