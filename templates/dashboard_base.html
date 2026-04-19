@@ -120,6 +120,36 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         outline-offset: 2px;
     }
     
+    /* Currency selector hover effects */
+    .currency-selector-btn:hover {
+        background: rgba(254, 60, 114, 0.05) !important;
+        border-color: #FE3C72 !important;
+    }
+    
+    .currency-selector-btn:focus-visible {
+        outline: 2px solid #FE3C72;
+        outline-offset: 2px;
+    }
+    
+    /* Currency dropdown scrollbar */
+    .currency-dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .currency-dropdown::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .currency-dropdown::-webkit-scrollbar-thumb {
+        background: #FE3C72;
+        border-radius: 10px;
+    }
+    
+    .currency-dropdown::-webkit-scrollbar-thumb:hover {
+        background: #E0245E;
+    }
+    
     .btn-primary {
         background: var(--color-primary, #FE3C72);
         color: white;
@@ -192,6 +222,36 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                 </p>
             </div>
             <div class="header-actions">
+                <!-- Currency Selector -->
+                <div class="currency-selector-wrapper" style="position: relative;">
+                    <button class="currency-selector-btn" 
+                            id="currency-selector-btn"
+                            title="Change currency" 
+                            aria-label="Select currency"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            style="background: transparent; border: 1px solid var(--border-color, #e5e7eb); padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; color: var(--text-primary, #1f2937); transition: all 0.2s;">
+                        <span id="selected-currency-display">USD</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 4.5 6 7.5 9 4.5"></polyline></svg>
+                    </button>
+                    
+                    <!-- Currency Dropdown -->
+                    <div class="currency-dropdown" 
+                         id="currency-dropdown" 
+                         role="menu" 
+                         aria-label="Currency selection menu"
+                         style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid var(--border-color, #e5e7eb); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000; max-height: 400px; overflow-y: auto;">
+                        <div style="padding: 12px; border-bottom: 1px solid var(--border-color, #e5e7eb);">
+                            <input type="text" 
+                                   id="currency-search" 
+                                   placeholder="Search currencies..."
+                                   aria-label="Search currencies"
+                                   style="width: 100%; padding: 8px; border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; font-size: 13px;">
+                        </div>
+                        <div id="currency-list" style="padding: 4px;"></div>
+                    </div>
+                </div>
+                
                 <!-- Enhanced Notification Bell (Industry Standard) -->
                 <div class="notification-bell-wrapper">
                 <button class="notification-bell-btn" 
@@ -240,6 +300,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <script src="/static/js/toast-notifications.js"></script>
 <script src="/static/js/notification-system.js"></script>
 <script src="/static/js/currency.js"></script>
+<script src="/static/js/currency-selector.js"></script>
 <!-- Temporarily disabled: causing errors
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->
