@@ -31,12 +31,6 @@
         display: flex;
         align-items: center;
     }
-    .service-item-price {
-        color: #6b7280;
-        font-size: 13px;
-        font-weight: 600;
-        margin-right: 32px;
-    }
     #service-inline-dropdown {
         box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
@@ -80,6 +74,16 @@
     <div class="verification-card" id="step-1-card">
         <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
+
+        <!-- Saved Presets (Pro+ only) -->
+        <div id="presets-section" style="display:none; margin-bottom:var(--spacing-md);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:13px; font-weight:600; color:var(--text-secondary);">Saved Presets</span>
+                <button id="save-preset-btn" onclick="saveCurrentAsPreset()" style="display:none; background:none; border:1px solid #e5e7eb; border-radius:6px; padding:3px 10px; font-size:12px; color:var(--text-secondary); cursor:pointer;" title="Save current selection as preset">+ Save</button>
+            </div>
+            <div id="presets-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+            <div id="presets-empty" style="font-size:12px; color:var(--text-secondary);">No presets yet — select a service then click Save</div>
+        </div>
 
         <!-- Inline Service Search (Issue #6 fix) -->
         <div class="form-group" style="position:relative;">
@@ -1484,6 +1488,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load balance in background
     loadBalance();
     
+    // Load presets (Pro+ only, non-blocking)
+    loadPresets();
+    
     updateProgress(1);
 
     // Pre-select service from query param
@@ -1723,6 +1730,90 @@ function selectAlternative(code) {
     input.value = code;
     debouncedCheckAreaCode(code);
 }
+
+// === Presets ===
+let _presets = [];
+
+async function loadPresets() {
+    const rank = VerificationFlow.tierRank[(VerificationFlow.userTier || '').toLowerCase()] || 0;
+    if (rank < 2) return; // Pro+ only
+    document.getElementById('presets-section').style.display = 'block';
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/presets/', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        _presets = await res.json();
+        renderPresets();
+    } catch(e) { /* silent */ }
+}
+
+function renderPresets() {
+    const list = document.getElementById('presets-list');
+    const empty = document.getElementById('presets-empty');
+    if (!_presets.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    list.innerHTML = _presets.map(p => `
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:#fff0f0; border:1px solid #ffd1d1; border-radius:20px; font-size:13px; cursor:pointer;" onclick="applyPreset('${p.id}')">
+            <span style="font-weight:600; color:#37352F;">${p.name}</span>
+            <button onclick="event.stopPropagation(); deletePreset('${p.id}')" style="background:none; border:none; color:#9ca3af; cursor:pointer; font-size:14px; padding:0; line-height:1;">&times;</button>
+        </div>
+    `).join('');
+}
+
+function applyPreset(id) {
+    const p = _presets.find(x => x.id === id);
+    if (!p) return;
+    const items = _modalItems['service'] || [];
+    const match = items.find(i => i.value === p.service_id);
+    if (match) selectImmersiveItem(match.value, match.label, match.price || 0);
+    if (p.area_code) {
+        const acInput = document.getElementById('area-code-search-input');
+        if (acInput) { acInput.value = p.area_code; debouncedCheckAreaCode(p.area_code); }
+        const adv = document.getElementById('advanced-options-body');
+        if (adv) adv.style.display = 'block';
+        const icon = document.getElementById('advanced-toggle-icon');
+        if (icon) icon.textContent = '▼';
+    }
+}
+
+async function saveCurrentAsPreset() {
+    const svc = VerificationFlow.selectedService;
+    if (!svc) return;
+    const name = prompt('Preset name (e.g. "WhatsApp NY")');
+    if (!name || !name.trim()) return;
+    try {
+        const token = localStorage.getItem('access_token');
+        const ac = document.getElementById('area-code-search-input')?.value || null;
+        const res = await fetch('/api/presets/', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim(), service_id: svc, country_id: 'US', area_code: ac || null })
+        });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.detail || 'Failed to save'); return; }
+        _presets.push(await res.json());
+        renderPresets();
+    } catch(e) { alert('Failed to save preset'); }
+}
+
+async function deletePreset(id) {
+    try {
+        const token = localStorage.getItem('access_token');
+        await fetch(`/api/presets/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        _presets = _presets.filter(p => p.id !== id);
+        renderPresets();
+    } catch(e) { /* silent */ }
+}
+
+// Show save button when a service is selected
+const _origSelectImm = selectImmersiveItem;
+selectImmersiveItem = function(value, label, price) {
+    _origSelectImm(value, label, price);
+    const saveBtn = document.getElementById('save-preset-btn');
+    if (saveBtn && VerificationFlow.selectedService) {
+        const rank = VerificationFlow.tierRank[(VerificationFlow.userTier || '').toLowerCase()] || 0;
+        saveBtn.style.display = rank >= 2 ? 'inline-block' : 'none';
+    }
+};
 
 </script>
 {% endblock %}

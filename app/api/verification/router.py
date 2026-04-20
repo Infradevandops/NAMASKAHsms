@@ -10,11 +10,16 @@ from app.api.verification.rental_endpoints import router as rental_router
 from app.api.verification.services_endpoint import router as services_router
 from app.api.verification.status_polling import router as status_router
 
+from app.api.verification.preset_endpoints import router as preset_router
+
 # Create main verification router without prefix (main.py adds /api)
 router = APIRouter(tags=["Verification"])
 
 # Include purchase routes (main verification functionality)
 router.include_router(purchase_router)
+
+# Include preset routes
+router.include_router(preset_router)
 
 # Include services routes
 router.include_router(services_router)
