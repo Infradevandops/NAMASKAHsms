@@ -343,4 +343,40 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         }
     })().catch(e => console.error('[Header] loadHeaderTierBadge failed:', e));
 </script>
+<script nonce="{{ request.state.csp_nonce }}">
+    // Sync preferences from backend → localStorage on load
+    (async function syncPreferences() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        const synced = sessionStorage.getItem('nsk_prefs_synced');
+        if (synced) return; // once per session
+        try {
+            const res = await fetch('/api/user/preferences', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) return;
+            const d = await res.json();
+            const prefs = d.data || d;
+            if (prefs.language && prefs.language !== localStorage.getItem('language')) {
+                localStorage.setItem('language', prefs.language);
+            }
+            if (prefs.currency && prefs.currency !== localStorage.getItem('currency')) {
+                localStorage.setItem('currency', prefs.currency);
+            }
+            sessionStorage.setItem('nsk_prefs_synced', '1');
+        } catch(e) { /* silent */ }
+    })();
+
+    // Push localStorage preferences to backend (call after user changes)
+    window.pushPreferencesToBackend = async function() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            await fetch('/api/user/preferences', {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: localStorage.getItem('language') || 'en', currency: localStorage.getItem('currency') || 'USD' })
+            });
+            sessionStorage.removeItem('nsk_prefs_synced');
+        } catch(e) { /* silent */ }
+    };
+</script>
 {% endblock %}

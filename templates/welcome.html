@@ -78,6 +78,7 @@
       // Save to localStorage
       localStorage.setItem('language', language);
       localStorage.setItem('currency', currency);
+      if (window.pushPreferencesToBackend) pushPreferencesToBackend();
       
       // Set cookie for non-authenticated users
       document.cookie = `preferences_set=true; path=/; max-age=31536000`;

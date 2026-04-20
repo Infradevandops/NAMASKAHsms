@@ -471,6 +471,7 @@
                 // Update localStorage for language
                 localStorage.setItem('language', lang);
                 localStorage.setItem('currency', curr);
+                if (window.pushPreferencesToBackend) pushPreferencesToBackend();
                 
                 // Update display name in header
                 if (displayName) {
