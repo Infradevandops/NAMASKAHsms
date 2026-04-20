@@ -124,9 +124,11 @@ async def signin_redirect():
 
 
 @router.get("/auth/login")
-async def auth_login_redirect():
-    """Redirect /auth/login to /login for compatibility."""
-    return RedirectResponse(url="/login", status_code=301)
+async def auth_login_redirect(request: Request):
+    """Redirect /auth/login to /login for compatibility (preserving query params)."""
+    query = str(request.query_params)
+    url = f"/login?{query}" if query else "/login"
+    return RedirectResponse(url=url, status_code=302)
 
 
 @router.get("/auth/register")
