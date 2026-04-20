@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
@@ -21,7 +22,7 @@ async def get_referral_stats(
         message="Referral stats retrieved",
         data={
             "referral_code": current_user.referral_code,
-            "referral_link": f"https://namaskah.com/register?ref={current_user.referral_code}",
+            "referral_link": f"{get_settings().base_url}/register?ref={current_user.referral_code}",
             "total_referred": referral_count,
             "total_earnings": current_user.referral_earnings,
         },
