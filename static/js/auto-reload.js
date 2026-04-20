@@ -41,7 +41,7 @@ class AutoReload {
         alert.style.cssText = 'position: fixed; top: 80px; right: 20px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3); z-index: 10000; max-width: 320px; animation: slideIn 0.3s ease-out;';
         alert.innerHTML = `
             <div style="display: flex; align-items: start; gap: 12px;">
-                <div style="font-size: 24px;">⚠️</div>
+                <div style="font-size: 24px;"></div>
                 <div style="flex: 1;">
                     <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Low Balance Alert</div>
                     <div style="font-size: 13px; opacity: 0.95; margin-bottom: 12px;">Balance: ${formatMoney(balance)} (threshold: ${formatMoney(this.threshold)})</div>
@@ -72,7 +72,7 @@ class AutoReload {
                     <input type="number" id="reload-threshold" value="${this.threshold}" min="1" max="50" step="1" onchange="autoReload.setThreshold(this.value)" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
                 </div>
                 <div style="font-size: 11px; color: #6b7280; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                    💡 You'll receive a notification when your balance drops below ${formatMoney(this.threshold)}
+                    You'll receive a notification when your balance drops below ${formatMoney(this.threshold)}
                 </div>
             </div>
         `;

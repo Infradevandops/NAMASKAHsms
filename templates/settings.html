@@ -278,7 +278,7 @@
         <!-- API Keys Tab -->
         <div id="api-keys-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div id="api-keys-no-card-banner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:14px;">
-                ⚠️ <strong>No payment method on file.</strong> Add a card in the <a href="#" onclick="switchTab('billing', event)" style="color:var(--primary);">Billing tab</a> to keep your API access uninterrupted.
+                <strong>No payment method on file.</strong> Add a card in the <a href="#" onclick="switchTab('billing', event)" style="color:var(--primary);">Billing tab</a> to keep your API access uninterrupted.
             </div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -406,7 +406,7 @@
             <div class="card" style="margin-top: 16px;">
                 <h2>Auto-Recharge</h2>
                 <p style="color:var(--text-muted); font-size:14px; margin-bottom:16px;">Automatically top up your balance when it drops below a threshold. Requires a saved card.</p>
-                <div id="auto-recharge-no-card" style="display:none; color:#f59e0b; font-size:13px; margin-bottom:12px;">⚠️ Add a payment method to enable auto-recharge.</div>
+                <div id="auto-recharge-no-card" style="display:none; color:#f59e0b; font-size:13px; margin-bottom:12px;">Add a payment method to enable auto-recharge.</div>
                 <div class="toggle-switch">
                     <div><strong>Enable Auto-Recharge</strong></div>
                     <label class="switch"><input type="checkbox" id="auto-recharge-toggle" onchange="saveAutoRecharge()"><span class="slider"></span></label>
@@ -526,7 +526,7 @@
                         <h4 style="margin: 0;">Download Your Data</h4>
                         <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">Export all personal data including profile, verifications, and transactions (JSON)</p>
                     </div>
-                    <button class="btn btn-primary" onclick="exportData()" id="export-btn">📥 Export Data</button>
+                    <button class="btn btn-primary" onclick="exportData()" id="export-btn">Export Data</button>
                 </div>
                 <p style="font-size: 13px; color: var(--text-muted);">Last export: <span id="last-export-date">Never</span></p>
             </div>
@@ -2120,7 +2120,7 @@
                 const a = document.createElement('a'); a.href = url; a.download = 'namaskah-data.json'; a.click();
                 document.getElementById('last-export-date').textContent = new Date().toLocaleDateString();
             } catch(e) { showToast('Export failed', 'error'); }
-            finally { btn.disabled = false; btn.textContent = '📥 Export Data'; }
+            finally { btn.disabled = false; btn.textContent = 'Export Data'; }
         }
 
         // Handle ?tab= URL param on page load

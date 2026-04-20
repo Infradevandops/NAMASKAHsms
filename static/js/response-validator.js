@@ -201,7 +201,7 @@ export function showValidationError(message) {
 
     errorDiv.innerHTML = `
         <div style="display: flex; align-items: start; gap: 12px;">
-            <div style="color: #c00; font-size: 20px;">⚠️</div>
+            <div style="color: #c00; font-size: 20px;"></div>
             <div style="flex: 1;">
                 <div style="font-weight: 600; color: #c00; margin-bottom: 4px;">Data Validation Error</div>
                 <div style="font-size: 14px; color: #666;">${message}</div>

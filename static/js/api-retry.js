@@ -102,7 +102,7 @@ export function createRetryButton(retryCallback, message = 'Failed to load data'
     container.style.cssText = 'text-align: center; padding: 20px; color: var(--text-muted);';
 
     const errorIcon = document.createElement('div');
-    errorIcon.innerHTML = '⚠️';
+    errorIcon.innerHTML = '';
     errorIcon.style.cssText = 'font-size: 32px; margin-bottom: 12px;';
     errorIcon.setAttribute('aria-hidden', 'true');
 
@@ -113,7 +113,7 @@ export function createRetryButton(retryCallback, message = 'Failed to load data'
 
     const retryBtn = document.createElement('button');
     retryBtn.className = 'btn btn-secondary';
-    retryBtn.innerHTML = '🔄 Retry';
+    retryBtn.innerHTML = 'Retry';
     retryBtn.style.cssText = 'padding: 8px 16px; cursor: pointer;';
     retryBtn.setAttribute('aria-label', 'Retry loading data');
     retryBtn.onclick = function () {
@@ -123,7 +123,7 @@ export function createRetryButton(retryCallback, message = 'Failed to load data'
 
         Promise.resolve(retryCallback()).finally(() => {
             retryBtn.disabled = false;
-            retryBtn.innerHTML = '🔄 Retry';
+            retryBtn.innerHTML = 'Retry';
             retryBtn.setAttribute('aria-busy', 'false');
         });
     };

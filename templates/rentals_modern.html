@@ -207,7 +207,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="margin: 0;">Active Rentals</h2>
             <button class="btn btn-secondary" onclick="loadRentals()">
-                <span>🔄</span>
+                <span></span>
                 <span>Refresh</span>
             </button>
         </div>
@@ -380,7 +380,7 @@ async function loadRentals() {
         if (rentals.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #6b7280;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;"></div>
                     <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Active Rentals</div>
                     <div style="font-size: 14px;">Rent a number above to get started</div>
                 </div>
@@ -445,11 +445,11 @@ function renderRentalCard(rental) {
                     <span>View Messages</span>
                 </button>
                 <button class="btn btn-secondary" onclick="extendRental(${rental.id})">
-                    <span>⏱️</span>
+                    <span></span>
                     <span>Extend</span>
                 </button>
                 <button class="btn btn-danger" onclick="cancelRental(${rental.id})">
-                    <span>❌</span>
+                    <span></span>
                     <span>Cancel</span>
                 </button>
             </div>
@@ -495,7 +495,7 @@ async function viewMessages(rentalId) {
                     `).join('')}
                 </div>
                 <button class="btn btn-secondary" onclick="viewMessages(${rentalId})" style="margin-top: 16px; width: 100%;">
-                    🔄 Refresh Messages
+                    Refresh Messages
                 </button>
             `;
         }

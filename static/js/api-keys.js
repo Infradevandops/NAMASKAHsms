@@ -230,7 +230,7 @@ class APIKeyManager {
           <i class="ph ph-check-circle feature-locked-icon" style="color: #10b981;"></i>
           <h2>API Key Generated!</h2>
           <p style="color: #ef4444; font-weight: 600;">
-            ⚠️ Copy this key now - it won't be shown again!
+            Copy this key now - it won't be shown again!
           </p>
         </div>
 

@@ -59,7 +59,7 @@ class ErrorHandler {
         `;
         banner.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <span>⚠️</span>
+                <span></span>
                 <span>You're offline. Some features may not work.</span>
                 <button onclick="window.errorHandler.checkConnection()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                     Retry
@@ -239,7 +239,7 @@ class ErrorHandler {
             modal.innerHTML = `
                 <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+                        <div style="font-size: 48px; margin-bottom: 12px;"></div>
                         <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #1f2937;">Something went wrong</h3>
                         <p style="margin: 0; font-size: 14px; color: #6b7280;">
                             ${context ? `Failed to ${context}. ` : ''}Would you like to try again?

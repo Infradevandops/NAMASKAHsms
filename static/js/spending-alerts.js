@@ -33,7 +33,7 @@ class SpendingAlerts {
         alert.style.cssText = 'position: fixed; top: 80px; right: 20px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3); z-index: 10000; max-width: 320px; animation: slideIn 0.3s ease-out;';
         alert.innerHTML = `
             <div style="display: flex; align-items: start; gap: 12px;">
-                <div style="font-size: 24px;">💰</div>
+                <div style="font-size: 24px;"></div>
                 <div style="flex: 1;">
                     <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Spending Alert</div>
                     <div style="font-size: 13px; opacity: 0.95;">You've spent ${formatMoney(current)} this month (threshold: ${formatMoney(threshold)})</div>

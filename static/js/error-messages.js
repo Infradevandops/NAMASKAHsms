@@ -30,7 +30,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.SERVER]: {
         title: 'Server Error',
         message: 'Something went wrong on our end. Our team has been notified.',
-        icon: '⚠️',
+        icon: '',
         actions: [
             { text: 'Try again in a few minutes', type: 'info' },
             { text: 'Contact support if the problem persists', type: 'link', href: '/support' }
@@ -39,7 +39,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.AUTH]: {
         title: 'Authentication Required',
         message: 'Your session may have expired. Please log in again.',
-        icon: '🔐',
+        icon: '',
         actions: [
             { text: 'Log in', type: 'action', action: () => window.location.href = '/login' }
         ]
@@ -55,7 +55,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.NOT_FOUND]: {
         title: 'Not Found',
         message: 'The requested resource could not be found.',
-        icon: '🔍',
+        icon: '',
         actions: [
             { text: 'Go back', type: 'action', action: () => window.history.back() },
             { text: 'Go to dashboard', type: 'link', href: '/dashboard' }
@@ -64,7 +64,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.RATE_LIMIT]: {
         title: 'Too Many Requests',
         message: 'You\'ve made too many requests. Please wait a moment before trying again.',
-        icon: '⏱️',
+        icon: '',
         actions: [
             { text: 'Wait 30 seconds and try again', type: 'info' }
         ]
@@ -72,7 +72,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.TIER_REQUIRED]: {
         title: 'Upgrade Required',
         message: 'This feature requires a higher subscription tier.',
-        icon: '⭐',
+        icon: '',
         actions: [
             { text: 'View pricing', type: 'link', href: '/pricing' }
         ]
@@ -210,14 +210,14 @@ export function createErrorDisplay(error, options = {}) {
         if (retryCallback) {
             const retryBtn = document.createElement('button');
             retryBtn.className = 'btn btn-primary';
-            retryBtn.innerHTML = '🔄 Try Again';
+            retryBtn.innerHTML = 'Try Again';
             retryBtn.style.cssText = 'padding: 8px 20px;';
             retryBtn.onclick = function () {
                 retryBtn.disabled = true;
                 retryBtn.innerHTML = '<span class="loading-spinner"></span> Retrying...';
                 Promise.resolve(retryCallback()).finally(() => {
                     retryBtn.disabled = false;
-                    retryBtn.innerHTML = '🔄 Try Again';
+                    retryBtn.innerHTML = 'Try Again';
                 });
             };
             actionsContainer.appendChild(retryBtn);
