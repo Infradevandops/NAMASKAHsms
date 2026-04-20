@@ -157,9 +157,9 @@ async def google_callback(code: str, state: str, db: Session = Depends(get_db)):
             token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
         )
 
-        # Redirect to dashboard with token
+        # Redirect to login page with token
         redirect_url = (
-            f"{settings.base_url}/auth/login?token={access_token}&google_auth=success"
+            f"{settings.base_url}/login?token={access_token}&google_auth=success"
         )
 
         return RedirectResponse(url=redirect_url)

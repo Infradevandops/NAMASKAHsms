@@ -293,6 +293,35 @@ This section maps every issue to its root cause so you know exactly where to sta
 
 ---
 
+## 📋 Backlog (Unscheduled)
+
+### Frontend Gaps
+- [ ] **Verification Presets UI** — Backend ready (`/api/presets`, 3 endpoints). Needs: preset selector on verify page, save button, management modal, quick-launch. Pro+ only. (~3-4 hrs)
+- [ ] **Affiliate Program UI** — Backend ready (`/api/affiliate/*`, 4 endpoints). Static page needs functional application form, status dashboard, stats display. PAYG+ only. (~4-5 hrs)
+- [ ] **User Preferences Sync** — Backend ready (`/api/user/preferences`). Currency selector currently localStorage-only; needs to persist to backend so preference survives across devices. (~2 hrs)
+
+### Monitoring & Observability (Phase 4A leftovers)
+- [ ] Event tracking for each verification step
+- [ ] Sentry error logging integration
+- [ ] Core Web Vitals tracking
+- [ ] API latency tracking
+- [ ] Time-to-first-service-load metric
+
+### Q2 2026 Roadmap
+- [ ] SDK libraries (Python, JavaScript, Go)
+- [ ] Enhanced carrier analytics (success rates, user preferences)
+- [ ] API rate limiting improvements
+
+### Deferred Polish
+- [ ] Geographic heatmap of purchases by `assigned_state` (needs map library)
+- [ ] Swipe-to-close on modals (needs touch gesture library)
+- [ ] Success checkmark animation on SMS arrival (needs Lottie/SVG)
+- [ ] #FE3C72 WCAG AA contrast fix (3.5:1 on white, fails small text)
+- [ ] Standardize font weights (600/700/800 mix)
+- [ ] Standardize card padding (16px vs 24px)
+
+---
+
 ## Target Metrics
 
 | Metric | Target |
