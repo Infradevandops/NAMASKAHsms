@@ -38,7 +38,7 @@ class DashboardWidget {
                     <h3 class="widget-title" data-i18n="wallet.current_balance">
                         ${i18n?.t('wallet.current_balance') || 'Current Balance'}
                     </h3>
-                    <span class="widget-icon">💰</span>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="balance-amount" data-i18n-currency data-amount="0" data-from="USD">
@@ -68,7 +68,7 @@ class DashboardWidget {
                     <h3 class="widget-title" data-i18n="common.quota">
                         ${i18n?.t('common.quota') || 'Monthly Quota'}
                     </h3>
-                    <span class="widget-icon">📊</span>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="quota-bar">
@@ -101,7 +101,7 @@ class DashboardWidget {
                     <h3 class="widget-title" data-i18n="tiers.current_plan">
                         ${i18n?.t('tiers.current_plan') || 'Current Plan'}
                     </h3>
-                    <span class="widget-icon">⭐</span>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="tier-badge" id="tier-badge">
@@ -126,7 +126,7 @@ class DashboardWidget {
                     <h3 class="widget-title" data-i18n="common.bonus_sms">
                         ${i18n?.t('common.bonus_sms') || 'Bonus SMS'}
                     </h3>
-                    <span class="widget-icon">🎁</span>
+                    <span class="widget-icon"></span>
                 </div>
                 <div class="widget-content">
                     <div class="bonus-amount">

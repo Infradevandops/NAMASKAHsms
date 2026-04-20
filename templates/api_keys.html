@@ -169,7 +169,7 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1>🔑 API Keys</h1>
+                <h1>API Keys</h1>
                 <p>Manage your API keys for programmatic access</p>
             </div>
             <button class="btn btn-success" onclick="openCreateModal()">+ Create API Key</button>
@@ -177,7 +177,7 @@
 
         <div class="card">
             <div class="warning-box">
-                <h3>⚠️ Important Security Information</h3>
+                <h3>Important Security Information</h3>
                 <ul style="margin: 8px 0 0 20px;">
                     <li>API keys provide full access to your account</li>
                     <li>Keep your keys secure and never share them publicly</li>
@@ -191,7 +191,7 @@
             <h2>Your API Keys</h2>
             <div id="api-keys-container">
                 <div class="empty-state">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔑</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;"></div>
                     <p>Loading API keys...</p>
                 </div>
             </div>
@@ -217,14 +217,14 @@
     <div id="showKeyModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2>🎉 API Key Created!</h2>
+            <h2>API Key Created!</h2>
             <div class="warning-box">
-                <h3>⚠️ Save This Key Now</h3>
+                <h3>Save This Key Now</h3>
                 <p>This is the only time you'll see the full key. Copy it and store it securely.</p>
             </div>
             <div class="key-preview">
                 <span id="newApiKey"></span>
-                <button class="copy-btn" onclick="copyNewKey()">📋 Copy</button>
+                <button class="copy-btn" onclick="copyNewKey()">Copy</button>
             </div>
             <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 16px;">I've Saved My Key</button>
         </div>
@@ -271,7 +271,7 @@
                     </div>
                     <div class="key-preview">
                         ${key.key_preview || key.key?.substring(0, 12) + '...' + key.key?.slice(-6)}
-                        <button class="copy-btn" onclick="copyKey('${key.key_preview}')">📋 Copy Preview</button>
+                        <button class="copy-btn" onclick="copyKey('${key.key_preview}')">Copy Preview</button>
                     </div>
                     <div class="key-info">
                         <div class="info-item">
@@ -288,8 +288,8 @@
                         </div>
                     </div>
                     <div class="key-actions">
-                        <button class="btn btn-danger" onclick="deleteApiKey('${key.id}')">🗑️ Delete</button>
-                        <button class="btn btn-primary" onclick="regenerateKey('${key.id}')">🔄 Regenerate</button>
+                        <button class="btn btn-danger" onclick="deleteApiKey('${key.id}')">Delete</button>
+                        <button class="btn btn-primary" onclick="regenerateKey('${key.id}')">Regenerate</button>
                     </div>
                 </div>
             `).join('');
@@ -298,7 +298,7 @@
         function showEmptyState(message) {
             document.getElementById('api-keys-container').innerHTML = `
                 <div class="empty-state">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔑</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;"></div>
                     <h3>${message}</h3>
                     <p style="margin-top: 8px;">Create your first API key to get started with programmatic access</p>
                     <button class="btn btn-success" onclick="openCreateModal()" style="margin-top: 16px;">Create API Key</button>

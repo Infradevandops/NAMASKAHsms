@@ -233,7 +233,6 @@
 <!-- Data Export Section -->
 <div class="privacy-section">
     <div class="section-header">
-        <span class="section-icon">📥</span>
         <h2 class="section-title">Data Export</h2>
     </div>
     
@@ -247,7 +246,7 @@
             <p>Export all your personal data including profile, verifications, and transaction history (JSON format)</p>
         </div>
         <button class="btn btn-primary" onclick="exportData()" id="export-btn">
-            📥 Export Data
+            Export Data
         </button>
     </div>
     
@@ -262,7 +261,6 @@
 <!-- Privacy Preferences Section -->
 <div class="privacy-section">
     <div class="section-header">
-        <span class="section-icon">🔒</span>
         <h2 class="section-title">Privacy Preferences</h2>
     </div>
     
@@ -314,7 +312,6 @@
 <!-- Activity Log Section -->
 <div class="privacy-section">
     <div class="section-header">
-        <span class="section-icon">📋</span>
         <h2 class="section-title">Activity Log</h2>
     </div>
     
@@ -328,12 +325,11 @@
 <!-- Account Deletion Section -->
 <div class="privacy-section">
     <div class="section-header">
-        <span class="section-icon">🗑️</span>
         <h2 class="section-title">Delete Account</h2>
     </div>
     
     <div class="warning-box">
-        <span class="icon">⚠️</span>
+        <span class="icon"></span>
         <div class="text">
             <strong>Warning:</strong> Deleting your account is permanent and cannot be undone. All your data, including verification history, credits, and settings will be permanently removed.
         </div>
@@ -345,7 +341,7 @@
             <p>This action will delete all your data and cannot be reversed</p>
         </div>
         <button class="btn" onclick="showDeleteConfirmation()" style="background: #ef4444; color: white;">
-            🗑️ Delete Account
+            Delete Account
         </button>
     </div>
 </div>
@@ -353,7 +349,7 @@
 <!-- Delete Confirmation Modal -->
 <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
     <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
-        <h3 style="margin: 0 0 16px 0; color: #ef4444;">⚠️ Confirm Account Deletion</h3>
+        <h3 style="margin: 0 0 16px 0; color: #ef4444;">Confirm Account Deletion</h3>
         <p style="color: var(--text-secondary); margin-bottom: 16px;">
             This action is <strong>permanent</strong> and cannot be undone. All your data will be deleted including:
         </p>
@@ -477,7 +473,7 @@
             showToast('Failed to export data. Please try again.', 'error');
         } finally {
             btn.disabled = false;
-            btn.textContent = '📥 Export Data';
+            btn.textContent = 'Export Data';
         }
     }
     

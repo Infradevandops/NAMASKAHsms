@@ -199,7 +199,7 @@ endblock %}
     <button class="btn btn-secondary" onclick="loadAnalytics()" style="padding: 8px 16px;">Apply</button>
     <button class="btn btn-secondary export-btn" onclick="exportData('csv')" style="padding: 8px 16px;"
         aria-label="Export data as CSV">
-        📥 Export CSV
+        Export CSV
     </button>
 </div>
 
@@ -399,7 +399,7 @@ endblock %}
 
 <!-- Empty State (hidden by default) -->
 <div id="empty-state" class="empty-state" style="display: none;">
-    <div class="empty-state-icon">📊</div>
+    <div class="empty-state-icon"></div>
     <h3>No Analytics Data Yet</h3>
     <p>Start verifying phone numbers to see your analytics here.</p>
     <button class="btn btn-primary" onclick="window.location.href='/verify'" style="margin-top: 16px;">
@@ -413,7 +413,7 @@ endblock %}
     <h3>Failed to Load Analytics</h3>
     <p id="error-message">An error occurred while loading your analytics.</p>
     <button class="btn btn-primary" onclick="loadAnalytics()" style="margin-top: 16px;">
-        🔄 Retry
+        Retry
     </button>
 </div>
 {% endblock %}

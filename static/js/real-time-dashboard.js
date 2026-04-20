@@ -355,7 +355,7 @@ class RealTimeDashboard {
     showErrorIndicator(component) {
         const indicator = document.createElement('div');
         indicator.className = 'error-indicator';
-        indicator.innerHTML = '⚠️ Update failed';
+        indicator.innerHTML = 'Update failed';
         indicator.style.cssText = `
             position: fixed;
             top: 20px;

@@ -273,7 +273,7 @@ export class TierCard {
      * Render unauthenticated state
      */
     _renderUnauthenticated() {
-        this.elements.tierName.innerHTML = '🔒 Not logged in';
+        this.elements.tierName.innerHTML = 'Not logged in';
         this.elements.tierPrice.textContent = '';
         this.elements.featuresList.innerHTML = `
             <div style="margin-top: 12px;">
@@ -289,7 +289,7 @@ export class TierCard {
      * Render session expired state
      */
     _renderSessionExpired() {
-        this.elements.tierName.innerHTML = '🔐 Session expired';
+        this.elements.tierName.innerHTML = 'Session expired';
         this.elements.tierPrice.textContent = '';
         this.elements.featuresList.innerHTML = `
             <div style="margin-top: 12px;">
@@ -305,14 +305,14 @@ export class TierCard {
      * Render timeout state
      */
     _renderTimeout() {
-        this.elements.tierName.innerHTML = '⏱️ Request timed out';
+        this.elements.tierName.innerHTML = 'Request timed out';
         this.elements.tierPrice.textContent = '';
         this.elements.featuresList.innerHTML = `
             <div style="color: var(--text-muted); margin-bottom: 12px;">
                 The server took too long to respond.
             </div>
             <button class="btn btn-secondary" onclick="window.tierCard?.retry()" aria-label="Try loading tier information again">
-                🔄 Try again
+                Try again
             </button>
         `;
         this._hideAllCTAs();
@@ -323,14 +323,14 @@ export class TierCard {
      */
     _renderError(message) {
         const errorMsg = message || 'Unable to load plan information';
-        this.elements.tierName.innerHTML = '⚠️ Error';
+        this.elements.tierName.innerHTML = 'Error';
         this.elements.tierPrice.textContent = '';
         this.elements.featuresList.innerHTML = `
             <div style="color: var(--text-muted); margin-bottom: 12px;">
                 ${this._escapeHtml(errorMsg)}
             </div>
             <button class="btn btn-secondary" onclick="window.tierCard?.retry()" aria-label="Retry loading tier information">
-                🔄 Retry
+                Retry
             </button>
         `;
         // Show upgrade button as fallback action
@@ -471,7 +471,7 @@ export class TierCard {
     _showCacheWarning() {
         const warning = document.createElement('div');
         warning.style.cssText = 'color: var(--tier-pro); font-size: 12px; margin-top: 8px;';
-        warning.textContent = '⚠️ Showing cached data';
+        warning.textContent = 'Showing cached data';
         this.elements.featuresList.appendChild(warning);
     }
 

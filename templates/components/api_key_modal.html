@@ -271,7 +271,7 @@
     <div class="api-key-modal">
         <div class="api-key-modal-header">
             <h3 class="api-key-modal-title" id="api-key-generate-title">
-                🔑 Generate API Key
+                Generate API Key
             </h3>
             <button class="api-key-modal-close" onclick="closeApiKeyGenerateModal()" aria-label="Close">&times;</button>
         </div>
@@ -306,13 +306,13 @@
     <div class="api-key-modal">
         <div class="api-key-modal-header">
             <h3 class="api-key-modal-title" id="api-key-display-title">
-                ✅ API Key Generated
+                API Key Generated
             </h3>
             <button class="api-key-modal-close" onclick="closeApiKeyDisplayModal()" aria-label="Close">&times;</button>
         </div>
         <div class="api-key-modal-body">
             <div class="api-key-warning">
-                <span class="api-key-warning-icon">⚠️</span>
+                <span class="api-key-warning-icon"></span>
                 <div class="api-key-warning-text">
                     <strong>Save this key now!</strong> For security reasons, this is the only time you'll see the full API key. 
                     Store it securely - you won't be able to view it again.
@@ -335,7 +335,7 @@
                 <div class="api-key-display-value">
                     <div class="api-key-display-text" id="api-key-full-value">-</div>
                     <button class="api-key-copy-btn" onclick="copyApiKey()" id="api-key-copy-btn">
-                        📋 Copy
+                        Copy
                     </button>
                 </div>
             </div>
@@ -391,7 +391,7 @@ function showApiKeyDisplayModal(keyData) {
     // Reset copy button
     const copyBtn = document.getElementById('api-key-copy-btn');
     copyBtn.classList.remove('copied');
-    copyBtn.innerHTML = '📋 Copy';
+    copyBtn.innerHTML = 'Copy';
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -465,7 +465,7 @@ async function copyApiKey() {
         
         setTimeout(() => {
             copyBtn.classList.remove('copied');
-            copyBtn.innerHTML = '📋 Copy';
+            copyBtn.innerHTML = 'Copy';
         }, 2000);
     } catch (error) {
         // Fallback for older browsers
@@ -483,7 +483,7 @@ async function copyApiKey() {
         
         setTimeout(() => {
             copyBtn.classList.remove('copied');
-            copyBtn.innerHTML = '📋 Copy';
+            copyBtn.innerHTML = 'Copy';
         }, 2000);
     }
 }

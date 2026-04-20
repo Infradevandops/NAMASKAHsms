@@ -47,7 +47,7 @@
 <body>
     <div class="pricing-dashboard">
         <div class="dashboard-header">
-            <h1>🎯 Pricing Templates</h1>
+            <h1>Pricing Templates</h1>
             <div class="quick-actions">
                 <button class="btn btn-secondary" onclick="rollbackPricing()">↩️ Rollback</button>
                 <button class="btn btn-primary" onclick="location.href='/admin'">← Back</button>
@@ -101,8 +101,8 @@
                     <p>${template.description || 'No description'}</p>
                     <div class="template-meta">
                         <span>🌍 ${template.region}</span>
-                        <span>💰 ${template.currency}</span>
-                        <span>📋 ${template.tier_count} tiers</span>
+                        <span>${template.currency}</span>
+                        <span>${template.tier_count} tiers</span>
                     </div>
                     ${expiresHtml}
                     <div class="template-actions">
@@ -130,7 +130,7 @@
                         <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Quota: $${tier.included_quota} | Overage: +$${tier.overage_rate}</div>`;
                     });
                     tiersHtml += '</div>';
-                    modalBody.innerHTML = `<p><strong>Region:</strong> ${template.region}</p><p><strong>Currency:</strong> ${template.currency}</p><p><strong>Status:</strong> ${template.is_active ? '✅ Active' : '⏸️ Inactive'}</p><h3 style="margin-top: 20px;">Pricing Tiers</h3>${tiersHtml}`;
+                    modalBody.innerHTML = `<p><strong>Region:</strong> ${template.region}</p><p><strong>Currency:</strong> ${template.currency}</p><p><strong>Status:</strong> ${template.is_active ? 'Active' : 'Inactive'}</p><h3 style="margin-top: 20px;">Pricing Tiers</h3>${tiersHtml}`;
                     modal.classList.add('active');
                 }
             } catch (error) {
@@ -147,7 +147,7 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert(`✅ ${data.message}`);
+                    alert(`${data.message}`);
                     loadTemplates();
                 } else {
                     showError(data.detail || 'Failed to activate');
@@ -166,7 +166,7 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert(`✅ ${data.message}`);
+                    alert(`${data.message}`);
                     loadTemplates();
                 } else {
                     showError(data.detail || 'Failed to clone');
@@ -184,7 +184,7 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    alert(`✅ ${data.message}`);
+                    alert(`${data.message}`);
                     loadTemplates();
                 } else {
                     showError(data.detail || 'Failed to rollback');

@@ -132,7 +132,7 @@
         </div>
 
         <div id="freemium-upsell" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#fff0f0; border:1px solid #ffd1d1; border-radius:8px; font-size:13px; color:#FE3C72;">
-            💡 Want specific area codes? <a href="/pricing" style="color:#FE3C72; font-weight:600;">Upgrade to PAYG</a>
+            Want specific area codes? <a href="/pricing" style="color:#FE3C72; font-weight:600;">Upgrade to PAYG</a>
         </div>
         <div id="subscribed-tip" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:13px; color:#166534;">
             ✅ Use the Advanced Options above to filter by area code.
@@ -203,7 +203,7 @@
 
         <!-- Phone Display -->
         <div class="phone-display">
-            <div class="phone-label">📱 Your Verification Number</div>
+            <div class="phone-label">Your Verification Number</div>
             <div class="phone-number" id="phone-number">+1 (479) 502-2832</div>
             <div class="phone-actions">
                 <button class="copy-btn" id="copy-with-code-btn" onclick="copyPhoneNumber(true)" title="Copy with country code">Copy +1</button>
@@ -245,11 +245,11 @@
                 </div>
                 <div class="sms-code-display" id="sms-code">------</div>
                 <button class="copy-code-btn" id="copy-code-btn" onclick="copySMSCode()" aria-label="Copy SMS code to clipboard">
-                    <span id="copy-code-icon">📋</span>
+                    <span id="copy-code-icon"></span>
                     <span id="copy-code-text">Copy Code</span>
                 </button>
                 <div class="auto-copy-row">
-                    <span class="auto-copy-label">🔔 Auto-copy on arrival</span>
+                    <span class="auto-copy-label">Auto-copy on arrival</span>
                     <label class="nsk-toggle">
                         <input type="checkbox" id="auto-copy-toggle" onchange="toggleAutoCopy(this.checked)">
                         <div class="nsk-toggle-track">
@@ -516,7 +516,7 @@ function renderImmersiveList(type, query = '') {
             // Standard "No results" for search mismatches or other empty types
             listContainer.innerHTML = `
                 <div style="padding:40px; text-align:center; color:#6B7280;">
-                    <div style="font-size:24px; margin-bottom:12px;">🔍</div>
+                    <div style="font-size:24px; margin-bottom:12px;"></div>
                     <div style="font-size:15px; font-weight:500;">No results found for "${query}"</div>
                     <div style="font-size:13px; margin-top:4px;">Try a different search or check your spelling</div>
                 </div>

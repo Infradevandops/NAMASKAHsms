@@ -82,7 +82,7 @@ class LoadingSkeleton {
         `;
         chart.innerHTML = `
             <div style="text-align: center; color: #9ca3af;">
-                <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
+                <div style="font-size: 32px; margin-bottom: 8px;"></div>
                 <div style="font-size: 14px;">Loading chart...</div>
             </div>
         `;

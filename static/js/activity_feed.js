@@ -170,12 +170,12 @@ class ActivityFeed {
     getActivityIcon(type) {
         const icons = {
             verification: '✓',
-            payment: '💳',
-            login: '🔐',
-            settings: '⚙️',
-            api_key: '🔑',
+            payment: '',
+            login: '',
+            settings: '',
+            api_key: '',
         };
-        return icons[type] || '📋';
+        return icons[type] || '';
     }
 
     async showActivityDetails(activityId) {
