@@ -70,8 +70,8 @@ class VerificationManager {
         try {
             const response = await axios.get('/api/user/balance');
             const balance = response.data.credits;
-            document.getElementById('user-balance').textContent = `$${balance.toFixed(2)}`;
-            document.getElementById('balance-display').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('user-balance').textContent = formatMoney(balance);
+            document.getElementById('balance-display').textContent = formatMoney(balance);
         } catch (error) {
             console.error('Failed to load balance:', error);
         }
@@ -125,7 +125,7 @@ class VerificationManager {
                 <td>${v.country}</td>
                 <td><code>${v.phone_number}</code></td>
                 <td>${statusBadge}</td>
-                <td>$${v.cost.toFixed(2)}</td>
+                <td>${formatMoney(v.cost)}</td>
                 <td>${date}</td>
                 <td>
                     <button class="btn btn-sm btn-outline-primary" onclick="verificationManager.viewDetails('${v.id}')">
@@ -167,7 +167,7 @@ class VerificationManager {
             });
 
             const cost = response.data.total_cost;
-            document.getElementById('estimated-cost').textContent = `$${cost.toFixed(2)}`;
+            document.getElementById('estimated-cost').textContent = formatMoney(cost);
 
             // Check balance
             const balanceText = document.getElementById('user-balance').textContent;
@@ -206,7 +206,7 @@ class VerificationManager {
         const balanceText = document.getElementById('user-balance').textContent;
         const balance = parseFloat(balanceText.replace('$', ''));
         const cost = parseFloat(costText.replace('$', ''));
-        document.getElementById('confirm-balance').textContent = `$${(balance - cost).toFixed(2)}`;
+        document.getElementById('confirm-balance').textContent = formatMoney(balance - cost);
 
         const confirmModal = new bootstrap.Modal(document.getElementById('confirmation-modal'));
         confirmModal.show();

@@ -90,7 +90,7 @@ class RealTimeDashboard {
 
         displays.forEach(el => {
             if (el) {
-                el.textContent = `$${balance.toFixed(2)}`;
+                el.textContent = formatMoney(balance);
                 el.classList.add('updated');
                 setTimeout(() => el.classList.remove('updated'), 1000);
             }
@@ -182,7 +182,7 @@ class RealTimeDashboard {
             // Update displays with correct calculations
             this.updateElement('total-sms', totalSms);
             this.updateElement('successful-sms', successfulSms);
-            this.updateElement('total-spent', `$${totalSpent.toFixed(2)}`);
+            this.updateElement('total-spent', formatMoney(totalSpent));
             this.updateElement('success-rate', `${successRate.toFixed(1)}%`);
 
             // Cache for 1 minute

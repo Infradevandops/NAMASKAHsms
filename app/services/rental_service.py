@@ -56,6 +56,7 @@ class RentalService:
         #    We fetch the service price from the cached list (same source as display).
         #    This lets us check balance BEFORE committing money at the provider.
         from app.services.textverified_service import TextVerifiedService
+
         tv = TextVerifiedService()
         estimated_provider_cost = None
         try:
@@ -70,6 +71,7 @@ class RentalService:
         # 2. Pre-flight balance check with estimated cost
         if estimated_provider_cost and estimated_provider_cost > 0:
             from app.core.config import get_settings
+
             est_cost = round(estimated_provider_cost * get_settings().price_markup, 2)
             balance_check = await BalanceService.check_sufficient_balance(
                 user_id, est_cost, self.db

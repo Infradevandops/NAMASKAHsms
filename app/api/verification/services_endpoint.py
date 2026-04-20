@@ -93,7 +93,13 @@ async def get_services(country: str):
             ]
             return {
                 "services": [
-                    {"id": s["id"], "name": s["name"], "price": None, "cost": None, "provider_cost": None}
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "price": None,
+                        "cost": None,
+                        "provider_cost": None,
+                    }
                     for s in dev_services
                 ],
                 "total": len(dev_services),
@@ -176,7 +182,13 @@ async def get_services_batch_pricing(country: str):
             ]
             return {
                 "services": [
-                    {"id": s["id"], "name": s["name"], "price": None, "cost": None, "provider_cost": None}
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "price": None,
+                        "cost": None,
+                        "provider_cost": None,
+                    }
                     for s in dev_services
                 ],
                 "total": len(dev_services),

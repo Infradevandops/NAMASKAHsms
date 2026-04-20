@@ -44,7 +44,7 @@ class AutoReload {
                 <div style="font-size: 24px;">⚠️</div>
                 <div style="flex: 1;">
                     <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Low Balance Alert</div>
-                    <div style="font-size: 13px; opacity: 0.95; margin-bottom: 12px;">Balance: $${balance.toFixed(2)} (threshold: $${this.threshold})</div>
+                    <div style="font-size: 13px; opacity: 0.95; margin-bottom: 12px;">Balance: ${formatMoney(balance)} (threshold: ${formatMoney(this.threshold)})</div>
                     <button onclick="window.location.href='/wallet'" style="width: 100%; padding: 8px; background: white; color: #ef4444; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;">Add Credits Now</button>
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; opacity: 0.8; padding: 0; line-height: 1;">&times;</button>
@@ -72,7 +72,7 @@ class AutoReload {
                     <input type="number" id="reload-threshold" value="${this.threshold}" min="1" max="50" step="1" onchange="autoReload.setThreshold(this.value)" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
                 </div>
                 <div style="font-size: 11px; color: #6b7280; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                    💡 You'll receive a notification when your balance drops below $${this.threshold.toFixed(2)}
+                    💡 You'll receive a notification when your balance drops below ${formatMoney(this.threshold)}
                 </div>
             </div>
         `;
