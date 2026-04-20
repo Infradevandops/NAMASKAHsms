@@ -296,9 +296,9 @@ This section maps every issue to its root cause so you know exactly where to sta
 ## 📋 Backlog (Unscheduled)
 
 ### Frontend Gaps
-- [ ] **Verification Presets UI** — Backend ready (`/api/presets`, 3 endpoints). Needs: preset selector on verify page, save button, management modal, quick-launch. Pro+ only. (~3-4 hrs)
-- [ ] **Affiliate Program UI** — Backend ready (`/api/affiliate/*`, 4 endpoints). Static page needs functional application form, status dashboard, stats display. PAYG+ only. (~4-5 hrs)
-- [ ] **User Preferences Sync** — Backend ready (`/api/user/preferences`). Currency selector currently localStorage-only; needs to persist to backend so preference survives across devices. (~2 hrs)
+- [x] **Verification Presets UI** — Preset chips on verify page, save/delete/apply. Pro+ gated. Router mounted.
+- [x] **Affiliate Program UI** — Application form + status display + commission stats wired into `/referrals` page.
+- [x] **User Preferences Sync** — Backend preferences loaded on session start in `dashboard_base.html`, pushed on save from profile/welcome/sidebar/currency-selector.
 
 ### Monitoring & Observability (Phase 4A leftovers)
 - [ ] Event tracking for each verification step
