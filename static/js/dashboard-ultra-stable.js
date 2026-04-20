@@ -125,12 +125,12 @@
                         <button type="button" class="type-card" onclick="window.location.href='/verify'">
                             <div style="font-size:28px;">&#128241;</div>
                             <div style="font-weight:600;margin:8px 0 4px;">SMS</div>
-                            <div style="font-size:12px;color:#6b7280;">~30s &middot; $2.50</div>
+                            <div style="font-size:12px;color:#6b7280;">~30s</div>
                         </button>
                         <button type="button" class="type-card" onclick="window.location.href='/voice-verify'">
                             <div style="font-size:28px;">&#9742;&#65039;</div>
                             <div style="font-weight:600;margin:8px 0 4px;">Voice Call</div>
-                            <div style="font-size:12px;color:#6b7280;">2-5 min &middot; $3.50</div>
+                            <div style="font-size:12px;color:#6b7280;">2-5 min</div>
                         </button>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
             <div class="upgrade-card" id="ucard-${key}" onclick="window.DashboardUltra.selectUpgradeTier('${key}')" style="border:2px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color .2s;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <strong>${t.name}</strong>
-                    <span style="font-size:14px;color:#6b7280;">${t.price === 0 ? 'Free' : '$' + t.price + '/mo'}</span>
+                    <span style="font-size:14px;color:#6b7280;">${t.price === 0 ? 'Free' : formatMoney(t.price) + '/mo'}</span>
                 </div>
                 <div style="font-size:13px;color:#6b7280;margin-top:4px;">${t.desc}</div>
             </div>
@@ -283,7 +283,7 @@
         if (card) card.style.borderColor = '#3b82f6';
         const btn = document.getElementById('upgrade-confirm-btn');
         btn.style.display = 'inline-flex';
-        btn.textContent = TIER_INFO[tier].paid ? `Pay $${TIER_INFO[tier].price}/mo` : 'Confirm Upgrade';
+        btn.textContent = TIER_INFO[tier].paid ? `Pay ${formatMoney(TIER_INFO[tier].price)}/mo` : 'Confirm Upgrade';
     }
 
     async function confirmUpgrade() {
@@ -313,7 +313,7 @@
         } catch (err) {
             showToast(err.message || 'Upgrade failed', 'error');
             btn.disabled = false;
-            btn.textContent = TIER_INFO[tier].paid ? `Pay $${TIER_INFO[tier].price}/mo` : 'Confirm Upgrade';
+            btn.textContent = TIER_INFO[tier].paid ? `Pay ${formatMoney(TIER_INFO[tier].price)}/mo` : 'Confirm Upgrade';
         }
     }
 

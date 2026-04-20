@@ -359,7 +359,7 @@ export class TierCard {
         if (data.price_monthly !== undefined) {
             this.elements.tierPrice.textContent = data.price_monthly === 0
                 ? 'Free'
-                : `$${data.price_monthly}/month`;
+                : `${typeof formatMoney === 'function' ? formatMoney(data.price_monthly) : '$' + data.price_monthly}/month`;
         }
 
         // Render features
@@ -376,7 +376,7 @@ export class TierCard {
 
         // Add quota info if available
         if (data.quota_usd > 0) {
-            featuresHtml += `<div style="margin-bottom: 4px; color: var(--tier-freemium);">✓ $${data.quota_usd} monthly quota</div>`;
+            featuresHtml += `<div style="margin-bottom: 4px; color: var(--tier-freemium);">✓ ${typeof formatMoney === 'function' ? formatMoney(data.quota_usd) : '$' + data.quota_usd} monthly quota</div>`;
         }
 
         this.elements.featuresList.removeAttribute('data-i18n');
@@ -448,7 +448,7 @@ export class TierCard {
             }
 
             if (quotaText) {
-                quotaText.textContent = `$${quotaUsed.toFixed(2)} / $${quotaLimit.toFixed(2)}`;
+                quotaText.textContent = `${formatMoney(quotaUsed)} / ${formatMoney(quotaLimit)}`;
             }
         }
 

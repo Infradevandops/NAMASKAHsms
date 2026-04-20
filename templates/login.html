@@ -247,6 +247,17 @@
 </div>
 
 <script nonce="{{ request.state.csp_nonce }}">
+    // Check for Google OAuth success
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const googleAuth = urlParams.get('google_auth');
+    
+    if (token && googleAuth === 'success') {
+        localStorage.setItem('access_token', token);
+        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
+        window.location.href = '/dashboard';
+    }
+
     document.getElementById('tab-login').addEventListener('click', () => { window.location.href = '/auth/login'; });
     document.getElementById('tab-register').addEventListener('click', () => { window.location.href = '/auth/register'; });
     document.getElementById('login-form').addEventListener('submit', handleLogin);

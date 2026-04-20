@@ -567,7 +567,7 @@ function renderImmersiveList(type, query = '') {
 function renderImmersiveItem(item, isPinned) {
     if (_modalType === 'service') {
         const iconUrl = _getServiceIcon(item.value);
-        const costDisplay = (item.price && item.price > 0) ? `$${item.price.toFixed(2)}` : '$2.50';
+        const costDisplay = (item.price && item.price > 0) ? formatMoney(item.price) : '';
         return `
             <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
                 <div class="list-item-icon">
@@ -585,7 +585,7 @@ function renderImmersiveItem(item, isPinned) {
     } else {
         // Area code or carrier — simple row, no icon/pin
         const sub = item.sub ? `<div style="font-size:11px;color:#9ca3af;">${item.sub}</div>` : '';
-        const right = item.price ? `<div style="font-size:13px;font-weight:600;color:#374151;">+$${item.price.toFixed(2)}</div>` : '';
+        const right = item.price ? `<div style="font-size:13px;font-weight:600;color:#374151;">+${formatMoney(item.price)}</div>` : '';
         return `
             <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'") }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})" style="padding:12px 16px;">
                 <div class="list-item-info" style="flex:1;">
@@ -732,7 +732,7 @@ function selectImmersiveItem(value, label, price) {
         display.style.display = 'flex';
         document.getElementById('service-display').textContent = label;
         const costEl = document.getElementById('selected-service-cost');
-        if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : '$2.50';
+        if (costEl) costEl.textContent = price > 0 ? formatMoney(price) : '';
         
         applyTierGating();
         
@@ -1360,7 +1360,7 @@ async function confirmCancel() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.refund_amount > 0)
-                    window.toast && window.toast.success(`Cancelled — $${data.refund_amount.toFixed(2)} refunded`);
+                    window.toast && window.toast.success(`Cancelled — ${formatMoney(data.refund_amount)} refunded`);
             }
         } catch (e) { /* non-critical */ }
     }
@@ -1598,7 +1598,7 @@ async function loadBalance() {
         const res = await fetch('/api/billing/balance', { headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` } });
         if (res.ok) {
             const d = await res.json();
-            document.getElementById('pricing-balance').textContent = `$${parseFloat(d.balance ?? d.credits ?? 0).toFixed(2)}`;
+            document.getElementById('pricing-balance').textContent = formatMoney(parseFloat(d.balance ?? d.credits ?? 0));
         }
     } catch(e) {}
 }
@@ -1633,7 +1633,7 @@ function updatePricing() {
     // Overage is handled on backend, not shown in base price preview
     
     const total = price + filterCharges;
-    document.getElementById('pricing-cost').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('pricing-cost').textContent = formatMoney(total);
 }
 // Phase 4 Area Code Check Logic
 let _acCheckTimeout = null;

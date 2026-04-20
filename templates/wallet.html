@@ -464,16 +464,16 @@
             });
             if (res.ok) {
                 const data = await res.json();
-                document.getElementById('stat-balance').textContent = `$${data.balance.toFixed(2)}`;
-                document.getElementById('stat-monthly').textContent = `$${data.monthly_spent.toFixed(2)}`;
-                document.getElementById('stat-total-spent').textContent = `$${(data.total_spent || 0).toFixed(2)}`;
-                document.getElementById('stat-total-refunds').textContent = `$${(data.total_refunds || 0).toFixed(2)}`;
-                document.getElementById('stat-net-spent').textContent = `$${(data.net_spent || 0).toFixed(2)}`;
+                document.getElementById('stat-balance').textContent = formatMoney(data.balance);
+                document.getElementById('stat-monthly').textContent = formatMoney(data.monthly_spent);
+                document.getElementById('stat-total-spent').textContent = formatMoney(data.total_spent || 0);
+                document.getElementById('stat-total-refunds').textContent = formatMoney(data.total_refunds || 0);
+                document.getElementById('stat-net-spent').textContent = formatMoney(data.net_spent || 0);
                 document.getElementById('stat-pending').textContent = data.pending_deposits;
                 
                 // Sync navbar balance to match wallet
                 const navBalance = document.getElementById('balance-display');
-                if (navBalance) navBalance.textContent = `$${data.balance.toFixed(2)}`;
+                if (navBalance) navBalance.textContent = formatMoney(data.balance);
                 
                 // Colors
                 document.getElementById('stat-balance').style.color = data.balance < 5 ? '#ef4444' : '#FE3C72';
@@ -704,8 +704,8 @@
                         <tr onclick='openAuditModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' style="cursor: pointer;">
                             <td style="font-weight: 600;">${tx.description || tx.type}</td>
                             <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${tx.id.substring(0, 8)}</td>
-                            <td style="color: ${amountColor}; font-weight: 700;">${tx.amount >= 0 ? '+' : ''}$${tx.amount.toFixed(2)}</td>
-                            <td style="font-weight: 500;">$${(tx.balance_after || 0).toFixed(2)}</td>
+                            <td style="color: ${amountColor}; font-weight: 700;">${tx.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(tx.amount))}</td>
+                            <td style="font-weight: 500;">${formatMoney(tx.balance_after || 0)}</td>
                             <td><span class="status-badge ${statusClass}">${tx.status || 'Completed'}</span></td>
                             <td style="font-size: 12px; color: var(--text-muted);">${new Date(tx.created_at).toLocaleString()}</td>
                         </tr>
@@ -719,11 +719,11 @@
 
     function openAuditModal(tx) {
         document.getElementById('modal-desc').textContent = tx.description || 'Transaction Detail';
-        document.getElementById('modal-amount').textContent = `${tx.amount >= 0 ? '+' : ''}$${tx.amount.toFixed(2)}`;
+        document.getElementById('modal-amount').textContent = `${tx.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(tx.amount))}`;
         document.getElementById('modal-amount').style.color = tx.amount >= 0 ? '#10b981' : '#ef4444';
         document.getElementById('modal-ref').textContent = tx.id;
         document.getElementById('modal-date').textContent = new Date(tx.created_at).toLocaleString();
-        document.getElementById('modal-balance').textContent = `$${(tx.balance_after || 0).toFixed(2)}`;
+        document.getElementById('modal-balance').textContent = formatMoney(tx.balance_after || 0);
         
         const badge = document.getElementById('modal-status-badge');
         badge.innerHTML = `<span class="status-badge ${tx.status.toLowerCase()}">${tx.status}</span>`;

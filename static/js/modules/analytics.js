@@ -149,7 +149,7 @@ class AnalyticsManager {
           </div>
           <div class="stat-content">
             <h6 class="stat-label">Credit Balance</h6>
-            <h3 class="stat-value">$${(stats.credit_balance || 0).toFixed(2)}</h3>
+            <h3 class="stat-value">${typeof formatMoney === 'function' ? formatMoney(stats.credit_balance || 0) : '$' + (stats.credit_balance || 0).toFixed(2)}</h3>
             <small class="stat-trend text-muted">
               <i class="fas fa-wallet"></i>
               Available balance

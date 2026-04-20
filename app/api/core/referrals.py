@@ -24,7 +24,6 @@ async def get_referral_stats(
             "referral_link": f"https://namaskah.com/register?ref={current_user.referral_code}",
             "total_referred": referral_count,
             "total_earnings": current_user.referral_earnings,
-            "bonus_credits": current_user.bonus_sms_balance,
         },
     )
 

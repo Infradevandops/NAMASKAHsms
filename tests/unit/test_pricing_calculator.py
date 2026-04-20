@@ -1,4 +1,7 @@
-"""Unit tests for PricingCalculator."""
+"""Unit tests for PricingCalculator.
+
+v5.0: All tests pass provider_price — no fallback pricing.
+"""
 
 from unittest.mock import patch
 
@@ -9,98 +12,96 @@ from app.services.pricing_calculator import PricingCalculator
 
 class TestCalculateSmsCost:
 
-    def test_freemium_no_filters(self, db, regular_user):
+    def test_basic_provider_price(self, db, regular_user):
+        """provider_price × markup = base_cost."""
         regular_user.subscription_tier = "freemium"
         db.commit()
         with patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg, patch(
             "app.services.pricing_calculator.QuotaService.calculate_overage",
             return_value=0.0,
         ):
-            mock_cfg.return_value = {"base_sms_cost": 2.22}
-            res = PricingCalculator.calculate_sms_cost(db, regular_user.id)
-        assert res["base_cost"] == 2.22
-        assert res["filter_charges"] == 0.0
+            res = PricingCalculator.calculate_sms_cost(
+                db, regular_user.id, provider_price=1.50
+            )
+        # 1.50 × 1.1 = 1.65
+        assert res["base_cost"] == 1.65
+        assert res["provider_cost"] == 1.50
+        assert res["markup"] == 1.1
+        assert res["total_cost"] == 1.65
+
+    def test_no_provider_price_raises(self, db, regular_user):
+        """Must raise ValueError when provider_price is None."""
+        regular_user.subscription_tier = "freemium"
+        db.commit()
+        with pytest.raises(ValueError, match="provider price unavailable"):
+            PricingCalculator.calculate_sms_cost(db, regular_user.id)
+
+    def test_zero_provider_price_raises(self, db, regular_user):
+        """Must raise ValueError when provider_price is 0."""
+        regular_user.subscription_tier = "payg"
+        db.commit()
+        with pytest.raises(ValueError, match="provider price unavailable"):
+            PricingCalculator.calculate_sms_cost(
+                db, regular_user.id, provider_price=0
+            )
 
     def test_freemium_filters_raise(self, db, regular_user):
+        """Freemium users cannot use filters."""
         regular_user.subscription_tier = "freemium"
         db.commit()
         with patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg, patch(
             "app.services.pricing_calculator.QuotaService.calculate_overage",
             return_value=0.0,
         ):
-            mock_cfg.return_value = {"base_sms_cost": 2.22}
             with pytest.raises(ValueError, match="Filters not available"):
                 PricingCalculator.calculate_sms_cost(
-                    db, regular_user.id, filters={"area_code": "212"}
+                    db,
+                    regular_user.id,
+                    filters={"area_code": "212"},
+                    provider_price=1.50,
                 )
 
-    def test_payg_area_code_premium(self, db, regular_user):
-        regular_user.subscription_tier = "payg"
-        db.commit()
-        with patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg, patch(
-            "app.services.pricing_calculator.QuotaService.calculate_overage",
-            return_value=0.0,
-        ):
-            mock_cfg.return_value = {"base_sms_cost": 2.50}
-            res = PricingCalculator.calculate_sms_cost(
-                db, regular_user.id, filters={"area_code": "212"}
-            )
-        assert res["base_cost"] == 2.50
-        assert res["area_code_surcharge"] == 0.50
-        assert res["total_cost"] == 3.00
-
-    def test_payg_carrier_premium(self, db, regular_user):
-        regular_user.subscription_tier = "payg"
-        db.commit()
-        with patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg, patch(
-            "app.services.pricing_calculator.QuotaService.calculate_overage",
-            return_value=0.0,
-        ):
-            mock_cfg.return_value = {"base_sms_cost": 2.50}
-            res = PricingCalculator.calculate_sms_cost(
-                db, regular_user.id, filters={"carrier": "verizon"}
-            )
-        assert res["carrier_surcharge"] == 0.30
-        assert res["total_cost"] == 2.80
-
-    def test_pro_filters_free(self, db, regular_user):
+    def test_overage_added(self, db, regular_user):
+        """Overage charge is added to base cost."""
         regular_user.subscription_tier = "pro"
         db.commit()
         with patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg, patch(
             "app.services.pricing_calculator.QuotaService.calculate_overage",
-            return_value=0.0,
+            return_value=0.50,
         ):
-            mock_cfg.return_value = {"base_sms_cost": 0.30}
             res = PricingCalculator.calculate_sms_cost(
-                db, regular_user.id, filters={"area_code": "212", "carrier": "verizon"}
+                db, regular_user.id, provider_price=2.00
             )
-        assert res["filter_charges"] == 0.0
-        assert res["total_cost"] == 0.30
+        # 2.00 × 1.1 = 2.20 + 0.50 overage = 2.70
+        assert res["base_cost"] == 2.20
+        assert res["overage_charge"] == 0.50
+        assert res["total_cost"] == 2.70
+
+
+class TestCalculateRentalCost:
+
+    def test_rental_with_provider_cost(self):
+        """provider_cost × markup = total_cost."""
+        res = PricingCalculator.calculate_rental_cost(
+            None, "test", 24.0, provider_cost=5.00
+        )
+        assert res["total_cost"] == 5.50  # 5.00 × 1.1
+        assert res["provider_cost"] == 5.00
+
+    def test_rental_no_provider_cost_raises(self):
+        """Must raise ValueError when provider_cost is None."""
+        with pytest.raises(ValueError, match="provider cost unavailable"):
+            PricingCalculator.calculate_rental_cost(None, "test", 24.0)
 
 
 class TestValidateBalance:
 
-    def test_freemium_uses_bonus_balance(self, db, regular_user):
+    def test_freemium_uses_credits(self, db, regular_user):
         regular_user.subscription_tier = "freemium"
-        regular_user.bonus_sms_balance = 2.0
+        regular_user.credits = 10.0
         db.commit()
         assert PricingCalculator.validate_balance(db, regular_user.id, 5.0) is True
-
-    def test_freemium_no_bonus_blocked(self, db, regular_user):
-        regular_user.subscription_tier = "freemium"
-        regular_user.bonus_sms_balance = 0.0
-        db.commit()
-        assert PricingCalculator.validate_balance(db, regular_user.id, 5.0) is False
+        assert PricingCalculator.validate_balance(db, regular_user.id, 15.0) is False
 
     def test_payg_uses_credits(self, db, regular_user):
         regular_user.subscription_tier = "payg"
@@ -110,67 +111,43 @@ class TestValidateBalance:
         assert PricingCalculator.validate_balance(db, regular_user.id, 15.0) is False
 
     def test_pro_within_quota_zero_credits_allowed(self, db, regular_user):
+        """Pro user within quota passes even with $0 credits."""
         regular_user.subscription_tier = "pro"
         regular_user.credits = 0.0
         db.commit()
         with patch(
-            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
-        ) as mock_usage, patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg:
-            mock_usage.return_value = {
-                "remaining": 10.0,
-                "quota_limit": 15.0,
-                "quota_used": 5.0,
-            }
-            mock_cfg.return_value = {"base_sms_cost": 0.30}
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,  # within quota
+        ):
             result = PricingCalculator.validate_balance(
-                db, regular_user.id, 0.30, tier="pro"
+                db, regular_user.id, 1.65, tier="pro"
             )
         assert result is True
 
-    def test_pro_quota_exhausted_zero_credits_blocked(self, db, regular_user):
+    def test_pro_over_quota_needs_credits(self, db, regular_user):
+        """Pro user over quota needs credits >= overage (full cost)."""
         regular_user.subscription_tier = "pro"
-        regular_user.credits = 0.0
+        regular_user.credits = 1.00
         db.commit()
         with patch(
-            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
-        ) as mock_usage, patch(
-            "app.services.pricing_calculator.QuotaService.calculate_overage"
-        ) as mock_overage, patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg:
-            mock_usage.return_value = {
-                "remaining": 0.0,
-                "quota_limit": 15.0,
-                "quota_used": 15.0,
-            }
-            mock_overage.return_value = 0.30
-            mock_cfg.return_value = {"base_sms_cost": 0.30}
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=1.65,  # over quota, full cost is overage
+        ):
             result = PricingCalculator.validate_balance(
-                db, regular_user.id, 0.30, tier="pro"
+                db, regular_user.id, 1.65, tier="pro"
             )
-        assert result is False
+        assert result is False  # credits(1.00) < overage(1.65)
 
-    def test_pro_partial_quota_overage_requires_credits(self, db, regular_user):
+    def test_pro_over_quota_sufficient_credits(self, db, regular_user):
+        """Pro user over quota with enough credits passes."""
         regular_user.subscription_tier = "pro"
-        regular_user.credits = 1.0
+        regular_user.credits = 5.0
         db.commit()
         with patch(
-            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
-        ) as mock_usage, patch(
-            "app.services.pricing_calculator.QuotaService.calculate_overage"
-        ) as mock_overage, patch(
-            "app.services.pricing_calculator.TierConfig.get_tier_config"
-        ) as mock_cfg:
-            mock_usage.return_value = {
-                "remaining": 0.0,
-                "quota_limit": 15.0,
-                "quota_used": 15.0,
-            }
-            mock_overage.return_value = 0.50
-            mock_cfg.return_value = {"base_sms_cost": 0.30}
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=1.65,
+        ):
             result = PricingCalculator.validate_balance(
-                db, regular_user.id, 0.50, tier="pro"
+                db, regular_user.id, 1.65, tier="pro"
             )
-        assert result is True  # credits(1.0) >= overage(0.50)
+        assert result is True  # credits(5.0) >= overage(1.65)

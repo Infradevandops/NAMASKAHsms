@@ -102,13 +102,13 @@
                 // Update Overview
                 document.getElementById('stat-total-users').textContent = data.overview.total_users;
                 document.getElementById('stat-success-rate').textContent = `${data.overview.success_rate}%`;
-                document.getElementById('stat-net-revenue').textContent = `$${data.financial.net.toFixed(2)}`;
+                document.getElementById('stat-net-revenue').textContent = formatMoney(data.financial.net);
                 document.getElementById('stat-refund-rate').textContent = `${data.financial.refund_rate}%`;
 
                 // Update Financials
-                document.getElementById('fin-gross').textContent = `$${data.financial.gross.toFixed(2)}`;
-                document.getElementById('fin-refunds').textContent = `-$${data.financial.refunds.toFixed(2)}`;
-                document.getElementById('fin-net').textContent = `$${data.financial.net.toFixed(2)}`;
+                document.getElementById('fin-gross').textContent = formatMoney(data.financial.gross);
+                document.getElementById('fin-refunds').textContent = `-${formatMoney(data.financial.refunds)}`;
+                document.getElementById('fin-net').textContent = formatMoney(data.financial.net);
 
                 // Update Providers
                 const pBody = document.getElementById('provider-table');
@@ -268,7 +268,7 @@
                     <td>${u.email}</td>
                     <td><span class="badge ${u.tier}">${u.tier.toUpperCase()}</span></td>
                     <td>${u.tier_expires_at ? new Date(u.tier_expires_at).toLocaleDateString() : 'N/A'}</td>
-                    <td>$${u.credits.toFixed(2)}</td>
+                    <td>${formatMoney(u.credits)}</td>
                     <td><div class="actions"><button onclick="editUser('${u.id}', '${u.email}')">Edit</button><button onclick="resetUser('${u.id}')" class="danger">Reset</button></div></td>
                 </tr>
             `).join('');

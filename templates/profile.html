@@ -188,7 +188,7 @@
             <div class="stat-label">This Month</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" id="stat-balance">$0</div>
+            <div class="stat-value" id="stat-balance" data-usd="0">$0</div>
             <div class="stat-label">Balance</div>
         </div>
     </div>
@@ -381,7 +381,7 @@
             if (res.ok) {
                 const data = await res.json();
                 const balance = data.balance || data.credits || 0;
-                document.getElementById('stat-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+                document.getElementById('stat-balance').textContent = formatMoney(parseFloat(balance));
             }
         } catch (e) {
             console.error("Balance load error:", e);

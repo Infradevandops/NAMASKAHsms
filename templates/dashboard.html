@@ -207,13 +207,13 @@ endblock %}
             document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
 
             const netSpent = data.net_spent ?? data.revenue ?? data.total_spent ?? 0;
-            document.getElementById('total-spent').textContent = `$${netSpent.toFixed(2)}`;
+            document.getElementById('total-spent').textContent = formatMoney(netSpent);
             document.getElementById('total-spent').setAttribute('data-amount', netSpent);
 
             const refunded = data.total_refunded || 0;
             if (refunded > 0) {
                 const refundEl = document.getElementById('refund-info');
-                refundEl.textContent = `$${refunded.toFixed(2)} refunded`;
+                refundEl.textContent = `${formatMoney(refunded)} refunded`;
                 refundEl.style.display = 'block';
             }
 
@@ -398,7 +398,7 @@ endblock %}
             const d = await res.json();
             const tier = d.current_tier || 'freemium';
             const names = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
-            const prices = { freemium: '$0.00/month', payg: '$0.00/month', pro: '$25.00/month', custom: '$35.00/month' };
+            const prices = { freemium: formatMoney(0) + '/month', payg: formatMoney(0) + '/month', pro: formatMoney(25) + '/month', custom: formatMoney(35) + '/month' };
             const features = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
             
             // Use i18n-aware content updates

@@ -32,20 +32,32 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
 
 
+# Module-level singleton — avoids re-creating the client on every request
+_tv_service = TextVerifiedService()
+
+
 async def _get_provider_price(service: str) -> Optional[float]:
     """Look up the real TextVerified price for a service from cache/API.
 
     Returns the raw provider cost (before markup) or None if unavailable.
+    Logs a warning on failure so silent swallowing is visible in monitoring.
     """
     try:
-        tv = TextVerifiedService()
-        services = await tv.get_services_list()
+        services = await _tv_service.get_services_list()
         for s in services:
             if s["id"] == service:
-                return s.get("price")  # raw provider cost, no markup
-    except Exception:
-        pass
-    return None
+                price = s.get("price")
+                if price is not None and price > 0:
+                    return price
+                logger.warning(
+                    f"Provider returned null/zero price for service '{service}'"
+                )
+                return None
+        logger.warning(f"Service '{service}' not found in provider service list")
+        return None
+    except Exception as e:
+        logger.error(f"Failed to fetch provider price for '{service}': {e}")
+        return None
 
 
 @router.post("/request", status_code=status.HTTP_201_CREATED)
@@ -307,10 +319,10 @@ async def request_verification(
                 same_state_fallback=purchase_result.same_state_fallback,
                 retry_attempts=purchase_result.retry_attempts,
                 area_code_matched=purchase_result.area_code_matched,
-                carrier_matched=True,  # carrier feature retired
-                real_carrier=None,  # carrier feature retired
-                carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
-                area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
+                carrier_matched=True,
+                real_carrier=None,
+                carrier_surcharge=0.0,
+                area_code_surcharge=0.0,
                 voip_rejected=purchase_result.voip_rejected,
                 created_at=datetime.now(timezone.utc),
                 selected_from_alternatives=request.selected_from_alternatives,
@@ -539,13 +551,14 @@ async def request_verification(
         raise
     except ValueError as e:
         db.rollback()
-        logger.warning(f"Validation error in verification request: {str(e)}")
         detail = str(e)
         if "provider price unavailable" in detail.lower():
-            detail = (
-                "Price unavailable for this service right now. "
-                "Please try again in a moment."
+            logger.error(f"Provider pricing failure blocked purchase: {detail}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Price unavailable for this service right now. Please try again in a moment.",
             )
+        logger.warning(f"Validation error in verification request: {detail}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,

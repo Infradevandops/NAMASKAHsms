@@ -166,7 +166,7 @@
 
                 if (data.success) {
                     const v = data.verification;
-                    alert(`Verification Details:\n\nTransaction ID: ${v.transaction_id}\nUser: ${v.user_email}\nService: ${v.service_name}\nPhone: ${v.phone_number}\nStatus: ${v.status}\nCost: $${v.cost}\nSMS Code: ${v.sms_code || 'N/A'}\nCreated: ${new Date(v.created_at).toLocaleString()}`);
+                    alert(`Verification Details:\n\nTransaction ID: ${v.transaction_id}\nUser: ${v.user_email}\nService: ${v.service_name}\nPhone: ${v.phone_number}\nStatus: ${v.status}\nCost: ${formatMoney(v.cost)}\nSMS Code: ${v.sms_code || 'N/A'}\nCreated: ${new Date(v.created_at).toLocaleString()}`);
                 }
             } catch (error) {
                 alert(`Error: ${error.message}`);
@@ -193,7 +193,7 @@
                     
                     document.getElementById('stat-success').textContent = successful;
                     document.getElementById('stat-failed').textContent = failed;
-                    document.getElementById('stat-spent').textContent = `$${totalSpent.toFixed(2)}`;
+                    document.getElementById('stat-spent').textContent = formatMoney(totalSpent);
                 }
             } catch (error) {
                 alert(`Error: ${error.message}`);
@@ -240,7 +240,7 @@
                         <span class="status-badge ${statusClass}">${item.status.toUpperCase()}</span>
                         <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">${item.failure_reason || ''}</div>
                     </td>
-                    <td style="padding: 10px 12px; text-align: right; font-weight: 600;">$${(item.cost || 0).toFixed(2)}</td>
+                    <td style="padding: 10px 12px; text-align: right; font-weight: 600;">${formatMoney(item.cost || 0)}</td>
                     <td style="padding: 10px 12px; text-align: right;">
                         <div style="font-size: 12px;">${dateObj.toLocaleDateString()}</div>
                         <div style="font-size: 10px; color: #6b7280;">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>

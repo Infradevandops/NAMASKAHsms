@@ -60,7 +60,7 @@ async function loadBalance(silent = false) {
         if (res.ok) {
             const data = await res.json();
             const balance = data.balance || data.credits || 0;
-            display.textContent = `$${parseFloat(balance).toFixed(2)}`;
+            display.textContent = formatMoney(parseFloat(balance));
         } else {
             display.textContent = '$0.00';
         }

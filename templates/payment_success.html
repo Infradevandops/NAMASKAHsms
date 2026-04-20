@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch(`/api/billing/verify-payment/${reference}`);
             if (res.ok) {
                 const data = await res.json();
-                document.getElementById('amount-paid').textContent = `$${data.amount_usd || 0}`;
-                document.getElementById('credits-added').textContent = `$${data.credits_added || 0}`;
+                document.getElementById('amount-paid').textContent = formatMoney(data.amount_usd || 0);
+                document.getElementById('credits-added').textContent = formatMoney(data.credits_added || 0);
                 document.getElementById('transaction-id').textContent = reference;
                 document.getElementById('transaction-date').textContent = new Date().toLocaleDateString();
             }

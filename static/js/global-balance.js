@@ -14,7 +14,8 @@
             if (!response.ok) return;
             const data = await response.json();
             const balance = parseFloat(data.credits) || 0;
-            const formatted = '$' + balance.toFixed(2);
+            const fmt = typeof formatMoney === 'function' ? formatMoney : (v) => '$' + v.toFixed(2);
+            const formatted = fmt(balance);
             
             const headerBalance = document.getElementById('header-balance');
             const statBalance = document.getElementById('stat-balance');
@@ -22,7 +23,6 @@
             const balanceAmount = document.getElementById('balance-amount');
             const balanceDisplay = document.getElementById('balance-display');
             
-            // Use i18n-aware updates - preserve data-i18n attributes
             if (headerBalance) {
                 headerBalance.removeAttribute('data-i18n');
                 headerBalance.textContent = 'Balance: ' + formatted;

@@ -1,4 +1,12 @@
-"""Quota tracking and overage calculation service."""
+"""Quota tracking service.
+
+v5.0: Clean quota model.
+  - Freemium/PAYG: No quota. Overage is always 0. They pay base_cost directly.
+  - Pro/Custom: Have a monthly USD quota from their subscription.
+    Within quota → cost is covered (overage = 0).
+    Over quota → they pay full price (overage = the full cost of that SMS).
+    No arbitrary overage_rate multiplier.
+"""
 
 import uuid
 from datetime import date, datetime
@@ -17,11 +25,7 @@ class QuotaService:
     def get_monthly_usage(
         db: Session, user_id: str, month: str = None, tier: str = None
     ) -> dict:
-        """Get quota usage for a month.
-
-        `tier` should be the value resolved by TierManager.get_user_tier() so that
-        expired subscriptions use the correct (downgraded) limits.
-        """
+        """Get quota usage for a month."""
         if not month:
             month = datetime.now().strftime("%Y-%m")
 
@@ -88,24 +92,37 @@ class QuotaService:
     def calculate_overage(
         db: Session, user_id: str, cost: float, month: str = None, tier: str = None
     ) -> float:
-        """Calculate overage charge if quota exceeded."""
+        """Calculate overage charge.
+
+        - Freemium/PAYG (quota_limit=0): Always returns 0.
+          These tiers pay the base cost directly — no overage layer.
+        - Pro/Custom (quota_limit>0): If within quota, returns 0 (subscription
+          covers it). If over quota, returns the full cost of this purchase.
+          No arbitrary multiplier.
+        """
         if not month:
             month = datetime.now().strftime("%Y-%m")
 
         usage = QuotaService.get_monthly_usage(db, user_id, month, tier=tier)
         quota_limit = usage["quota_limit"]
+
+        # No quota means no overage system — user pays base cost directly
+        if quota_limit <= 0:
+            return 0.0
+
         quota_used = usage["quota_used"]
 
-        if quota_used + cost > quota_limit:
-            if tier is None:
-                user = db.query(User).filter(User.id == user_id).first()
-                tier = user.subscription_tier if user else "freemium"
-            tier_config = TierConfig.get_tier_config(tier, db)
-            overage_rate = tier_config.get("overage_rate", 0)
-            overage_amount = (quota_used + cost) - quota_limit
-            return overage_amount * overage_rate
+        # Within quota — subscription covers it
+        if quota_used + cost <= quota_limit:
+            return 0.0
 
-        return 0.0
+        # Over quota — user pays full price for the amount exceeding quota
+        if quota_used >= quota_limit:
+            # Fully exhausted — entire cost is overage
+            return cost
+        else:
+            # Partially covered — only the excess is overage
+            return round((quota_used + cost) - quota_limit, 2)
 
     @staticmethod
     def reset_monthly_quota(db: Session, user_id: str) -> None:
@@ -115,10 +132,3 @@ class QuotaService:
             user.monthly_quota_used = 0.0
             user.monthly_quota_reset_date = date.today()
             db.commit()
-
-    @staticmethod
-    def get_overage_rate(db: Session, user_id: str) -> float:
-        """Get overage rate for user's tier."""
-        user = db.query(User).filter(User.id == user_id).first()
-        tier = TierConfig.get_tier_config(user.subscription_tier, db)
-        return tier.get("overage_rate", 0)

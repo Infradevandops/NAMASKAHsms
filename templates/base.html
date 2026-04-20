@@ -75,6 +75,9 @@
     {% include "components/notification.html" %}
     {% include "components/loading_spinner.html" %}
 
+    <!-- Global currency formatter — MUST load before everything -->
+    <script src="/static/js/formatMoney.js"></script>
+
     <!-- Core JS - Deferred -->
     <script nonce="{{ request.state.csp_nonce }}">
         const API_BASE = '/api';

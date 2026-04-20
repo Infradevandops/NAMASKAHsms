@@ -52,7 +52,35 @@ class RentalService:
           3. Purchase reservation from TextVerified
           4. Persist NumberRental record
         """
-        # 1. Purchase from provider FIRST to get real cost
+        # 1. Get provider price for this service to estimate cost
+        #    We fetch the service price from the cached list (same source as display).
+        #    This lets us check balance BEFORE committing money at the provider.
+        from app.services.textverified_service import TextVerifiedService
+        tv = TextVerifiedService()
+        estimated_provider_cost = None
+        try:
+            services = await tv.get_services_list()
+            for s in services:
+                if s["id"] == service:
+                    estimated_provider_cost = s.get("price")
+                    break
+        except Exception as e:
+            logger.warning(f"Could not fetch service price for rental estimate: {e}")
+
+        # 2. Pre-flight balance check with estimated cost
+        if estimated_provider_cost and estimated_provider_cost > 0:
+            from app.core.config import get_settings
+            est_cost = round(estimated_provider_cost * get_settings().price_markup, 2)
+            balance_check = await BalanceService.check_sufficient_balance(
+                user_id, est_cost, self.db
+            )
+            if not balance_check["sufficient"]:
+                raise ValueError(
+                    f"Insufficient balance. Estimated cost: ${est_cost:.2f}, "
+                    f"Available: ${balance_check.get('current_balance', 0):.2f}"
+                )
+
+        # 3. Purchase from provider to get actual cost
         purchase_result = await self.provider_router.purchase_with_failover(
             db=self.db,
             service=service,
@@ -61,7 +89,7 @@ class RentalService:
             duration_hours=duration_hours,
         )
 
-        # 2. Calculate cost using the actual provider cost
+        # 4. Calculate final cost using the actual provider cost
         provider_cost = getattr(purchase_result, "cost", None) or (
             purchase_result.cost if hasattr(purchase_result, "cost") else None
         )
@@ -70,15 +98,13 @@ class RentalService:
         )
         total_cost = pricing["total_cost"]
 
-        # 3. Check balance
+        # 5. Final balance check with actual cost (may differ from estimate)
         balance_check = await BalanceService.check_sufficient_balance(
             user_id, total_cost, self.db
         )
         if not balance_check["sufficient"]:
-            # Cancel the reservation since user can't afford it
+            # Cancel the reservation since user can't afford actual cost
             try:
-                from app.services.textverified_service import TextVerifiedService
-                tv = TextVerifiedService()
                 order_id = getattr(purchase_result, "order_id", None)
                 if order_id:
                     await tv._cancel_safe(order_id)
@@ -89,7 +115,7 @@ class RentalService:
                 f"Available: ${balance_check.get('balance', 0):.2f}"
             )
 
-        # 4. Debit balance (atomic)
+        # 6. Debit balance (atomic)
         user = self.db.query(User).filter(User.id == user_id).first()
         success, error = await BalanceService.deduct_credits_for_verification(
             db=self.db,
@@ -113,7 +139,7 @@ class RentalService:
                 )
             raise RuntimeError(f"Credit deduction failed: {error}")
 
-        # 5. Create Rental Record
+        # 7. Create Rental Record
         now = datetime.now(timezone.utc)
         rental = NumberRental(
             user_id=user_id,
