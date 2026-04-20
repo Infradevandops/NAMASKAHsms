@@ -589,7 +589,7 @@ async function resetForm() {
     if (pollingInterval) clearInterval(pollingInterval);
 
     document.getElementById('service-search').value = '';
-    document.getElementById('service-cost').textContent = '$0.00';
+    document.getElementById('service-cost').textContent = formatMoney(0);
     document.getElementById('reception-card').style.display = 'none';
     document.getElementById('code-display').textContent = '------';
     document.getElementById('copy-btn').style.display = 'none';
