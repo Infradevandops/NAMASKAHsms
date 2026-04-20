@@ -52,7 +52,7 @@ class FavoriteServices {
                  onmouseout="this.style.background='white'">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${f.name}</div>
-                    <div style="font-size: 11px; color: #6b7280;">$${f.cost.toFixed(2)}</div>
+                    <div style="font-size: 11px; color: #6b7280;">${formatMoney(f.cost)}</div>
                 </div>
                 <button onclick="event.stopPropagation(); favoriteServices.remove('${f.id}'); favoriteServices.renderUI('favorites-list')" 
                         style="background: none; border: none; cursor: pointer; font-size: 16px; color: #f59e0b;">⭐</button>

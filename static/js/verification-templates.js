@@ -53,7 +53,7 @@ class VerificationTemplates {
                  onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${t.name}</div>
-                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${t.serviceName} • $${t.cost.toFixed(2)}</div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${t.serviceName} • ${formatMoney(t.cost)}</div>
                 </div>
                 <button onclick="event.stopPropagation(); verificationTemplates.remove('${t.id}'); verificationTemplates.renderUI('templates-list')" 
                         style="background: none; border: none; cursor: pointer; font-size: 16px; color: #ef4444; padding: 4px;">×</button>

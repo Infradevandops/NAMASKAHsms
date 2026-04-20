@@ -65,7 +65,7 @@ export function formatDate(dateString) {
  * @returns {void}
  */
 export function updateBalanceDisplay(balance) {
-  const formatted = `$${balance.toFixed(2)}`;
+  const formatted = (typeof formatMoney === 'function') ? formatMoney(balance) : `$${balance.toFixed(2)}`;
   const elements = [
     document.getElementById('header-balance'),
     document.getElementById('stat-balance'),

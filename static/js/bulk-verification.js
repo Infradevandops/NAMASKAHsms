@@ -49,7 +49,7 @@ class BulkVerification {
             });
 
             const total = response.data.total_cost;
-            document.getElementById('bulk-total-cost').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('bulk-total-cost').textContent = formatMoney(total);
 
             // Check balance
             const balanceText = document.getElementById('user-balance').textContent;
