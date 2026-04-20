@@ -15,7 +15,7 @@ async function loadWalletBalance() {
   try {
     const response = await axios.get('/api/wallet/balance')
     const balanceEl = document.getElementById('wallet-balance')
-    if (balanceEl) balanceEl.textContent = '$' + response.data.balance.toFixed(2)
+    if (balanceEl) balanceEl.textContent = (typeof formatMoney === 'function') ? formatMoney(response.data.balance) : '$' + response.data.balance.toFixed(2)
   } catch (error) {
     console.error('Failed to load wallet balance:', error)
   }

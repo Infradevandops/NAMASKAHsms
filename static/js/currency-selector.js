@@ -344,6 +344,7 @@
         console.log('[Currency] Selecting currency:', currencyCode);
 
         currentCurrency = currencyCode;
+        localStorage.setItem('user_currency', currencyCode);
         
         // Update display
         updateCurrencyDisplay();
@@ -356,6 +357,11 @@
         
         // Close dropdown
         closeDropdown();
+
+        // Notify formatMoney.js and all listeners
+        window.dispatchEvent(new CustomEvent('currencyChanged', {
+            detail: { currency: currencyCode }
+        }));
 
         // Show toast notification
         const currency = CURRENCIES.find(c => c.code === currencyCode);

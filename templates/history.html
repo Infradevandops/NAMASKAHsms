@@ -184,7 +184,7 @@ function formatPhone(raw) {
                     <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${item.failure_category || ''}</div>
                 </td>
                 <td style="padding: 10px 12px; text-align: right; font-weight: 600;">
-                    $${(item.cost || 0).toFixed(2)}
+                    ${formatMoney(item.cost || 0)}
                 </td>
                 <td style="padding: 10px 12px; text-align: right;">
                     <div style="font-size: 12px;">${dateObj.toLocaleDateString()}</div>
@@ -308,23 +308,23 @@ function formatPhone(raw) {
                     <div style="margin-top: 4px;">
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
                             <span>Base Rate</span>
-                            <span>$${baseCost.toFixed(2)}</span>
+                            <span>${formatMoney(baseCost)}</span>
                         </div>
                         ${item.area_code_surcharge > 0 ? `
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
                             <span>Area Code Premium</span>
-                            <span>$${item.area_code_surcharge.toFixed(2)}</span>
+                            <span>${formatMoney(item.area_code_surcharge)}</span>
                         </div>
                         ` : ''}
                         ${item.carrier_surcharge > 0 ? `
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 4px;">
                             <span>Carrier Premium</span>
-                            <span>$${item.carrier_surcharge.toFixed(2)}</span>
+                            <span>${formatMoney(item.carrier_surcharge)}</span>
                         </div>
                         ` : ''}
                         <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px dashed #e2e8f0; padding-top: 6px; margin-top: 6px;">
                             <span>Total Net Spent</span>
-                            <span>$${(item.cost || 0).toFixed(2)}</span>
+                            <span>${formatMoney(item.cost || 0)}</span>
                         </div>
                     </div>
                 </div>

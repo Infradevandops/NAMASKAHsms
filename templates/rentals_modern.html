@@ -194,10 +194,10 @@
         <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
             <button class="btn btn-primary btn-block" id="create-rental-btn" onclick="createRental()" disabled>
                 <span>Rent Number</span>
-                <span id="rental-cost">$0.00</span>
+                <span id="rental-cost" data-usd="0">$0.00</span>
             </button>
             <div style="font-size: 14px; color: #6b7280;">
-                Balance: <span id="user-balance">$0.00</span>
+                Balance: <span id="user-balance" data-usd="0">$0.00</span>
             </div>
         </div>
     </div>
@@ -281,7 +281,7 @@ function selectDuration(hours, cost) {
     document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
     event.target.closest('.duration-option').classList.add('selected');
     
-    document.getElementById('rental-cost').textContent = `$${cost.toFixed(2)}`;
+    document.getElementById('rental-cost').textContent = formatMoney(cost);
     updateCreateButton();
 }
 
@@ -300,7 +300,7 @@ async function loadBalance() {
         if (res.ok) {
             const data = await res.json();
             const balance = data.balance ?? data.credits ?? 0;
-            document.getElementById('user-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+            document.getElementById('user-balance').textContent = formatMoney(parseFloat(balance));
         }
     } catch (e) {
         console.error('Failed to load balance:', e);
@@ -347,7 +347,7 @@ async function createRental() {
         selectedDurationCost = null;
         document.getElementById('service-select').value = '';
         document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
-        document.getElementById('rental-cost').textContent = '$0.00';
+        document.getElementById('rental-cost').textContent = formatMoney(0);
         
         // Reload data
         loadBalance();
@@ -435,7 +435,7 @@ function renderRentalCard(rental) {
                 </div>
                 <div class="info-item">
                     <div class="info-label">Cost</div>
-                    <div class="info-value">$${parseFloat(rental.cost).toFixed(2)}</div>
+                    <div class="info-value">${formatMoney(parseFloat(rental.cost))}</div>
                 </div>
             </div>
             
@@ -536,7 +536,7 @@ async function extendRental(rentalId) {
         }
         
         const data = await response.json();
-        window.toast?.success(`Rental extended by ${extraHours} hours! Cost: $${data.extra_cost.toFixed(2)}`);
+        window.toast?.success(`Rental extended by ${extraHours} hours! Cost: ${formatMoney(data.extra_cost)}`);
         loadBalance();
         loadRentals();
         
@@ -563,7 +563,7 @@ async function cancelRental(rentalId) {
         }
         
         const data = await response.json();
-        window.toast?.success(`Rental cancelled! Refund: $${data.refund_amount.toFixed(2)}`);
+        window.toast?.success(`Rental cancelled! Refund: ${formatMoney(data.refund_amount)}`);
         loadBalance();
         loadRentals();
         

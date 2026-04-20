@@ -73,11 +73,11 @@ class MonthlySummary {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 20px;">
                     <div>
                         <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Total Spent</div>
-                        <div style="font-size: 28px; font-weight: 700;">$${this.data.totalSpent.toFixed(2)}</div>
+                        <div style="font-size: 28px; font-weight: 700;">${formatMoney(this.data.totalSpent)}</div>
                     </div>
                     <div>
                         <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Credits Added</div>
-                        <div style="font-size: 28px; font-weight: 700;">$${this.data.totalAdded.toFixed(2)}</div>
+                        <div style="font-size: 28px; font-weight: 700;">${formatMoney(this.data.totalAdded)}</div>
                     </div>
                     <div>
                         <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Verifications</div>
@@ -91,7 +91,7 @@ class MonthlySummary {
                         ${this.data.topServices.map(([service, amount]) => `
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <span style="font-size: 13px;">${service}</span>
-                                <span style="font-weight: 600;">$${amount.toFixed(2)}</span>
+                                <span style="font-weight: 600;">${formatMoney(amount)}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -122,11 +122,11 @@ class MonthlySummary {
                 ${this.data ? `
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
                         <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px;">
-                            <div style="font-size: 24px; font-weight: 700; color: #d97706;">$${this.data.totalSpent.toFixed(2)}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #d97706;">${formatMoney(this.data.totalSpent)}</div>
                             <div style="font-size: 12px; color: #92400e; margin-top: 4px;">Total Spent</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #d1fae5; border-radius: 8px;">
-                            <div style="font-size: 24px; font-weight: 700; color: #059669;">$${this.data.totalAdded.toFixed(2)}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #059669;">${formatMoney(this.data.totalAdded)}</div>
                             <div style="font-size: 12px; color: #065f46; margin-top: 4px;">Credits Added</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #dbeafe; border-radius: 8px;">
@@ -145,7 +145,7 @@ class MonthlySummary {
                                             <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FE3C72, #E0245E); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">${i + 1}</div>
                                             <span style="font-weight: 600;">${service}</span>
                                         </div>
-                                        <span style="font-weight: 700; color: #f59e0b;">$${amount.toFixed(2)}</span>
+                                        <span style="font-weight: 700; color: #f59e0b;">${formatMoney(amount)}</span>
                                     </div>
                                 `).join('')}
                             </div>
@@ -154,7 +154,7 @@ class MonthlySummary {
 
                     <div style="text-align: center; padding: 16px; background: #f0f9ff; border-radius: 8px;">
                         <div style="font-size: 13px; color: #1e40af;">
-                            ${this.data.totalSpent > 0 ? `Average per verification: <strong>$${(this.data.totalSpent / this.data.verifications).toFixed(2)}</strong>` : 'No spending this month'}
+                            ${this.data.totalSpent > 0 ? `Average per verification: <strong>${formatMoney(this.data.totalSpent / this.data.verifications)}</strong>` : 'No spending this month'}
                         </div>
                     </div>
                 ` : '<div style="text-align: center; padding: 40px; color: #9ca3af;">Loading...</div>'}

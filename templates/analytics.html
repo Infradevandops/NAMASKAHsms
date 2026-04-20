@@ -711,7 +711,7 @@ endblock %}
             },
             dataLabels: {
                 enabled: true,
-                formatter: (val) => `$${val.toFixed(2)}`,
+                formatter: (val) => formatMoney(val),
                 style: { colors: ['#fff'] }
             },
             xaxis: {

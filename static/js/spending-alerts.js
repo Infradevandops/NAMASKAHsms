@@ -36,7 +36,7 @@ class SpendingAlerts {
                 <div style="font-size: 24px;">💰</div>
                 <div style="flex: 1;">
                     <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Spending Alert</div>
-                    <div style="font-size: 13px; opacity: 0.95;">You've spent $${current.toFixed(2)} this month (threshold: $${threshold})</div>
+                    <div style="font-size: 13px; opacity: 0.95;">You've spent ${formatMoney(current)} this month (threshold: ${formatMoney(threshold)})</div>
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; opacity: 0.8; padding: 0; line-height: 1;">&times;</button>
             </div>
@@ -62,7 +62,7 @@ class SpendingAlerts {
                 <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Spending Alert Thresholds</h4>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     ${this.thresholds.map(t => `
-                        <div style="padding: 8px 16px; background: white; border: 2px solid #e5e7eb; border-radius: 6px; font-weight: 600; color: #f59e0b;">$${t}</div>
+                        <div style="padding: 8px 16px; background: white; border: 2px solid #e5e7eb; border-radius: 6px; font-weight: 600; color: #f59e0b;">${formatMoney(t)}</div>
                     `).join('')}
                 </div>
                 <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">You'll be notified when your monthly spending reaches these amounts.</p>

@@ -13,15 +13,17 @@ from app.services.textverified_service import TextVerifiedService
 
 router = APIRouter(prefix="/pricing", tags=["Pricing"])
 
+_tv_service = TextVerifiedService()
+
 
 async def _get_provider_price(service: str) -> Optional[float]:
     """Look up real provider price from cache/API."""
     try:
-        tv = TextVerifiedService()
-        services = await tv.get_services_list()
+        services = await _tv_service.get_services_list()
         for s in services:
             if s["id"] == service:
-                return s.get("price")
+                price = s.get("price")
+                return price if price is not None and price > 0 else None
     except Exception:
         pass
     return None

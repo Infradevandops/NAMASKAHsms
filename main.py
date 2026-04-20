@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
 from app.api.core.gdpr import router as gdpr_router
+from app.api.core.google_oauth import router as google_oauth_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
@@ -159,6 +160,9 @@ def create_app() -> FastAPI:
 
     # GDPR endpoints
     fastapi_app.include_router(gdpr_router)
+
+    # Google OAuth endpoints
+    fastapi_app.include_router(google_oauth_router)
 
     # Auth endpoints
     fastapi_app.include_router(auth_router)

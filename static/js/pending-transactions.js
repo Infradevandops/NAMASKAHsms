@@ -53,7 +53,7 @@ class PendingTransactions {
                                 <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${new Date(tx.created_at).toLocaleString()}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; color: #f59e0b;">$${Math.abs(tx.amount || 0).toFixed(2)}</div>
+                                <div style="font-weight: 700; color: #f59e0b;">${formatMoney(Math.abs(tx.amount || 0))}</div>
                                 <div style="font-size: 10px; color: #d97706; text-transform: uppercase; margin-top: 2px;">Processing</div>
                             </div>
                         </div>

@@ -583,23 +583,23 @@ async function updatePricing() {
       <div class="pricing-breakdown">
         <div class="pricing-line">
           <span>Base price:</span>
-          <span>$${pricing.base_price.toFixed(2)}</span>
+          <span>${formatMoney(pricing.base_price)}</span>
         </div>
         ${pricing.area_code_premium > 0 ? `
           <div class="pricing-line">
             <span>Area code premium:</span>
-            <span>+$${pricing.area_code_premium.toFixed(2)}</span>
+            <span>+${formatMoney(pricing.area_code_premium)}</span>
           </div>
         ` : ''}
         ${pricing.carrier_premium > 0 ? `
           <div class="pricing-line">
             <span>Carrier premium:</span>
-            <span>+$${pricing.carrier_premium.toFixed(2)}</span>
+            <span>+${formatMoney(pricing.carrier_premium)}</span>
           </div>
         ` : ''}
         <div class="pricing-line total">
           <span>Total:</span>
-          <span>$${pricing.total_price.toFixed(2)}</span>
+          <span>${formatMoney(pricing.total_price)}</span>
         </div>
       </div>
     `;
@@ -699,7 +699,7 @@ async function loadRentalsView() {
     if (rentals.length === 0) {
       rentalsListEl.innerHTML = '<div class="empty-state" style="padding: 60px 20px; text-align: center;"><i class="ph ph-phone" style="font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px;"></i><h3 style="margin: 0 0 8px 0;">No Active Rentals</h3><p style="color: var(--gray-500); margin: 0;">You don\'t have any active phone rentals yet.</p></div>';
     } else {
-      rentalsListEl.innerHTML = rentals.map(r => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(r.phone_number || 'N/A')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(r.service_name || 'Unknown')}</div></div><div style="text-align: right;"><div style="font-weight: 600;">$${(r.cost || 0).toFixed(2)}</div></div></div>`).join('');
+      rentalsListEl.innerHTML = rentals.map(r => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(r.phone_number || 'N/A')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(r.service_name || 'Unknown')}</div></div><div style="text-align: right;"><div style="font-weight: 600;">${formatMoney(r.cost || 0)}</div></div></div>`).join('');
     }
   } catch (error) {
     logError('loadRentalsView', error);
@@ -723,7 +723,7 @@ async function loadWalletView() {
     if (transactions.length === 0) {
       transactionsListEl.innerHTML = '<div class="empty-state" style="padding: 60px 20px; text-align: center;"><i class="ph ph-receipt" style="font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px;"></i><h3 style="margin: 0 0 8px 0;">No Transactions</h3><p style="color: var(--gray-500); margin: 0;">Your transaction history will appear here.</p></div>';
     } else {
-      transactionsListEl.innerHTML = transactions.map(tx => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(tx.type || 'Transaction')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(tx.description || '')}</div></div><div style="text-align: right; color: ${tx.amount >= 0 ? '#10b981' : '#ef4444'};">${tx.amount >= 0 ? '+' : ''}$${Math.abs(tx.amount || 0).toFixed(2)}</div></div>`).join('');
+      transactionsListEl.innerHTML = transactions.map(tx => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(tx.type || 'Transaction')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(tx.description || '')}</div></div><div style="text-align: right; color: ${tx.amount >= 0 ? '#10b981' : '#ef4444'};">${tx.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(tx.amount || 0))}</div></div>`).join('');
     }
   } catch (error) {
     logError('loadWalletView', error);

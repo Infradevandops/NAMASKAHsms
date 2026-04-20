@@ -71,6 +71,10 @@ class Settings(BaseSettings):
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 
+    # Google OAuth settings
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+
     # Multi-provider SMS settings
     telnyx_api_key: Optional[str] = None
     telnyx_enabled: bool = False

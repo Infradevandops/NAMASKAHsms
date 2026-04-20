@@ -170,8 +170,8 @@ class DashboardWidget {
             progress.style.width = `${Math.min(percentage, 100)}%`;
             progress.className = `quota-progress ${percentage >= 100 ? 'exceeded' : percentage >= 80 ? 'warning' : 'ok'}`;
         }
-        if (usedEl) usedEl.textContent = used.toFixed(2);
-        if (remainingEl) remainingEl.textContent = Math.max(0, total - used).toFixed(2);
+        if (usedEl) usedEl.textContent = (typeof formatMoney === 'function') ? formatMoney(used) : used.toFixed(2);
+        if (remainingEl) remainingEl.textContent = (typeof formatMoney === 'function') ? formatMoney(Math.max(0, total - used)) : Math.max(0, total - used).toFixed(2);
     }
 
     updateTier(tier, features) {

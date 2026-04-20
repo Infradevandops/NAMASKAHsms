@@ -1388,7 +1388,7 @@
                         html += `<tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 12px; font-size: 14px;">${formatDate(payment.created_at)}</td>
                         <td style="padding: 12px; font-size: 14px; font-family: monospace;">${escapeHtml(payment.reference || '-')}</td>
-                        <td style="padding: 12px; font-size: 14px; font-weight: 600;">$${(payment.amount_usd || payment.amount || 0).toFixed(2)}</td>
+                        <td style="padding: 12px; font-size: 14px; font-weight: 600;">${formatMoney(payment.amount_usd || payment.amount || 0)}</td>
                         <td style="padding: 12px;"><span style="color: ${statusColor}; font-size: 13px;">${escapeHtml(payment.status || 'unknown')}</span></td>
                         <td style="padding: 12px; text-align: right;">
                             ${canRefund ? `<button class="btn btn-secondary" onclick="showRefundModal('${payment.id || payment.reference}', '${payment.reference}', ${payment.amount_usd || payment.amount || 0})" style="padding: 4px 12px; font-size: 12px;">Request Refund</button>` : ''}
@@ -1446,7 +1446,7 @@
                                 <div style="font-size: 12px; color: var(--text-muted);">${formatDate(refund.initiated_at || refund.created_at)}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 600;">$${(refund.amount || 0).toFixed(2)}</div>
+                                <div style="font-weight: 600;">${formatMoney(refund.amount || 0)}</div>
                                 <div style="font-size: 12px; color: ${statusColor};">${escapeHtml(refund.status || 'pending')}</div>
                             </div>
                         </div>
@@ -1465,7 +1465,7 @@
         function showRefundModal(paymentId, reference, amount) {
             currentRefundPaymentId = paymentId;
             document.getElementById('refund-payment-ref').textContent = reference;
-            document.getElementById('refund-payment-amount').textContent = `$${amount.toFixed(2)}`;
+            document.getElementById('refund-payment-amount').textContent = formatMoney(amount);
             document.getElementById('refund-reason').value = '';
             document.getElementById('refund-details').value = '';
             document.getElementById('refund-modal').style.display = 'flex';
@@ -2045,7 +2045,7 @@
                 const res = await fetch('/api/user/referrals', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (data.referral_code) document.getElementById('referral-url').value = `${window.location.origin}/register?ref=${data.referral_code}`;
-                if (data.total_earnings != null) document.getElementById('ref-total-earnings').textContent = '$' + data.total_earnings.toFixed(2);
+                if (data.total_earnings != null) document.getElementById('ref-total-earnings').textContent = formatMoney(data.total_earnings);
                 if (data.total_referrals != null) document.getElementById('ref-total-referrals').textContent = data.total_referrals;
                 if (data.bonus_credits != null) document.getElementById('ref-bonus-credits').textContent = data.bonus_credits;
                 const tbody = document.getElementById('referrals-list');

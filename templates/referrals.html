@@ -196,7 +196,7 @@
             if (statsRes.ok) {
                 const result = await statsRes.json();
                 const data = result.data;
-                document.getElementById('total-earnings').textContent = `$${data.total_earnings.toFixed(2)}`;
+                document.getElementById('total-earnings').textContent = formatMoney(data.total_earnings);
                 document.getElementById('total-referrals').textContent = data.total_referred;
                 document.getElementById('bonus-credits').textContent = data.bonus_credits;
                 document.getElementById('referral-url').value = data.referral_link;

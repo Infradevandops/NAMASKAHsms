@@ -72,7 +72,7 @@ async function loadServices() {
             allServices.forEach(service => {
                 const option = document.createElement('option');
                 option.value = service.id;
-                option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
+                option.textContent = `${service.name} - ${formatMoney(service.cost)}`;
                 select.appendChild(option);
             });
             
@@ -110,7 +110,7 @@ async function loadServices() {
         allServices.forEach(service => {
             const option = document.createElement('option');
             option.value = service.id;
-            option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
+            option.textContent = `${service.name} - ${formatMoney(service.cost)}`;
             select.appendChild(option);
         });
         
@@ -169,7 +169,7 @@ function setupSearchListener() {
          onmouseover="this.style.background='#f9fafb'"
          onmouseout="this.style.background='white'">
         <div style="font-weight: 600; color: #1f2937;">${s.name}</div>
-        <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">$${s.cost.toFixed(2)} per verification</div>
+        <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">${formatMoney(s.cost)} per verification</div>
     </div>
     `;
         }).join('');
@@ -189,11 +189,11 @@ function setupSearchListener() {
 function selectService(id, name, cost) {
     selectedService = id;
     document.getElementById('service-search').value = name;
-    document.getElementById('service-cost').textContent = `$${cost.toFixed(2)}`;
+    document.getElementById('service-cost').textContent = formatMoney(cost);
     document.getElementById('service-dropdown').style.display = 'none';
     document.getElementById('purchase-btn').disabled = false;
     document.getElementById('purchase-btn').textContent = 'Get SMS Code';
-    console.log(`Selected: ${name} ($${cost})`);
+    console.log(`Selected: ${name} (${formatMoney(cost)})`);
 
     // Update favorite button
     const btn = document.getElementById('favorite-btn');
@@ -254,8 +254,8 @@ async function updatePricePreview() {
         });
 
         if (res.data && res.data.total_price) {
-            costDisplay.textContent = `$${res.data.total_price.toFixed(2)}`;
-            console.log(`[Pricing] Base: $${res.data.provider_cost}, Total: $${res.data.total_price}`);
+            costDisplay.textContent = formatMoney(res.data.total_price);
+            console.log(`[Pricing] Base: ${formatMoney(res.data.provider_cost)}, Total: ${formatMoney(res.data.total_price)}`);
         }
     } catch (error) {
         console.error('[Pricing] Failed to update preview:', error);

@@ -35,15 +35,15 @@ class PricingCalculator:
         if not filters:
             filters = {}
 
-        user = db.query(User).filter(User.id == user_id).first()
-        tier_name = user.subscription_tier
-
         # Provider price is the single source of truth
         if provider_price is None or provider_price <= 0:
             raise ValueError(
                 "Cannot calculate price: provider price unavailable for this service. "
                 "Please try again or contact support."
             )
+
+        user = db.query(User).filter(User.id == user_id).first()
+        tier_name = user.subscription_tier
 
         settings = get_settings()
         base_cost = round(provider_price * settings.price_markup, 2)
@@ -98,21 +98,21 @@ class PricingCalculator:
     def validate_balance(
         db: Session, user_id: str, cost: float, tier: Optional[str] = None
     ) -> bool:
-        """Check if user has sufficient balance."""
+        """Check if user has sufficient balance.
+
+        - Freemium/PAYG: needs credits >= cost
+        - Pro/Custom within quota: always passes (subscription covers it)
+        - Pro/Custom over quota: needs credits >= overage portion
+        """
         user = db.query(User).filter(User.id == user_id).first()
         resolved_tier = tier or user.subscription_tier
 
-        if resolved_tier == "freemium":
-            return user.bonus_sms_balance >= 1
-
         if resolved_tier in ("pro", "custom"):
-            usage = QuotaService.get_monthly_usage(db, user_id, tier=resolved_tier)
-            quota_remaining = usage["remaining"]
-            if quota_remaining >= cost:
-                return True
             overage = QuotaService.calculate_overage(
                 db, user_id, cost, tier=resolved_tier
             )
+            if overage <= 0:
+                return True  # within quota, subscription covers it
             return user.credits >= overage
 
         return user.credits >= cost
@@ -148,9 +148,7 @@ class PricingCalculator:
             "quota_used": quota_info["quota_used"],
             "quota_remaining": quota_info["remaining"],
             "user_balance": user.credits,
-            "bonus_sms": (
-                user.bonus_sms_balance if user.subscription_tier == "freemium" else 0
-            ),
+
             "sufficient_balance": PricingCalculator.validate_balance(
                 db, user_id, cost_info["total_cost"]
             ),
