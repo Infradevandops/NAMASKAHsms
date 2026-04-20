@@ -152,7 +152,7 @@ class VerificationManager {
         const country = document.getElementById('country-select').value;
 
         if (!service || !country) {
-            document.getElementById('estimated-cost').textContent = '$0.00';
+            document.getElementById('estimated-cost').textContent = formatMoney(0);
             return;
         }
 

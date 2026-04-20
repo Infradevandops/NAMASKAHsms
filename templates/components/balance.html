@@ -35,7 +35,7 @@ async function loadBalance(silent = false) {
     try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-            display.textContent = '$0.00';
+            display.textContent = formatMoney(0);
             return;
         }
         
@@ -62,11 +62,11 @@ async function loadBalance(silent = false) {
             const balance = data.balance || data.credits || 0;
             display.textContent = formatMoney(parseFloat(balance));
         } else {
-            display.textContent = '$0.00';
+            display.textContent = formatMoney(0);
         }
     } catch (error) {
         console.error('Balance load error:', error);
-        display.textContent = '$0.00';
+        display.textContent = formatMoney(0);
     } finally {
         display.classList.remove('loading');
     }

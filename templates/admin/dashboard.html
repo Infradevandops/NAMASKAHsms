@@ -259,7 +259,7 @@
             document.getElementById('stat-users').textContent = totalUsers;
             document.getElementById('stat-success').textContent = users.filter(u => u.tier !== 'payg').length;
             document.getElementById('stat-pending').textContent = users.filter(u => !u.tier_expires_at).length;
-            document.getElementById('stat-revenue').textContent = '$' + (users.reduce((sum, u) => sum + u.credits, 0) / 100).toFixed(2);
+            document.getElementById('stat-revenue').textContent = formatMoney(users.reduce((sum, u) => sum + u.credits, 0) / 100);
         }
         
         function renderUsers(users) {
