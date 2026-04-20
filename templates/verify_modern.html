@@ -531,7 +531,6 @@ function renderImmersiveList(type, query = '') {
 function renderImmersiveItem(item, isPinned) {
     if (_modalType === 'service') {
         const iconUrl = _getServiceIcon(item.value);
-        const costDisplay = (item.price && item.price > 0) ? formatMoney(item.price) : '';
         return `
             <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
                 <div class="list-item-icon">
@@ -540,7 +539,6 @@ function renderImmersiveItem(item, isPinned) {
                 <div class="list-item-info">
                     <div class="list-item-name">${item.label}</div>
                 </div>
-                <div class="list-item-cost">${costDisplay}</div>
                 <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
                     <i class="ph${isPinned ? '-fill' : ''} ph-push-pin"></i>
                 </div>
