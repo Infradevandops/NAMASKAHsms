@@ -2,7 +2,7 @@
 # Lightweight alternative to Datadog
 
 # Error tracking (FREE tier: 5K errors/month)
-sentry-sdk[fastapi]==1.40.0
+sentry-sdk[fastapi]==1.45.1
 
 # Structured logging
 structlog==24.1.0
