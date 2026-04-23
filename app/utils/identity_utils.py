@@ -3,6 +3,7 @@
 import hashlib
 from typing import Optional
 
+
 def format_admin_identity(user_email: str, google_id: Optional[str] = None, internal_id: Optional[str] = None) -> str:
     """
     Format user identity for admin display according to institutional rules:

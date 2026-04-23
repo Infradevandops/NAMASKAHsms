@@ -5,16 +5,17 @@ Handles User Vitality, Margin Drift, and Advanced Revenue Forensics.
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
-from sqlalchemy import and_, case, func, text, desc
+
+from sqlalchemy import and_, case, desc, func, text
 from sqlalchemy.orm import Session
 
+from app.core.logging import get_logger
+from app.models.price_snapshot import PriceSnapshot
+from app.models.pricing_template import PricingHistory, PricingTemplate
+from app.models.purchase_outcome import PurchaseOutcome
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
-from app.models.purchase_outcome import PurchaseOutcome
-from app.models.price_snapshot import PriceSnapshot
-from app.models.pricing_template import PricingTemplate, PricingHistory
-from app.core.logging import get_logger
 from app.utils.identity_utils import format_admin_identity, get_short_id
 
 logger = get_logger(__name__)
