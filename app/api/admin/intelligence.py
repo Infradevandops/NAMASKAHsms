@@ -1,14 +1,14 @@
 """Admin Operational Intelligence endpoints."""
 
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 from app.services.operational_intelligence_service import OperationalIntelligenceService
-from fastapi import HTTPException
 
 router = APIRouter()
 

@@ -139,7 +139,9 @@ async def lifespan(app):
                 while True:
                     try:
                         from app.core.database import SessionLocal
-                        from app.services.target_tracking_service import TargetTrackingService
+                        from app.services.target_tracking_service import (
+                            TargetTrackingService,
+                        )
                         
                         async with SessionLocal() as db:
                             service = TargetTrackingService(db)

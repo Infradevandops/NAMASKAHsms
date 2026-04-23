@@ -1,6 +1,7 @@
 """Database models package."""
 
 from .activity import Activity
+from .admin_notification import AdminNotification
 from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
 from .analytics import (
     AnalyticsCache,
@@ -10,14 +11,12 @@ from .analytics import (
     VerificationEvent,
     VerificationStatistics,
 )
-from .admin_notification import AdminNotification
-from .monthly_target import MonthlyTarget
-from .daily_user_snapshot import DailyUserSnapshot
 from .api_key import APIKey  # Import from separate api_key module
 from .balance_transaction import BalanceTransaction
 from .base import Base, BaseModel
 from .carrier_analytics import CarrierAnalytics
 from .commission import CommissionTier, PayoutRequest, RevenueShare
+from .daily_user_snapshot import DailyUserSnapshot
 from .device_token import DeviceToken
 from .dispute import Dispute
 from .enterprise import EnterpriseAccount, EnterpriseTier
@@ -27,6 +26,7 @@ from .financial_statement import (
     FinancialStatement,
     OperatingMetrics,
 )
+from .monthly_target import MonthlyTarget
 from .notification import Notification
 from .notification_preference import (
     NotificationPreference,

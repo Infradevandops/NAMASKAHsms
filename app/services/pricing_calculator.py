@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.tier_config import TierConfig
 from app.models.user import User
-from app.services.quota_service import QuotaService
 from app.services.pricing_template_service import PricingTemplateService
+from app.services.quota_service import QuotaService
 
 
 class PricingCalculator:
