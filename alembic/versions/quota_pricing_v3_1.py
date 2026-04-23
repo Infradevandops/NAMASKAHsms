@@ -118,9 +118,9 @@ def upgrade():
                 VALUES (:name, :price, :quota, :rate, :limit, :features, CURRENT_TIMESTAMP)
             """), {"name": tier, "price": price, "quota": quota, "rate": rate, "limit": api_limit, "features": features})
         else:
-            connection.execute(sa.text(f"""
+            connection.execute(sa.text("""
                 INSERT INTO tiers (tier_name, monthly_price, included_quota, overage_rate, api_keys_limit, features, created_at)
-                VALUES (:name, :price, :quota, :rate, :limit, :features::jsonb, CURRENT_TIMESTAMP)
+                VALUES (:name, :price, :quota, :rate, :limit, CAST(:features AS jsonb), CURRENT_TIMESTAMP)
                 ON CONFLICT (tier_name) DO UPDATE SET
                     monthly_price = :price, included_quota = :quota, overage_rate = :rate, api_keys_limit = :limit
             """), {"name": tier, "price": price, "quota": quota, "rate": rate, "limit": api_limit, "features": features})
