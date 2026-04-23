@@ -93,8 +93,35 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Install PostgreSQL client for pg_isready and psql
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          
           pip install -r requirements.txt
           pip install -r requirements/requirements-test.txt
+
+      - name: Initialize test database
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
+          ENVIRONMENT: testing
+          TESTING: '1'
+        run: |
+          # Wait for PostgreSQL to be ready
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          
+          # Create database if not exists
+          psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;" 2>/dev/null || echo "Database already exists"
+          
+          # Run migrations to ensure schema matches production
+          alembic upgrade head
+          
+          echo "✅ Test database initialized with migrations"
 
       - name: Run unit tests
         env:
