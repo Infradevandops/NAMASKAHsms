@@ -48,10 +48,28 @@ jobs:
       - name: Critical syntax check
         run: flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Code formatting
+      - name: Code formatting (parallel)
         run: |
-          black --check app/ --diff
-          isort --check-only app/ --profile black --diff
+          black --check app/ --quiet &
+          BLACK_PID=$!
+          isort --check-only app/ --profile black --quiet &
+          ISORT_PID=$!
+          
+          # Wait for both and capture exit codes
+          wait $BLACK_PID
+          BLACK_EXIT=$?
+          wait $ISORT_PID
+          ISORT_EXIT=$?
+          
+          # Exit with error if either failed
+          if [ $BLACK_EXIT -ne 0 ] || [ $ISORT_EXIT -ne 0 ]; then
+            echo "Code formatting check failed"
+            [ $BLACK_EXIT -ne 0 ] && echo "  - black check failed"
+            [ $ISORT_EXIT -ne 0 ] && echo "  - isort check failed"
+            exit 1
+          fi
+          
+          echo "✅ Code formatting checks passed"
 
   # Stage 2: Unit tests (only blocking check)
   tests:
@@ -90,15 +108,38 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements/requirements-test.txt
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/ms-playwright
+            /usr/bin/psql
+            /usr/bin/pg_isready
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/requirements*.txt') }}-${{ hashFiles('alembic/versions/*.py') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-${{ hashFiles('**/requirements*.txt') }}-
+            ${{ runner.os }}-deps-
 
       - name: Install dependencies
         run: |
-          # Install PostgreSQL client for pg_isready and psql
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          # Install PostgreSQL client only if not cached
+          if ! command -v psql &> /dev/null; then
+            echo "Installing PostgreSQL client..."
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          else
+            echo "PostgreSQL client already cached"
+          fi
           
-          pip install -r requirements.txt
-          pip install -r requirements/requirements-test.txt
+          # Use pip cache and pre-built wheels for faster installation
+          pip install --upgrade pip wheel
+          pip install -r requirements.txt --prefer-binary
+          pip install -r requirements/requirements-test.txt --prefer-binary
 
       - name: Initialize test database
         env:
@@ -137,15 +178,14 @@ jobs:
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
         run: |
-          pytest tests/unit/ -v \
+          pytest tests/unit/ -n auto \
             --cov=app \
             --cov-report=xml \
-            --cov-report=term-missing \
+            --cov-report=term-missing:skip-covered \
             --cov-fail-under=30 \
             --tb=short \
             --ignore=tests/unit/providers \
-            --continue-on-collection-errors \
-            --maxfail=5 2>&1 | tail -50 || true
+            --maxfail=5
 
 
 
