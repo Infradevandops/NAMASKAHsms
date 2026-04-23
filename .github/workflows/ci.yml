@@ -178,14 +178,17 @@ jobs:
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
         run: |
-          pytest tests/unit/ -n auto \
+          # Run tests with limited parallelism (2 workers) for database stability
+          # Full parallelism (-n auto) causes issues with SQLite in-memory databases
+          pytest tests/unit/ -n 2 \
+            --dist loadscope \
             --cov=app \
             --cov-report=xml \
             --cov-report=term-missing:skip-covered \
             --cov-fail-under=30 \
             --tb=short \
             --ignore=tests/unit/providers \
-            --maxfail=5
+            --maxfail=10
 
 
 
