@@ -7,6 +7,7 @@ from app.api.admin.audit_compliance import router as audit_compliance_router
 from app.api.admin.dashboard import router as dashboard_router
 from app.api.admin.dashboard_v2 import router as dashboard_v2_router
 from app.api.admin.export import router as export_router
+from app.api.admin.intelligence import router as intelligence_router
 from app.api.admin.logging_dashboard import router as logging_dashboard_router
 from app.api.admin.pricing_control import router as pricing_control_router
 from app.api.admin.refund_monitoring import router as refund_monitoring_router
@@ -34,6 +35,7 @@ router.include_router(export_router, prefix="/admin", tags=["Admin"])
 router.include_router(tier_management_router, prefix="/admin", tags=["Admin"])
 router.include_router(actions_router, prefix="/admin", tags=["Admin"])
 router.include_router(pricing_control_router, prefix="/admin", tags=["Admin"])
+router.include_router(intelligence_router, prefix="/admin", tags=["Admin"])
 router.include_router(verification_actions_router, prefix="/admin", tags=["Admin"])
 router.include_router(logging_dashboard_router, prefix="/admin", tags=["Admin"])
 router.include_router(refund_monitoring_router, prefix="/admin", tags=["Admin"])
