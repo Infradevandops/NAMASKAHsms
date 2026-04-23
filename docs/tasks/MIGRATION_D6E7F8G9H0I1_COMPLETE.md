@@ -102,10 +102,11 @@ Created isolated test that:
 ## Next Steps
 
 1. ✅ Migration created and verified
-2. ⏳ Run full test suite to confirm CI health
-3. ⏳ Deploy migration to production database
-4. ⏳ Update CI status documentation
-5. ⏳ Resume CI optimization work (Phase 1 completion)
+2. ✅ Pushed to repository (commit 2b891448)
+3. ⏳ Run full test suite to confirm CI health (awaiting CI)
+4. ⏳ Deploy migration to production database (after CI verification)
+5. ⏳ Update CI status documentation (after CI verification)
+6. ⏳ Resume CI optimization work (Phase 1 completion)
 
 ---
 
@@ -119,4 +120,6 @@ d6e7f8g9h0i1 (add transaction IDs to purchase_outcomes) ← NEW
 
 ---
 
-**Status**: Migration ready for deployment. Schema alignment verified. Tests passing.
+**Status**: ✅ Deployed to Repository - Awaiting CI Verification  
+**Commit**: 2b891448  
+**Date**: April 23, 2026
