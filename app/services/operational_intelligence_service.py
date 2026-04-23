@@ -171,6 +171,11 @@ class OperationalIntelligenceService:
             .order_by(text('hour'))
             .all()
         )
+        
+        return [
+            {"hour": int(h.hour), "count": h.attempts} for h in heatmap
+        ]
+
     async def get_forensic_history(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         """Fetch verification history with integrated margin drift (profit) forensics."""
         # Query verifications joined with their outcomes to get cost/platform price
@@ -238,9 +243,6 @@ class OperationalIntelligenceService:
             "history": forensics
         }
 
-        return [
-            {"hour": int(h.hour), "count": h.attempts} for h in heatmap
-        ]
 
     async def get_audit_trail(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Fetch all template activity and admin changes."""
