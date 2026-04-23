@@ -239,8 +239,8 @@
 
         async function loadApiKeys() {
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/auth/api-keys', {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                const response = await fetch('/api/keys/', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
@@ -322,8 +322,8 @@
             const name = document.getElementById('keyName').value;
             
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/auth/api-keys', {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                const response = await fetch('/api/keys/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -352,8 +352,8 @@
             if (!confirm('Delete this API key? This action cannot be undone.')) return;
             
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`/api/auth/api-keys/${keyId}`, {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                const response = await fetch(`/api/keys/${keyId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -374,24 +374,10 @@
             if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
             
             try {
-                const token = localStorage.getItem('token');
-                // First delete the old key
-                await fetch(`/api/auth/api-keys/${keyId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                // Create a new key with the same name
-                const keyName = prompt('Enter name for the new API key:');
-                if (!keyName) return;
-                
-                const response = await fetch('/api/auth/api-keys', {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                const response = await fetch(`/api/keys/${keyId}/rotate`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name: keyName })
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 const data = await response.json();

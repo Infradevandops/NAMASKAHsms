@@ -6,6 +6,7 @@ v5.0: Clean pricing model.
 No fallbacks. If the provider price is unknown, the purchase is blocked.
 """
 
+from decimal import Decimal
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -14,6 +15,7 @@ from app.core.config import get_settings
 from app.core.tier_config import TierConfig
 from app.models.user import User
 from app.services.quota_service import QuotaService
+from app.services.pricing_template_service import PricingTemplateService
 
 
 class PricingCalculator:
@@ -46,7 +48,20 @@ class PricingCalculator:
         tier_name = user.subscription_tier
 
         settings = get_settings()
-        base_cost = round(provider_price * settings.price_markup, 2)
+        
+        # Try to get markup from active pricing template
+        markup = Decimal(str(settings.price_markup))
+        try:
+            pt_service = PricingTemplateService(db)
+            active_template = pt_service.get_active_template()
+            if active_template and hasattr(active_template, 'markup_multiplier'):
+                markup = active_template.markup_multiplier
+        except Exception as e:
+            from app.core.logging import get_logger
+            get_logger(__name__).warning(f"Failed to get active template markup: {e}")
+
+        from decimal import Decimal
+        base_cost = round(float(Decimal(str(provider_price)) * markup), 2)
 
         if tier_name == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
@@ -62,7 +77,7 @@ class PricingCalculator:
             "total_cost": total_cost,
             "tier": tier_name,
             "provider_cost": provider_price,
-            "markup": settings.price_markup,
+            "markup": float(markup),
         }
 
     @staticmethod
@@ -85,13 +100,25 @@ class PricingCalculator:
             )
 
         settings = get_settings()
-        total_cost = round(provider_cost * settings.price_markup, 2)
+        
+        # Try to get markup from active pricing template
+        markup = Decimal(str(settings.price_markup))
+        try:
+            pt_service = PricingTemplateService(db)
+            active_template = pt_service.get_active_template()
+            if active_template and hasattr(active_template, 'markup_multiplier'):
+                markup = active_template.markup_multiplier
+        except Exception as e:
+            from app.core.logging import get_logger
+            get_logger(__name__).warning(f"Failed to get active template markup for rental: {e}")
+
+        total_cost = round(float(Decimal(str(provider_cost)) * markup), 2)
 
         return {
             "total_cost": total_cost,
             "duration_hours": duration_hours,
             "provider_cost": provider_cost,
-            "markup": settings.price_markup,
+            "markup": float(markup),
         }
 
     @staticmethod

@@ -133,6 +133,27 @@ async def lifespan(app):
 
             asyncio.create_task(start_rental_expiry_monitor())
             startup_logger.info("✅ Rental expiry monitor started (every 30 minutes)")
+
+            # Start daily growth snapshot loop (Institutional Mastery)
+            async def start_daily_snapshot_loop():
+                while True:
+                    try:
+                        from app.core.database import SessionLocal
+                        from app.services.target_tracking_service import TargetTrackingService
+                        
+                        async with SessionLocal() as db:
+                            service = TargetTrackingService(db)
+                            snapshot = await service.record_daily_snapshot()
+                            if snapshot:
+                                startup_logger.info(f"✅ Midnight growth snapshot recorded for {snapshot.snapshot_date}")
+                    except Exception as e:
+                        startup_logger.error(f"❌ Daily snapshot failed: {e}")
+                    
+                    # Sleep until next midnight (approx 24h)
+                    await asyncio.sleep(86400)
+
+            asyncio.create_task(start_daily_snapshot_loop())
+            startup_logger.info("✅ Daily growth snapshotting active (24h loop)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

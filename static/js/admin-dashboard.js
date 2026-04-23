@@ -78,8 +78,10 @@ async function loadDashboardData() {
         // Load recent verifications
         await loadRecentVerifications();
         
-        // Load pricing templates
-        await loadPricingTemplates();
+        // Load operational intelligence
+        if (window.IntelligenceManager) {
+            await IntelligenceManager.loadOverview();
+        }
         
         // Update system status
         updateSystemStatus();

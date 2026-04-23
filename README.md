@@ -1,6 +1,6 @@
 # Namaskah SMS Verification Platform
 
-**Version**: 4.4.1 - Carrier & Area Code Enforcement 🚀  
+**Version**: 4.4.2 - Code Quality & CI Improvements 🔧  
 **Status**: Production Ready  
 **Updated**: March 20, 2026
 
@@ -617,6 +617,11 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
   - ✅ Real-time retry notifications
   - ✅ Enhanced tracking (7 new fields)
   - ✅ 61 tests passing (100% coverage)
+- **v4.4.2** (Mar 20, 2026): Code Quality & CI Improvements
+  - ✅ Fixed critical circular import blocking tests
+  - ✅ CI pipeline restored (1,542 tests running)
+  - ✅ Platform status documented
+  - ✅ 18-month roadmap created
 
 ### Current & Upcoming
 

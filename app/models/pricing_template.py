@@ -15,7 +15,7 @@ from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.core.database import Base
+from app.models.base import Base
 
 # Use cross-dialect JSONB (Postgres) / JSON (SQLite)
 JSONB = JSON().with_variant(PostgresJSONB, "postgresql")
@@ -36,6 +36,10 @@ class PricingTemplate(Base):
     created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
     effective_date = Column(TIMESTAMP)
     expires_at = Column(TIMESTAMP)
+    markup_multiplier = Column(DECIMAL(10, 4), default=1.1000)
+    is_promotional = Column(Boolean, default=False)
+    discount_percentage = Column(DECIMAL(5, 2), default=0.00)
+    applies_to_services = Column(JSONB)  # List of service IDs if specific, null for all
     template_metadata = Column(JSONB)  # For A/B testing, notes, etc.
 
     # Relationships
