@@ -24,7 +24,7 @@ class AuditService:
         resource_id: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ) -> AuditLog:
         """Persist administrative or security action to the audit log."""
         log_entry = AuditLog(
@@ -34,17 +34,19 @@ class AuditService:
             resource_id=resource_id,
             ip_address=ip_address,
             user_agent=user_agent,
-            details=details or {}
+            details=details or {},
         )
-        
+
         self.db.add(log_entry)
         self.db.commit()
         self.db.refresh(log_entry)
-        
+
         logger.info(f"Audit Log Created: {action} on {resource_type} by User:{user_id}")
         return log_entry
 
-    async def get_system_audit_logs(self, limit: int = 100, offset: int = 0) -> List[AuditLog]:
+    async def get_system_audit_logs(
+        self, limit: int = 100, offset: int = 0
+    ) -> List[AuditLog]:
         """Fetch global audit logs for administrative review."""
         query = (
             select(AuditLog)
@@ -73,6 +75,7 @@ class AuditService:
                 "user_id": l.user_id,
                 "action": l.action,
                 "resource": f"{l.resource_type}:{l.resource_id or 'N/A'}",
-                "details": l.details
-            } for l in logs
+                "details": l.details,
+            }
+            for l in logs
         ]

@@ -54,8 +54,10 @@ class PricingTemplateService:
                 and_(
                     PricingTemplate.is_active.is_(True),
                     PricingTemplate.region == region,
-                    (PricingTemplate.effective_date <= now) | (PricingTemplate.effective_date == None),
-                    (PricingTemplate.expires_at >= now) | (PricingTemplate.expires_at == None)
+                    (PricingTemplate.effective_date <= now)
+                    | (PricingTemplate.effective_date == None),
+                    (PricingTemplate.expires_at >= now)
+                    | (PricingTemplate.expires_at == None),
                 )
             )
             .order_by(PricingTemplate.effective_date.desc().nulls_last())
@@ -189,9 +191,16 @@ class PricingTemplateService:
 
         # Whitelist of allowed fields to update (CWE-94 fix)
         ALLOWED_FIELDS = {
-            "name", "description", "currency", "metadata", 
-            "markup_multiplier", "effective_date", "expires_at", 
-            "is_promotional", "discount_percentage", "applies_to_services"
+            "name",
+            "description",
+            "currency",
+            "metadata",
+            "markup_multiplier",
+            "effective_date",
+            "expires_at",
+            "is_promotional",
+            "discount_percentage",
+            "applies_to_services",
         }
 
         # Update only whitelisted fields
@@ -218,7 +227,7 @@ class PricingTemplateService:
     def preview_template(self, template_id: int, test_prices: List[dict]) -> List[dict]:
         """
         Preview the impact of a template on a set of provider prices.
-        
+
         test_prices: List of {"service_id": str, "provider_cost": float}
         """
         template = self.get_template(template_id)
@@ -226,20 +235,23 @@ class PricingTemplateService:
             raise ValueError(f"Template {template_id} not found")
 
         from decimal import Decimal
+
         markup = template.markup_multiplier or Decimal("1.1000")
         results = []
-        
+
         for p in test_prices:
             provider_cost = Decimal(str(p["provider_cost"]))
             platform_price = (provider_cost * markup).quantize(Decimal("0.01"))
-            
-            results.append({
-                "service_id": p["service_id"],
-                "provider_cost": float(provider_cost),
-                "platform_price": float(platform_price),
-                "markup_multiplier": float(markup)
-            })
-            
+
+            results.append(
+                {
+                    "service_id": p["service_id"],
+                    "provider_cost": float(provider_cost),
+                    "platform_price": float(platform_price),
+                    "markup_multiplier": float(markup),
+                }
+            )
+
         return results
 
     def clone_template(

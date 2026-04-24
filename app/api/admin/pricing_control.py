@@ -64,7 +64,7 @@ async def create_pricing_template(
         description = data.pop("description", "")
         region = data.pop("region", "US")
         currency = data.pop("currency", "USD")
-        
+
         template = service.create_template(
             name=name,
             description=description,
@@ -72,7 +72,7 @@ async def create_pricing_template(
             currency=currency,
             tiers=tiers,
             admin_user_id=admin_id,
-            **data
+            **data,
         )
         return {"status": "success", "template": template.to_dict()}
     except ValueError as e:
@@ -143,6 +143,7 @@ async def get_provider_balance(
 ):
     """Fetch live balance from TextVerified."""
     from app.services.textverified_service import TextVerifiedService
+
     tv = TextVerifiedService()
     return await tv.get_balance()
 

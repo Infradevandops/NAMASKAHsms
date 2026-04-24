@@ -48,19 +48,21 @@ class PricingCalculator:
         tier_name = user.subscription_tier
 
         settings = get_settings()
-        
+
         # Try to get markup from active pricing template
         markup = Decimal(str(settings.price_markup))
         try:
             pt_service = PricingTemplateService(db)
             active_template = pt_service.get_active_template()
-            if active_template and hasattr(active_template, 'markup_multiplier'):
+            if active_template and hasattr(active_template, "markup_multiplier"):
                 markup = active_template.markup_multiplier
         except Exception as e:
             from app.core.logging import get_logger
+
             get_logger(__name__).warning(f"Failed to get active template markup: {e}")
 
         from decimal import Decimal
+
         base_cost = round(float(Decimal(str(provider_price)) * markup), 2)
 
         if tier_name == "freemium" and any(filters.values()):
@@ -100,17 +102,20 @@ class PricingCalculator:
             )
 
         settings = get_settings()
-        
+
         # Try to get markup from active pricing template
         markup = Decimal(str(settings.price_markup))
         try:
             pt_service = PricingTemplateService(db)
             active_template = pt_service.get_active_template()
-            if active_template and hasattr(active_template, 'markup_multiplier'):
+            if active_template and hasattr(active_template, "markup_multiplier"):
                 markup = active_template.markup_multiplier
         except Exception as e:
             from app.core.logging import get_logger
-            get_logger(__name__).warning(f"Failed to get active template markup for rental: {e}")
+
+            get_logger(__name__).warning(
+                f"Failed to get active template markup for rental: {e}"
+            )
 
         total_cost = round(float(Decimal(str(provider_cost)) * markup), 2)
 

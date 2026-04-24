@@ -24,4 +24,6 @@ class PriceSnapshot(BaseModel):
     source = Column(String(50), default="textverified")
 
     def __repr__(self):
-        return f"<PriceSnapshot(service='{self.service_id}', cost={self.provider_cost})>"
+        return (
+            f"<PriceSnapshot(service='{self.service_id}', cost={self.provider_cost})>"
+        )

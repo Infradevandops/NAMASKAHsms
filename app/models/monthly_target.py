@@ -10,7 +10,7 @@ class MonthlyTarget(BaseModel):
 
     __tablename__ = "monthly_targets"
 
-    month = Column(String(7), nullable=False, unique=True, index=True) # YYYY-MM
+    month = Column(String(7), nullable=False, unique=True, index=True)  # YYYY-MM
     target_count = Column(Integer, nullable=False, default=350)
     revenue_target = Column(Numeric(10, 2), nullable=False, default=4000.00)
     is_active = Column(Boolean, default=True, nullable=False)

@@ -142,15 +142,17 @@ async def lifespan(app):
                         from app.services.target_tracking_service import (
                             TargetTrackingService,
                         )
-                        
+
                         async with SessionLocal() as db:
                             service = TargetTrackingService(db)
                             snapshot = await service.record_daily_snapshot()
                             if snapshot:
-                                startup_logger.info(f"✅ Midnight growth snapshot recorded for {snapshot.snapshot_date}")
+                                startup_logger.info(
+                                    f"✅ Midnight growth snapshot recorded for {snapshot.snapshot_date}"
+                                )
                     except Exception as e:
                         startup_logger.error(f"❌ Daily snapshot failed: {e}")
-                    
+
                     # Sleep until next midnight (approx 24h)
                     await asyncio.sleep(86400)
 
