@@ -48,40 +48,53 @@ class ComplianceService:
 
     async def _assess_control(self, control_id: str) -> Dict[str, Any]:
         """Individual control assessment logic."""
-        
-        if control_id == "CC6": # Logical and Physical Access
-            unverified_admins = self.db.query(func.count(User.id)).filter(
-                User.is_admin == True, User.email_verified == False
-            ).scalar()
+
+        if control_id == "CC6":  # Logical and Physical Access
+            unverified_admins = (
+                self.db.query(func.count(User.id))
+                .filter(User.is_admin == True, User.email_verified == False)
+                .scalar()
+            )
             is_compliant = unverified_admins == 0
             return {
                 "compliant": is_compliant,
-                "evidence": ["Admin MFA Policy", f"Unverified Admins: {unverified_admins}"],
-                "description": "Ensures all administrative access is verified and authenticated."
+                "evidence": [
+                    "Admin MFA Policy",
+                    f"Unverified Admins: {unverified_admins}",
+                ],
+                "description": "Ensures all administrative access is verified and authenticated.",
             }
 
-        if control_id == "CC8": # Change Management
-            recent_changes = self.db.query(func.count(AuditLog.id)).filter(
-                AuditLog.created_at >= (datetime.now(timezone.utc) - timedelta(days=7))
-            ).scalar()
+        if control_id == "CC8":  # Change Management
+            recent_changes = (
+                self.db.query(func.count(AuditLog.id))
+                .filter(
+                    AuditLog.created_at
+                    >= (datetime.now(timezone.utc) - timedelta(days=7))
+                )
+                .scalar()
+            )
             is_compliant = recent_changes > 0
             return {
                 "compliant": is_compliant,
-                "evidence": [f"Recent Audit Logs: {recent_changes}", "Version Control System"],
-                "description": "Tracks all administrative and pricing changes via persistent logs."
+                "evidence": [
+                    f"Recent Audit Logs: {recent_changes}",
+                    "Version Control System",
+                ],
+                "description": "Tracks all administrative and pricing changes via persistent logs.",
             }
 
-        if control_id == "CC4": # Monitoring
+        if control_id == "CC4":  # Monitoring
             return {
                 "compliant": True,
                 "evidence": ["Live Monitoring Dashboard", "Elasticsearch Integration"],
-                "description": "Real-time visibility into system health and performance."
+                "description": "Real-time visibility into system health and performance.",
             }
 
         return {
             "compliant": True,
             "evidence": ["Standard Operating Procedures", "Hardware Inventory"],
-            "description": self.soc2_controls.get(control_id, "Security Control")
+            "description": self.soc2_controls.get(control_id, "Security Control"),
         }
 
     async def generate_audit_report(self) -> Dict[str, Any]:
@@ -98,6 +111,6 @@ class ComplianceService:
             "next_steps": [
                 "Address non-compliant controls immediately",
                 "Export AuditLog to cold storage for archival",
-                "Schedule external SOC2 audit review"
-            ]
+                "Schedule external SOC2 audit review",
+            ],
         }

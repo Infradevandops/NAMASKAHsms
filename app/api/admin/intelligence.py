@@ -64,6 +64,8 @@ async def get_audit_trail(
     """Get history of pricing and configuration changes."""
     service = OperationalIntelligenceService(db)
     return await service.get_audit_trail(limit=limit)
+
+
 @router.get("/intelligence/cohorts")
 async def get_cohort_retention(
     admin_id: str = Depends(require_admin),
@@ -71,6 +73,7 @@ async def get_cohort_retention(
 ):
     """Get 90-day weekly cohort retention data."""
     from app.services.cohort_service import CohortRetentionService
+
     service = CohortRetentionService(db)
     return await service.get_90d_retention_data()
 
@@ -85,6 +88,8 @@ async def get_forensic_history(
     """Get verification history with row-level profit forensics."""
     service = OperationalIntelligenceService(db)
     return await service.get_forensic_history(limit=limit, offset=offset)
+
+
 @router.get("/intelligence/targets")
 async def get_growth_targets(
     admin_id: str = Depends(require_admin),
@@ -92,6 +97,7 @@ async def get_growth_targets(
 ):
     """Get persistent growth targets and projections."""
     from app.services.target_tracking_service import TargetTrackingService
+
     service = TargetTrackingService(db)
     return await service.get_growth_projections()
 
@@ -103,6 +109,7 @@ async def get_compliance_report(
 ):
     """Generate institutional SOC 2 compliance report."""
     from app.services.compliance_service import ComplianceService
+
     service = ComplianceService(db)
     return await service.generate_audit_report()
 
@@ -116,5 +123,6 @@ async def get_audit_logs(
 ):
     """Fetch persistent system audit logs."""
     from app.services.audit_service import AuditService
+
     service = AuditService(db)
     return await service.get_system_audit_logs(limit=limit, offset=offset)

@@ -67,6 +67,7 @@ async def get_refund_analytics(
         return metrics
     except Exception as e:
         from app.core.logging import get_logger
+
         logger = get_logger(__name__)
         logger.error(f"Failed to get refund analytics: {str(e)}")
         raise HTTPException(

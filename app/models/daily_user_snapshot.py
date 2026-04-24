@@ -15,7 +15,7 @@ class DailyUserSnapshot(BaseModel):
     new_users = Column(Integer, nullable=False, default=0)
     active_users_24h = Column(Integer, nullable=False, default=0)
     daily_revenue = Column(Numeric(10, 2), nullable=False, default=0.00)
-    
+
     # Tier breakdown
     freemium_count = Column(Integer, default=0)
     payg_count = Column(Integer, default=0)
