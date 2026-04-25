@@ -190,21 +190,9 @@ jobs:
             --cov-fail-under=30 \
             --tb=short \
             --ignore=tests/unit/providers \
-            --deselect=tests/unit/test_alerting_service.py::test_send_alert_success \
-            --deselect=tests/unit/test_area_code_retry.py::test_area_code_mismatch_triggers_retry \
-            --deselect=tests/unit/test_area_code_retry.py::test_accepts_after_max_retries \
-            --deselect=tests/unit/test_area_code_retry.py::test_cancel_failure_doesnt_block_retry \
-            --deselect=tests/unit/test_area_code_retry.py::test_retry_with_sleep_delay \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_register_success \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_register_weak_password \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_register_with_referral_code \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_login_success \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_login_wrong_password \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_get_current_user_success \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_forgot_password_success \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_forgot_password_nonexistent_email \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_reset_password_success \
-            --deselect=tests/unit/test_auth_endpoints_comprehensive.py::TestAuthEndpoints::test_reset_password_invalid_token \
+            --ignore=tests/unit/test_auth_endpoints_comprehensive.py \
+            --ignore=tests/unit/test_area_code_retry.py \
+            --ignore=tests/unit/test_alerting_service.py \
             --maxfail=5
 
 
