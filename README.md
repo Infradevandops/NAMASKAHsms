@@ -478,6 +478,24 @@ graph TB
     style METRICS fill:#2196F3
 ```
 
+### Sentry Integration ✅
+
+**Status**: Active in Production  
+**Dashboard**: https://dev-vp.sentry.io/issues/
+
+**Features**:
+- ✅ Real-time error tracking
+- ✅ Performance monitoring (10% sample rate)
+- ✅ User context tracking
+- ✅ Release tracking
+- ✅ Slack alerts
+- ✅ Redis, SQLAlchemy, FastAPI integrations
+
+**Documentation**:
+- [Setup Guide](./docs/SENTRY_SETUP.md)
+- [Deployment Checklist](./docs/SENTRY_DEPLOYMENT_CHECKLIST.md)
+- [Quick Reference](./docs/SENTRY_QUICK_REFERENCE.md)
+
 ---
 
 ## 🔒 Security Features

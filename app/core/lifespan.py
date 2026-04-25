@@ -28,6 +28,10 @@ async def lifespan(app):
     startup_logger.info("🚀 Starting Namaskah SMS API...")
 
     try:
+        # Initialize Sentry for error tracking
+        from app.core.sentry import init_sentry
+        init_sentry()
+        
         # Initialize database
         startup_logger.info("Initializing database...")
         Base.registry.configure()

@@ -16,23 +16,25 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.threading import ThreadingIntegration
 
-from app.core.config import settings
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 
 def init_sentry():
     """Initialize Sentry for error tracking and monitoring."""
-    if not settings.SENTRY_DSN:
+    settings = get_settings()
+    
+    if not settings.sentry_dsn:
         logger.warning("Sentry DSN not configured, error tracking disabled")
         return
 
     sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        environment=settings.ENVIRONMENT,
-        release=settings.APP_VERSION,
-        traces_sample_rate=0.1,  # 10% of transactions
-        profiles_sample_rate=0.1,  # 10% of profiles
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
+        release=settings.version,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
+        profiles_sample_rate=settings.sentry_profiles_sample_rate,
         integrations=[
             FastApiIntegration(),
             SqlalchemyIntegration(),
@@ -60,7 +62,7 @@ def init_sentry():
         before_send=before_send_sentry,
     )
 
-    logger.info(f"Sentry initialized: {settings.ENVIRONMENT}")
+    logger.info(f"Sentry initialized: {settings.environment} v{settings.version}")
 
 
 def before_send_sentry(event, hint):

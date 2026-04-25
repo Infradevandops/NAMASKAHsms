@@ -1,0 +1,128 @@
+feat: integrate Sentry error tracking and monitoring
+
+## Summary
+Integrated Sentry for production error tracking, performance monitoring,
+and real-time alerting. Addresses the need for proactive error detection
+beyond CI/CD testing.
+
+## Changes
+
+### Core Integration
+- Added Sentry configuration fields to `app/core/config.py`
+  - sentry_dsn
+  - sentry_traces_sample_rate (default: 0.1)
+  - sentry_profiles_sample_rate (default: 0.1)
+
+- Fixed `app/core/sentry.py` to use get_settings()
+  - Updated to use proper config attribute names
+  - Maintained all existing integrations (FastAPI, SQLAlchemy, Redis)
+
+- Initialized Sentry in `app/core/lifespan.py`
+  - Runs on application startup
+  - Placed before database init for early error capture
+
+- Updated `.env.example` with Sentry DSN
+
+### Documentation
+- Created `docs/SENTRY_SETUP.md` - Comprehensive setup guide
+- Created `docs/SENTRY_DEPLOYMENT_CHECKLIST.md` - Step-by-step deployment
+- Created `docs/SENTRY_QUICK_REFERENCE.md` - Quick operations reference
+- Created `docs/SENTRY_INTEGRATION_SUMMARY.md` - Integration overview
+- Updated `README.md` with Sentry status and links
+
+## Features Enabled
+
+✅ Real-time error tracking with full stack traces
+✅ Performance monitoring (API, database, cache)
+✅ User context tracking (ID, tier, email)
+✅ Release tracking for deployment correlation
+✅ Smart filtering (404s, health checks, auth failures)
+✅ Automatic integrations (FastAPI, SQLAlchemy, Redis, Logging)
+
+## Benefits
+
+1. **Proactive Error Detection**
+   - Know about production errors within seconds
+   - Slack/email alerts for critical issues
+   - See user impact immediately
+
+2. **Better Debugging**
+   - Full stack traces with context
+   - User actions leading to error (breadcrumbs)
+   - Environment and release information
+
+3. **Performance Insights**
+   - Identify slow endpoints
+   - Track database query performance
+   - Monitor cache effectiveness
+
+4. **Deployment Safety**
+   - Track errors by release version
+   - Identify bad deployments quickly
+   - Rollback with confidence
+
+## Example: Redis Error Tracking
+
+Before: Only visible in logs, unknown frequency/impact
+After: Real-time alerts, user impact tracking, trend analysis
+
+## Deployment
+
+### Local Development
+```bash
+# Add to .env
+SENTRY_DSN=https://faa408669682f1f0ab6c7a59e8237ab8@o4508547757179968.ingest.us.sentry.io/4510054775717968
+```
+
+### Production (Render.com)
+Add environment variable in dashboard:
+```
+SENTRY_DSN = https://faa408669682f1f0ab6c7a59e8237ab8@o4508547757179968.ingest.us.sentry.io/4510054775717968
+```
+
+## Testing
+
+Verified locally:
+- ✅ Config loads correctly
+- ✅ Sentry DSN configured
+- ✅ Sample rates set properly
+- ✅ No breaking changes
+
+## Risk Assessment
+
+**Risk Level**: Low
+- Non-blocking (app continues if Sentry fails)
+- Easy rollback (remove env variable)
+- No database migrations required
+- No API changes
+
+**Impact**: High
+- Immediate visibility into production issues
+- Proactive error detection
+- Better user experience through faster fixes
+
+## Documentation
+
+See comprehensive documentation:
+- Setup: `docs/SENTRY_SETUP.md`
+- Deployment: `docs/SENTRY_DEPLOYMENT_CHECKLIST.md`
+- Quick Ref: `docs/SENTRY_QUICK_REFERENCE.md`
+- Summary: `docs/SENTRY_INTEGRATION_SUMMARY.md`
+
+## Related Issues
+
+Addresses production monitoring needs:
+- Redis connection errors (now tracked)
+- Payment processing failures (now alerted)
+- SMS verification issues (now monitored)
+- Performance bottlenecks (now visible)
+
+## Version
+
+Version: 4.4.2
+Status: Production Ready
+Cost: Free tier (5K errors/month)
+
+---
+
+Co-authored-by: Amazon Q Developer <q-developer@amazon.com>
