@@ -133,6 +133,9 @@ class Settings(BaseSettings):
     # Monitoring
     enable_metrics: bool = True
     metrics_port: int = 9090
+    sentry_dsn: Optional[str] = None
+    sentry_traces_sample_rate: float = 0.1
+    sentry_profiles_sample_rate: float = 0.1
 
     # Security headers
     enable_security_headers: bool = True
