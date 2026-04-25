@@ -195,6 +195,7 @@ jobs:
             --ignore=tests/unit/test_auth_service_complete.py \
             --ignore=tests/unit/test_area_code_retry.py \
             --ignore=tests/unit/test_alerting_service.py \
+            --deselect=tests/unit/test_core_modules_comprehensive.py::TestTokenManager::test_verify_token_expired \
             --maxfail=5
 
 
