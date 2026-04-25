@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def init_sentry():
     """Initialize Sentry for error tracking and monitoring."""
     settings = get_settings()
-    
+
     if not settings.sentry_dsn:
         logger.warning("Sentry DSN not configured, error tracking disabled")
         return

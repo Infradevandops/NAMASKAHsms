@@ -30,8 +30,9 @@ async def lifespan(app):
     try:
         # Initialize Sentry for error tracking
         from app.core.sentry import init_sentry
+
         init_sentry()
-        
+
         # Initialize database
         startup_logger.info("Initializing database...")
         Base.registry.configure()
