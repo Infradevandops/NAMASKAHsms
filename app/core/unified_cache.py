@@ -83,14 +83,17 @@ class UnifiedCacheManager:
                 decode_responses=True,
                 max_connections=20,
                 retry_on_timeout=True,
+                socket_connect_timeout=5,  # 5 second timeout
+                socket_timeout=5,
             )
+            # Test connection with timeout
             await self.redis_client.ping()
             self._connected = True
-            logger.info("Redis cache connected")
+            logger.info("✅ Redis cache connected")
         except Exception as e:
-            logger.warning(f"Redis connection failed, using in-memory cache: {e}")
+            logger.warning(f"⚠️ Redis connection failed, using in-memory cache: {e}")
             self.redis_client = None
-            self._connected = True
+            self._connected = True  # Mark as connected to use memory cache
 
     async def disconnect(self):
         """Disconnect from Redis."""
@@ -101,7 +104,11 @@ class UnifiedCacheManager:
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache (Redis first, then memory)."""
         if not self._connected:
-            await self.connect()
+            try:
+                await self.connect()
+            except Exception as e:
+                logger.warning(f"Cache connection failed during get: {e}")
+                return await self.memory_cache.get(key)
 
         # Try Redis first
         if self.redis_client:
@@ -109,8 +116,9 @@ class UnifiedCacheManager:
                 value = await self.redis_client.get(key)
                 if value:
                     return json.loads(value)
-            except Exception as e:
+            except (ConnectionError, TimeoutError, Exception) as e:
                 logger.warning(f"Redis get error: {e}")
+                # Fallback to memory cache on any Redis error
 
         # Fallback to memory cache
         return await self.memory_cache.get(key)
@@ -118,7 +126,11 @@ class UnifiedCacheManager:
     async def set(self, key: str, value: Any, ttl: Optional[int] = None):
         """Set value in cache (both Redis and memory)."""
         if not self._connected:
-            await self.connect()
+            try:
+                await self.connect()
+            except Exception as e:
+                logger.warning(f"Cache connection failed during set: {e}")
+                # Continue with memory cache only
 
         ttl = ttl or self.ttl_defaults["default"]
 
@@ -126,8 +138,9 @@ class UnifiedCacheManager:
         if self.redis_client:
             try:
                 await self.redis_client.setex(key, ttl, json.dumps(value, default=str))
-            except Exception as e:
+            except (ConnectionError, TimeoutError, Exception) as e:
                 logger.warning(f"Redis set error: {e}")
+                # Continue with memory cache
 
         # Always set in memory cache as backup
         await self.memory_cache.set(key, value, ttl)
