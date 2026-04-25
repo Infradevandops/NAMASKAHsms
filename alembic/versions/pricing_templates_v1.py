@@ -28,6 +28,11 @@ def upgrade():
     if "users" not in inspector.get_table_names():
         return
 
+    # Check if pricing_templates already exists (idempotent)
+    if "pricing_templates" in inspector.get_table_names():
+        print("⚠️ pricing_templates table already exists, skipping creation")
+        return
+
     # 1. Create pricing_templates table
     op.create_table(
         "pricing_templates",
