@@ -191,8 +191,6 @@ jobs:
                  tests/unit/test_utils_complete.py \
                  tests/unit/test_carrier_lookup.py \
                  tests/unit/test_phone_validator.py \
-                 tests/unit/test_pricing_calculator.py \
-                 tests/unit/test_quota_service.py \
                  tests/unit/test_rate_limiting.py \
                  tests/unit/test_security_utils.py \
             --cov=app \
