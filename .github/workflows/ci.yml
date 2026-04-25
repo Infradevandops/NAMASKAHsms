@@ -156,8 +156,9 @@ jobs:
             sleep 2
           done
           
-          # Create database if not exists
-          psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;" 2>/dev/null || echo "Database already exists"
+          # Drop and recreate database for clean state
+          psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS namaskah_test;"
+          psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;"
           
           # Run migrations to ensure schema matches production
           alembic upgrade head
