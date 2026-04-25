@@ -17,14 +17,14 @@ depends_on = None
 
 
 def upgrade():
-    # Add debit_transaction_id column
+    # Add debit_transaction_id column (String to match balance_transactions.id)
     op.add_column('purchase_outcomes', 
-        sa.Column('debit_transaction_id', sa.Integer(), nullable=True)
+        sa.Column('debit_transaction_id', sa.String(), nullable=True)
     )
     
-    # Add refund_transaction_id column
+    # Add refund_transaction_id column (String to match balance_transactions.id)
     op.add_column('purchase_outcomes',
-        sa.Column('refund_transaction_id', sa.Integer(), nullable=True)
+        sa.Column('refund_transaction_id', sa.String(), nullable=True)
     )
     
     # Add foreign key constraints
