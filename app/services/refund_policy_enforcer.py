@@ -56,8 +56,14 @@ class RefundPolicyEnforcer:
         """Enforce refund policy - find and refund all eligible verifications."""
         from app.core.database import SessionLocal
 
-        db = SessionLocal()
+        db = None
         try:
+            db = SessionLocal()
+            # Rollback any existing failed transactions
+            try:
+                db.rollback()
+            except Exception:
+                pass  # Ignore if no transaction to rollback
             # Find verifications that need refunds
             cutoff_time = datetime.now(timezone.utc) - timedelta(
                 seconds=self.timeout_threshold
@@ -111,12 +117,16 @@ class RefundPolicyEnforcer:
                 try:
                     # Update status if still pending
                     if verification.status == "pending":
-                        verification.status = "timeout"
-                        verification.outcome = "timeout"
-                        db.commit()
-                        logger.info(
-                            f"Updated stuck verification {verification.id} to timeout"
-                        )
+                        try:
+                            verification.status = "timeout"
+                            verification.outcome = "timeout"
+                            db.commit()
+                            logger.info(
+                                f"Updated stuck verification {verification.id} to timeout"
+                            )
+                        except Exception as commit_error:
+                            db.rollback()
+                            logger.error(f"Failed to update verification status: {commit_error}")
 
                     # Process refund
                     reason = verification.status
@@ -157,8 +167,17 @@ class RefundPolicyEnforcer:
 
         except Exception as e:
             logger.error(f"Refund enforcement failed: {e}", exc_info=True)
+            if db:
+                try:
+                    db.rollback()
+                except:
+                    pass
         finally:
-            db.close()
+            if db:
+                try:
+                    db.close()
+                except:
+                    pass
 
     async def enforce_single_verification(
         self, verification_id: str, db: Session

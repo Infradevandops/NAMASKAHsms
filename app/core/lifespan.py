@@ -118,10 +118,14 @@ async def lifespan(app):
             startup_logger.info("✅ SMS polling background service started")
 
             # Start refund policy enforcer (backup to polling service)
-            enforcer_task = asyncio.create_task(
-                refund_policy_enforcer.start_enforcement()
-            )
-            startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
+            try:
+                enforcer_task = asyncio.create_task(
+                    refund_policy_enforcer.start_enforcement()
+                )
+                startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
+            except Exception as e:
+                startup_logger.warning(f"⚠️  Refund policy enforcer failed to start: {e}")
+                # Continue startup even if enforcer fails
 
             # Start institutional health audit loop (V6.0 Mastery)
             from app.services.providers.provider_health_check import (
