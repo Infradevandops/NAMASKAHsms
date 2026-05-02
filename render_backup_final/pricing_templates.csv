@@ -1,0 +1,5 @@
+id,name,description,is_active,region,currency,created_at,created_by,effective_date,expires_at,metadata
+1,Standard Pricing,Current production pricing for US market,t,US,USD,2026-04-17 14:12:21.883405,,,,
+2,Holiday Sale,20% off all plans - Holiday promotion,f,US,USD,2026-04-17 14:12:21.883405,,2025-12-20 00:00:00,2026-01-05 00:00:00,
+3,EU Pricing,Standard pricing for European market with VAT,f,EU,EUR,2026-04-17 14:12:21.883405,,,,
+4,Test Pricing,A/B testing template - experimental pricing,f,US,USD,2026-04-17 14:12:21.883405,,,,"{""ab_test"": true, ""test_group"": ""A""}"

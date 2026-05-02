@@ -1,0 +1,6 @@
+user_id,amount,type,description,tier,service,filters,status,reference,idempotency_key,payment_log_id,id,created_at,updated_at
+2986207f-4e45-4249-91c3-e5e13bae6622,-2.5,sms_purchase,SMS verification for whatsapp,custom,whatsapp,,completed,sms_4b8fb9d1-e7ae-479e-99a0-92c8c72be315,,,15a3a7cd-0812-4922-80cc-84b846fe4b31,2026-04-17 14:14:06.019626,
+2986207f-4e45-4249-91c3-e5e13bae6622,-2.5,sms_purchase,SMS verification for whatsapp,custom,whatsapp,,completed,sms_6dff767f-a5ce-4fdf-90f6-9f1b9cdb579b,,,a1ee4775-aa01-485c-857c-04fe68eb358a,2026-04-17 15:17:51.777662,
+2986207f-4e45-4249-91c3-e5e13bae6622,-2.5,sms_purchase,SMS verification for whatsapp,custom,whatsapp,,completed,sms_d75a6ebe-1257-4130-8fcc-7b72b8aba6b9,,,e5958931-9163-4ef6-9975-6c38a04ce2aa,2026-04-17 15:22:09.585162,
+2986207f-4e45-4249-91c3-e5e13bae6622,-2.5,sms_purchase,SMS verification for whatsapp,custom,whatsapp,,completed,sms_c6059b37-c3ea-4bbe-a2df-1e1b865a941a,,,60c06b26-deab-4892-b3d2-a05ff5d27c87,2026-04-17 15:25:27.608877,
+2986207f-4e45-4249-91c3-e5e13bae6622,-0.2,sms_purchase,SMS verification for 009ibbq,custom,009ibbq,,completed,sms_59a00d81-d9e4-40c7-b038-c0568c7be6a1,,,cc782482-3196-40a4-b66e-ee222951b2cb,2026-04-18 00:02:32.276864,

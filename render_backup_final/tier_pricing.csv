@@ -1,0 +1,17 @@
+id,template_id,tier_name,monthly_price,included_quota,overage_rate,features,api_keys_limit,display_order
+1,1,payg_trial,0.00,0.00,2.50,"{""api_access"": false}",,1
+2,1,starter,8.99,5.00,0.50,"{""api_access"": true, ""api_keys_limit"": 5, ""area_code_selection"": true}",,2
+3,1,pro,25.00,15.00,0.30,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": 10, ""area_code_selection"": true}",,3
+4,1,custom,35.00,25.00,0.20,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": null, ""dedicated_support"": true, ""area_code_selection"": true}",,4
+5,2,payg_trial,0.00,0.00,2.50,"{""api_access"": false}",,1
+6,2,starter,7.19,5.00,0.50,"{""api_access"": true, ""api_keys_limit"": 5, ""area_code_selection"": true}",,2
+7,2,pro,20.00,15.00,0.30,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": 10, ""area_code_selection"": true}",,3
+8,2,custom,28.00,25.00,0.20,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": null, ""dedicated_support"": true, ""area_code_selection"": true}",,4
+9,3,payg_trial,0.00,0.00,2.30,"{""api_access"": false}",,1
+10,3,starter,8.49,5.00,0.45,"{""api_access"": true, ""api_keys_limit"": 5, ""area_code_selection"": true}",,2
+11,3,pro,23.00,15.00,0.28,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": 10, ""area_code_selection"": true}",,3
+12,3,custom,32.00,25.00,0.18,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": null, ""dedicated_support"": true, ""area_code_selection"": true}",,4
+13,4,payg_trial,0.00,0.00,2.50,"{""api_access"": false}",,1
+14,4,starter,9.99,6.00,0.45,"{""api_access"": true, ""api_keys_limit"": 5, ""area_code_selection"": true}",,2
+15,4,pro,27.00,18.00,0.28,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": 10, ""area_code_selection"": true}",,3
+16,4,custom,39.00,30.00,0.18,"{""api_access"": true, ""isp_filtering"": true, ""api_keys_limit"": null, ""dedicated_support"": true, ""area_code_selection"": true}",,4

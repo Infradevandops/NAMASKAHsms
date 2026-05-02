@@ -1,0 +1,4 @@
+id,tier_name,monthly_price,included_quota,overage_rate,single_sms_rate,api_keys_limit,features,created_at
+1,turbo,25.00,30.00,2.20,,10,"[""area_code_selection"", ""isp_filtering"", ""api_access""]",2026-04-17 14:12:21.883405
+2,pro,49.00,65.00,2.10,,,"[""area_code_selection"", ""isp_filtering"", ""api_access"", ""priority_support""]",2026-04-17 14:12:21.883405
+3,custom,,,2.00,,,"[""all""]",2026-04-17 14:12:21.883405

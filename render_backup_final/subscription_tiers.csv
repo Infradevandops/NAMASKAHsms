@@ -1,0 +1,5 @@
+tier,name,description,price_monthly,payment_required,quota_usd,overage_rate,has_api_access,has_area_code_selection,has_isp_filtering,api_key_limit,daily_verification_limit,monthly_verification_limit,country_limit,sms_retention_days,support_level,features,rate_limit_per_minute,rate_limit_per_hour,id,created_at,updated_at
+freemium,Freemium,Free tier with pay-per-use pricing,0,f,,2.22,f,f,f,0,10,100,5,7,community,,5,50,freemium-001,2026-04-17 23:16:34.357591,2026-04-17 23:16:34.357591
+payg,Pay-As-You-Go,"No monthly fee, pay per verification",0,f,,2.5,f,t,t,0,50,500,10,14,community,,10,100,payg-001,2026-04-17 23:16:34.357591,2026-04-17 23:16:34.357591
+pro,Pro,Professional tier with monthly quota,25,t,15,0.3,t,t,t,10,200,2000,20,30,priority,,20,200,pro-001,2026-04-17 23:16:34.357591,2026-04-17 23:16:34.357591
+custom,Custom,Custom tier with enhanced quota,35,t,25,0.2,t,t,t,999,500,5000,50,90,dedicated,,50,500,custom-001,2026-04-17 23:16:34.357591,2026-04-17 23:16:34.357591
