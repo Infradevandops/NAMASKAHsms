@@ -137,12 +137,6 @@ async def lifespan(app):
                 "✅ Institutional health audit loop started (every 4 hours)"
             )
 
-            # Start rental expiry monitor (V6.0)
-            from app.services.rental_service import start_rental_expiry_monitor
-
-            asyncio.create_task(start_rental_expiry_monitor())
-            startup_logger.info("✅ Rental expiry monitor started (every 30 minutes)")
-
             # Start daily growth snapshot loop (Institutional Mastery)
             async def start_daily_snapshot_loop():
                 while True:
