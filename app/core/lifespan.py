@@ -124,7 +124,9 @@ async def lifespan(app):
                 )
                 startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
             except Exception as e:
-                startup_logger.warning(f"⚠️  Refund policy enforcer failed to start: {e}")
+                startup_logger.warning(
+                    f"⚠️  Refund policy enforcer failed to start: {e}"
+                )
                 # Continue startup even if enforcer fails
 
             # Start institutional health audit loop (V6.0 Mastery)

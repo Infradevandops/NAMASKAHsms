@@ -126,7 +126,9 @@ class RefundPolicyEnforcer:
                             )
                         except Exception as commit_error:
                             db.rollback()
-                            logger.error(f"Failed to update verification status: {commit_error}")
+                            logger.error(
+                                f"Failed to update verification status: {commit_error}"
+                            )
 
                     # Process refund
                     reason = verification.status
