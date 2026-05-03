@@ -122,7 +122,7 @@ class EmailService:
         self,
         user_email: str,
         verification_token: str,
-        base_url: str = "https://namaskah.onrender.com",
+        base_url: str = "https://vrenum.onrender.com",
     ) -> bool:
         verify_url = f"{base_url}/api/auth/verify-email?token={verification_token}"
         html = f"""
@@ -141,7 +141,7 @@ class EmailService:
         self,
         user_email: str,
         reset_token: str,
-        base_url: str = "https://namaskah.onrender.com",
+        base_url: str = "https://vrenum.onrender.com",
     ) -> bool:
         reset_url = f"{base_url}/reset-password?token={reset_token}"
         html = f"""
