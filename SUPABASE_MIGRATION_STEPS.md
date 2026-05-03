@@ -3,7 +3,7 @@
 ## ✅ Your Supabase is Ready
 
 **Status**: Healthy ✅
-**Region**: Central EU (Frankfurt) 
+**Region**: Central EU (Frankfurt)
 **Connection**: `postgresql://postgres:rgW&X7}azUC@db.glhhmjqewgptmzqojtwx.supabase.co:5432/postgres`
 
 ---
@@ -30,7 +30,7 @@ Before the auto-redeploy happens, let's migrate your data:
 
 **Option A: From Render Dashboard**
 1. Go to your Render PostgreSQL database
-2. Click: **Backups** tab  
+2. Click: **Backups** tab
 3. Download latest backup
 4. Restore to Supabase (I'll help with this)
 

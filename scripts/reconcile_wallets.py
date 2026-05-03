@@ -31,17 +31,17 @@ logger = get_logger("reconcile")
 async def run_reconciliation(days_back: int = 30, dry_run: bool = True):
     # Ensure tables exist in the current environment/fallback
     create_tables()
-    
+
     db = SessionLocal()
     try:
         logger.info(f"Starting Financial Reconciliation (Days Back: {days_back}, Dry Run: {dry_run})")
-        
+
         refund_service = AutoRefundService(db)
         report = refund_service.reconcile_unrefunded_verifications(
             days_back=days_back,
             dry_run=dry_run
         )
-        
+
         print("\n=== RECONCILIATION REPORT ===")
         print(f"Total Failed Verifications: {report['total_failed']}")
         print(f"Already Refunded:          {report['already_refunded']}")
@@ -50,10 +50,10 @@ async def run_reconciliation(days_back: int = 30, dry_run: bool = True):
         print(f"Errors:                    {report['refund_errors']}")
         print(f"Total Credited Back:      ${report['total_amount_refunded']:.2f}")
         print("==============================\n")
-        
+
         if report['needs_refund'] > 0 and dry_run:
             print("To execute refunds, run with --execute flag.")
-            
+
     finally:
         db.close()
 
@@ -63,5 +63,5 @@ if __name__ == "__main__":
     parser.add_argument("--days", type=int, default=30, help="Days back to scan")
     parser.add_argument("--execute", action="store_true", help="Actually process refunds")
     args = parser.parse_args()
-    
+
     asyncio.run(run_reconciliation(days_back=args.days, dry_run=not args.execute))

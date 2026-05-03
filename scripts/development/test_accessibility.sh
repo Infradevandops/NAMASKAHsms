@@ -38,7 +38,7 @@ echo ""
 # Check if axe-core is available
 if command -v npm &> /dev/null; then
     echo "Installing accessibility testing tools..."
-    
+
     # Create package.json if it doesn't exist
     if [ ! -f "package.json" ]; then
         cat > package.json << EOF
@@ -58,7 +58,7 @@ if command -v npm &> /dev/null; then
 }
 EOF
     fi
-    
+
     echo "✅ Created package.json with accessibility tools"
 else
     echo "⚠️  npm not available - manual testing required"

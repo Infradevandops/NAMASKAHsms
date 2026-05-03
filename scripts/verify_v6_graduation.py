@@ -40,7 +40,7 @@ class V6GraduationTest(unittest.TestCase):
             self.assertIn("revenue", overview)
             self.assertIn("verifications", overview)
             self.assertIn("users", overview)
-        
+
         asyncio.run(run_audit())
 
     def test_rental_service_instantiation(self):

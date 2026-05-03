@@ -1,7 +1,7 @@
 # 🚀 NAMASKAH VISIONARY LANDING PAGE
 
-**Version**: 1.0  
-**Status**: Design Specification  
+**Version**: 1.0
+**Status**: Design Specification
 **Target**: Premium SMS Verification Platform
 
 ---
@@ -104,7 +104,7 @@ Animations: CSS + Alpine.js transitions
     <p class="text-xl text-zinc-400 mb-12">
       Real SIM cards. No VoIP. 100% success rate. Trusted by 10,000+ developers.
     </p>
-    
+
     <!-- CTAs -->
     <div class="flex gap-4 justify-center mb-16">
       <button class="bg-cyan-500 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-cyan-400 transition">
@@ -114,13 +114,13 @@ Animations: CSS + Alpine.js transitions
         View Docs
       </button>
     </div>
-    
+
     <!-- Search Bar -->
     <div x-data="{ search: '' }" class="relative max-w-2xl mx-auto">
       <i class="ph ph-magnifying-glass absolute left-6 top-6 text-zinc-500 text-xl"></i>
-      <input 
+      <input
         x-model="search"
-        type="text" 
+        type="text"
         placeholder="Which service do you need to verify?"
         class="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-6 text-xl focus:outline-none focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition"
         @keyup.enter="window.location.href='/verify?service=' + search"
@@ -164,7 +164,7 @@ Animations: CSS + Alpine.js transitions
 ```html
 <section class="py-24 max-w-7xl mx-auto px-6">
   <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-    
+
     <!-- Main Feature (8 cols) -->
     <div class="md:col-span-8 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:scale-[1.02] transition-transform overflow-hidden relative group">
       <div class="relative z-10">
@@ -189,7 +189,7 @@ Animations: CSS + Alpine.js transitions
       </div>
       <i class="ph ph-device-mobile absolute -right-10 top-10 text-[400px] opacity-5 group-hover:opacity-10 transition"></i>
     </div>
-    
+
     <!-- Privacy Card (4 cols) -->
     <div class="md:col-span-4 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:scale-[1.02] transition-transform flex flex-col justify-between">
       <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
@@ -200,7 +200,7 @@ Animations: CSS + Alpine.js transitions
         <p class="text-zinc-400">No personal info required. Pay with crypto and stay anonymous.</p>
       </div>
     </div>
-    
+
     <!-- API Card (4 cols) -->
     <div class="md:col-span-4 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:scale-[1.02] transition-transform flex flex-col justify-between">
       <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
@@ -211,7 +211,7 @@ Animations: CSS + Alpine.js transitions
         <p class="text-zinc-400">Integrate in minutes. Fetch numbers programmatically at speed.</p>
       </div>
     </div>
-    
+
     <!-- Live Availability (8 cols) -->
     <div class="md:col-span-8 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:scale-[1.02] transition-transform">
       <div class="flex justify-between items-center mb-8">
@@ -231,7 +231,7 @@ Animations: CSS + Alpine.js transitions
         </template>
       </div>
     </div>
-    
+
   </div>
 </section>
 ```
@@ -265,7 +265,7 @@ Animations: CSS + Alpine.js transitions
 <section class="py-24 max-w-7xl mx-auto px-6">
   <h2 class="text-5xl font-bold text-white text-center mb-4">Choose Your Plan</h2>
   <p class="text-xl text-zinc-400 text-center mb-16">Start free, upgrade as you grow</p>
-  
+
   <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
     {% for tier in tiers %}
     <div class="p-8 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:scale-105 hover:border-cyan-500/50 transition-all {% if tier.name == 'Starter' %}ring-2 ring-cyan-500{% endif %}">
@@ -326,7 +326,7 @@ Animations: CSS + Alpine.js transitions
 ```html
 <footer class="mt-20 border-t border-white/5 bg-black/50 backdrop-blur-xl pt-24 pb-12 px-6">
   <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
-    
+
     <!-- Brand -->
     <div class="col-span-2">
       <div class="flex items-center gap-2 font-bold text-xl mb-6">
@@ -345,7 +345,7 @@ Animations: CSS + Alpine.js transitions
         </a>
       </div>
     </div>
-    
+
     <!-- Platform -->
     <div>
       <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Platform</h4>
@@ -355,7 +355,7 @@ Animations: CSS + Alpine.js transitions
         <li><a href="/api" class="hover:text-cyan-400 transition">API</a></li>
       </ul>
     </div>
-    
+
     <!-- Resources -->
     <div>
       <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Resources</h4>
@@ -365,7 +365,7 @@ Animations: CSS + Alpine.js transitions
         <li><a href="/support" class="hover:text-cyan-400 transition">Support</a></li>
       </ul>
     </div>
-    
+
     <!-- Legal -->
     <div>
       <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Legal</h4>
@@ -376,7 +376,7 @@ Animations: CSS + Alpine.js transitions
       </ul>
     </div>
   </div>
-  
+
   <!-- Bottom Bar -->
   <div class="max-w-7xl mx-auto pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
     <p class="text-zinc-600 text-xs">© 2025 Namaskah. All rights reserved.</p>
@@ -405,16 +405,16 @@ Animations: CSS + Alpine.js transitions
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Namaskah - Premium SMS Verification</title>
-  
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  
+
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  
+
   <style>
     body { background: #000; color: #fff; font-family: 'Inter', sans-serif; }
   </style>
@@ -425,7 +425,7 @@ Animations: CSS + Alpine.js transitions
 </html>
 ```
 
-**Pros**: 
+**Pros**:
 - ✅ Open directly in browser
 - ✅ No server needed
 - ✅ Fast prototyping
@@ -447,7 +447,7 @@ Animations: CSS + Alpine.js transitions
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Namaskah - Premium SMS Verification</title>
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -461,13 +461,13 @@ Animations: CSS + Alpine.js transitions
     <a href="/auth/login">Login</a>
     {% endif %}
   </nav>
-  
+
   <!-- Hero -->
   <section>
     <h1>Instant SMS Verification</h1>
     <p>Trusted by {{ user_count|default(10000) }}+ developers</p>
   </section>
-  
+
   <!-- Bento Grid with Live Data -->
   <section>
     <div x-data="{ services: {{ services|tojson }} }">
@@ -476,7 +476,7 @@ Animations: CSS + Alpine.js transitions
       </template>
     </div>
   </section>
-  
+
   <!-- Pricing with Tiers -->
   <section>
     {% for tier in tiers %}
@@ -486,7 +486,7 @@ Animations: CSS + Alpine.js transitions
     </div>
     {% endfor %}
   </section>
-  
+
   <!-- Footer -->
   <footer>
     <p>© 2025 Namaskah</p>
@@ -501,15 +501,15 @@ Animations: CSS + Alpine.js transitions
 async def landing_page(request: Request, db: Session = Depends(get_db)):
     from app.models.tier import Tier
     from app.models.user import User
-    
+
     tiers = db.query(Tier).all()
     user_count = db.query(User).count()
-    
+
     # Fetch live services
     from app.services.textverified_integration import get_textverified_integration
     integration = get_textverified_integration()
     services = await integration.get_services_list()
-    
+
     return templates.TemplateResponse("landing_visionary.html", {
         "request": request,
         "tiers": tiers,
@@ -531,7 +531,7 @@ async def landing_page(request: Request, db: Session = Depends(get_db)):
 
 ### **OPTION 3: Hybrid (Best of Both)**
 
-**Development**: Static HTML for design  
+**Development**: Static HTML for design
 **Production**: Jinja2 template with Alpine.js
 
 **Workflow**:

@@ -1,7 +1,7 @@
 # 🚨 WHY THE REFUND SYSTEM FAILED - Root Cause Analysis
 
-**Date**: 2026-04-17  
-**Status**: SYSTEM EXISTS BUT NOT WORKING  
+**Date**: 2026-04-17
+**Status**: SYSTEM EXISTS BUT NOT WORKING
 **Severity**: CRITICAL
 
 ---
@@ -132,7 +132,7 @@ Result: User lost $10.00, no refunds issued
 grep -r "start_background_service\|sms_polling_service.start" app/
 ```
 
-**Likely issue:** 
+**Likely issue:**
 - Service not started in `main.py` startup event
 - Or service crashed and didn't restart
 - Or deployment doesn't start background tasks
@@ -201,7 +201,7 @@ grep "SMS polling service" logs/app.log
 @app.on_event("startup")
 async def startup_event():
     # ... existing startup code ...
-    
+
     # Start SMS polling service
     from app.services.sms_polling_service import sms_polling_service
     asyncio.create_task(sms_polling_service.start_background_service())
@@ -214,23 +214,23 @@ async def startup_event():
 # app/services/sms_service.py or verification creation
 def calculate_sms_cost(user: User, service: str) -> Decimal:
     tier = user.subscription_tier.lower()
-    
+
     if tier == "custom":
         if user.monthly_usage >= 25.00:
             return Decimal("0.20")  # Overage
         return Decimal("0.00")  # Within quota
-    
+
     elif tier == "pro":
         if user.monthly_usage >= 15.00:
             return Decimal("0.30")  # Overage
         return Decimal("0.00")  # Within quota
-    
+
     elif tier == "payg":
         return Decimal("2.50")
-    
+
     elif tier == "freemium":
         return Decimal("2.22")
-    
+
     return Decimal("2.50")  # Fallback
 ```
 
@@ -244,10 +244,10 @@ def calculate_sms_cost(user: User, service: str) -> Decimal:
 @router.get("/health/polling")
 async def polling_health():
     from app.services.sms_polling_service import sms_polling_service
-    
+
     active_polls = sms_polling_service.get_active_polls()
     is_running = sms_polling_service.is_running
-    
+
     return {
         "status": "healthy" if is_running else "unhealthy",
         "is_running": is_running,
@@ -264,26 +264,26 @@ async def reconcile_stuck_verifications():
     from app.services.auto_refund_service import AutoRefundService
     from app.core.database import SessionLocal
     from datetime import datetime, timedelta
-    
+
     db = SessionLocal()
     refund_service = AutoRefundService(db)
-    
+
     # Find verifications >10 minutes old still pending
     cutoff = datetime.utcnow() - timedelta(minutes=10)
-    
+
     stuck = db.query(Verification).filter(
         Verification.status == "pending",
         Verification.created_at < cutoff
     ).all()
-    
+
     for v in stuck:
         # Mark as timeout
         v.status = "timeout"
         db.commit()
-        
+
         # Process refund
         await refund_service.process_verification_refund(v.id, "timeout")
-    
+
     db.close()
 ```
 
@@ -300,16 +300,16 @@ async def check_refund_health():
     """Alert if refunds are failing."""
     from app.models.verification import Verification
     from datetime import datetime, timedelta
-    
+
     # Check last hour
     cutoff = datetime.utcnow() - timedelta(hours=1)
-    
+
     failed = db.query(Verification).filter(
         Verification.status.in_(["timeout", "failed"]),
         Verification.created_at >= cutoff,
         Verification.refunded == False  # Not refunded!
     ).count()
-    
+
     if failed > 0:
         # Send alert to admin
         await send_admin_alert(
@@ -326,7 +326,7 @@ async def check_refund_health():
 # Log every financial operation
 class TransactionLog(Base):
     __tablename__ = "transaction_logs"
-    
+
     id = Column(UUID, primary_key=True)
     user_id = Column(UUID, ForeignKey("users.id"))
     transaction_type = Column(String)  # CHARGE, REFUND, TOPUP
@@ -352,10 +352,10 @@ class TransactionLog(Base):
 async def test_timeout_triggers_refund():
     # Create verification
     v = await create_verification(user, "whatsapp")
-    
+
     # Wait for timeout (10 min)
     await asyncio.sleep(600)
-    
+
     # Check refund processed
     assert v.status == "timeout"
     assert v.refunded == True

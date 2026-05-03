@@ -1,7 +1,7 @@
 # Pricing Display Fix - "Market" Issue Resolved
 
-**Date**: April 19, 2026  
-**Status**: ✅ FIXED  
+**Date**: April 19, 2026
+**Status**: ✅ FIXED
 **Priority**: High - User Experience
 
 ---
@@ -122,5 +122,5 @@ curl https://namaskahsms.onrender.com/api/countries/US/services
 
 ---
 
-**Status**: Deployed ✅  
+**Status**: Deployed ✅
 **Next Deploy**: Will show prices instead of "Market"

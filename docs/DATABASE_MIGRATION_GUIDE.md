@@ -397,8 +397,8 @@ Replace:
 
 ---
 
-**Status**: ✅ Ready to Migrate  
-**Recommended**: Supabase  
-**Time**: 25 minutes  
-**Cost**: $0/month  
+**Status**: ✅ Ready to Migrate
+**Recommended**: Supabase
+**Time**: 25 minutes
+**Cost**: $0/month
 **Risk**: Low

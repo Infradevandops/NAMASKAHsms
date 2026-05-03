@@ -29,10 +29,10 @@ class I18nCurrencyIntegration {
             pro: { monthly: 25, quota: 15, overage: 0.30 },
             custom: { monthly: 35, quota: 25, overage: 0.20 }
         };
-        
+
         const tierData = pricing[tier] || {};
         const localized = {};
-        
+
         for (const [key, value] of Object.entries(tierData)) {
             if (typeof value === 'number' && key !== 'quota') {
                 localized[key] = this.formatPrice(value);
@@ -40,7 +40,7 @@ class I18nCurrencyIntegration {
                 localized[key] = value;
             }
         }
-        
+
         return localized;
     }
 
@@ -82,7 +82,7 @@ class I18nCurrencyIntegration {
                 this.i18n.t('tiers.features.priority_support')
             ]
         };
-        
+
         return features[tier] || [];
     }
 
@@ -92,7 +92,7 @@ class I18nCurrencyIntegration {
     formatQuota(used, total, tier) {
         const percentage = (used / total) * 100;
         const remaining = total - used;
-        
+
         return {
             used: used.toFixed(2),
             total: total.toFixed(2),

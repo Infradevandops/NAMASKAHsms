@@ -68,7 +68,7 @@ echo "📝 Step 5: Updating environment configuration..."
 if [ -f .env ]; then
     # Backup current .env
     cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
-    
+
     # Update DATABASE_URL
     if grep -q "^DATABASE_URL=" .env; then
         sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=$NEW_DATABASE_URL|" .env
@@ -82,7 +82,7 @@ fi
 # Update .env.production
 if [ -f .env.production ]; then
     cp .env.production .env.production.backup.$(date +%Y%m%d_%H%M%S)
-    
+
     if grep -q "^DATABASE_URL=" .env.production; then
         sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=$NEW_DATABASE_URL|" .env.production
         rm .env.production.bak

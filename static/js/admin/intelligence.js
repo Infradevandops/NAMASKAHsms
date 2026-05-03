@@ -23,12 +23,12 @@ const IntelligenceManager = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            
+
             // Basic Metrics
             document.getElementById('stat-total-users').textContent = data.overview.total_users;
             document.getElementById('stat-success-rate').textContent = `${data.overview.success_rate}%`;
             document.getElementById('stat-net-revenue').textContent = '$' + data.financial.net.toFixed(2);
-            
+
             // Load Vitality briefly for DAU
             const vitRes = await fetch('/api/admin/intelligence/vitality', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -65,14 +65,14 @@ const IntelligenceManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             const container = document.getElementById('load-heatmap');
             const max = Math.max(...data.map(h => h.count), 1);
-            
+
             container.innerHTML = data.map(h => `
-                <div class="heatmap-bar" 
-                     style="height: ${(h.count / max * 100)}%" 
-                     data-hour="${h.hour}" 
+                <div class="heatmap-bar"
+                     style="height: ${(h.count / max * 100)}%"
+                     data-hour="${h.hour}"
                      title="${h.count} attempts at ${h.hour}:00 UTC">
                 </div>
             `).join('');
@@ -85,7 +85,7 @@ const IntelligenceManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             // Signup Chart
             const ctx = document.getElementById('signupChart').getContext('2d');
             if (this.signupChart) this.signupChart.destroy();
@@ -125,7 +125,7 @@ const IntelligenceManager = {
     async loadAudit() {
         try {
             const token = this.getToken();
-            
+
             // Margin Drift
             const driftRes = await fetch('/api/admin/intelligence/audit/margin', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -133,7 +133,7 @@ const IntelligenceManager = {
             const driftData = await driftRes.json();
             document.getElementById('drift-count').textContent = driftData.incidents_count;
             document.getElementById('drift-total').textContent = '$' + driftData.total_leakage.toFixed(2);
-            
+
             const dBody = document.getElementById('drift-table');
             dBody.innerHTML = driftData.incidents.map(i => `
                 <tr>

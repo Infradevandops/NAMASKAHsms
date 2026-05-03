@@ -84,28 +84,28 @@ def upgrade():
     # 4. Seed / update tier data
     connection = op.get_bind()
     is_sqlite = connection.dialect.name == "sqlite"
- 
+
     # Helper to handle JSON casting
     json_cast = "" if is_sqlite else "::jsonb"
- 
+
     connection.execute(sa.text("""
         UPDATE tiers SET monthly_price = 0.00, included_quota = 5.00,
             overage_rate = NULL, single_sms_rate = NULL
         WHERE tier_name = 'trial'
     """))
- 
+
     connection.execute(sa.text("""
         UPDATE tiers SET monthly_price = 0.00, included_quota = 0.00,
             overage_rate = 2.50, single_sms_rate = 2.75
         WHERE tier_name IN ('payg', 'pay_as_you_go')
     """))
- 
+
     connection.execute(sa.text("""
         UPDATE tiers SET monthly_price = 8.99, included_quota = 10.00,
             overage_rate = 2.30, single_sms_rate = NULL
         WHERE tier_name = 'starter'
     """))
- 
+
     # Insert or Update tiers with cross-dialect JSON support
     for tier, price, quota, rate, api_limit, features in [
         ('turbo', 25.00, 30.00, 2.20, 10, '["area_code_selection", "isp_filtering", "api_access"]'),
@@ -124,7 +124,7 @@ def upgrade():
                 ON CONFLICT (tier_name) DO UPDATE SET
                     monthly_price = :price, included_quota = :quota, overage_rate = :rate, api_keys_limit = :limit
             """), {"name": tier, "price": price, "quota": quota, "rate": rate, "limit": api_limit, "features": features})
- 
+
     # 5+6. Only seed user quotas if subscription_tier column already exists
     user_cols = [c["name"] for c in inspector.get_columns("users")]
     if "subscription_tier" in user_cols:
@@ -144,7 +144,7 @@ def upgrade():
                 FROM tiers t
                 WHERE u.subscription_tier = t.tier_name
             """))
-            
+
         connection.execute(sa.text("""
             INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
             SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,

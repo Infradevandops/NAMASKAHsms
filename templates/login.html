@@ -251,7 +251,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const googleAuth = urlParams.get('google_auth');
-    
+
     if (token && googleAuth === 'success') {
         localStorage.setItem('access_token', token);
         document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
@@ -270,7 +270,7 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('saved_email');
         const remember = localStorage.getItem('remember_me') === 'true';
-        
+
         if (remember && savedEmail) {
             document.getElementById('email').value = savedEmail;
             document.getElementById('remember').checked = true;
@@ -347,7 +347,7 @@
     function togglePassword() {
         const input = document.getElementById('password');
         const icon = document.getElementById('eye-icon');
-        
+
         if (input.type === 'password') {
             input.type = 'text';
             icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';

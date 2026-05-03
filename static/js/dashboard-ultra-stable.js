@@ -30,9 +30,9 @@
     // ============================================
     // UTILITY FUNCTIONS
     // ============================================
-    
+
     function getAuthToken() {
-        return localStorage.getItem('access_token') || 
+        return localStorage.getItem('access_token') ||
                document.cookie.split('; ').find(row => row.startsWith('access_token='))?.split('=')[1];
     }
 
@@ -70,14 +70,14 @@
     function showToast(message, type = 'info') {
         // Remove existing toasts
         document.querySelectorAll('.toast-notification').forEach(t => t.remove());
-        
+
         const colors = {
             success: '#10b981',
             error: '#ef4444',
             warning: '#f59e0b',
             info: '#3b82f6'
         };
-        
+
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
         toast.style.cssText = `
@@ -96,9 +96,9 @@
             max-width: 400px;
         `;
         toast.textContent = message;
-        
+
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => toast.remove(), 300);
@@ -158,7 +158,7 @@
     // ============================================
     // BUTTON HANDLERS
     // ============================================
-    
+
     function initButtons() {
         // New Verification Button
         const newVerifyBtn = document.getElementById('new-verification-btn');
@@ -325,7 +325,7 @@
     // ============================================
     // STYLES
     // ============================================
-    
+
     function injectStyles() {
         if (document.getElementById('dashboard-ultra-styles')) return;
 
@@ -343,7 +343,7 @@
             @keyframes spin {
                 to { transform: rotate(360deg); }
             }
-            
+
             .modal {
                 position: fixed;
                 top: 0;
@@ -355,7 +355,7 @@
                 align-items: center;
                 justify-content: center;
             }
-            
+
             .modal-overlay {
                 position: absolute;
                 top: 0;
@@ -365,7 +365,7 @@
                 background: rgba(0, 0, 0, 0.5);
                 backdrop-filter: blur(4px);
             }
-            
+
             .modal-content {
                 position: relative;
                 background: white;
@@ -377,7 +377,7 @@
                 max-height: 90vh;
                 overflow-y: auto;
             }
-            
+
             .modal-header {
                 padding: 24px;
                 border-bottom: 1px solid #e5e7eb;
@@ -385,14 +385,14 @@
                 justify-content: space-between;
                 align-items: center;
             }
-            
+
             .modal-header h2 {
                 margin: 0;
                 font-size: 20px;
                 font-weight: 600;
                 color: #111827;
             }
-            
+
             .modal-close {
                 background: none;
                 border: none;
@@ -405,15 +405,15 @@
                 height: 32px;
                 transition: color 0.2s;
             }
-            
+
             .modal-close:hover {
                 color: #111827;
             }
-            
+
             .modal-body {
                 padding: 24px;
             }
-            
+
             .modal-footer {
                 padding: 16px 24px;
                 border-top: 1px solid #e5e7eb;
@@ -421,11 +421,11 @@
                 justify-content: flex-end;
                 gap: 12px;
             }
-            
+
             .form-group {
                 margin-bottom: 20px;
             }
-            
+
             .form-group label {
                 display: block;
                 margin-bottom: 8px;
@@ -433,7 +433,7 @@
                 color: #374151;
                 font-size: 14px;
             }
-            
+
             .form-control {
                 width: 100%;
                 padding: 10px 12px;
@@ -442,66 +442,66 @@
                 font-size: 14px;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
-            
+
             .form-control:focus {
                 outline: none;
                 border-color: #3b82f6;
                 box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
             }
-            
+
             .form-text {
                 display: block;
                 margin-top: 4px;
                 font-size: 12px;
                 color: #6b7280;
             }
-            
+
             .alert {
                 padding: 16px;
                 border-radius: 8px;
                 margin-bottom: 16px;
             }
-            
+
             .alert h4 {
                 margin: 0 0 12px 0;
                 font-size: 16px;
                 font-weight: 600;
             }
-            
+
             .alert p {
                 margin: 8px 0;
                 font-size: 14px;
             }
-            
+
             .alert-info {
                 background: #dbeafe;
                 border: 1px solid #93c5fd;
                 color: #1e40af;
             }
-            
+
             .alert-success {
                 background: #d1fae5;
                 border: 1px solid #6ee7b7;
                 color: #065f46;
             }
-            
+
             .alert-warning {
                 background: #fef3c7;
                 border: 1px solid #fcd34d;
                 color: #92400e;
             }
-            
+
             .verification-details p {
                 margin: 8px 0;
             }
-            
+
             .phone-number {
                 font-family: 'Courier New', monospace;
                 font-size: 16px;
                 font-weight: bold;
                 color: #059669;
             }
-            
+
             .status-badge {
                 display: inline-block;
                 padding: 4px 12px;
@@ -511,7 +511,7 @@
                 background: #fef3c7;
                 color: #92400e;
             }
-            
+
             .sms-code code {
                 display: inline-block;
                 padding: 8px 16px;
@@ -524,7 +524,7 @@
                 letter-spacing: 2px;
                 margin: 8px 0;
             }
-            
+
             .loading-spinner {
                 width: 24px;
                 height: 24px;
@@ -534,7 +534,7 @@
                 animation: spin 1s linear infinite;
                 margin: 12px auto;
             }
-            
+
             .btn {
                 padding: 10px 20px;
                 border: none;
@@ -544,35 +544,35 @@
                 cursor: pointer;
                 transition: all 0.2s;
             }
-            
+
             .btn:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
             }
-            
+
             .btn-primary {
                 background: #3b82f6;
                 color: white;
             }
-            
+
             .btn-primary:hover:not(:disabled) {
                 background: #2563eb;
             }
-            
+
             .btn-secondary {
                 background: #e5e7eb;
                 color: #374151;
             }
-            
+
             .btn-secondary:hover:not(:disabled) {
                 background: #d1d5db;
             }
-            
+
             .btn-success {
                 background: #10b981;
                 color: white;
             }
-            
+
             .btn-success:hover:not(:disabled) {
                 background: #059669;
             }
@@ -598,13 +598,13 @@
     // ============================================
     // INITIALIZATION
     // ============================================
-    
+
     function init() {
         console.log('🚀 Initializing Ultra-Stable Dashboard...');
-        
+
         injectStyles();
         initButtons();
-        
+
         console.log('✅ Dashboard initialized successfully');
         console.log('📱 All buttons are functional');
         console.log('🎯 Business flows ready');

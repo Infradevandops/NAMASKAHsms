@@ -24,21 +24,21 @@ CREATE TABLE IF NOT EXISTS analytics_cache (
     UNIQUE(user_id, period_start, period_end)
 );
 
-CREATE INDEX IF NOT EXISTS idx_analytics_cache_user_period 
+CREATE INDEX IF NOT EXISTS idx_analytics_cache_user_period
 ON analytics_cache(user_id, period_start, period_end);
 
-CREATE INDEX IF NOT EXISTS idx_analytics_cache_computed 
+CREATE INDEX IF NOT EXISTS idx_analytics_cache_computed
 ON analytics_cache(computed_at DESC);
 
 -- PART 2: Carrier Analytics Index Fix
 -- ============================================================================
 -- Check if carrier_analytics table exists and has carrier_name column
-DO $$ 
+DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='carrier_analytics') THEN
-        IF EXISTS (SELECT 1 FROM information_schema.columns 
+        IF EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name='carrier_analytics' AND column_name='carrier_name') THEN
-            CREATE INDEX IF NOT EXISTS idx_carrier_analytics_lookup 
+            CREATE INDEX IF NOT EXISTS idx_carrier_analytics_lookup
             ON carrier_analytics(carrier_name, created_at DESC);
         END IF;
     END IF;
@@ -54,10 +54,10 @@ CREATE TABLE IF NOT EXISTS verification_events (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_verification_events_verification 
+CREATE INDEX IF NOT EXISTS idx_verification_events_verification
 ON verification_events(verification_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_verification_events_type 
+CREATE INDEX IF NOT EXISTS idx_verification_events_type
 ON verification_events(event_type, created_at DESC);
 
 -- PART 4: Custom Reports Table (Future Enhancement)
@@ -76,11 +76,11 @@ CREATE TABLE IF NOT EXISTS custom_reports (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_custom_reports_user 
+CREATE INDEX IF NOT EXISTS idx_custom_reports_user
 ON custom_reports(user_id, enabled);
 
-CREATE INDEX IF NOT EXISTS idx_custom_reports_schedule 
-ON custom_reports(next_run) 
+CREATE INDEX IF NOT EXISTS idx_custom_reports_schedule
+ON custom_reports(next_run)
 WHERE enabled = TRUE;
 
 -- PART 5: Scheduled Reports Table
@@ -95,10 +95,10 @@ CREATE TABLE IF NOT EXISTS scheduled_reports (
     status VARCHAR DEFAULT 'pending' -- pending, sent, failed
 );
 
-CREATE INDEX IF NOT EXISTS idx_scheduled_reports_user 
+CREATE INDEX IF NOT EXISTS idx_scheduled_reports_user
 ON scheduled_reports(user_id, generated_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_scheduled_reports_status 
+CREATE INDEX IF NOT EXISTS idx_scheduled_reports_status
 ON scheduled_reports(status, generated_at DESC);
 
 -- PART 6: User Analytics Snapshots (Trend Analysis)
@@ -119,28 +119,28 @@ CREATE TABLE IF NOT EXISTS user_analytics_snapshots (
     UNIQUE(user_id, snapshot_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_analytics_snapshots_user_date 
+CREATE INDEX IF NOT EXISTS idx_user_analytics_snapshots_user_date
 ON user_analytics_snapshots(user_id, snapshot_date DESC);
 
 -- PART 7: Summary Report
 -- ============================================================================
-SELECT 
+SELECT
     'Migration Complete' AS status,
     (SELECT COUNT(*) FROM information_schema.columns WHERE table_name='verifications') AS verification_columns,
     (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE') AS total_tables,
     (SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public') AS total_indexes;
 
 -- Show new tables created
-SELECT 
+SELECT
     table_name,
     (SELECT COUNT(*) FROM information_schema.columns WHERE table_name=t.table_name) AS column_count
 FROM information_schema.tables t
-WHERE table_schema='public' 
+WHERE table_schema='public'
   AND table_type='BASE TABLE'
   AND table_name IN (
-      'analytics_cache', 
-      'verification_events', 
-      'custom_reports', 
+      'analytics_cache',
+      'verification_events',
+      'custom_reports',
       'scheduled_reports',
       'user_analytics_snapshots',
       'verification_statistics'

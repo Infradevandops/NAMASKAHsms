@@ -1,8 +1,8 @@
 # CI Optimization Plan - Faster Scans
 
-**Date**: April 23, 2026  
-**Current Build Time**: ~18 minutes (7 min blocking, 16 min E2E)  
-**Target Build Time**: ~4-5 minutes (blocking stages)  
+**Date**: April 23, 2026
+**Current Build Time**: ~18 minutes (7 min blocking, 16 min E2E)
+**Target Build Time**: ~4-5 minutes (blocking stages)
 **Potential Savings**: 40-60% faster
 
 ---
@@ -37,8 +37,8 @@ Total Pipeline Time: ~1,111s (18m 31s)
 ### **High Impact** (Save 40-60s)
 
 #### 1. Parallel Test Execution ⚡
-**Current**: Sequential test execution  
-**Improvement**: Run tests in parallel with pytest-xdist  
+**Current**: Sequential test execution
+**Improvement**: Run tests in parallel with pytest-xdist
 **Savings**: 40-50s (40-70% faster)
 
 ```yaml
@@ -58,8 +58,8 @@ Total Pipeline Time: ~1,111s (18m 31s)
 - Estimated time: 30-40s (from 70s)
 
 #### 2. Cache Dependencies Aggressively 💾
-**Current**: Partial pip caching  
-**Improvement**: Cache everything (pip, apt, playwright)  
+**Current**: Partial pip caching
+**Improvement**: Cache everything (pip, apt, playwright)
 **Savings**: 15-20s
 
 ```yaml
@@ -90,8 +90,8 @@ Total Pipeline Time: ~1,111s (18m 31s)
 - Playwright browsers: -60s (E2E only)
 
 #### 3. Optimize Dependency Installation 📦
-**Current**: Install all deps every time  
-**Improvement**: Split into layers, cache wheels  
+**Current**: Install all deps every time
+**Improvement**: Split into layers, cache wheels
 **Savings**: 10-15s
 
 ```yaml
@@ -102,7 +102,7 @@ Total Pipeline Time: ~1,111s (18m 31s)
       sudo apt-get update -qq
       sudo apt-get install -y -qq postgresql-client
     fi
-    
+
     # Use pip cache and pre-built wheels
     pip install --upgrade pip wheel
     pip install -r requirements.txt --prefer-binary
@@ -118,8 +118,8 @@ Total Pipeline Time: ~1,111s (18m 31s)
 ### **Medium Impact** (Save 20-30s)
 
 #### 4. Optimize Migration Execution 🗄️
-**Current**: Run all migrations every time  
-**Improvement**: Cache migrated DB schema  
+**Current**: Run all migrations every time
+**Improvement**: Cache migrated DB schema
 **Savings**: 5-8s
 
 ```yaml
@@ -147,8 +147,8 @@ Total Pipeline Time: ~1,111s (18m 31s)
 - Average savings: 5-7s
 
 #### 5. Reduce Test Verbosity 📝
-**Current**: `-v` verbose output, full coverage report  
-**Improvement**: Minimal output, summary only  
+**Current**: `-v` verbose output, full coverage report
+**Improvement**: Minimal output, summary only
 **Savings**: 3-5s
 
 ```yaml
@@ -169,14 +169,14 @@ Total Pipeline Time: ~1,111s (18m 31s)
 - Cleaner logs
 
 #### 6. Skip E2E on Non-Main Branches 🎯
-**Current**: E2E runs on main only (already optimized)  
-**Improvement**: Add PR label trigger  
+**Current**: E2E runs on main only (already optimized)
+**Improvement**: Add PR label trigger
 **Savings**: 0s (already optimal)
 
 ```yaml
 e2e-tests:
   if: |
-    github.ref == 'refs/heads/main' || 
+    github.ref == 'refs/heads/main' ||
     contains(github.event.pull_request.labels.*.name, 'run-e2e')
 ```
 
@@ -189,8 +189,8 @@ e2e-tests:
 ### **Low Impact** (Save 5-10s)
 
 #### 7. Optimize Code Quality Checks 🔍
-**Current**: Sequential linting  
-**Improvement**: Parallel linting  
+**Current**: Sequential linting
+**Improvement**: Parallel linting
 **Savings**: 3-5s
 
 ```yaml
@@ -207,8 +207,8 @@ e2e-tests:
 - Fail fast on first error
 
 #### 8. Use Faster GitHub Runners 💰
-**Current**: ubuntu-latest (2-core)  
-**Improvement**: ubuntu-latest-4-core or ubuntu-latest-8-core  
+**Current**: ubuntu-latest (2-core)
+**Improvement**: ubuntu-latest-4-core or ubuntu-latest-8-core
 **Savings**: 10-20s (costs $0.008/min vs $0.008/min)
 
 ```yaml
@@ -223,8 +223,8 @@ jobs:
 - Worth it for faster feedback
 
 #### 9. Optimize Secrets Scan 🔐
-**Current**: Full repo scan with fetch-depth: 0  
-**Improvement**: Scan only changed files  
+**Current**: Full repo scan with fetch-depth: 0
+**Improvement**: Scan only changed files
 **Savings**: 2-4s
 
 ```yaml
@@ -348,7 +348,7 @@ Total Pipeline:     453s (7m 33s)  ⚡ 59% faster
 - name: Install test dependencies
   run: |
     pip install pytest-xdist pytest-cov
-    
+
 - name: Run unit tests (parallel)
   run: |
     pytest tests/unit/ -n auto \
@@ -499,9 +499,9 @@ gh run list --workflow=ci.yml --limit 50 --json conclusion,createdAt,updatedAt |
 
 ---
 
-**Estimated Total Savings**: 60% faster (134s → 53s)  
-**Implementation Time**: 2-3 hours  
-**Cost Impact**: -$8/month (savings!)  
+**Estimated Total Savings**: 60% faster (134s → 53s)
+**Implementation Time**: 2-3 hours
+**Cost Impact**: -$8/month (savings!)
 **ROI**: Immediate (faster feedback, happier developers)
 
 ---

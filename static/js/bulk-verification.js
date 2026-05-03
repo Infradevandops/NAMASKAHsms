@@ -103,7 +103,7 @@ class BulkVerification {
                     <div class="alert alert-success mb-2">
                         <i class="fas fa-check-circle"></i>
                         <strong>${response.data.phone_number}</strong>
-                        <button class="btn btn-sm btn-outline-primary float-end" 
+                        <button class="btn btn-sm btn-outline-primary float-end"
                                 onclick="bulkVerification.copyNumber('${response.data.phone_number}')">
                             <i class="fas fa-copy"></i>
                         </button>
@@ -137,7 +137,7 @@ class BulkVerification {
 
     exportResults() {
         const csv = 'Phone Number,Service,Country,Status\n' +
-            this.verifications.map(v => 
+            this.verifications.map(v =>
                 `${v.phone_number},${v.service},${v.country},${v.status}`
             ).join('\n');
 
@@ -164,7 +164,7 @@ class BulkVerification {
 let bulkVerification;
 document.addEventListener('DOMContentLoaded', () => {
     bulkVerification = new BulkVerification();
-    
+
     // Setup quantity change listener
     document.getElementById('bulk-quantity')?.addEventListener('input', () => {
         bulkVerification.updateBulkEstimate();

@@ -1,7 +1,7 @@
 # Pricing System Analysis & Institutional-Grade Improvements
 
-**Status**: 🔴 CRITICAL - Current pricing system not institutional-grade  
-**Date**: March 20, 2026  
+**Status**: 🔴 CRITICAL - Current pricing system not institutional-grade
+**Date**: March 20, 2026
 **Version**: 4.4.1
 
 ---
@@ -16,7 +16,7 @@ The current pricing system uses **hardcoded "market" prices** with a **static 1.
 4. ❌ Transparent cost breakdown
 5. ❌ Competitive pricing intelligence
 
-**Current Flow**: `Hardcoded Base Price → Static Markup → User Price`  
+**Current Flow**: `Hardcoded Base Price → Static Markup → User Price`
 **Required Flow**: `Live Provider API → Dynamic Markup → Transparent User Price`
 
 ---
@@ -68,7 +68,7 @@ price_markup: float = 1.8  # 80% markup on all services
 # GOOD: Fetches real prices from TextVerified
 async def get_services_list(self) -> List[Dict[str, Any]]:
     services = await self.client.services.list(...)
-    
+
     # Fetches real price per service
     snap = await self.client.verifications.pricing(
         service_name=service_name,
@@ -104,7 +104,7 @@ async def get_services_list(self) -> List[Dict[str, Any]]:
 
 ### 1. **Real-Time Provider Pricing**
 
-**Current**: Hardcoded $2.50 base + static premiums  
+**Current**: Hardcoded $2.50 base + static premiums
 **Required**: Live pricing from provider APIs
 
 ```python
@@ -129,11 +129,11 @@ class ProviderPricingService:
                 capability=ReservationCapability.SMS,
             )
             return Decimal(str(snap.price))
-        
+
         # Telnyx (if enabled)
         elif provider == "telnyx":
             return await telnyx_client.get_pricing(service, country)
-        
+
         # FiveSim (if enabled)
         elif provider == "fivesim":
             return await fivesim_client.get_pricing(service, country)
@@ -141,7 +141,7 @@ class ProviderPricingService:
 
 ### 2. **Dynamic Markup Strategy**
 
-**Current**: 1.8x markup on everything  
+**Current**: 1.8x markup on everything
 **Required**: Service-specific, tier-aware, volume-based markup
 
 ```python
@@ -157,7 +157,7 @@ class DynamicMarkupService:
         availability_score: float
     ) -> Decimal:
         """Calculate dynamic markup based on multiple factors."""
-        
+
         # Base markup by tier
         base_markup = {
             "freemium": 2.2,  # 120% markup
@@ -165,29 +165,29 @@ class DynamicMarkupService:
             "pro": 1.5,       # 50% markup
             "custom": 1.3,    # 30% markup
         }[user_tier]
-        
+
         # Volume discount (higher volume = lower markup)
         volume_discount = min(monthly_volume / 1000 * 0.05, 0.3)  # Max 30% discount
-        
+
         # Popularity premium (popular services = higher markup)
         popularity_premium = service_popularity * 0.1  # Max 10% premium
-        
+
         # Scarcity premium (low availability = higher markup)
         scarcity_premium = (1 - availability_score) * 0.15  # Max 15% premium
-        
+
         final_markup = (
-            base_markup 
-            - volume_discount 
-            + popularity_premium 
+            base_markup
+            - volume_discount
+            + popularity_premium
             + scarcity_premium
         )
-        
+
         return max(final_markup, 1.2)  # Minimum 20% markup
 ```
 
 ### 3. **Multi-Provider Price Comparison**
 
-**Current**: Only TextVerified  
+**Current**: Only TextVerified
 **Required**: Compare prices across all enabled providers
 
 ```python
@@ -200,22 +200,22 @@ class MultiProviderPricingService:
         filters: dict
     ) -> Dict[str, Any]:
         """Get best price across all providers."""
-        
+
         providers = ["textverified"]
         if settings.telnyx_enabled:
             providers.append("telnyx")
         if settings.fivesim_enabled:
             providers.append("fivesim")
-        
+
         # Fetch prices from all providers concurrently
         prices = await asyncio.gather(*[
             self._get_provider_price(provider, service, country, filters)
             for provider in providers
         ])
-        
+
         # Find cheapest provider
         best = min(prices, key=lambda p: p["cost"])
-        
+
         return {
             "provider": best["provider"],
             "cost": best["cost"],
@@ -226,7 +226,7 @@ class MultiProviderPricingService:
 
 ### 4. **Transparent Cost Breakdown**
 
-**Current**: Single total_cost field  
+**Current**: Single total_cost field
 **Required**: Detailed breakdown of all cost components
 
 ```python
@@ -240,7 +240,7 @@ class PricingBreakdown:
     tier_discount: Decimal          # Tier-based discount
     volume_discount: Decimal        # Volume-based discount
     total_cost: Decimal             # Final price to user
-    
+
     # Transparency fields
     markup_percentage: float        # e.g., 80%
     savings_vs_market: Decimal      # How much user saves vs competitors
@@ -249,28 +249,28 @@ class PricingBreakdown:
 
 ### 5. **Price History & Analytics**
 
-**Current**: No price tracking  
+**Current**: No price tracking
 **Required**: Track price changes over time
 
 ```python
 # REQUIRED IMPLEMENTATION
 class PriceHistory(Base):
     __tablename__ = "price_history"
-    
+
     id = Column(Integer, primary_key=True)
     service = Column(String, nullable=False, index=True)
     provider = Column(String, nullable=False)
     country = Column(String, nullable=False)
-    
+
     # Pricing data
     provider_cost = Column(Numeric(10, 4), nullable=False)
     platform_price = Column(Numeric(10, 4), nullable=False)
     markup_percentage = Column(Float, nullable=False)
-    
+
     # Filters
     area_code = Column(String, nullable=True)
     carrier = Column(String, nullable=True)
-    
+
     # Metadata
     recorded_at = Column(DateTime, default=datetime.utcnow, index=True)
     source = Column(String, default="api")  # api, cache, fallback
@@ -387,16 +387,16 @@ CREATE TABLE provider_prices (
     country VARCHAR(10) NOT NULL,
     area_code VARCHAR(10),
     carrier VARCHAR(50),
-    
+
     -- Pricing
     cost NUMERIC(10, 4) NOT NULL,
     currency VARCHAR(10) DEFAULT 'USD',
-    
+
     -- Metadata
     fetched_at TIMESTAMP DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,
     source VARCHAR(20) DEFAULT 'api',
-    
+
     -- Indexes
     INDEX idx_provider_service (provider, service, country),
     INDEX idx_expires (expires_at)
@@ -407,22 +407,22 @@ CREATE TABLE markup_config (
     id SERIAL PRIMARY KEY,
     tier VARCHAR(20) NOT NULL,
     service VARCHAR(100),  -- NULL = applies to all services
-    
+
     -- Markup rules
     base_markup NUMERIC(5, 2) NOT NULL,  -- e.g., 1.80 = 80% markup
     min_markup NUMERIC(5, 2) DEFAULT 1.20,
     max_markup NUMERIC(5, 2) DEFAULT 3.00,
-    
+
     -- Modifiers
     volume_discount_enabled BOOLEAN DEFAULT TRUE,
     popularity_premium_enabled BOOLEAN DEFAULT TRUE,
     scarcity_premium_enabled BOOLEAN DEFAULT TRUE,
-    
+
     -- Metadata
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     created_by INTEGER REFERENCES users(id),
-    
+
     UNIQUE(tier, service)
 );
 
@@ -432,20 +432,20 @@ CREATE TABLE price_history (
     service VARCHAR(100) NOT NULL,
     provider VARCHAR(50) NOT NULL,
     country VARCHAR(10) NOT NULL,
-    
+
     -- Pricing snapshot
     provider_cost NUMERIC(10, 4) NOT NULL,
     platform_price NUMERIC(10, 4) NOT NULL,
     markup_percentage NUMERIC(5, 2) NOT NULL,
-    
+
     -- Filters
     area_code VARCHAR(10),
     carrier VARCHAR(50),
-    
+
     -- Metadata
     recorded_at TIMESTAMP DEFAULT NOW(),
     source VARCHAR(20) DEFAULT 'api',
-    
+
     INDEX idx_service_time (service, recorded_at),
     INDEX idx_provider_time (provider, recorded_at)
 );
@@ -490,31 +490,31 @@ base_cost = service_data["price"] if service_data else 2.50
 
 ### Priority 1: Fix Price Disconnect (1 day)
 
-**Problem**: Display price ≠ Charged price  
+**Problem**: Display price ≠ Charged price
 **Solution**: Use TextVerified prices in billing calculations
 
 ### Priority 2: Add Price Transparency (2 days)
 
-**Problem**: Users don't know why they're charged X amount  
+**Problem**: Users don't know why they're charged X amount
 **Solution**: Show cost breakdown in purchase preview
 
 ### Priority 3: Dynamic Markup (1 week)
 
-**Problem**: 1.8x markup on everything is not optimal  
+**Problem**: 1.8x markup on everything is not optimal
 **Solution**: Tier-aware, volume-based markup
 
 ### Priority 4: Multi-Provider (2 weeks)
 
-**Problem**: Locked into single provider pricing  
+**Problem**: Locked into single provider pricing
 **Solution**: Compare prices across Telnyx, FiveSim, etc.
 
 ---
 
 ## ROI Estimate
 
-**Implementation Cost**: 58 hours × $100/hr = $5,800  
-**Monthly Revenue Increase**: $10,000 × 20% = $2,000/month  
-**Payback Period**: 3 months  
+**Implementation Cost**: 58 hours × $100/hr = $5,800
+**Monthly Revenue Increase**: $10,000 × 20% = $2,000/month
+**Payback Period**: 3 months
 **Annual ROI**: 313%
 
 ---
@@ -590,11 +590,11 @@ class TierPricingModel:
         """
         markup = self.get_tier_markup(user_tier, service)
         final_cost = provider_cost * markup
-        
+
         # Check quota (all tiers)
         quota_used = self.get_monthly_quota_usage(user_id)
         quota_limit = self.get_tier_quota_limit(user_tier)
-        
+
         if quota_used < quota_limit:
             # Within quota - subscription covers it
             return Decimal("0.00")  # No charge to credits
@@ -625,7 +625,7 @@ class TierPricingModel:
 def calculate_overage(db, user_id, cost, tier):
     quota_used = usage["quota_used"]  # In USD
     quota_limit = usage["quota_limit"]  # In USD
-    
+
     if quota_used + cost > quota_limit:
         overage_amount = (quota_used + cost) - quota_limit  # USD over
         return overage_amount * overage_rate  # Multiply USD by rate???
@@ -644,10 +644,10 @@ class QuotaSystem:
     Quota should be in CREDITS (USD), not SMS count.
     Overage should charge FULL PRICE, not discounted rate.
     """
-    
+
     def calculate_charge(self, user_tier: str, sms_cost: Decimal) -> Decimal:
         quota_remaining = self.get_quota_remaining(user_id)
-        
+
         if quota_remaining >= sms_cost:
             # Within quota - deduct from quota, no credit charge
             self.deduct_from_quota(user_id, sms_cost)
@@ -746,10 +746,10 @@ class SubscriptionBillingService:
         user = self.get_user(user_id)
         tier_config = TierConfig.get_tier_config(user.subscription_tier)
         monthly_fee = tier_config["price_monthly"] / 100  # Convert cents to dollars
-        
+
         if monthly_fee == 0:
             return  # Free tier
-        
+
         # Charge via Paystack
         try:
             payment = await paystack.charge_authorization(
@@ -757,7 +757,7 @@ class SubscriptionBillingService:
                 amount=monthly_fee * 100,  # Convert to cents
                 email=user.email
             )
-            
+
             if payment.success:
                 # Extend subscription by 1 month
                 user.tier_expires_at = datetime.now() + timedelta(days=30)
@@ -768,11 +768,11 @@ class SubscriptionBillingService:
         except Exception as e:
             logger.error(f"Subscription charge failed: {e}")
             await self.handle_payment_failure(user_id)
-    
+
     async def handle_payment_failure(self, user_id: str):
         """Handle failed subscription payment."""
         user = self.get_user(user_id)
-        
+
         # Grace period: 3 days
         if user.payment_failed_at is None:
             user.payment_failed_at = datetime.now()
@@ -799,7 +799,7 @@ class TierConfig:
     def get_tier_config(cls, tier: str, db: Session = None) -> Dict:
         if not db:
             return cls._get_fallback_config(tier)  # Hardcoded
-        
+
         # Fetch from database
         result = db.execute("SELECT * FROM subscription_tiers WHERE tier = :tier")
         if not result:
@@ -832,15 +832,15 @@ class TierConfig:
     def get_tier_config(cls, tier: str, db: Session) -> Dict:
         if db is None:
             raise ValueError("Database session required - no fallback config")
-        
+
         result = db.execute(
             "SELECT * FROM subscription_tiers WHERE tier = :tier",
             {"tier": tier}
         )
-        
+
         if not result:
             raise ValueError(f"Tier '{tier}' not found in database")
-        
+
         return cls._parse_tier_row(result)
 
 # Initialize database with migration, not script
@@ -848,7 +848,7 @@ class TierConfig:
 def upgrade():
     op.execute("""
         INSERT INTO subscription_tiers (tier, name, price_monthly, ...)
-        VALUES 
+        VALUES
             ('freemium', 'Freemium', 0, ...),
             ('payg', 'Pay-As-You-Go', 0, ...),
             ('pro', 'Pro', 2500, ...),
@@ -889,10 +889,10 @@ class OveragePricing:
     def calculate_overage_charge(self, service: str, user_tier: str) -> Decimal:
         # Get real provider cost
         provider_cost = await textverified.get_service_price(service)
-        
+
         # Apply tier markup (same as regular pricing)
         markup = self.get_tier_markup(user_tier)
-        
+
         # Overage charges full price
         return provider_cost * markup
 
@@ -1015,7 +1015,7 @@ class OveragePricing:
 ALTER TABLE users DROP COLUMN bonus_sms_balance;
 
 -- Migrate existing bonus SMS to credits
-UPDATE users 
+UPDATE users
 SET credits = credits + (bonus_sms_balance * 2.50)
 WHERE bonus_sms_balance > 0;
 ```
@@ -1041,22 +1041,22 @@ ALTER TABLE subscription_tiers ADD COLUMN included_credits DECIMAL(10, 2) DEFAUL
 ALTER TABLE subscription_tiers ADD COLUMN markup_multiplier DECIMAL(5, 2) DEFAULT 1.8;
 
 -- Update tier data
-UPDATE subscription_tiers SET 
+UPDATE subscription_tiers SET
     included_credits = 2.50,
     markup_multiplier = 2.0
 WHERE tier = 'freemium';
 
-UPDATE subscription_tiers SET 
+UPDATE subscription_tiers SET
     included_credits = 0,
     markup_multiplier = 1.8
 WHERE tier = 'payg';
 
-UPDATE subscription_tiers SET 
+UPDATE subscription_tiers SET
     included_credits = 30.00,
     markup_multiplier = 1.5
 WHERE tier = 'pro';
 
-UPDATE subscription_tiers SET 
+UPDATE subscription_tiers SET
     included_credits = 50.00,
     markup_multiplier = 1.3
 WHERE tier = 'custom';
@@ -1084,8 +1084,8 @@ WHERE tier = 'custom';
 
 **Estimated Monthly Gain**: $3,000 - $5,000
 
-**Implementation Cost**: 92 hours × $100/hr = $9,200  
-**Payback Period**: 2-3 months  
+**Implementation Cost**: 92 hours × $100/hr = $9,200
+**Payback Period**: 2-3 months
 **Annual ROI**: 391%
 
 ---
@@ -1107,7 +1107,7 @@ def test_overage_charges_full_price():
     user = create_user(tier="pro", credits=50.00)
     # Use up included credits
     use_credits(user, 30.00)
-    
+
     # Next SMS should charge full price
     cost = calculate_sms_cost(user, "telegram")
     provider_cost = 1.50
@@ -1118,9 +1118,9 @@ def test_overage_charges_full_price():
 # Test 3: Subscription auto-charges
 async def test_subscription_auto_charge():
     user = create_user(tier="pro", next_billing_date=datetime.now())
-    
+
     await subscription_billing_service.process_renewals()
-    
+
     # Check payment was charged
     assert user.subscription_status == "active"
     assert user.next_billing_date == datetime.now() + timedelta(days=30)
@@ -1129,19 +1129,19 @@ async def test_subscription_auto_charge():
 # Test 4: Payment failure downgrades after grace period
 async def test_payment_failure_downgrade():
     user = create_user(tier="pro")
-    
+
     # Simulate payment failure
     mock_paystack_failure()
     await subscription_billing_service.charge_monthly_subscription(user.id)
-    
+
     # Should be in grace period
     assert user.subscription_status == "past_due"
     assert user.subscription_tier == "pro"  # Still Pro
-    
+
     # Fast-forward 4 days
     user.payment_failed_at = datetime.now() - timedelta(days=4)
     await subscription_billing_service.process_failed_payments()
-    
+
     # Should be downgraded
     assert user.subscription_tier == "freemium"
     assert user.subscription_status == "cancelled"
@@ -1170,6 +1170,6 @@ payment_failure_rate = failed_payments / total_payment_attempts
 
 ---
 
-**Document Owner**: Engineering Team  
-**Last Updated**: March 20, 2026  
+**Document Owner**: Engineering Team
+**Last Updated**: March 20, 2026
 **Next Review**: After Phase 1 completion

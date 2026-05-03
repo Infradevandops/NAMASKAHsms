@@ -114,9 +114,9 @@ def backup_database() -> Path:
 def sync_to_cloud(local_path: Path, remote_path: str, sync_type: str = "copy"):
     """Sync files to cloud using rclone."""
     remote_full = f"{RCLONE_REMOTE}:{BACKUP_BUCKET}/{remote_path}"
-    
+
     logger.info(f"Syncing {local_path} → {remote_full}")
-    
+
     cmd = [
         "rclone",
         sync_type,  # copy, sync, or move
@@ -127,11 +127,11 @@ def sync_to_cloud(local_path: Path, remote_path: str, sync_type: str = "copy"):
         "--transfers", "4",
         "--checkers", "8",
     ]
-    
+
     # Add encryption if configured
     if os.environ.get("RCLONE_ENCRYPT") == "true":
         cmd.extend(["--crypt-password", os.environ.get("RCLONE_PASSWORD", "")])
-    
+
     try:
         subprocess.run(cmd, check=True)
         logger.info(f"✅ Synced to {remote_full}")
@@ -143,30 +143,30 @@ def sync_to_cloud(local_path: Path, remote_path: str, sync_type: str = "copy"):
 def backup_all():
     """Backup all components."""
     check_rclone()
-    
+
     # 1. Database
     db_backup = backup_database()
     sync_to_cloud(db_backup, "database/")
-    
+
     # 2. User uploads (KYC)
     if BACKUP_PATHS["uploads"].exists():
         logger.info("Backing up user uploads...")
         sync_to_cloud(BACKUP_PATHS["uploads"], "uploads/", sync_type="sync")
-    
+
     # 3. Logs (archive old ones)
     if BACKUP_PATHS["logs"].exists():
         logger.info("Archiving logs...")
         month = datetime.datetime.utcnow().strftime("%Y%m")
         sync_to_cloud(BACKUP_PATHS["logs"], f"logs/{month}/", sync_type="copy")
-    
+
     # 4. Config files
     if BACKUP_PATHS["config"].exists():
         logger.info("Backing up config...")
         sync_to_cloud(BACKUP_PATHS["config"], "config/", sync_type="sync")
-    
+
     # 5. Cleanup old local backups
     cleanup_old_backups()
-    
+
     logger.info("✅ Full backup complete")
 
 
@@ -184,28 +184,28 @@ def restore_database(source: str):
     if not DATABASE_URL:
         logger.error("DATABASE_URL not set")
         sys.exit(1)
-    
+
     check_rclone()
-    
+
     # Download from cloud if needed
     if source.startswith(f"{RCLONE_REMOTE}:"):
         local_path = LOCAL_BACKUP_DIR / "restore_temp.sql.gz"
         LOCAL_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Downloading {source}...")
         subprocess.run(
             ["rclone", "copy", source, str(LOCAL_BACKUP_DIR), "--progress"],
             check=True,
         )
         source = str(local_path)
-    
+
     local_path = Path(source)
     if not local_path.exists():
         logger.error(f"Backup file not found: {local_path}")
         sys.exit(1)
-    
+
     logger.warning(f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!")
-    
+
     # Parse DATABASE_URL
     import urllib.parse
     p = urllib.parse.urlparse(DATABASE_URL)
@@ -217,7 +217,7 @@ def restore_database(source: str):
         "PGPASSWORD": p.password or "",
         "PGDATABASE": (p.path or "").lstrip("/"),
     }
-    
+
     # Restore
     gunzip = subprocess.Popen(
         ["gunzip", "-c", str(local_path)],
@@ -233,18 +233,18 @@ def restore_database(source: str):
     gunzip.stdout.close()
     _, psql_err = psql.communicate()
     gunzip.wait()
-    
+
     if psql.returncode != 0:
         logger.error(f"Restore failed: {psql_err.decode()}")
         sys.exit(1)
-    
+
     logger.info("✅ Database restored successfully")
 
 
 def list_backups():
     """List available backups."""
     check_rclone()
-    
+
     logger.info("Available backups:")
     subprocess.run([
         "rclone", "ls",
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument("--list", action="store_true", help="List available backups")
     parser.add_argument("--db-only", action="store_true", help="Backup database only")
     args = parser.parse_args()
-    
+
     if args.list:
         list_backups()
     elif args.restore:

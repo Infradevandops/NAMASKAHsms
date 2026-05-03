@@ -1,8 +1,8 @@
 # Critical Fixes Task List - Best Practices Approach
 
-**Created**: 2026-04-16  
-**Updated**: 2026-04-17  
-**Status**: CI Fix In Progress → Render Deployment Pending  
+**Created**: 2026-04-16
+**Updated**: 2026-04-17
+**Status**: CI Fix In Progress → Render Deployment Pending
 **Priority**: BLOCKING DEPLOYMENT
 
 ---
@@ -10,7 +10,7 @@
 ## 🚨 BLOCKING ISSUES (Must Fix for Deployment)
 
 ### Issue 1: CI Tests Failing - Provider Tests
-**Status**: ⏳ IN PROGRESS — iterating to green  
+**Status**: ⏳ IN PROGRESS — iterating to green
 **Root Causes Found & Fixed (4 rounds)**:
 
 1. `TelnyxAdapter.__aexit__` used `self.client` property instead of `self._client` field → fixed
@@ -32,7 +32,7 @@
 ---
 
 ### Issue 2: GitHub Actions Cache Corruption
-**Status**: ✅ RESOLVED  
+**Status**: ✅ RESOLVED
 **Fix**: isort re-enabled, explicit `clean: true` + `ref: ${{ github.sha }}` on checkout, pip cache cleared at start of code-quality job.
 
 **Acceptance Criteria**:
@@ -44,7 +44,7 @@
 ---
 
 ### Issue 3: Render Deployment Status Unknown
-**Status**: ⚠️ PENDING — auto-deploy will trigger once CI goes green  
+**Status**: ⚠️ PENDING — auto-deploy will trigger once CI goes green
 **Current State**: App returns "Not Found" on health check. CI passing → Render auto-deploys → this resolves itself IF the app starts cleanly.
 
 **Outstanding checks after auto-deploy**:
@@ -58,14 +58,14 @@
 ## 🔧 TECHNICAL DEBT (Non-Standard Fixes to Revert)
 
 ### Debt 0: Telnyx `__aexit__` property vs field bug ✅ FIXED
-**File**: `app/services/providers/telnyx_adapter.py`  
+**File**: `app/services/providers/telnyx_adapter.py`
 **Fix**: `self.client` → `self._client` in `__aexit__` (same as fivesim fix in `5b126cbb`)
 
 ---
 
 ### Debt 1: Disabled isort Check ✅ FIXED
-**File**: `.github/workflows/ci.yml`  
-**Status**: Re-enabled in commit ba5aff79  
+**File**: `.github/workflows/ci.yml`
+**Status**: Re-enabled in commit ba5aff79
 **What Was Done**: Restored isort check to code formatting step
 
 ```yaml
@@ -84,8 +84,8 @@
 ---
 
 ### Debt 2: Non-Blocking Provider Tests ✅ FIXED
-**File**: `.github/workflows/ci.yml`  
-**Status**: Removed in commit ba5aff79  
+**File**: `.github/workflows/ci.yml`
+**Status**: Removed in commit ba5aff79
 **What Was Done**: Removed `continue-on-error: true` from provider tests
 
 ```yaml
@@ -101,8 +101,8 @@
 ---
 
 ### Debt 3: Test Mocking Inconsistency ✅ FIXED
-**File**: `tests/unit/providers/test_telnyx_adapter.py`  
-**Status**: Fixed in commit f0417f81  
+**File**: `tests/unit/providers/test_telnyx_adapter.py`
+**Status**: Fixed in commit f0417f81
 **What Was Done**: Changed all tests to mock `httpx.AsyncClient` methods directly instead of adapter internals
 
 **History of Failed Approaches**:
@@ -184,8 +184,8 @@ Start with Phase 1 - understand what's actually broken before fixing anything.
 
 ---
 
-**Last Updated**: 2026-04-17 (round 4)  
-**Updated By**: AI Assistant  
+**Last Updated**: 2026-04-17 (round 4)
+**Updated By**: AI Assistant
 **Status Summary**:
 - ✅ Code Quality passing, Secrets Detection passing
 - ⏳ Unit Tests — 5 rounds of fixes applied, latest push `d7e23716` in CI

@@ -1,7 +1,7 @@
 # DigitalOcean Deployment Guide - Namaskah Platform
 
-**Version**: 4.4.2  
-**Date**: March 20, 2026  
+**Version**: 4.4.2
+**Date**: March 20, 2026
 **Deployment Time**: ~60 minutes
 
 ---
@@ -161,7 +161,7 @@ upstream namaskah_app {
 server {
     listen 80;
     server_name yourdomain.com www.yourdomain.com;
-    
+
     location / {
         return 301 https://$server_name$request_uri;
     }
@@ -375,7 +375,7 @@ sudo certbot certificates
 
 ---
 
-**Total Setup Time**: ~60 minutes  
-**Difficulty**: Intermediate  
-**Cost**: $55/month  
+**Total Setup Time**: ~60 minutes
+**Difficulty**: Intermediate
+**Cost**: $55/month
 **Supports**: 1,000-5,000 users

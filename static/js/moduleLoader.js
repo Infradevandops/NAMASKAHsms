@@ -81,12 +81,12 @@ export function clearModuleCache(moduleName) {
 export async function loadModules(moduleNames) {
   const promises = moduleNames.map(name => loadModule(name))
   const modules = await Promise.all(promises)
-  
+
   const result = {}
   moduleNames.forEach((name, index) => {
     result[name] = modules[index]
   })
-  
+
   return result
 }
 

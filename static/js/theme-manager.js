@@ -11,7 +11,7 @@ class ThemeManager {
     this.SYSTEM_MODE = 'system';
     this.DARK_MODE = 'dark';
     this.LIGHT_MODE = 'light';
-    
+
     this.init();
   }
 
@@ -29,7 +29,7 @@ class ThemeManager {
    */
   getThemePreference() {
     const stored = localStorage.getItem(this.STORAGE_KEY);
-    
+
     if (stored) {
       return stored;
     }
@@ -47,10 +47,10 @@ class ThemeManager {
    */
   applyTheme(theme) {
     const html = document.documentElement;
-    
+
     // Remove existing theme classes
     html.classList.remove(this.DARK_MODE_CLASS, this.LIGHT_MODE_CLASS);
-    
+
     // Apply new theme
     if (theme === this.DARK_MODE) {
       html.classList.add(this.DARK_MODE_CLASS);
@@ -97,7 +97,7 @@ class ThemeManager {
     if (!window.matchMedia) return;
 
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     // Modern browsers
     if (darkModeQuery.addEventListener) {
       darkModeQuery.addEventListener('change', (e) => {
@@ -116,7 +116,7 @@ class ThemeManager {
   setupToggleButtons() {
     // Find all theme toggle buttons
     const toggleButtons = document.querySelectorAll('[data-theme-toggle]');
-    
+
     toggleButtons.forEach(button => {
       button.addEventListener('click', () => this.toggle());
       this.updateToggleButtonState(button);
@@ -134,13 +134,13 @@ class ThemeManager {
   updateToggleButtonState(button) {
     const currentTheme = this.getCurrentTheme();
     const isDark = currentTheme === this.DARK_MODE;
-    
+
     // Update aria-label
     button.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-    
+
     // Update data attribute for styling
     button.setAttribute('data-theme-current', currentTheme);
-    
+
     // Update icon if present
     const icon = button.querySelector('svg');
     if (icon) {

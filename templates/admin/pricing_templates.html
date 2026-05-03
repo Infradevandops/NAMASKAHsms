@@ -11,13 +11,13 @@
         .pricing-v2-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .section-header { margin: 32px 0 16px; display: flex; justify-content: space-between; align-items: center; }
         .section-header h2 { font-size: 20px; font-weight: 600; color: var(--admin-text); }
-        
+
         .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .template-card { 
-            background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 12px; 
-            padding: 24px; 
+        .template-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
             transition: all 0.3s;
             position: relative;
         }
@@ -35,36 +35,36 @@
             padding: 2px 8px;
             border-radius: 4px;
         }
-        
+
         .template-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
         .template-desc { font-size: 13px; color: var(--admin-text-muted); margin-bottom: 20px; line-height: 1.5; }
-        
+
         .template-stats { display: flex; gap: 16px; margin-bottom: 24px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
         .stat-item { flex: 1; }
         .stat-label { display: block; font-size: 11px; color: var(--admin-text-muted); text-transform: uppercase; margin-bottom: 4px; }
         .stat-value { font-size: 15px; font-weight: 600; }
-        
+
         .template-actions { display: flex; gap: 8px; }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
-        
+
         /* Live Prices Table Styles */
         .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .table-info { font-size: 13px; color: var(--admin-text-muted); }
         .last-updated { font-size: 11px; color: var(--admin-text-muted); text-align: right; margin-top: 12px; }
-        
-        .modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.8); z-index: 2000; align-items: center; justify-content: center; 
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); z-index: 2000; align-items: center; justify-content: center;
             backdrop-filter: blur(4px);
         }
         .modal.active { display: flex; }
-        .modal-content { 
-            background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 16px; padding: 32px; width: 90%; max-width: 800px; 
+        .modal-content {
+            background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px; padding: 32px; width: 90%; max-width: 800px;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .chart-container { height: 400px; width: 100%; }
-        
+
         .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; filter: grayscale(1); transition: 0.2s; }
         .btn-icon:hover { filter: grayscale(0); transform: scale(1.2); }
     </style>
@@ -72,7 +72,7 @@
 <body class="premium-admin">
     <div class="admin-v2-container">
         {% include 'admin/header.html' %}
-        
+
         <div class="pricing-v2-container">
             <!-- Header Section -->
             <div class="section-header">

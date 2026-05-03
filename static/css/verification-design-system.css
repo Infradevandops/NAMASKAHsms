@@ -11,13 +11,13 @@
     --accent: #F5A623;
     --accent-light: #ffba4d;
     --accent-dark: #cc8400;
-    
+
     /* Status Colors */
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
     --info: #3b82f6;
-    
+
     /* Neutral Colors */
     --bg-primary: #ffffff;
     --bg-secondary: #f9fafb;
@@ -26,7 +26,7 @@
     --text-secondary: #6b7280;
     --text-muted: #9ca3af;
     --border: #e5e7eb;
-    
+
     /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
@@ -34,7 +34,7 @@
     --spacing-lg: 24px;
     --spacing-xl: 32px;
     --spacing-2xl: 48px;
-    
+
     /* Typography */
     --font-size-xs: 12px;
     --font-size-sm: 14px;
@@ -43,14 +43,14 @@
     --font-size-xl: 20px;
     --font-size-2xl: 24px;
     --font-size-3xl: 32px;
-    
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
     --radius-full: 9999px;
-    
+
     /* Shadows — Design Tokens */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -59,7 +59,7 @@
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
     --shadow-focus: 0 0 0 3px rgba(254, 60, 114, 0.25);
-    
+
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -762,31 +762,31 @@ textarea:focus-visible {
     .verification-container {
         padding: var(--spacing-md);
     }
-    
+
     .verification-header h1 {
         font-size: var(--font-size-2xl);
     }
-    
+
     .service-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
-    
+
     .progress-steps {
         flex-wrap: wrap;
     }
-    
+
     .progress-step {
         flex: 0 0 calc(33.333% - var(--spacing-md));
     }
-    
+
     .phone-number {
         font-size: var(--font-size-2xl);
     }
-    
+
     .btn-block {
         width: 100%;
     }
-    
+
     .pricing-row {
         flex-direction: column;
         align-items: flex-start;
@@ -1150,24 +1150,24 @@ input:checked + .slider:before { transform: translateX(18px); }
     .verification-container {
         padding: var(--spacing-md);
     }
-    
+
     .verification-card {
         padding: var(--spacing-md);
     }
-    
+
     .service-grid {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: var(--spacing-sm);
     }
-    
+
     .phone-display {
         padding: var(--spacing-lg);
     }
-    
+
     .phone-number {
         font-size: var(--font-size-xl);
     }
-    
+
     .btn {
         padding: var(--spacing-md);
         font-size: var(--font-size-sm);

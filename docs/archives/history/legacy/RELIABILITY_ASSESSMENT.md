@@ -1,6 +1,6 @@
 # TextVerified API Reliability Report
 
-**Generated**: January 2026  
+**Generated**: January 2026
 **Objective**: Ensure users get phone numbers from pre-selected area code and carrier for SMS pulling
 
 ---
@@ -92,7 +92,7 @@ for (let attempt = 1; attempt <= maxRetries; attempt++) {
 # Fetch area codes with retry
 for attempt in range(3):
     codes = await asyncio.wait_for(
-        asyncio.to_thread(self.client.services.area_codes), 
+        asyncio.to_thread(self.client.services.area_codes),
         timeout=15.0
     )
 ```
@@ -105,13 +105,13 @@ for attempt in range(3):
 ```python
 async def _build_area_code_preference(self, requested: str) -> List[str]:
     by_state = await self._get_area_codes_by_state()
-    
+
     # Find state for requested code
     state = next((s for s, codes in by_state.items() if requested in codes), None)
-    
+
     if not state:
         return [requested]  # ⚠️ Single code only, no same-state fallback
-    
+
     siblings = [c for c in by_state[state] if c != requested]
     return [requested] + siblings  # ✅ Full proximity chain
 ```
@@ -382,7 +382,7 @@ if (result.fallback_applied) {
 
 **Objective**: Ensure users get phone numbers from pre-selected area code and carrier
 
-**Result**: 
+**Result**:
 - ✅ **Carrier**: Strictly enforced (no fallbacks)
 - ⚠️ **Area Code**: Best-effort with proximity chain (95%+ success rate)
 - ✅ **SMS Pulling**: Stone-cold reliable (100% when number assigned)

@@ -125,11 +125,11 @@ if (window.verificationManager) {
         const service = document.getElementById('service-select').value;
         const country = document.getElementById('country-select').value;
         const capability = document.querySelector('input[name="capability"]:checked').value;
-        
+
         if (window.quickRetry) {
             window.quickRetry.saveLastVerification(service, country, capability);
         }
-        
+
         return originalConfirmPurchase.call(this);
     };
 }

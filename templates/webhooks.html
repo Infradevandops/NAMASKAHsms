@@ -270,16 +270,16 @@
                             ${w.is_active ? 'Active' : 'Inactive'}
                         </span>
                     </div>
-                    
+
                     <div class="webhook-events">
                         ${(w.events || '*').split(',').map(e => `<span class="event-tag">${e.trim()}</span>`).join('')}
                     </div>
-                    
+
                     <div class="secret-container">
                         <span style="color: var(--text-muted);">Signing Secret:</span>
                         <span class="secret-value" title="Click to copy" onclick="copyToClipboard('${w.secret}')">${w.secret}</span>
                     </div>
-                    
+
                     <div class="webhook-info">
                         <div class="info-item">
                             <i class="ph ph-check-circle"></i>
@@ -290,7 +290,7 @@
                             Last Failure: ${w.last_failure ? formatRelative(w.last_failure) : 'None'}
                         </div>
                     </div>
-                    
+
                     <div class="webhook-actions">
                         <button class="btn btn-secondary" onclick="testWebhook('${w.id}')">Test Ping</button>
                         <button class="btn btn-secondary" style="color: #ef4444;" onclick="deleteWebhook('${w.id}')">Delete</button>

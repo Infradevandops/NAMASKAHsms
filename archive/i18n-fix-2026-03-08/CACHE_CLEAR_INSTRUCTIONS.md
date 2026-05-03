@@ -151,15 +151,15 @@ If deploying to Render.com or other hosting:
 
 ## Success Criteria
 
-✅ No "dashboard.title" visible  
-✅ No "tiers.current_plan" visible  
-✅ No "common.balance" visible  
-✅ All text shows in proper English  
-✅ Translations persist after 1 second  
-✅ Language switcher works  
+✅ No "dashboard.title" visible
+✅ No "tiers.current_plan" visible
+✅ No "common.balance" visible
+✅ All text shows in proper English
+✅ Translations persist after 1 second
+✅ Language switcher works
 
 ---
 
-**Last Updated:** March 8, 2026  
-**Cache Version:** v4-i18n-fix  
+**Last Updated:** March 8, 2026
+**Cache Version:** v4-i18n-fix
 **i18n Version:** 20260308f

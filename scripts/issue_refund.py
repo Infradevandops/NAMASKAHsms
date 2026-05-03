@@ -13,34 +13,34 @@ sys.path.insert(0, '.')
 
 async def issue_refund():
     """Issue $10.00 refund to affected user."""
-    
+
     print("=" * 80)
     print("🚨 URGENT REFUND PROCEDURE")
     print("=" * 80)
     print()
-    
+
     from app.core.database import get_db
     from app.models.user import User
     from app.models.verification import SMSVerification
     from sqlalchemy import select, update
-    
+
     user_id = "2986207f-4e45-4249-91c3-e5e13bae6622"
     refund_amount = Decimal("10.00")
-    
+
     print(f"User ID: {user_id}")
     print(f"Refund Amount: ${refund_amount:.2f}")
     print(f"Reason: Tier pricing bug + 4 failed SMS verifications")
     print()
-    
+
     async for db in get_db():
         # Get user
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
-        
+
         if not user:
             print(f"❌ ERROR: User {user_id} not found")
             return
-        
+
         print("=" * 80)
         print("USER DETAILS")
         print("=" * 80)
@@ -48,7 +48,7 @@ async def issue_refund():
         print(f"Tier: {user.subscription_tier}")
         print(f"Current Balance: ${user.balance:.2f}")
         print()
-        
+
         # Get failed SMS verifications
         result = await db.execute(
             select(SMSVerification)
@@ -57,11 +57,11 @@ async def issue_refund():
             .order_by(SMSVerification.created_at.desc())
         )
         verifications = result.scalars().all()
-        
+
         print("=" * 80)
         print("FAILED SMS VERIFICATIONS")
         print("=" * 80)
-        
+
         if not verifications:
             print("⚠️  No verifications found for this date")
             print()
@@ -74,14 +74,14 @@ async def issue_refund():
                 print(f"   Created: {v.created_at}")
                 total_cost += Decimal(str(v.cost))
                 print()
-            
+
             print(f"Total Cost: ${total_cost:.2f}")
             print()
-        
+
         # Calculate new balance
         old_balance = user.balance
         new_balance = old_balance + refund_amount
-        
+
         print("=" * 80)
         print("REFUND CALCULATION")
         print("=" * 80)
@@ -89,7 +89,7 @@ async def issue_refund():
         print(f"Refund Amount: ${refund_amount:.2f}")
         print(f"New Balance: ${new_balance:.2f}")
         print()
-        
+
         print("=" * 80)
         print("CONFIRMATION")
         print("=" * 80)
@@ -98,21 +98,21 @@ async def issue_refund():
         print(f"   2. Update {len(verifications)} SMS verifications to REFUNDED status")
         print(f"   3. Send notification to user (if available)")
         print()
-        
+
         confirm = input("Proceed with refund? Type 'YES' to confirm: ")
-        
+
         if confirm != 'YES':
             print()
             print("❌ Refund cancelled by user")
             return
-        
+
         print()
         print("Processing refund...")
         print()
-        
+
         # Update user balance
         user.balance = new_balance
-        
+
         # Update SMS verifications
         if verifications:
             for v in verifications:
@@ -121,10 +121,10 @@ async def issue_refund():
                 v.refund_amount = v.cost
                 v.refund_reason = "Tier pricing bug - manual refund issued"
                 v.updated_at = datetime.utcnow()
-        
+
         # Commit changes
         await db.commit()
-        
+
         print("=" * 80)
         print("✅ REFUND ISSUED SUCCESSFULLY")
         print("=" * 80)
@@ -133,12 +133,12 @@ async def issue_refund():
         print(f"Refunded: ${refund_amount:.2f}")
         print(f"SMS Updated: {len(verifications)}")
         print()
-        
+
         # Try to send notification
         try:
             from app.services.notification_service import NotificationService
             notification_service = NotificationService(db)
-            
+
             await notification_service.create_notification(
                 user_id=user.id,
                 type="refund",
@@ -153,7 +153,7 @@ async def issue_refund():
                     "new_balance": float(new_balance)
                 }
             )
-            
+
             await db.commit()
             print("✅ Notification sent to user")
             print()
@@ -161,11 +161,11 @@ async def issue_refund():
             print(f"⚠️  Could not send notification: {e}")
             print("   (Refund still processed successfully)")
             print()
-        
+
         # Create transaction log if table exists
         try:
             from app.models.transaction import Transaction
-            
+
             transaction = Transaction(
                 user_id=user.id,
                 transaction_type="REFUND",
@@ -181,17 +181,17 @@ async def issue_refund():
                     "issue_date": datetime.utcnow().isoformat()
                 }
             )
-            
+
             db.add(transaction)
             await db.commit()
-            
+
             print("✅ Transaction log created")
             print()
         except Exception as e:
             print(f"⚠️  Could not create transaction log: {e}")
             print("   (Refund still processed successfully)")
             print()
-        
+
         print("=" * 80)
         print("NEXT STEPS")
         print("=" * 80)
@@ -201,10 +201,10 @@ async def issue_refund():
         print("4. 🔧 Implement SMS timeout & auto-refund")
         print("5. 🔍 Audit other Custom tier users for similar issues")
         print()
-        
+
         print("Email template saved to: docs/tasks/URGENT_REFUND_PROCEDURE.md")
         print()
-        
+
         break
 
 

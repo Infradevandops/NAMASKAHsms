@@ -11,7 +11,7 @@
 ### 1. Tier-Gating Logic Issue
 **Problem**: CUSTOM tier users seeing "Want specific area codes? Upgrade to PAYG" message
 
-**Root Cause**: 
+**Root Cause**:
 - Tier comparison was case-sensitive (e.g., "Custom" vs "custom")
 - API response format mismatch (multiple possible field names)
 - `applyTierGating()` called before tier fully loaded
@@ -79,7 +79,7 @@ Open DevTools (F12) and look for these logs:
 [Tier] Updated to: custom
 ```
 
-**Expected**: 
+**Expected**:
 - Tier should be "custom" (lowercase)
 - Rank should be 3 (custom = 3)
 - Upsell should be HIDDEN
@@ -106,7 +106,7 @@ In DevTools Network tab, check `/api/tiers/current` response:
 3. Select a carrier (e.g., Verizon)
 4. Click "Get Number"
 
-**Expected**: 
+**Expected**:
 - Should show phone number
 - Should NOT show "An unexpected error occurred"
 - If error occurs, check console for detailed error message

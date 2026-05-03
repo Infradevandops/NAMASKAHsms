@@ -306,7 +306,7 @@ async def test_area_code_fallback_same_state():
                 "is_voip": False,
             }
             MockCL.return_value.enabled = False
-            
+
             with patch("app.services.textverified_service.PurchaseIntelligenceService") as MockPI:
                 MockPI.log_outcome = AsyncMock()
                 MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))

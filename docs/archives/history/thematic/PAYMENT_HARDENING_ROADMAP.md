@@ -1,8 +1,8 @@
 # Payment Hardening Roadmap - Q1 2026
 
-**Status**: ✅ 80% COMPLETE (4/5 phases done)  
-**Priority**: 🔥 CRITICAL  
-**Time Spent**: 4 hours  
+**Status**: ✅ 80% COMPLETE (4/5 phases done)
+**Priority**: 🔥 CRITICAL
+**Time Spent**: 4 hours
 **Current Coverage**: 81.48% → 85%+ (payment flows)
 
 ---
@@ -89,10 +89,10 @@
 
 ## 📊 Summary
 
-**Completed**: 4/5 phases (80%)  
-**Tests Created**: 32  
-**Files Modified**: 14  
-**Time Spent**: 4 hours  
+**Completed**: 4/5 phases (80%)
+**Tests Created**: 32
+**Files Modified**: 14
+**Time Spent**: 4 hours
 **Status**: ✅ PRODUCTION READY
 
 ### Security Improvements
@@ -150,18 +150,18 @@ def _check_idempotency(self, idempotency_key: str) -> Optional[Dict]:
     existing = self.db.query(PaymentLog).filter(
         PaymentLog.idempotency_key == idempotency_key
     ).first()
-    
+
     if existing and existing.state == 'completed':
         return existing.to_dict()
     return None
 
-async def initialize_payment(self, user_id: str, email: str, 
+async def initialize_payment(self, user_id: str, email: str,
                             amount_usd: float, idempotency_key: str):
     # Check idempotency first
     cached = self._check_idempotency(idempotency_key)
     if cached:
         return cached
-    
+
     # Create PaymentLog with state='pending'
     # Continue with Paystack call
 ```
@@ -178,24 +178,24 @@ def credit_user(self, user_id: str, amount: float, reference: str) -> bool:
         payment_log = self.db.query(PaymentLog).filter(
             PaymentLog.reference == reference
         ).with_for_update().first()
-        
+
         if payment_log.credited:
             logger.warning(f"Payment {reference} already credited")
             return True
-        
+
         # Atomic update with SELECT FOR UPDATE
         user = self.db.query(User).filter(
             User.id == user_id
         ).with_for_update().first()
-        
+
         if not user:
             raise ValueError(f"User {user_id} not found")
-        
+
         # Update in transaction
         user.credits = (user.credits or 0.0) + amount
         payment_log.credited = True
         payment_log.state = 'completed'
-        
+
         # Create transaction record
         transaction = Transaction(
             user_id=user_id,
@@ -205,12 +205,12 @@ def credit_user(self, user_id: str, amount: float, reference: str) -> bool:
             amount=amount,
             status="completed"
         )
-        
+
         self.db.add(transaction)
         self.db.commit()
-        
+
         return True
-        
+
     except Exception as e:
         self.db.rollback()
         raise
@@ -227,13 +227,13 @@ from app.core.cache import get_redis
 async def credit_user_with_lock(self, user_id: str, amount: float, reference: str):
     redis = get_redis()
     lock_key = f"payment_lock:{reference}"
-    
+
     # Try to acquire lock (30 second timeout)
     lock = redis.lock(lock_key, timeout=30)
-    
+
     if not lock.acquire(blocking=True, blocking_timeout=10):
         raise Exception("Could not acquire payment lock")
-    
+
     try:
         return self.credit_user(user_id, amount, reference)
     finally:
@@ -259,27 +259,27 @@ async def paystack_webhook(
     signature = request.headers.get("x-paystack-signature")
     if not signature:
         raise HTTPException(status_code=401, detail="Missing signature")
-    
+
     # Get raw body
     body = await request.body()
-    
+
     # Verify signature
     payment_service = get_payment_service(db)
     if not payment_service.verify_webhook_signature(body, signature):
         logger.error("Invalid webhook signature")
         raise HTTPException(status_code=401, detail="Invalid signature")
-    
+
     # Parse and process
     data = json.loads(body)
-    
+
     # Check idempotency
     reference = data.get("data", {}).get("reference")
     if not reference:
         raise HTTPException(status_code=400, detail="Missing reference")
-    
+
     # Process with distributed lock
     await payment_service.process_webhook_with_lock(data)
-    
+
     return {"status": "success"}
 ```
 
@@ -298,7 +298,7 @@ async def process_webhook_with_retry(self, data: Dict, max_retries: int = 3):
                 # Log to dead letter queue
                 self._log_failed_webhook(data, str(e))
                 raise
-            
+
             # Exponential backoff
             await asyncio.sleep(2 ** attempt)
 ```
@@ -323,7 +323,7 @@ async def initialize_payment(
     # Validate idempotency key format (UUID)
     if not is_valid_uuid(idempotency_key):
         raise HTTPException(status_code=400, detail="Invalid idempotency key")
-    
+
     payment_service = get_payment_service(db)
     result = await payment_service.initialize_payment(
         user_id=user_id,
@@ -331,7 +331,7 @@ async def initialize_payment(
         amount_usd=request.amount_usd,
         idempotency_key=idempotency_key
     )
-    
+
     return result
 ```
 
@@ -423,11 +423,11 @@ groups:
       - alert: HighPaymentFailureRate
         expr: rate(payment_failed_total[5m]) > 0.1
         for: 5m
-        
+
       - alert: PaymentProcessingStuck
         expr: payment_duration_seconds > 30
         for: 1m
-        
+
       - alert: DuplicatePaymentSpike
         expr: rate(payment_duplicate_total[5m]) > 5
         for: 2m
@@ -519,6 +519,6 @@ groups:
 
 ---
 
-**Last Updated**: January 2026  
-**Owner**: Backend Team  
+**Last Updated**: January 2026
+**Owner**: Backend Team
 **Reviewer**: Security Team

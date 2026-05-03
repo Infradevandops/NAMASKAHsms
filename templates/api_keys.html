@@ -15,7 +15,7 @@
             --border: #475569;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-dark);
             color: var(--text);
@@ -244,7 +244,7 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                
+
                 apiKeys = data || [];
                 displayApiKeys();
             } catch (error) {
@@ -255,7 +255,7 @@
 
         function displayApiKeys() {
             const container = document.getElementById('api-keys-container');
-            
+
             if (apiKeys.length === 0) {
                 showEmptyState('No API keys yet');
                 return;
@@ -318,9 +318,9 @@
 
         document.getElementById('createForm').onsubmit = async (e) => {
             e.preventDefault();
-            
+
             const name = document.getElementById('keyName').value;
-            
+
             try {
                 const token = localStorage.getItem('access_token') || localStorage.getItem('token');
                 const response = await fetch('/api/keys/generate', {
@@ -331,9 +331,9 @@
                     },
                     body: JSON.stringify({ name: name })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     document.getElementById('newApiKey').textContent = data.key;
                     closeModal();
@@ -350,14 +350,14 @@
 
         async function deleteApiKey(keyId) {
             if (!confirm('Delete this API key? This action cannot be undone.')) return;
-            
+
             try {
                 const token = localStorage.getItem('access_token') || localStorage.getItem('token');
                 const response = await fetch(`/api/keys/${keyId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (response.ok) {
                     showAlert('API key deleted successfully', 'success');
                     loadApiKeys();
@@ -372,16 +372,16 @@
 
         async function regenerateKey(keyId) {
             if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
-            
+
             try {
                 const token = localStorage.getItem('access_token') || localStorage.getItem('token');
                 const response = await fetch(`/api/keys/${keyId}/rotate`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     document.getElementById('newApiKey').textContent = data.key;
                     document.getElementById('showKeyModal').style.display = 'block';

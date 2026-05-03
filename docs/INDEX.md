@@ -1,6 +1,6 @@
 # 📚 Namaskah Documentation Index
 
-**Last Updated**: December 2024  
+**Last Updated**: December 2024
 **Version**: 4.4.1+
 
 ---
@@ -195,6 +195,6 @@ Historical documentation and completed work:
 
 ---
 
-**Maintained by**: Engineering Team  
-**Last Major Cleanup**: December 2024  
+**Maintained by**: Engineering Team
+**Last Major Cleanup**: December 2024
 **Next Review**: Quarterly

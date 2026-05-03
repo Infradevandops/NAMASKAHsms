@@ -1,8 +1,8 @@
 # Q1 2026 Complete Roadmap - Security, Testing & Infrastructure
 
-**Status**: Ready for Implementation  
-**Priority**: 🔥 HIGH  
-**Total Duration**: 4.5 weeks (parallel to payment hardening)  
+**Status**: Ready for Implementation
+**Priority**: 🔥 HIGH
+**Total Duration**: 4.5 weeks (parallel to payment hardening)
 **Dependencies**: PAYMENT_HARDENING_ROADMAP.md
 
 ---
@@ -39,7 +39,7 @@ db.execute(f"SELECT * FROM users WHERE email = '{email}'")
 db.execute(text("SELECT * FROM users WHERE email = :email"), {"email": email})
 ```
 
-**Tools**: 
+**Tools**:
 - Bandit (Python security linter)
 - SQLMap (SQL injection testing)
 
@@ -119,7 +119,7 @@ def rotate_token(old_token: str) -> str:
 class SessionManager:
     MAX_SESSIONS_PER_USER = 5
     SESSION_TIMEOUT = 3600  # 1 hour
-    
+
     def validate_session(self, session_id: str, user_ip: str):
         # Check timeout
         # Check IP match
@@ -158,7 +158,7 @@ from pydantic import validator, constr
 class UserInput(BaseModel):
     email: EmailStr
     username: constr(min_length=3, max_length=50, regex=r'^[a-zA-Z0-9_-]+$')
-    
+
     @validator('username')
     def sanitize_username(cls, v):
         return sanitize_input(v)
@@ -191,7 +191,7 @@ def safe_path_join(base: str, user_input: str) -> str:
 ### Phase 1.4: Secrets & Dependency Management (2 days)
 
 **Task 1.4.1: Secrets Scanning**
-**Tools**: 
+**Tools**:
 - GitLeaks (scan git history)
 - TruffleHog (find secrets)
 - detect-secrets (pre-commit hook)
@@ -236,7 +236,7 @@ python scripts/security_audit.py
 class SecureConfig:
     def __init__(self):
         self._validate_secrets()
-    
+
     def _validate_secrets(self):
         required = ['JWT_SECRET_KEY', 'DATABASE_URL', 'PAYSTACK_SECRET_KEY']
         for secret in required:
@@ -262,16 +262,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run Bandit
         run: bandit -r app/ -f json -o bandit-report.json
-      
+
       - name: Run Safety
         run: safety check --json
-      
+
       - name: Run GitLeaks
         run: gitleaks detect --source . --verbose
-      
+
       - name: Upload Reports
         uses: actions/upload-artifact@v3
         with:
@@ -400,7 +400,7 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = User
         sqlalchemy_session = None
-    
+
     id = factory.Faker('uuid4')
     email = factory.Faker('email')
     username = factory.Faker('user_name')
@@ -411,7 +411,7 @@ class TransactionFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Transaction
         sqlalchemy_session = None
-    
+
     user_id = factory.LazyAttribute(lambda o: UserFactory().id)
     amount = 10.0
     type = "credit"
@@ -451,35 +451,35 @@ jobs:
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
-      
+
       redis:
         image: redis:7
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install -r requirements-test.txt
-      
+
       - name: Run unit tests
         run: pytest tests/unit/ -v --cov=app --cov-report=xml
-      
+
       - name: Run integration tests
         run: pytest tests/integration/ -v
         env:
           DATABASE_URL: postgresql://postgres:test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -492,7 +492,7 @@ jobs:
 ```ini
 [run]
 source = app
-omit = 
+omit =
     */tests/*
     */migrations/*
     */__pycache__/*
@@ -668,20 +668,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install Playwright
         run: |
           pip install playwright
           playwright install chromium
-      
+
       - name: Start application
         run: |
           uvicorn main:app --host 0.0.0.0 --port 8000 &
           sleep 10
-      
+
       - name: Run smoke tests
         run: pytest tests/e2e/ -m smoke -v
-      
+
       - name: Run full E2E suite
         run: pytest tests/e2e/ -v
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -735,6 +735,6 @@ jobs:
 
 ---
 
-**Last Updated**: January 2026  
-**Owner**: QA & Security Teams  
+**Last Updated**: January 2026
+**Owner**: QA & Security Teams
 **Reviewer**: DevOps Team

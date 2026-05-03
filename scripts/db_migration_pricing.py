@@ -62,11 +62,11 @@ def run_migration():
 
         # 3. Enhance pricing_templates table
         print("Enhancing pricing_templates table...")
-        
+
         # Check existing columns to avoid errors
         result = conn.execute(text("""
-            SELECT column_name 
-            FROM information_schema.columns 
+            SELECT column_name
+            FROM information_schema.columns
             WHERE table_name = 'pricing_templates';
         """))
         existing_cols = [row[0] for row in result]

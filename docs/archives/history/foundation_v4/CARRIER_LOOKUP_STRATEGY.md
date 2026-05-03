@@ -1,7 +1,7 @@
 # Carrier Lookup Strategy
 
-**Date**: March 14, 2026  
-**Status**: Decision Made  
+**Date**: March 14, 2026
+**Status**: Decision Made
 **Recommendation**: Google libphonenumber
 
 ---
@@ -31,7 +31,7 @@ TextVerified API does not return specific carrier information in responses. The 
 - **Cost**: Free (open source)
 - **Latency**: <5ms (offline, no API call)
 - **Accuracy**: 95%+ for US numbers
-- **Pros**: 
+- **Pros**:
   - Industry standard (used by Google, Facebook, Uber)
   - Offline validation (no external dependencies)
   - 60x faster than commercial APIs
@@ -100,7 +100,7 @@ carrier.name_for_number(number, "en_US")  # "Verizon" (if available)
            number = phonenumbers.parse(phone, country)
            if not phonenumbers.is_valid_number(number):
                return {"valid": False, "error": "Invalid phone number"}
-           
+
            return {
                "valid": True,
                "country_code": number.country_code,
@@ -178,6 +178,6 @@ If carrier guarantee becomes a premium feature:
 
 ---
 
-**Status**: Ready for implementation in Q2 2026  
-**Owner**: Engineering Team  
+**Status**: Ready for implementation in Q2 2026
+**Owner**: Engineering Team
 **Last Updated**: March 14, 2026

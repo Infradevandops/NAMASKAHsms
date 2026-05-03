@@ -1,6 +1,6 @@
 /**
  * Blocking app initialization
- * 
+ *
  * This ensures tier is loaded before any UI rendering, preventing the
  * "freemium flash" issue. The flow is:
  * 1. Show skeleton immediately
@@ -13,22 +13,22 @@
 
 async function initializeApp() {
     console.log('[AppInit] Starting...');
-    
+
     try {
         // 1. Show skeleton immediately
         if (typeof SkeletonLoader !== 'undefined') {
             SkeletonLoader.show();
             console.log('[AppInit] Skeleton shown');
         }
-        
+
         // 2. Block on tier load
         if (typeof TierLoader === 'undefined') {
             throw new Error('TierLoader not loaded');
         }
-        
+
         const tier = await TierLoader.loadTierBlocking();
         console.log(`[AppInit] Tier loaded: ${tier}`);
-        
+
         // 3. Initialize global state
         window.APP_STATE = {
             tier,
@@ -37,35 +37,35 @@ async function initializeApp() {
             initialized: true,
             loadTime: performance.now()
         };
-        
+
         console.log(`[AppInit] Global state initialized: tier=${tier}, rank=${window.APP_STATE.tierRankValue}`);
-        
+
         // 4. Hide skeleton
         if (typeof SkeletonLoader !== 'undefined') {
             SkeletonLoader.hide();
             console.log('[AppInit] Skeleton hidden');
         }
-        
+
         // 5. Render dashboard (this is handled by existing dashboard.js)
         // The dashboard.js file will render the actual UI
         console.log('[AppInit] Dashboard ready to render');
-        
+
         // 6. Start tier sync (if available)
         if (typeof TierSync !== 'undefined') {
             TierSync.startSync();
             console.log('[AppInit] Tier sync started');
         }
-        
+
         console.log('[AppInit] Complete');
-        
+
     } catch (error) {
         console.error('[AppInit] Initialization failed:', error);
-        
+
         // Fallback: hide skeleton and show error
         if (typeof SkeletonLoader !== 'undefined') {
             SkeletonLoader.hide();
         }
-        
+
         // Initialize with default state
         window.APP_STATE = {
             tier: 'freemium',
@@ -74,7 +74,7 @@ async function initializeApp() {
             initialized: false,
             error: error.message
         };
-        
+
         // Show error message
         const errorDiv = document.createElement('div');
         errorDiv.style.cssText = `
@@ -100,7 +100,7 @@ async function initializeApp() {
 
 /**
  * Initialize on DOM ready
- * 
+ *
  * This blocks the entire app initialization until the DOM is ready,
  * ensuring all required libraries are loaded.
  */

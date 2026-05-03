@@ -1,6 +1,6 @@
 """
 BRUTAL STABILITY VERIFICATION SCRIPT (V5.0.0)
-Performs a comprehensive health check on the Namaskah Wallet backend, 
+Performs a comprehensive health check on the Namaskah Wallet backend,
 CSP policies, and financial integrity.
 """
 
@@ -32,25 +32,25 @@ def check_csp_policy():
     print("[1/4] Checking CSP Policy Resilience...")
     # Mocking the middleware call to see if newly allowed domains are present
     from starlette.types import Scope
-    
+
     # We simulate an os.urandom call indirectly by checking the middleware constructor
     # Since we can't easily run the middleware without a full app context in a script,
     # we'll check the file content for the required strings as a safety check.
     with open("app/middleware/security.py", "r") as f:
         content = f.read()
-        
+
     required_domains = [
         "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", # Optional check
         "https://cdnjs.cloudflare.com",
         "https://min-api.cryptocompare.com"
     ]
-    
+
     missing = [d for d in required_domains if d not in content and d.split('/')[-1] not in content]
-    # The check above is a bit loose because of how I formatted the middleware, 
+    # The check above is a bit loose because of how I formatted the middleware,
     # let's look for the base domains.
     base_domains = ["cdnjs.cloudflare.com", "min-api.cryptocompare.com"]
     missing = [d for d in base_domains if d not in content]
-    
+
     if not missing:
         print("  [✓] CSP permits cdnjs and cryptocompare.")
         return True
@@ -75,20 +75,20 @@ def run_financial_audit():
         engine = create_engine(settings.database_url)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         db = SessionLocal()
-        
+
         users = db.query(User).limit(10).all() # Sample audit
         anomalies = 0
-        
+
         for user in users:
             current_balance = float(user.credits or 0.0)
             audit_sum = db.query(func.sum(BalanceTransaction.amount)).filter(
                 BalanceTransaction.user_id == user.id
             ).scalar() or 0.0
-            
+
             if abs(current_balance - audit_sum) > 0.01:
                 print(f"  [!] ANOMALY: User {user.email} balance mismatch (${current_balance} vs Audit ${audit_sum})")
                 anomalies += 1
-                
+
         if anomalies == 0:
             print(f"  [✓] Audit passed for {len(users)} users (Sample).")
             return True
@@ -106,7 +106,7 @@ def check_tier_alignment():
         "templates/wallet.html",
         "templates/components/sidebar.html"
     ]
-    
+
     all_aligned = True
     for file in files_to_check:
         if not os.path.exists(file): continue
@@ -116,7 +116,7 @@ def check_tier_alignment():
                 # We specifically want to see /api/v1/billing/tiers/current
                 print(f"  [!] ALIGNMENT ISSUE: {file} still uses legacy Tier path.")
                 all_aligned = False
-    
+
     if all_aligned:
         print("  [✓] All dashboard templates aligned to V1 API.")
     return all_aligned
@@ -125,14 +125,14 @@ def main():
     print("=" * 60)
     print("NAMASKAH STABILITY VERIFICATION (V5.0.0)")
     print("=" * 60)
-    
+
     results = [
         check_csp_policy(),
         check_wallet_api_integrity(),
         run_financial_audit(),
         check_tier_alignment()
     ]
-    
+
     print("-" * 60)
     if all(results):
         print("RESULT: BRUTALLY STABLE - Ready for high-concurrency production.")

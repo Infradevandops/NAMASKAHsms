@@ -10,7 +10,7 @@ echo "✅ Committing..."
 git commit -m "feat: implement admin balance sync with TextVerified API
 
 - Add BalanceService for unified balance management
-- Add TransactionService for complete audit trail  
+- Add TransactionService for complete audit trail
 - Update purchase flow to sync admin balance from TextVerified
 - Add database migration for balance_last_synced field
 - Add comprehensive unit tests

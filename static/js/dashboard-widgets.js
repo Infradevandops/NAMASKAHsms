@@ -148,7 +148,7 @@ class DashboardWidget {
     updateBalance(amount, monthlySpent) {
         const balanceEl = this.container.querySelector('.balance-amount');
         const monthlyEl = this.container.querySelector('.meta-value');
-        
+
         if (balanceEl) {
             balanceEl.textContent = this.i18nCurrency.formatPrice(amount);
             balanceEl.dataset.amount = amount;
@@ -163,9 +163,9 @@ class DashboardWidget {
         const progress = this.container.querySelector('.quota-progress');
         const usedEl = this.container.querySelector('.quota-used');
         const remainingEl = this.container.querySelector('.quota-remaining');
-        
+
         const percentage = (used / total) * 100;
-        
+
         if (progress) {
             progress.style.width = `${Math.min(percentage, 100)}%`;
             progress.className = `quota-progress ${percentage >= 100 ? 'exceeded' : percentage >= 80 ? 'warning' : 'ok'}`;
@@ -177,12 +177,12 @@ class DashboardWidget {
     updateTier(tier, features) {
         const badge = this.container.querySelector('#tier-badge');
         const list = this.container.querySelector('#tier-features-list');
-        
+
         if (badge) {
             badge.textContent = window.i18n?.t(`tiers.${tier}`) || tier;
             badge.className = `tier-badge tier-${tier}`;
         }
-        
+
         if (list && features) {
             list.innerHTML = features.map(f => `<li>${f}</li>`).join('');
         }

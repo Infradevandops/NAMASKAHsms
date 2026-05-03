@@ -452,18 +452,18 @@
         left: 16px;
         max-width: none;
     }
-    
+
     .toast-notification {
         min-width: auto;
         max-width: none;
     }
-    
+
     .notification-dropdown {
         width: calc(100vw - 32px);
         right: -100px;
         max-width: 380px;
     }
-    
+
     .notification-bell-btn {
         width: 40px;
         height: 40px;
@@ -476,7 +476,7 @@
         width: calc(100vw - 16px);
         right: -120px;
     }
-    
+
     .toast-container {
         top: 60px;
         right: 8px;
@@ -507,11 +507,11 @@
     .notification-bell-badge {
         border-width: 3px;
     }
-    
+
     .toast-notification {
         border-width: 2px;
     }
-    
+
     .notification-dropdown {
         border-width: 2px;
     }
@@ -522,15 +522,15 @@
     .notification-bell-badge {
         animation: none;
     }
-    
+
     .notification-bell-btn.has-new {
         animation: none;
     }
-    
+
     .toast-notification {
         transition: opacity 0.2s ease;
     }
-    
+
     .toast-progress-bar {
         animation: none;
     }

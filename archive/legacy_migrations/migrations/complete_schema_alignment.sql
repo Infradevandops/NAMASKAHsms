@@ -6,7 +6,7 @@
 
 -- PART 1: Missing Verification Fields
 -- ============================================================================
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN IF NOT EXISTS selected_from_alternatives BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS original_request VARCHAR,
 ADD COLUMN IF NOT EXISTS routing_reason VARCHAR,
@@ -14,17 +14,17 @@ ADD COLUMN IF NOT EXISTS city_honoured BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS city_note VARCHAR;
 
 -- Verify refund fields exist (from previous migration)
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name='verifications' AND column_name='refunded') THEN
-        ALTER TABLE verifications 
+        ALTER TABLE verifications
         ADD COLUMN refunded BOOLEAN DEFAULT FALSE NOT NULL,
         ADD COLUMN refund_amount DOUBLE PRECISION,
         ADD COLUMN refund_reason VARCHAR,
         ADD COLUMN refund_transaction_id VARCHAR,
         ADD COLUMN refunded_at TIMESTAMP;
-        
+
         CREATE INDEX IF NOT EXISTS idx_verifications_refunded ON verifications(refunded);
     END IF;
 END $$;
@@ -49,36 +49,36 @@ CREATE TABLE IF NOT EXISTS analytics_cache (
     UNIQUE(user_id, period_start, period_end)
 );
 
-CREATE INDEX IF NOT EXISTS idx_analytics_cache_user_period 
+CREATE INDEX IF NOT EXISTS idx_analytics_cache_user_period
 ON analytics_cache(user_id, period_start, period_end);
 
-CREATE INDEX IF NOT EXISTS idx_analytics_cache_computed 
+CREATE INDEX IF NOT EXISTS idx_analytics_cache_computed
 ON analytics_cache(computed_at DESC);
 
 -- PART 3: Performance Indexes
 -- ============================================================================
 
 -- History page optimization
-CREATE INDEX IF NOT EXISTS idx_verifications_user_created 
+CREATE INDEX IF NOT EXISTS idx_verifications_user_created
 ON verifications(user_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_verifications_user_status_created 
+CREATE INDEX IF NOT EXISTS idx_verifications_user_status_created
 ON verifications(user_id, status, created_at DESC);
 
 -- Carrier analytics optimization
-CREATE INDEX IF NOT EXISTS idx_verifications_carrier_status 
-ON verifications(assigned_carrier, status) 
+CREATE INDEX IF NOT EXISTS idx_verifications_carrier_status
+ON verifications(assigned_carrier, status)
 WHERE assigned_carrier IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_verifications_area_code_matched 
-ON verifications(area_code_matched, created_at) 
+CREATE INDEX IF NOT EXISTS idx_verifications_area_code_matched
+ON verifications(area_code_matched, created_at)
 WHERE area_code_matched IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_carrier_analytics_lookup 
+CREATE INDEX IF NOT EXISTS idx_carrier_analytics_lookup
 ON carrier_analytics(carrier_name, created_at DESC);
 
 -- Refund queries optimization
-CREATE INDEX IF NOT EXISTS idx_verifications_refund_status 
+CREATE INDEX IF NOT EXISTS idx_verifications_refund_status
 ON verifications(refunded, status, created_at DESC);
 
 -- PART 4: Verification Events Table (Enhanced History)
@@ -91,10 +91,10 @@ CREATE TABLE IF NOT EXISTS verification_events (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_verification_events_verification 
+CREATE INDEX IF NOT EXISTS idx_verification_events_verification
 ON verification_events(verification_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_verification_events_type 
+CREATE INDEX IF NOT EXISTS idx_verification_events_type
 ON verification_events(event_type, created_at DESC);
 
 -- PART 5: Custom Reports Table (Future Enhancement)
@@ -113,11 +113,11 @@ CREATE TABLE IF NOT EXISTS custom_reports (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_custom_reports_user 
+CREATE INDEX IF NOT EXISTS idx_custom_reports_user
 ON custom_reports(user_id, enabled);
 
-CREATE INDEX IF NOT EXISTS idx_custom_reports_schedule 
-ON custom_reports(next_run) 
+CREATE INDEX IF NOT EXISTS idx_custom_reports_schedule
+ON custom_reports(next_run)
 WHERE enabled = TRUE;
 
 -- PART 6: Scheduled Reports Table
@@ -132,10 +132,10 @@ CREATE TABLE IF NOT EXISTS scheduled_reports (
     status VARCHAR DEFAULT 'pending' -- pending, sent, failed
 );
 
-CREATE INDEX IF NOT EXISTS idx_scheduled_reports_user 
+CREATE INDEX IF NOT EXISTS idx_scheduled_reports_user
 ON scheduled_reports(user_id, generated_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_scheduled_reports_status 
+CREATE INDEX IF NOT EXISTS idx_scheduled_reports_status
 ON scheduled_reports(status, generated_at DESC);
 
 -- PART 7: User Analytics Snapshots (Trend Analysis)
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS user_analytics_snapshots (
     UNIQUE(user_id, snapshot_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_analytics_snapshots_user_date 
+CREATE INDEX IF NOT EXISTS idx_user_analytics_snapshots_user_date
 ON user_analytics_snapshots(user_id, snapshot_date DESC);
 
 -- PART 8: Verification Statistics (Materialized View Alternative)
@@ -176,14 +176,14 @@ CREATE TABLE IF NOT EXISTS verification_statistics (
     UNIQUE(stat_date)
 );
 
-CREATE INDEX IF NOT EXISTS idx_verification_statistics_date 
+CREATE INDEX IF NOT EXISTS idx_verification_statistics_date
 ON verification_statistics(stat_date DESC);
 
 -- PART 9: Data Validation
 -- ============================================================================
 
 -- Verify all critical columns exist
-DO $$ 
+DO $$
 DECLARE
     missing_cols TEXT[];
 BEGIN
@@ -191,41 +191,41 @@ BEGIN
     FROM (
         SELECT unnest(ARRAY[
             'refunded', 'refund_amount', 'refund_reason', 'refund_transaction_id', 'refunded_at',
-            'selected_from_alternatives', 'original_request', 'routing_reason', 
+            'selected_from_alternatives', 'original_request', 'routing_reason',
             'city_honoured', 'city_note'
         ]) AS col
     ) expected
     WHERE NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
+        SELECT 1 FROM information_schema.columns
         WHERE table_name='verifications' AND column_name=col
     );
-    
+
     IF array_length(missing_cols, 1) > 0 THEN
         RAISE EXCEPTION 'Missing columns in verifications table: %', array_to_string(missing_cols, ', ');
     END IF;
-    
+
     RAISE NOTICE 'All verification columns verified successfully';
 END $$;
 
 -- PART 10: Summary Report
 -- ============================================================================
-SELECT 
+SELECT
     'Migration Complete' AS status,
     (SELECT COUNT(*) FROM information_schema.columns WHERE table_name='verifications') AS verification_columns,
     (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE') AS total_tables,
     (SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public') AS total_indexes;
 
 -- Show new tables created
-SELECT 
+SELECT
     table_name,
     (SELECT COUNT(*) FROM information_schema.columns WHERE table_name=t.table_name) AS column_count
 FROM information_schema.tables t
-WHERE table_schema='public' 
+WHERE table_schema='public'
   AND table_type='BASE TABLE'
   AND table_name IN (
-      'analytics_cache', 
-      'verification_events', 
-      'custom_reports', 
+      'analytics_cache',
+      'verification_events',
+      'custom_reports',
       'scheduled_reports',
       'user_analytics_snapshots',
       'verification_statistics'

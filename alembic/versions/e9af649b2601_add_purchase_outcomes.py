@@ -42,10 +42,10 @@ def upgrade() -> None:
             sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL'),
             sa.ForeignKeyConstraint(['verification_id'], ['verifications.id'], ondelete='SET NULL')
         )
-        
+
         op.create_index('ix_purchase_outcomes_service', 'purchase_outcomes', ['service'])
         op.create_index('ix_purchase_outcomes_created_at', 'purchase_outcomes', ['created_at'])
-        
+
         # Composite indexes
         op.create_index('ix_po_svc_assigned_date', 'purchase_outcomes', ['service', 'assigned_code', 'created_at'])
         op.create_index('ix_po_svc_requested_date', 'purchase_outcomes', ['service', 'requested_code', 'created_at'])

@@ -115,7 +115,7 @@ psql "$DB_URL" -c "\dt"
 
 # Get row counts for all tables
 psql "$DB_URL" -c "
-SELECT 
+SELECT
     schemaname,
     tablename,
     n_live_tup as row_count
@@ -245,7 +245,7 @@ This will:
 
 ### "Connection timed out"
 **Problem**: Network issue or database suspended
-**Solution**: 
+**Solution**:
 1. Check Render status: https://status.render.com
 2. Verify database is running in dashboard
 3. Try from different network
@@ -292,6 +292,6 @@ Then we'll proceed with the backup and migration!
 
 ---
 
-**Status**: ⏸️ Waiting for full connection string  
-**Action**: Get connection string from Render Dashboard  
+**Status**: ⏸️ Waiting for full connection string
+**Action**: Get connection string from Render Dashboard
 **Time**: 2 minutes

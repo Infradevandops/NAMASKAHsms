@@ -82,7 +82,7 @@ def backup_database() -> Path:
 def sync_to_gdrive(local_path: Path):
     """Sync to Google Drive (15GB free)."""
     logger.info("Syncing to Google Drive (15GB free)...")
-    
+
     try:
         subprocess.run([
             "rclone", "copy",
@@ -101,9 +101,9 @@ def sync_to_onedrive(local_path: Path):
     if day_of_week != 6:  # Only on Sunday
         logger.info("⏭️  Skipping OneDrive (weekly backup on Sundays)")
         return
-    
+
     logger.info("Syncing to OneDrive (5GB free)...")
-    
+
     try:
         subprocess.run([
             "rclone", "copy",
@@ -122,9 +122,9 @@ def sync_to_mega(local_path: Path):
     if day_of_month != 1:  # Only on 1st of month
         logger.info("⏭️  Skipping MEGA (monthly backup on 1st)")
         return
-    
+
     logger.info("Syncing to MEGA (20GB free)...")
-    
+
     try:
         subprocess.run([
             "rclone", "copy",
@@ -141,13 +141,13 @@ def cleanup_old_backups():
     """Remove local backups older than KEEP_LOCAL_DAYS."""
     cutoff = datetime.datetime.utcnow().timestamp() - (KEEP_LOCAL_DAYS * 86400)
     removed = 0
-    
+
     for f in LOCAL_BACKUP_DIR.glob("namaskah_backup_*.sql.gz"):
         if f.stat().st_mtime < cutoff:
             f.unlink()
             removed += 1
             logger.info(f"🗑️  Removed old backup: {f.name}")
-    
+
     if removed == 0:
         logger.info("✅ No old backups to remove")
 
@@ -155,7 +155,7 @@ def cleanup_old_backups():
 def cleanup_cloud_backups():
     """Keep only last 30 backups in cloud (free tier space management)."""
     logger.info("Cleaning up old cloud backups...")
-    
+
     # Google Drive: Keep last 30 backups
     try:
         result = subprocess.run([
@@ -163,7 +163,7 @@ def cleanup_cloud_backups():
             f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
             "--files-only",
         ], capture_output=True, text=True, check=True)
-        
+
         files = sorted(result.stdout.strip().split('\n'))
         if len(files) > 30:
             old_files = files[:-30]  # Keep last 30
@@ -180,25 +180,25 @@ def cleanup_cloud_backups():
 def backup_all():
     """Full backup workflow."""
     logger.info("🚀 Starting free tier backup...")
-    
+
     # 1. Backup database locally
     db_backup = backup_database()
-    
+
     # 2. Sync to Google Drive (daily)
     sync_to_gdrive(db_backup)
-    
+
     # 3. Sync to OneDrive (weekly)
     sync_to_onedrive(db_backup)
-    
+
     # 4. Sync to MEGA (monthly)
     sync_to_mega(db_backup)
-    
+
     # 5. Cleanup old local backups
     cleanup_old_backups()
-    
+
     # 6. Cleanup old cloud backups (space management)
     cleanup_cloud_backups()
-    
+
     logger.info("✅ Backup complete!")
     logger.info(f"📊 Storage used:")
     logger.info(f"   - Google Drive: Daily backups (last 30 days)")
@@ -209,21 +209,21 @@ def backup_all():
 def list_backups():
     """List available backups from all remotes."""
     logger.info("📋 Available backups:\n")
-    
+
     # Google Drive
     logger.info("Google Drive (15GB free):")
     subprocess.run([
         "rclone", "ls",
         f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
     ])
-    
+
     # OneDrive
     logger.info("\nOneDrive (5GB free):")
     subprocess.run([
         "rclone", "ls",
         f"{ONEDRIVE_REMOTE}:Namaskah-Backups/database/",
     ])
-    
+
     # MEGA
     logger.info("\nMEGA (20GB free):")
     subprocess.run([
@@ -237,12 +237,12 @@ def restore_database(source: str):
     if not DATABASE_URL:
         logger.error("DATABASE_URL not set")
         sys.exit(1)
-    
+
     # Download from cloud if needed
     if ":" in source:  # Remote path
         local_path = LOCAL_BACKUP_DIR / "restore_temp.sql.gz"
         LOCAL_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Downloading {source}...")
         subprocess.run([
             "rclone", "copy",
@@ -250,19 +250,19 @@ def restore_database(source: str):
             str(LOCAL_BACKUP_DIR),
             "--progress",
         ], check=True)
-        
+
         # Find the downloaded file
         local_path = max(LOCAL_BACKUP_DIR.glob("namaskah_backup_*.sql.gz"), key=lambda p: p.stat().st_mtime)
     else:
         local_path = Path(source)
-    
+
     if not local_path.exists():
         logger.error(f"Backup file not found: {local_path}")
         sys.exit(1)
-    
+
     logger.warning(f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!")
     input("Press Enter to continue or Ctrl+C to cancel...")
-    
+
     # Parse DATABASE_URL
     import urllib.parse
     p = urllib.parse.urlparse(DATABASE_URL)
@@ -274,7 +274,7 @@ def restore_database(source: str):
         "PGPASSWORD": p.password or "",
         "PGDATABASE": (p.path or "").lstrip("/"),
     }
-    
+
     # Restore
     gunzip = subprocess.Popen(
         ["gunzip", "-c", str(local_path)],
@@ -290,11 +290,11 @@ def restore_database(source: str):
     gunzip.stdout.close()
     _, psql_err = psql.communicate()
     gunzip.wait()
-    
+
     if psql.returncode != 0:
         logger.error(f"Restore failed: {psql_err.decode()}")
         sys.exit(1)
-    
+
     logger.info("✅ Database restored successfully")
 
 
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     parser.add_argument("--restore", metavar="SOURCE", help="Restore from backup (e.g., gdrive:Namaskah-Backups/database/file.sql.gz)")
     parser.add_argument("--list", action="store_true", help="List available backups")
     args = parser.parse_args()
-    
+
     if args.list:
         list_backups()
     elif args.restore:

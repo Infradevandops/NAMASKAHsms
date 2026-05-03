@@ -395,7 +395,7 @@
                     <div id="modal-status-badge"></div>
                 </div>
             </div>
-            
+
             <div style="background: #F8FAFC; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: var(--text-muted); font-size: 13px;">Reference ID</span>
@@ -414,7 +414,7 @@
                     <div id="modal-telemetry-text" style="font-size: 12px; color: #1E293B; line-height: 1.5;"></div>
                 </div>
             </div>
-            
+
             <button onclick="closeAuditModal()" class="btn nsk-btn-primary" style="width: 100%; margin-top: 24px; padding: 12px;">Close Audit Record</button>
         </div>
     </div>
@@ -447,7 +447,7 @@
                 loadAuditTrail(),
                 loadCryptoAddresses()
             ]);
-            
+
             // Auto-refresh stats every 60s
             setInterval(loadWalletStats, 60000);
         } catch (e) {
@@ -470,14 +470,14 @@
                 document.getElementById('stat-total-refunds').textContent = formatMoney(data.total_refunds || 0);
                 document.getElementById('stat-net-spent').textContent = formatMoney(data.net_spent || 0);
                 document.getElementById('stat-pending').textContent = data.pending_deposits;
-                
+
                 // Sync navbar balance to match wallet
                 const navBalance = document.getElementById('balance-display');
                 if (navBalance) navBalance.textContent = formatMoney(data.balance);
-                
+
                 // Colors
                 document.getElementById('stat-balance').style.color = data.balance < 5 ? '#ef4444' : '#FE3C72';
-                
+
                 // Empty state for $0 balance
                 if (data.balance === 0 && data.total_spent === 0) {
                     const grid = document.querySelector('.stat-grid');
@@ -498,7 +498,7 @@
         document.getElementById('section-crypto').style.display = isCard ? 'none' : 'block';
         document.getElementById('tab-card-btn').classList.toggle('active', isCard);
         document.getElementById('tab-crypto-btn').classList.toggle('active', !isCard);
-        
+
         // If switching to crypto, refresh rates immediately for fresh pricing
         if (!isCard) {
             refreshRates().catch(e => console.error('Auto-refresh rates failed:', e));
@@ -574,7 +574,7 @@
     function calculateCrypto() {
         const usd = parseFloat(document.getElementById('crypto-usd').value);
         cryptoState.currentAsset = document.getElementById('crypto-asset').value.toUpperCase();
-        
+
         if (usd && usd >= 5) {
             const rate = cryptoState.rates[cryptoState.currentAsset];
             cryptoState.selectedAmount = (usd * rate).toFixed(8);
@@ -589,7 +589,7 @@
         const btn = document.getElementById('record-intent-btn');
         const usd = parseFloat(document.getElementById('crypto-usd').value);
         const originalText = btn.textContent;
-        
+
         btn.disabled = true;
         btn.textContent = 'Generating Secure Address...';
 
@@ -615,12 +615,12 @@
             if (res.ok) {
                 const data = await res.json();
                 cryptoState.intentId = data.intent_id;
-                
+
                 // Show Details
                 document.getElementById('crypto-details-panel').style.display = 'block';
                 document.getElementById('crypto-addr').value = addr;
                 document.getElementById('final-crypto-amt').textContent = `${cryptoState.selectedAmount} ${cryptoState.currentAsset}`;
-                
+
                 // QR Code
                 const qrContainer = document.getElementById('qrcode');
                 qrContainer.innerHTML = '';
@@ -632,7 +632,7 @@
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
-                
+
                 window.errorHandler.showToast('Intent recorded. Please settle within 30 minutes.', 'info');
             }
         } catch (e) {
@@ -691,7 +691,7 @@
             if (res.ok) {
                 const data = await res.json();
                 const txs = data.transactions || [];
-                
+
                 if (txs.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">No institutional audit records found.</td></tr>`;
                     return;
@@ -724,10 +724,10 @@
         document.getElementById('modal-ref').textContent = tx.id;
         document.getElementById('modal-date').textContent = new Date(tx.created_at).toLocaleString();
         document.getElementById('modal-balance').textContent = formatMoney(tx.balance_after || 0);
-        
+
         const badge = document.getElementById('modal-status-badge');
         badge.innerHTML = `<span class="status-badge ${tx.status.toLowerCase()}">${tx.status}</span>`;
-        
+
         // Show telemetry if available (e.g. for verification debits)
         const telemetry = document.getElementById('modal-telemetry');
         if (tx.description.toLowerCase().includes('sms') || tx.description.toLowerCase().includes('refund')) {
@@ -751,9 +751,9 @@
             const res = await fetch('/api/v1/wallet/export/csv', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (!res.ok) throw new Error('Export failed');
-            
+
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -763,7 +763,7 @@
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-            
+
             window.errorHandler.showToast('Audit trail downloaded successfully', 'success');
         } catch (e) {
             console.error('[Wallet] Export failed:', e);

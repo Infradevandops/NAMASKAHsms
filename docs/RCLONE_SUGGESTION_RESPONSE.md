@@ -128,20 +128,20 @@ graph TB
         DB[(PostgreSQL<br/>1GB Free)]
         REDIS[(Redis<br/>25MB Free)]
     end
-    
+
     subgraph "Backups (Multi-Cloud - FREE)"
         GDRIVE[Google Drive<br/>15GB Free<br/>Daily]
         ONEDRIVE[OneDrive<br/>5GB Free<br/>Weekly]
         MEGA[MEGA<br/>20GB Free<br/>Monthly]
     end
-    
+
     APP --> DB
     APP --> REDIS
-    
+
     DB -.Backup.-> GDRIVE
     DB -.Backup.-> ONEDRIVE
     DB -.Backup.-> MEGA
-    
+
     style DB fill:#4CAF50
     style GDRIVE fill:#4285F4
     style ONEDRIVE fill:#0078D4
@@ -293,7 +293,7 @@ python3 scripts/backup_free_tier.py --list
 
 ---
 
-**Status**: ✅ Solution Ready  
-**Cost**: $0/month  
-**Setup Time**: 30 minutes  
+**Status**: ✅ Solution Ready
+**Cost**: $0/month
+**Setup Time**: 30 minutes
 **Your Data**: Safe with PostgreSQL + 3 cloud backups

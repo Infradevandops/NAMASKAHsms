@@ -1,8 +1,8 @@
 # Area Code & Carrier Enforcement Implementation
 
-**Version**: 1.0  
-**Created**: March 2026  
-**Status**: Ready for Implementation  
+**Version**: 1.0
+**Created**: March 2026
+**Status**: Ready for Implementation
 **Estimated Total Effort**: 8–9 hours
 
 ---
@@ -20,8 +20,8 @@ TextVerified treats carrier and area code as **preferences, not guarantees**. Th
 
 ## Phase 3C — Fix Existing Bugs (Do This First)
 
-**Effort**: 30 min  
-**Priority**: CRITICAL — fixes live 500 errors  
+**Effort**: 30 min
+**Priority**: CRITICAL — fixes live 500 errors
 
 ### Task 3C.1: Remove `sprint` from CARRIER_PREMIUMS
 
@@ -58,9 +58,9 @@ TextVerified treats carrier and area code as **preferences, not guarantees**. Th
 
 ## Phase 2A — Area Code Retry Loop (Free, Highest ROI)
 
-**Effort**: 2 hours  
-**Priority**: HIGH  
-**Dependencies**: None  
+**Effort**: 2 hours
+**Priority**: HIGH
+**Dependencies**: None
 **External APIs**: None (area code is extracted from the phone number itself)
 
 ### Task 2A.1: Add retry loop to `create_verification()`
@@ -97,9 +97,9 @@ TextVerified treats carrier and area code as **preferences, not guarantees**. Th
 
 ## Phase 2B — libphonenumber VOIP Rejection
 
-**Effort**: 1 hour  
-**Priority**: MEDIUM  
-**Dependencies**: Phase 2A  
+**Effort**: 1 hour
+**Priority**: MEDIUM
+**Dependencies**: Phase 2A
 
 ### Task 2B.1: Add `phonenumbers` dependency
 
@@ -130,9 +130,9 @@ TextVerified treats carrier and area code as **preferences, not guarantees**. Th
 
 ## Phase 3A — Numverify Carrier Lookup + Carrier Retry
 
-**Effort**: 3 hours  
-**Priority**: HIGH  
-**Dependencies**: Phase 2A  
+**Effort**: 3 hours
+**Priority**: HIGH
+**Dependencies**: Phase 2A
 
 ### Task 3A.1: Add Numverify config
 
@@ -181,9 +181,9 @@ TextVerified treats carrier and area code as **preferences, not guarantees**. Th
 
 ## Phase 3B — Fix Analytics + Surcharge Refund
 
-**Effort**: 2 hours  
-**Priority**: MEDIUM  
-**Dependencies**: Phase 3A  
+**Effort**: 2 hours
+**Priority**: MEDIUM
+**Dependencies**: Phase 3A
 
 ### Task 3B.1: Fix `CarrierAnalytics.exact_match`
 

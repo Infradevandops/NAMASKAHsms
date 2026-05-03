@@ -10,7 +10,7 @@ class RealTimeDashboard {
         this.statusPolling = new Map();
         this.cache = new Map();
         this.isOnline = navigator.onLine;
-        
+
         this.init();
     }
 
@@ -27,7 +27,7 @@ class RealTimeDashboard {
             this.isOnline = true;
             this.forceRefreshAll();
         });
-        
+
         window.addEventListener('offline', () => {
             this.isOnline = false;
             this.showOfflineIndicator();
@@ -53,7 +53,7 @@ class RealTimeDashboard {
         try {
             // Clear cache for fresh data
             this.cache.delete('balance');
-            
+
             const response = await fetch('/api/user/balance', {
                 headers: {
                     'Cache-Control': 'no-cache',
@@ -67,13 +67,13 @@ class RealTimeDashboard {
 
             const data = await response.json();
             const balance = parseFloat(data.credits) || 0;
-            
+
             // Update balance display immediately
             this.updateBalanceDisplay(balance);
-            
+
             // Cache for 30 seconds only
             this.cache.set('balance', balance, Date.now() + 30000);
-            
+
             return balance;
         } catch (error) {
             console.error('Balance sync failed:', error);
@@ -107,7 +107,7 @@ class RealTimeDashboard {
             try {
                 const status = await this.checkVerificationStatus(verificationId);
                 this.updateVerificationStatus(verificationId, status);
-                
+
                 // Stop polling if completed or failed
                 if (['completed', 'failed', 'cancelled'].includes(status.status)) {
                     this.stopStatusPolling(verificationId);
@@ -124,18 +124,18 @@ class RealTimeDashboard {
         const response = await fetch(`/api/verification/status/${verificationId}`, {
             headers: { 'Cache-Control': 'no-cache' }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
-        
+
         return await response.json();
     }
 
     updateVerificationStatus(verificationId, statusData) {
         // Update status in activity table
         const statusElements = document.querySelectorAll(`[data-verification-id="${verificationId}"]`);
-        
+
         statusElements.forEach(el => {
             const statusEl = el.querySelector('.status-tag');
             if (statusEl) {
@@ -162,7 +162,7 @@ class RealTimeDashboard {
 
         try {
             this.cache.delete('analytics');
-            
+
             const response = await fetch('/api/analytics/summary', {
                 headers: { 'Cache-Control': 'no-cache' }
             });
@@ -172,7 +172,7 @@ class RealTimeDashboard {
             }
 
             const data = await response.json();
-            
+
             // Fix calculations
             const totalSms = data.total_verifications || 0;
             const successfulSms = data.successful_verifications || 0;
@@ -187,7 +187,7 @@ class RealTimeDashboard {
 
             // Cache for 1 minute
             this.cache.set('analytics', data, Date.now() + 60000);
-            
+
         } catch (error) {
             console.error('Analytics update failed:', error);
             this.showErrorIndicator('analytics');
@@ -216,7 +216,7 @@ class RealTimeDashboard {
 
         try {
             this.cache.delete('recent_activity');
-            
+
             const response = await fetch('/api/dashboard/activity/recent', {
                 headers: { 'Cache-Control': 'no-cache' }
             });
@@ -227,7 +227,7 @@ class RealTimeDashboard {
 
             const data = await response.json();
             this.renderRecentActivity(data.activities || []);
-            
+
         } catch (error) {
             console.error('Recent activity update failed:', error);
         }
@@ -254,7 +254,7 @@ class RealTimeDashboard {
         activities.forEach(activity => {
             const row = document.createElement('tr');
             row.dataset.verificationId = activity.id;
-            
+
             const statusClass = this.getStatusClass(activity.status);
             const statusIcon = this.getStatusIcon(activity.status);
             const timeAgo = this.formatTimeAgo(new Date(activity.created_at));
@@ -279,7 +279,7 @@ class RealTimeDashboard {
     clearStaleCache() {
         // Clear all cached data
         this.cache.clear();
-        
+
         // Clear browser cache for API calls
         if ('caches' in window) {
             caches.keys().then(names => {
@@ -319,7 +319,7 @@ class RealTimeDashboard {
     getStatusClass(status) {
         switch (status) {
             case 'completed': return 'tag-green';
-            case 'failed': 
+            case 'failed':
             case 'cancelled': return 'tag-red';
             default: return 'tag-yellow';
         }
@@ -328,7 +328,7 @@ class RealTimeDashboard {
     getStatusIcon(status) {
         switch (status) {
             case 'completed': return '<i class="ph ph-check"></i>';
-            case 'failed': 
+            case 'failed':
             case 'cancelled': return '<i class="ph ph-x"></i>';
             default: return '<i class="ph ph-clock"></i>';
         }
@@ -367,7 +367,7 @@ class RealTimeDashboard {
             font-size: 14px;
             z-index: 9999;
         `;
-        
+
         document.body.appendChild(indicator);
         setTimeout(() => indicator.remove(), 3000);
     }
@@ -388,7 +388,7 @@ class RealTimeDashboard {
             font-size: 14px;
             z-index: 9999;
         `;
-        
+
         document.body.appendChild(indicator);
     }
 
@@ -402,7 +402,7 @@ class RealTimeDashboard {
             if (response.ok) {
                 const data = await response.json();
                 const tierName = data.tier_name || 'Freemium';
-                
+
                 const tierBadge = document.getElementById('tier-badge-display');
                 if (tierBadge) {
                     tierBadge.textContent = tierName.toUpperCase();
@@ -421,7 +421,7 @@ class RealTimeDashboard {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }
-        
+
         // Stop all status polling
         this.statusPolling.forEach(interval => clearInterval(interval));
         this.statusPolling.clear();
@@ -439,16 +439,16 @@ style.textContent = `
     .updated {
         animation: highlight 1s ease-in-out;
     }
-    
+
     @keyframes highlight {
         0% { background-color: #dbeafe; }
         100% { background-color: transparent; }
     }
-    
+
     .error-indicator {
         animation: slideIn 0.3s ease-out;
     }
-    
+
     @keyframes slideIn {
         from { transform: translateX(100%); }
         to { transform: translateX(0); }

@@ -273,7 +273,7 @@
 
     async function loadProviderStatus() {
         const token = localStorage.getItem('access_token');
-        
+
         try {
             const res = await fetch('/api/providers/health', {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
@@ -296,7 +296,7 @@
 
     function renderProviders(providers) {
         const grid = document.getElementById('provider-grid');
-        
+
         if (providers.length === 0) {
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted);">
@@ -396,7 +396,7 @@
 
     async function loadIncidents() {
         const container = document.getElementById('incident-list');
-        
+
         // Mock incidents for now - would come from /api/providers/incidents
         const incidents = [
             {

@@ -342,6 +342,6 @@ For 100GB backup + 10GB monthly uploads:
 
 ---
 
-**Status**: Ready to implement  
-**Estimated Setup Time**: 30 minutes  
+**Status**: Ready to implement
+**Estimated Setup Time**: 30 minutes
 **Monthly Cost**: $0.60 - $6.00 depending on provider

@@ -140,9 +140,9 @@ After 24 hours, verify:
 ## 🐛 Known Issues
 
 ### Redis CancelledError (Current)
-**Status**: Now tracked in Sentry  
-**Location**: `app/core/unified_cache.py`  
-**Impact**: Low (graceful degradation)  
+**Status**: Now tracked in Sentry
+**Location**: `app/core/unified_cache.py`
+**Impact**: Low (graceful degradation)
 **Action**: Monitor frequency in Sentry
 
 ### Expected Errors (Filtered)
@@ -179,7 +179,7 @@ unset SENTRY_DSN
 
 ---
 
-**Deployment Date**: _____________  
-**Deployed By**: _____________  
-**Verified By**: _____________  
+**Deployment Date**: _____________
+**Deployed By**: _____________
+**Verified By**: _____________
 **Status**: ⏳ Pending → ✅ Complete

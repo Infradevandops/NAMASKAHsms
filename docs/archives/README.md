@@ -113,6 +113,6 @@ Documents should be moved to archives when:
 
 ---
 
-**Purpose**: Preserve historical context while keeping active docs clean  
-**Maintained by**: Engineering Team  
+**Purpose**: Preserve historical context while keeping active docs clean
+**Maintained by**: Engineering Team
 **Last Updated**: December 2024

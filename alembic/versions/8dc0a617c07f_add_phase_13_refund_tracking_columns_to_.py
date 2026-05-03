@@ -20,24 +20,24 @@ def upgrade() -> None:
     # Check if columns already exist (idempotent)
     bind = op.get_bind()
     inspector = sa.inspect(bind)
-    
+
     if "purchase_outcomes" not in inspector.get_table_names():
         return
-    
+
     existing_columns = [col["name"] for col in inspector.get_columns("purchase_outcomes")]
-    
+
     # Add refund_requested_at if not exists
     if "refund_requested_at" not in existing_columns:
         op.add_column('purchase_outcomes',
             sa.Column('refund_requested_at', sa.DateTime(timezone=True), nullable=True)
         )
-    
+
     # Add refund_processed_at if not exists
     if "refund_processed_at" not in existing_columns:
         op.add_column('purchase_outcomes',
             sa.Column('refund_processed_at', sa.DateTime(timezone=True), nullable=True)
         )
-    
+
     # Add refund_latency_seconds if not exists
     if "refund_latency_seconds" not in existing_columns:
         op.add_column('purchase_outcomes',

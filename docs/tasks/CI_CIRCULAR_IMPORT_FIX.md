@@ -1,7 +1,7 @@
 # CI FAILURE - Circular Import Issue
 
-**Date**: March 20, 2026  
-**Severity**: 🔴 CRITICAL - Blocks all tests  
+**Date**: March 20, 2026
+**Severity**: 🔴 CRITICAL - Blocks all tests
 **Status**: Identified, fix needed
 
 ---
@@ -12,7 +12,7 @@
 
 **Root Cause**: Circular import between:
 ```
-app/core/database.py → app/models/base.py → app/models/__init__.py → 
+app/core/database.py → app/models/base.py → app/models/__init__.py →
 app/models/pricing_template.py → app/core/database.py
 ```
 
@@ -45,9 +45,9 @@ CIRCULAR IMPORT! ❌
 ## 🔧 Solution Options
 
 ### Option 1: Move Base to Separate File (RECOMMENDED)
-**Action**: Create `app/models/base.py` with only Base class  
-**Impact**: Breaks circular dependency  
-**Effort**: 15 minutes  
+**Action**: Create `app/models/base.py` with only Base class
+**Impact**: Breaks circular dependency
+**Effort**: 15 minutes
 **Risk**: Low
 
 ```python
@@ -58,15 +58,15 @@ Base = declarative_base()
 ```
 
 ### Option 2: Lazy Import in pricing_template.py
-**Action**: Import Base inside functions instead of module level  
-**Impact**: Fixes immediate issue  
-**Effort**: 5 minutes  
+**Action**: Import Base inside functions instead of module level
+**Impact**: Fixes immediate issue
+**Effort**: 5 minutes
 **Risk**: Medium (may hide other issues)
 
 ### Option 3: Remove pricing_template from __init__.py
-**Action**: Don't auto-import pricing_template in models/__init__.py  
-**Impact**: Requires explicit imports elsewhere  
-**Effort**: 10 minutes  
+**Action**: Don't auto-import pricing_template in models/__init__.py
+**Impact**: Requires explicit imports elsewhere
+**Effort**: 10 minutes
 **Risk**: Medium (may break existing code)
 
 ---

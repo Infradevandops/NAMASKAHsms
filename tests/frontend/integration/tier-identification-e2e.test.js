@@ -14,11 +14,11 @@ describe('TierLoader Integration', () => {
     beforeEach(() => {
         // Clear localStorage
         localStorage.clear();
-        
+
         // Mock fetch
         mockFetch = jest.fn();
         global.fetch = mockFetch;
-        
+
         // Import TierLoader
         tierLoader = require('../../../static/js/tier-loader.js').TierLoader;
     });
@@ -62,8 +62,8 @@ describe('TierLoader Integration', () => {
         });
 
         test('returns freemium on timeout', async () => {
-            mockFetch.mockImplementationOnce(() => 
-                new Promise((_, reject) => 
+            mockFetch.mockImplementationOnce(() =>
+                new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('timeout')), 6000)
                 )
             );
@@ -160,8 +160,8 @@ describe('TierLoader Integration', () => {
         test('enforces 5 second timeout', async () => {
             jest.useFakeTimers();
 
-            mockFetch.mockImplementationOnce(() => 
-                new Promise((resolve) => 
+            mockFetch.mockImplementationOnce(() =>
+                new Promise((resolve) =>
                     setTimeout(() => resolve({ ok: true, json: async () => ({ tier: 'pro' }) }), 6000)
                 )
             );
@@ -184,8 +184,8 @@ describe('TierLoader Integration', () => {
             };
             localStorage.setItem('user_tier_cache', JSON.stringify(cachedTier));
 
-            mockFetch.mockImplementationOnce(() => 
-                new Promise((_, reject) => 
+            mockFetch.mockImplementationOnce(() =>
+                new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('timeout')), 6000)
                 )
             );
@@ -342,7 +342,7 @@ describe('AppInit Integration', () => {
         });
 
         test('blocks on tier load', async () => {
-            tierLoader.loadTierBlocking.mockImplementationOnce(() => 
+            tierLoader.loadTierBlocking.mockImplementationOnce(() =>
                 new Promise(resolve => setTimeout(() => resolve('pro'), 100))
             );
 

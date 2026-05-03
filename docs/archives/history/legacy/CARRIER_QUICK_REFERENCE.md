@@ -2,8 +2,8 @@
 
 ## 🎯 TL;DR - The Truth About Carriers
 
-**What users think they're selecting**: Specific carriers (Verizon, AT&T, T-Mobile, etc.)  
-**What TextVerified actually returns**: Generic types ("Mobile", "Landline", "VOIP")  
+**What users think they're selecting**: Specific carriers (Verizon, AT&T, T-Mobile, etc.)
+**What TextVerified actually returns**: Generic types ("Mobile", "Landline", "VOIP")
 **What this means**: Carrier selection is a **preference**, not a **guarantee**
 
 ---
@@ -171,7 +171,7 @@ grep "Carrier mismatch" logs/app.log
 
 2. **Check Database**:
 ```sql
-SELECT 
+SELECT
     requested_carrier,
     assigned_carrier,
     operator,
@@ -278,6 +278,6 @@ recommended_carriers = ml_model.predict_available_carriers(
 
 ---
 
-**Last Updated**: March 14, 2026  
-**Maintained By**: Engineering Team  
+**Last Updated**: March 14, 2026
+**Maintained By**: Engineering Team
 **Status**: ACTIVE

@@ -389,9 +389,9 @@ endblock %}
         try {
             const ctrl = new AbortController();
             const tid = setTimeout(() => ctrl.abort(), 8000);
-            const res = await fetch('/api/v1/billing/tiers/current', { 
-                headers: { 'Authorization': `Bearer ${token}` }, 
-                signal: ctrl.signal 
+            const res = await fetch('/api/v1/billing/tiers/current', {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: ctrl.signal
             });
             clearTimeout(tid);
             if (!res.ok) return;
@@ -400,12 +400,12 @@ endblock %}
             const names = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
             const prices = { freemium: formatMoney(0) + '/month', payg: formatMoney(0) + '/month', pro: formatMoney(25) + '/month', custom: formatMoney(35) + '/month' };
             const features = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
-            
+
             // Use i18n-aware content updates
             const tierNameEl = document.getElementById('tier-name');
             const tierPriceEl = document.getElementById('tier-price');
             const tierFeaturesEl = document.getElementById('tier-features-list');
-            
+
             if (tierNameEl) {
                 tierNameEl.removeAttribute('data-i18n'); // Remove translation key for dynamic content
                 tierNameEl.textContent = names[tier] || tier;

@@ -51,12 +51,12 @@ async function checkTierAccess() {
 async function loadServices() {
     console.log('Loading services for US...');
     const select = document.getElementById('service-select');
-    
+
     try {
         // Show loading state
         select.innerHTML = '<option value="">Loading services...</option>';
         select.disabled = true;
-        
+
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/countries/US/services`, {
             headers: { 'Authorization': `Bearer ${token}` },
@@ -66,7 +66,7 @@ async function loadServices() {
         if (res.data && res.data.services && res.data.services.length > 0) {
             allServices = res.data.services;
             servicesLoaded = true;
-            
+
             // Populate select
             select.innerHTML = '<option value="">Select a service...</option>';
             allServices.forEach(service => {
@@ -75,13 +75,13 @@ async function loadServices() {
                 option.textContent = `${service.name} - ${formatMoney(service.cost)}`;
                 select.appendChild(option);
             });
-            
+
             select.disabled = false;
-            
+
             // Show source indicator
             const source = res.data.source || 'unknown';
             console.log(`✅ Loaded ${allServices.length} services from ${source}`);
-            
+
             // If using fallback, show warning
             if (source === 'fallback') {
                 console.warn('⚠️ Using fallback services - API unavailable');
@@ -91,7 +91,7 @@ async function loadServices() {
         }
     } catch (error) {
         console.error(`❌ Failed to load services for US from API:`, error);
-        
+
         // Use hardcoded fallback
         allServices = [
             { id: 'whatsapp', name: 'WhatsApp', cost: 2.50 },
@@ -104,7 +104,7 @@ async function loadServices() {
             { id: 'microsoft', name: 'Microsoft', cost: 2.25 }
         ];
         servicesLoaded = true;
-        
+
         // Populate select with fallback
         select.innerHTML = '<option value="">Select a service...</option>';
         allServices.forEach(service => {
@@ -113,9 +113,9 @@ async function loadServices() {
             option.textContent = `${service.name} - ${formatMoney(service.cost)}`;
             select.appendChild(option);
         });
-        
+
         select.disabled = false;
-        
+
         console.log(`⚠️ Using ${allServices.length} fallback services`);
     }
 }
@@ -164,7 +164,7 @@ function setupSearchListener() {
         dropdown.innerHTML = filtered.slice(0, 10).map(s => {
             const safeName = s.name.replace(/'/g, "\\'");
             return `
-    <div onclick="selectService('${s.id}', '${safeName}', ${s.cost})" 
+    <div onclick="selectService('${s.id}', '${safeName}', ${s.cost})"
          style="padding: 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; transition: background 0.15s;"
          onmouseover="this.style.background='#f9fafb'"
          onmouseout="this.style.background='white'">
@@ -439,10 +439,10 @@ async function cancelVerification() {
 
 function startPolling(id) {
     let count = 0;
-    
+
     // Initialize WebSocket with fallback
     const smsWS = new SMSWebSocket(id);
-    
+
     // Updated waiting UI with Pulse Animation
     document.getElementById('status-text').innerHTML = `
     <div class="pulse-container">
@@ -575,7 +575,7 @@ async function resetForm() {
         if (currentVerification.websocket) {
             currentVerification.websocket.close();
         }
-        
+
         try {
             const token = localStorage.getItem('access_token');
             await axios.delete(`/api/verify/${currentVerification.id}`, {
@@ -790,15 +790,15 @@ function debouncedCheckAreaCode(value) {
         if(_jsCheckTimeout) clearTimeout(_jsCheckTimeout);
         return;
     }
-    
+
     const code = value.replace(/\D/g, '');
     if (code.length < 3) return;
-    
+
     if (!selectedService) return;
-    
+
     if (_jsCheckTimeout) clearTimeout(_jsCheckTimeout);
     if (_jsCheckAbort) _jsCheckAbort.abort();
-    
+
     _jsCheckTimeout = setTimeout(() => {
         checkAreaCodeAPI(code);
     }, 500);
@@ -809,13 +809,13 @@ async function checkAreaCodeAPI(code) {
     const msg = document.getElementById('ac-message');
     const badge = document.getElementById('ac-status-badge');
     const btn = document.getElementById('purchase-btn');
-    
+
     _jsCheckAbort = new AbortController();
     try {
         const res = await fetch(`/api/area-codes/check?service=${encodeURIComponent(selectedService)}&area_code=${encodeURIComponent(code)}`, {
             signal: _jsCheckAbort.signal
         });
-        
+
         if (!res.ok) {
             const data = await res.json().catch(()=>({}));
             if(input) {
@@ -830,9 +830,9 @@ async function checkAreaCodeAPI(code) {
             if(btn) btn.disabled = true;
             return;
         }
-        
+
         const data = await res.json();
-        
+
         if (data.status === 'available') {
             if(input) {
                 input.style.borderColor = '#10b981';
@@ -855,7 +855,7 @@ async function checkAreaCodeAPI(code) {
                 msg.style.display = 'block';
             }
             if(btn) btn.disabled = true;
-            
+
             // Note: If using `verification.js`, the UI needs manual alt rendering
             // We'll rely on the main `verify_modern.html` to be the primary interface,
             // but keep the logic here synced.
@@ -871,7 +871,7 @@ async function checkAreaCodeAPI(code) {
             }
             if(btn) btn.disabled = false;
         }
-        
+
     } catch (e) {
         if (e.name === 'AbortError') return;
         if(input) input.style.borderColor = '#e5e7eb';

@@ -1,8 +1,8 @@
 # CI Excellence Fix - Task Plan
 
-**Date**: April 23, 2026  
-**Priority**: 🟡 Medium  
-**Effort**: 30 minutes  
+**Date**: April 23, 2026
+**Priority**: 🟡 Medium
+**Effort**: 30 minutes
 **Impact**: High (100% CI health)
 
 ---
@@ -18,7 +18,7 @@ Fix the Activity schema mismatch to achieve 100% CI health and improve pipeline 
 **Error**:
 ```
 foreign key constraint "activities_user_id_fkey" cannot be implemented
-DETAIL: Key columns "user_id" and "id" are of incompatible types: 
+DETAIL: Key columns "user_id" and "id" are of incompatible types:
   character varying and integer.
 ```
 
@@ -27,7 +27,7 @@ DETAIL: Key columns "user_id" and "id" are of incompatible types:
 - CI success rate: 40% (should be >90%)
 - Schema drift between test and production
 
-**Root Cause**: 
+**Root Cause**:
 - `Activity.user_id` is VARCHAR
 - `User.id` in test DB is INTEGER
 - `User.id` in production is VARCHAR (from BaseModel)
@@ -47,7 +47,7 @@ DETAIL: Key columns "user_id" and "id" are of incompatible types:
 3. Update test DB to match production
 4. Run migrations in CI
 
-**Effort**: 15 minutes  
+**Effort**: 15 minutes
 **Risk**: Low
 
 ### Option B: Fix Activity Model
@@ -60,7 +60,7 @@ DETAIL: Key columns "user_id" and "id" are of incompatible types:
 3. Create migration
 4. Test locally
 
-**Effort**: 20 minutes  
+**Effort**: 20 minutes
 **Risk**: Medium (requires migration)
 
 ---
@@ -116,7 +116,7 @@ Update `.github/workflows/ci.yml`:
   run: |
     # Create database if not exists
     psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;" 2>/dev/null || true
-    
+
     # Run migrations to ensure schema matches production
     alembic upgrade head
 
@@ -135,17 +135,17 @@ def engine():
     """Create test database engine."""
     from app.core.database import Base
     from app.models import *  # Import all models
-    
+
     engine = create_engine(TEST_DATABASE_URL)
-    
+
     # Drop all tables
     Base.metadata.drop_all(bind=engine)
-    
+
     # Create all tables with correct schema
     Base.metadata.create_all(bind=engine)
-    
+
     yield engine
-    
+
     # Cleanup
     Base.metadata.drop_all(bind=engine)
 ```
@@ -393,15 +393,15 @@ pytest tests/unit/ -n auto -v
 
 ---
 
-**Estimated Total Time**: 30 minutes  
-**Risk Level**: Low  
-**Impact**: High (100% CI health)  
+**Estimated Total Time**: 30 minutes
+**Risk Level**: Low
+**Impact**: High (100% CI health)
 **Priority**: Medium (not blocking production)
 
 ---
 
-**Ready to Execute**: Yes  
-**Blockers**: None  
+**Ready to Execute**: Yes
+**Blockers**: None
 **Dependencies**: None
 
 ---
@@ -431,6 +431,6 @@ gh run watch
 
 ---
 
-**Status**: Ready for implementation  
-**Owner**: DevOps/Backend Team  
+**Status**: Ready for implementation
+**Owner**: DevOps/Backend Team
 **Reviewer**: Tech Lead

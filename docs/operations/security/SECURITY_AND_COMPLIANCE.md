@@ -1,8 +1,8 @@
 # Namaskah Security & Compliance Documentation
 
-**Version**: 2.5.0  
-**Last Updated**: December 3, 2025  
-**Status**: Production Ready ✅  
+**Version**: 2.5.0
+**Last Updated**: December 3, 2025
+**Status**: Production Ready ✅
 **Security Rating**: ⭐⭐⭐⭐⭐ (5/5)
 
 ---
@@ -605,7 +605,7 @@ Namaskah is built on **defense-in-depth** principles:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: December 3, 2025  
-**Status**: Production Ready ✅  
+**Document Version**: 1.0
+**Last Updated**: December 3, 2025
+**Status**: Production Ready ✅
 **Security Rating**: ⭐⭐⭐⭐⭐ (5/5)

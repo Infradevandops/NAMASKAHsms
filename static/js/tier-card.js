@@ -1,7 +1,7 @@
 /**
  * Tier Card Module
  * Handles tier display, loading states, and CTA buttons
- * 
+ *
  * Extracted from inline dashboard.html script for:
  * - Better cacheability
  * - Testability

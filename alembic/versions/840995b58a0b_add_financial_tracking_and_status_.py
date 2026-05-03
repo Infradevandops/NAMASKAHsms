@@ -30,7 +30,7 @@ def upgrade() -> None:
             nullable=True,
             comment='Links to balance_transactions debit record'
         ))
-    
+
     if 'refund_transaction_id' not in columns:
         op.add_column('verifications', sa.Column(
             'refund_transaction_id',
@@ -38,7 +38,7 @@ def upgrade() -> None:
             nullable=True,
             comment='Links to balance_transactions refund record'
         ))
-    
+
     # Add detailed status tracking columns
     if 'failure_reason' not in columns:
         op.add_column('verifications', sa.Column(
@@ -47,7 +47,7 @@ def upgrade() -> None:
             nullable=True,
             comment='Specific failure reason code (e.g., user_cancelled, number_unavailable)'
         ))
-    
+
     if 'failure_category' not in columns:
         op.add_column('verifications', sa.Column(
             'failure_category',
@@ -55,7 +55,7 @@ def upgrade() -> None:
             nullable=True,
             comment='Failure category (user_action, provider_issue, system_validation, etc.)'
         ))
-    
+
     # Add SMS receipt tracking
     if 'sms_received' not in columns:
         op.add_column('verifications', sa.Column(
@@ -65,7 +65,7 @@ def upgrade() -> None:
             nullable=False,
             comment='Whether SMS code was actually received'
         ))
-    
+
     # Add refund eligibility flag
     if 'refund_eligible' not in columns:
         op.add_column('verifications', sa.Column(
@@ -75,10 +75,10 @@ def upgrade() -> None:
             nullable=False,
             comment='Whether this failure qualifies for refund'
         ))
-    
+
     # Create indexes for analytics queries
     existing_indexes = [idx['name'] for idx in inspector.get_indexes('verifications')]
-    
+
     if 'idx_verifications_sms_received' not in existing_indexes:
         op.create_index(
             'idx_verifications_sms_received',
@@ -86,7 +86,7 @@ def upgrade() -> None:
             ['user_id', 'sms_received'],
             postgresql_where=sa.text('sms_received = true')
         )
-    
+
     if 'idx_verifications_failure_reason' not in existing_indexes:
         op.create_index(
             'idx_verifications_failure_reason',
@@ -94,18 +94,18 @@ def upgrade() -> None:
             ['user_id', 'failure_reason'],
             postgresql_where=sa.text('failure_reason IS NOT NULL')
         )
-    
+
     if 'idx_verifications_refund_tracking_v2' not in existing_indexes:
         op.create_index(
             'idx_verifications_refund_tracking_v2',
             'verifications',
             ['user_id', 'refunded', 'created_at']
         )
-    
+
     # Add foreign keys to balance_transactions
-    # Note: SQLite doesn't support adding foreign keys to existing tables easily, 
+    # Note: SQLite doesn't support adding foreign keys to existing tables easily,
     # but we'll define them for Postgres.
-    
+
     # Check if foreign keys already exist is harder, but we'll try to add them.
     try:
         op.create_foreign_key(
@@ -118,7 +118,7 @@ def upgrade() -> None:
         )
     except Exception:
         pass
-        
+
     try:
         op.create_foreign_key(
             'fk_verifications_refund_transaction',
@@ -141,7 +141,7 @@ def downgrade() -> None:
     try:
         op.drop_constraint('fk_verifications_debit_transaction', 'verifications', type_='foreignkey')
     except: pass
-    
+
     # Drop indexes
     try:
         op.drop_index('idx_verifications_refund_tracking_v2')
@@ -152,7 +152,7 @@ def downgrade() -> None:
     try:
         op.drop_index('idx_verifications_sms_received')
     except: pass
-    
+
     # Drop columns
     op.drop_column('verifications', 'refund_eligible')
     op.drop_column('verifications', 'sms_received')

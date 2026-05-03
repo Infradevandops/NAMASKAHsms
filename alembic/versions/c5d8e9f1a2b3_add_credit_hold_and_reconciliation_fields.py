@@ -21,12 +21,12 @@ def upgrade() -> None:
     # Use inspector for safe column addition
     bind = op.get_bind()
     inspector = sa.inspect(bind)
-    
+
     try:
         columns = [c["name"] for c in inspector.get_columns("users")]
     except Exception:
         columns = []
-    
+
     # Add credit hold fields
     if "credit_hold_amount" not in columns:
         op.add_column(
@@ -38,26 +38,26 @@ def upgrade() -> None:
                 server_default="0.0"
             )
         )
-    
+
     if "credit_hold_reason" not in columns:
         op.add_column(
             "users",
             sa.Column("credit_hold_reason", sa.String(), nullable=True)
         )
-    
+
     if "credit_hold_until" not in columns:
         op.add_column(
             "users",
             sa.Column("credit_hold_until", sa.DateTime(), nullable=True)
         )
-    
+
     # Add reconciliation tracking field
     if "last_reconciliation_at" not in columns:
         op.add_column(
             "users",
             sa.Column("last_reconciliation_at", sa.DateTime(), nullable=True)
         )
-    
+
     # Create indices for performance
     try:
         op.create_index(
@@ -68,7 +68,7 @@ def upgrade() -> None:
         )
     except Exception:
         pass  # Index might already exist
-    
+
     try:
         op.create_index(
             "ix_users_last_reconciliation_at",
@@ -87,12 +87,12 @@ def downgrade() -> None:
         op.drop_index("ix_users_last_reconciliation_at", table_name="users")
     except Exception:
         pass
-    
+
     try:
         op.drop_index("ix_users_credit_hold_until", table_name="users")
     except Exception:
         pass
-    
+
     # Drop columns
     op.drop_column("users", "last_reconciliation_at")
     op.drop_column("users", "credit_hold_until")

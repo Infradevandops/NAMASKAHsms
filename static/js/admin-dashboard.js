@@ -12,7 +12,7 @@ async function initializeDashboard() {
     try {
         // Get auth token from cookies first
         authToken = getCookie('access_token');
-        
+
         if (!authToken) {
             // Try to login with admin credentials
             const loginResponse = await fetch('/api/auth/login', {
@@ -23,7 +23,7 @@ async function initializeDashboard() {
                     password: 'admin123'
                 })
             });
-            
+
             if (loginResponse.ok) {
                 const loginData = await loginResponse.json();
                 authToken = loginData.access_token;
@@ -33,13 +33,13 @@ async function initializeDashboard() {
                 return;
             }
         }
-        
+
         // Load dashboard data
         await loadDashboardData();
-        
+
         // Set up auto-refresh
         refreshInterval = setInterval(loadDashboardData, 30000);
-        
+
         showToast('Dashboard loaded successfully', 'success');
     } catch (error) {
         console.error('Dashboard initialization error:', error);
@@ -60,7 +60,7 @@ async function loadDashboardData() {
         const statsResponse = await fetch('/api/admin/stats', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        
+
         if (statsResponse.ok) {
             const statsData = await statsResponse.json();
             updateBasicMetrics(statsData);
@@ -69,23 +69,23 @@ async function loadDashboardData() {
             // Show fallback data
             updateBasicMetrics({
                 users: 1,
-                verifications: 0, 
+                verifications: 0,
                 success_rate: 0,
                 revenue: 0
             });
         }
-        
+
         // Load recent verifications
         await loadRecentVerifications();
-        
+
         // Load operational intelligence
         if (window.IntelligenceManager) {
             await IntelligenceManager.loadOverview();
         }
-        
+
         // Update system status
         updateSystemStatus();
-        
+
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         showToast('Error loading data', 'error');
@@ -95,13 +95,13 @@ async function loadDashboardData() {
 function updateBasicMetrics(stats) {
     document.getElementById('total-users').textContent = stats.users || 0;
     document.getElementById('active-users').textContent = `${stats.active_users || 0} active`;
-    
+
     document.getElementById('total-verifications').textContent = stats.verifications || 0;
     document.getElementById('pending-verifications').textContent = `${stats.pending_verifications || 0} pending`;
-    
+
     document.getElementById('success-rate').textContent = `${stats.success_rate || 0}%`;
     document.getElementById('success-count').textContent = `${stats.success_verifications || 0} completed`;
-    
+
     document.getElementById('total-revenue').textContent = `$${stats.revenue || 0}`;
 }
 
@@ -110,12 +110,12 @@ async function loadRecentVerifications() {
         const response = await fetch('/api/admin/verification-history/recent', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        
+
         const tbody = document.getElementById('verifications-tbody');
-        
+
         if (response.ok) {
             const verifications = await response.json();
-            
+
             if (verifications.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="no-data">No verifications yet</td></tr>';
             } else {
@@ -130,8 +130,8 @@ async function loadRecentVerifications() {
                         <td><span class="cost">$${v.cost}</span></td>
                         <td><span class="date">${new Date(v.created_at).toLocaleDateString()}</span></td>
                         <td>
-                            ${v.status === 'pending' ? 
-                                `<button class="btn-action btn-cancel" onclick="cancelVerification('${v.id}')">Cancel</button>` : 
+                            ${v.status === 'pending' ?
+                                `<button class="btn-action btn-cancel" onclick="cancelVerification('${v.id}')">Cancel</button>` :
                                 `<button class="btn-action btn-view" onclick="viewVerification('${v.id}')">View</button>`
                             }
                         </td>
@@ -143,7 +143,7 @@ async function loadRecentVerifications() {
         }
     } catch (error) {
         console.error('Error loading verifications:', error);
-        document.getElementById('verifications-tbody').innerHTML = 
+        document.getElementById('verifications-tbody').innerHTML =
             '<tr><td colspan="9" class="error">Error loading data</td></tr>';
     }
 }
@@ -153,13 +153,13 @@ async function loadPricingTemplates() {
         const response = await fetch('/api/admin/pricing-templates', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        
+
         const container = document.getElementById('pricing-controls');
-        
+
         if (response.ok) {
             const data = await response.json();
             const templates = data.templates || [];
-            
+
             if (templates.length === 0) {
                 container.innerHTML = '<div class="no-data">No pricing templates found</div>';
             } else {
@@ -180,7 +180,7 @@ async function loadPricingTemplates() {
         }
     } catch (error) {
         console.error('Error loading pricing templates:', error);
-        document.getElementById('pricing-controls').innerHTML = 
+        document.getElementById('pricing-controls').innerHTML =
             '<div class="error">Error loading pricing templates</div>';
     }
 }
@@ -196,13 +196,13 @@ function refreshDashboard() {
 
 async function cancelVerification(verificationId) {
     if (!confirm('Are you sure you want to cancel this verification?')) return;
-    
+
     try {
         const response = await fetch(`/api/admin/verifications/${verificationId}/cancel`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        
+
         if (response.ok) {
             showToast('Verification cancelled successfully', 'success');
             await loadRecentVerifications();
@@ -225,7 +225,7 @@ async function exportAll() {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             showToast(data.message, 'success');
@@ -255,13 +255,13 @@ function showToast(message, type = 'info') {
         z-index: 1000;
         font-size: 14px;
     `;
-    
+
     if (type === 'success') toast.style.backgroundColor = '#10b981';
     else if (type === 'error') toast.style.backgroundColor = '#ef4444';
     else toast.style.backgroundColor = '#0ea5e9';
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.remove();
     }, 3000);

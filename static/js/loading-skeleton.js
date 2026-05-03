@@ -48,7 +48,7 @@ class LoadingSkeleton {
         const { rows = 5, columns = 4 } = options;
         const table = document.createElement('div');
         table.className = 'skeleton-table';
-        
+
         let html = '<div style="display: flex; gap: 12px; margin-bottom: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">';
         for (let i = 0; i < columns; i++) {
             html += '<div class="skeleton-line" style="flex: 1; height: 16px;"></div>';

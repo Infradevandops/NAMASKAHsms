@@ -295,11 +295,11 @@ function toggleVoicePin(id) {
 
 function updateProgress(step) {
     currentStep = step;
-    
+
     for (let i = 1; i <= 3; i++) {
         const stepEl = document.getElementById(`step-${i}`);
         const cardEl = document.getElementById(`step-${i}-card`);
-        
+
         if (i < step) {
             stepEl.classList.add('completed');
             stepEl.classList.remove('active');
@@ -309,10 +309,10 @@ function updateProgress(step) {
         } else {
             stepEl.classList.remove('active', 'completed');
         }
-        
+
         cardEl.style.display = i === step ? 'block' : 'none';
     }
-    
+
     const progress = ((step - 1) / 2) * 100;
     document.getElementById('progress-fill').style.width = progress + '%';
 }
@@ -325,7 +325,7 @@ function confirmService() {
         window.toast?.error('Please select an area code for voice verification');
         return;
     }
-    
+
     document.getElementById('pricing-service').textContent = selectedService;
     document.getElementById('pricing-area-code').textContent = areaCode;
     const price = selectedServicePrice ? formatMoney(selectedServicePrice) : '';
@@ -368,7 +368,7 @@ async function createVerification() {
         window.toast?.error('Please select a service');
         return;
     }
-    
+
     const areaCode = document.getElementById('area-code-select').value;
     if (!areaCode) {
         window.toast?.error('Please select an area code');

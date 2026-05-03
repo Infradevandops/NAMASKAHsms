@@ -23,14 +23,14 @@ const ForensicsManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             this.savedHistory = data.history; // Store for export
-            
+
             const tbody = document.getElementById('forensics-history-table');
             tbody.innerHTML = data.history.map(f => {
                 const profitClass = f.profit >= 0 ? 'profit-pos' : 'profit-neg';
                 const driftClass = f.drift > 0 ? 'profit-neg' : 'profit-pos';
-                
+
                 return `
                     <tr style="${f.drift > 0.05 ? 'background:rgba(239, 68, 68, 0.05);' : ''}">
                         <td>#${f.audit_id}</td>
@@ -47,22 +47,22 @@ const ForensicsManager = {
 
             this.currentPage = Math.floor(this.offset / this.limit) + 1;
             document.getElementById('forensics-page-info').textContent = `Page ${this.currentPage} of ${Math.ceil(data.total / this.limit)}`;
-            
+
         } catch (e) { console.error('[Forensics] History fetch failed:', e); }
     },
 
     exportToCSV() {
         if (!this.savedHistory || this.savedHistory.length === 0) return;
-        
+
         const headers = ["Audit ID", "Identifier", "Service", "Phone", "Price", "Profit", "Drift", "Timestamp"];
         const rows = this.savedHistory.map(f => [
             f.audit_id, f.identifier, f.service, f.phone, f.platform_price, f.profit, f.drift, f.timestamp
         ]);
-        
-        let csvContent = "data:text/csv;charset=utf-8," 
+
+        let csvContent = "data:text/csv;charset=utf-8,"
             + headers.join(",") + "\n"
             + rows.map(e => e.join(",")).join("\n");
-            
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);

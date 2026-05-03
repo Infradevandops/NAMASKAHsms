@@ -27,20 +27,20 @@ class AnalyticsManager {
   async init() {
     try {
       console.log('Initializing analytics dashboard...');
-      
+
       // Load initial data
       await this.loadStatistics();
       await this.loadCharts();
-      
+
       // Setup filters
       this.setupFilters();
-      
+
       // Setup export buttons
       this.setupExport();
-      
+
       // Setup auto-refresh
       this.setupAutoRefresh();
-      
+
       console.log('Analytics dashboard initialized successfully');
     } catch (error) {
       console.error('Error initializing analytics:', error);
@@ -55,13 +55,13 @@ class AnalyticsManager {
     try {
       const token = localStorage.getItem('access_token');
       console.log('Loading statistics with token:', token ? 'present' : 'missing');
-      
+
       const response = await axios.get('/api/analytics/summary', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       console.log('Statistics loaded:', response.data);
       this.data.statistics = response.data;
       this.renderStatistics();
@@ -78,7 +78,7 @@ class AnalyticsManager {
    */
   renderStatistics() {
     const stats = this.data.statistics;
-    
+
     // Total Verifications
     const totalCard = document.getElementById('stat-total-verifications');
     if (totalCard) {
@@ -167,19 +167,19 @@ class AnalyticsManager {
     try {
       // Build query params from filters
       const params = this.buildFilterParams();
-      
+
       // Load daily stats
       const dailyResponse = await axios.get('/api/analytics/daily-stats', { params });
       this.data.dailyStats = dailyResponse.data;
-      
+
       // Load service breakdown
       const serviceResponse = await axios.get('/api/analytics/service-breakdown', { params });
       this.data.serviceBreakdown = serviceResponse.data;
-      
+
       // Load country breakdown
       const countryResponse = await axios.get('/api/analytics/country-breakdown', { params });
       this.data.countryBreakdown = countryResponse.data;
-      
+
       // Render charts
       this.renderCharts();
     } catch (error) {
@@ -200,13 +200,13 @@ class AnalyticsManager {
 
     // Create line chart for verifications over time
     this.createVerificationsChart();
-    
+
     // Create line chart for success rate trend
     this.createSuccessRateChart();
-    
+
     // Create pie chart for service breakdown
     this.createServiceChart();
-    
+
     // Create bar chart for country breakdown
     this.createCountryChart();
   }
@@ -416,14 +416,14 @@ class AnalyticsManager {
     // Date range filter
     const dateFromInput = document.getElementById('filter-date-from');
     const dateToInput = document.getElementById('filter-date-to');
-    
+
     if (dateFromInput) {
       dateFromInput.addEventListener('change', (e) => {
         this.filters.dateFrom = e.target.value;
         this.applyFilters();
       });
     }
-    
+
     if (dateToInput) {
       dateToInput.addEventListener('change', (e) => {
         this.filters.dateTo = e.target.value;
@@ -475,10 +475,10 @@ class AnalyticsManager {
     try {
       // Save filters to localStorage
       this.saveFiltersToStorage();
-      
+
       // Reload charts with new filters
       await this.loadCharts();
-      
+
       // Update filter indicators
       this.updateFilterIndicators();
     } catch (error) {
@@ -519,13 +519,13 @@ class AnalyticsManager {
    */
   buildFilterParams() {
     const params = {};
-    
+
     if (this.filters.dateFrom) params.date_from = this.filters.dateFrom;
     if (this.filters.dateTo) params.date_to = this.filters.dateTo;
     if (this.filters.services.length > 0) params.services = this.filters.services.join(',');
     if (this.filters.countries.length > 0) params.countries = this.filters.countries.join(',');
     if (this.filters.status.length > 0) params.status = this.filters.status.join(',');
-    
+
     return params;
   }
 
@@ -567,7 +567,7 @@ class AnalyticsManager {
     if (stored) {
       try {
         this.filters = JSON.parse(stored);
-        
+
         // Restore form values
         if (this.filters.dateFrom) {
           document.getElementById('filter-date-from').value = this.filters.dateFrom;

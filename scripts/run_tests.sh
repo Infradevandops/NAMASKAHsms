@@ -40,11 +40,11 @@ if [ $? -eq 0 ]; then
     echo ""
     echo -e "${GREEN}✅ All tests passed!${NC}"
     echo ""
-    
+
     # Display coverage summary
     echo "📈 Coverage Summary:"
     echo "==================="
-    
+
     # Extract coverage percentage from JSON report
     if [ -f coverage.json ]; then
         python3 << EOF
@@ -53,18 +53,18 @@ with open('coverage.json') as f:
     data = json.load(f)
     total = data['totals']['percent_covered']
     print(f"Total Coverage: {total:.2f}%")
-    
+
     if total >= 50:
         print("✅ Coverage target met (50%+)")
     else:
         print(f"⚠️  Coverage below target: {total:.2f}% < 50%")
 EOF
     fi
-    
+
     echo ""
     echo "📁 HTML Report: htmlcov/index.html"
     echo ""
-    
+
     # Open HTML report (macOS)
     if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "Opening coverage report..."

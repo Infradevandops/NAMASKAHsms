@@ -39,15 +39,15 @@ def run_audit():
 
     for user in users:
         print(f"\nAuditing User: {user.email} (ID: {user.id})")
-        
+
         # 1. Current Balance
         current_balance = float(user.credits or 0.0)
-        
+
         # 2. Sum of BalanceTransactions (Audit Trail)
         audit_sum = db.query(func.sum(BalanceTransaction.amount)).filter(
             BalanceTransaction.user_id == user.id
         ).scalar() or 0.0
-        
+
         # 3. Sum of Transactions (Analytics)
         analytics_sum = db.query(func.sum(Transaction.amount)).filter(
             Transaction.user_id == user.id
@@ -82,7 +82,7 @@ def run_audit():
     print(f"Total Users Audited: {len(users)}")
     print(f"Critical Anomalies:  {total_anomalies}")
     print("=" * 60)
-    
+
     if total_anomalies == 0:
         print("RESULT: PASS - Financial integrity is strictly enforced.")
     else:

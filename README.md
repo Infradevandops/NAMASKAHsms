@@ -1,7 +1,7 @@
 # Namaskah SMS Verification Platform
 
-**Version**: 4.4.2 - Code Quality & CI Improvements 🔧  
-**Status**: Production Ready  
+**Version**: 4.4.2 - Code Quality & CI Improvements 🔧
+**Status**: Production Ready
 **Updated**: March 20, 2026
 
 ![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/namaskah-sms/ci.yml?branch=main)
@@ -20,11 +20,11 @@ graph TB
         WEB[Web Browser]
         API_CLIENT[API Clients]
     end
-    
+
     subgraph "API Gateway"
         MAIN[main.py<br/>FastAPI Application]
     end
-    
+
     subgraph "Domain Routers"
         AUTH[Auth Router<br/>Login, Register, OAuth]
         WALLET[Wallet Router<br/>Payments, Balance]
@@ -32,7 +32,7 @@ graph TB
         TIER[Tier Router<br/>Plans, Upgrades]
         ADMIN[Admin Router<br/>User Management]
     end
-    
+
     subgraph "Business Services"
         AUTH_SVC[Auth Service]
         PAYMENT_SVC[Payment Service]
@@ -40,44 +40,44 @@ graph TB
         TIER_SVC[Tier Service]
         WEBHOOK_SVC[Webhook Service]
     end
-    
+
     subgraph "Data Layer"
         DB[(PostgreSQL<br/>Database)]
         CACHE[(Redis<br/>Cache)]
     end
-    
+
     subgraph "External Services"
         TEXTVERIFIED[TextVerified<br/>SMS Provider]
         PAYSTACK[Paystack<br/>Payments]
     end
-    
+
     WEB --> MAIN
     API_CLIENT --> MAIN
-    
+
     MAIN --> AUTH
     MAIN --> WALLET
     MAIN --> SMS
     MAIN --> TIER
     MAIN --> ADMIN
-    
+
     AUTH --> AUTH_SVC
     WALLET --> PAYMENT_SVC
     WALLET --> WEBHOOK_SVC
     SMS --> SMS_SVC
     TIER --> TIER_SVC
-    
+
     AUTH_SVC --> DB
     PAYMENT_SVC --> DB
     SMS_SVC --> DB
     TIER_SVC --> DB
-    
+
     AUTH_SVC --> CACHE
     SMS_SVC --> CACHE
-    
+
     SMS_SVC --> TEXTVERIFIED
     PAYMENT_SVC --> PAYSTACK
     WEBHOOK_SVC --> PAYSTACK
-    
+
     style MAIN fill:#4CAF50
     style DB fill:#2196F3
     style CACHE fill:#FF9800
@@ -147,7 +147,7 @@ sequenceDiagram
     participant Service
     participant Database
     participant External
-    
+
     Client->>Router: HTTP Request
     Router->>Router: Validate Input
     Router->>Service: Call Business Logic
@@ -174,7 +174,7 @@ sequenceDiagram
     participant Paystack
     participant Webhook
     participant Database
-    
+
     User->>Frontend: Click "Add Credits"
     Frontend->>Wallet API: POST /wallet/paystack/initialize
     Wallet API->>Payment Service: initialize_payment()
@@ -207,7 +207,7 @@ sequenceDiagram
     participant Database
     participant TextVerified
     participant Polling Service
-    
+
     User->>Frontend: Request Verification
     Frontend->>SMS API: POST /verify/create
     SMS API->>SMS Service: create_verification()
@@ -219,12 +219,12 @@ sequenceDiagram
     SMS Service-->>SMS API: Return Details
     SMS API-->>Frontend: Show Phone Number
     Frontend-->>User: Display Number
-    
+
     Note over Polling Service: Background Process
     Polling Service->>TextVerified: Check for Messages
     TextVerified-->>Polling Service: SMS Code
     Polling Service->>Database: Update Verification
-    
+
     User->>Frontend: Check Status
     Frontend->>SMS API: GET /verify/status/{id}
     SMS API->>Database: Query Verification
@@ -245,31 +245,31 @@ graph LR
         PRO[Pro<br/>$25/mo<br/>$15 quota]
         CUSTOM[Custom<br/>$35/mo<br/>$25 quota]
     end
-    
+
     subgraph "Features"
         API[API Access]
         FILTERS[Location/ISP Filters]
         AFFILIATE[Affiliate Program]
         SUPPORT[Priority Support]
     end
-    
+
     FREEMIUM -.->|Upgrade| PAYG
     PAYG -.->|Upgrade| PRO
     PRO -.->|Upgrade| CUSTOM
-    
+
     PRO --> API
     CUSTOM --> API
-    
+
     PAYG --> FILTERS
     PRO --> FILTERS
     CUSTOM --> FILTERS
-    
+
     PRO --> AFFILIATE
     CUSTOM --> AFFILIATE
-    
+
     PRO --> SUPPORT
     CUSTOM --> SUPPORT
-    
+
     style FREEMIUM fill:#90CAF9
     style PAYG fill:#81C784
     style PRO fill:#FFB74D
@@ -447,32 +447,32 @@ graph TB
     subgraph "Application"
         APP[Namaskah App]
     end
-    
+
     subgraph "Logging"
         LOGS[Application Logs]
         AUDIT[Audit Logs]
     end
-    
+
     subgraph "Monitoring"
         SENTRY[Sentry<br/>Error Tracking]
         METRICS[Prometheus<br/>Metrics]
     end
-    
+
     subgraph "Alerting"
         ALERTS[Alert Manager]
         SLACK[Slack Notifications]
     end
-    
+
     APP --> LOGS
     APP --> AUDIT
     APP --> SENTRY
     APP --> METRICS
-    
+
     SENTRY --> ALERTS
     METRICS --> ALERTS
-    
+
     ALERTS --> SLACK
-    
+
     style APP fill:#4CAF50
     style SENTRY fill:#FF5722
     style METRICS fill:#2196F3
@@ -480,7 +480,7 @@ graph TB
 
 ### Sentry Integration ✅
 
-**Status**: Active in Production  
+**Status**: Active in Production
 **Dashboard**: https://dev-vp.sentry.io/issues/
 
 **Features**:
@@ -524,7 +524,7 @@ graph TB
         OUTPUT[Output Encoding]
         AUDIT[Audit Logging]
     end
-    
+
     REQUEST[HTTP Request] --> WAF
     WAF --> RATE
     RATE --> AUTH
@@ -533,7 +533,7 @@ graph TB
     INPUT --> OUTPUT
     OUTPUT --> AUDIT
     AUDIT --> RESPONSE[HTTP Response]
-    
+
     style WAF fill:#F44336
     style AUTH fill:#FF9800
     style AUTHZ fill:#FFC107
@@ -621,7 +621,7 @@ services:
 See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
 
 - **Phase 1** (Dec 2025): Foundation & Infrastructure
-- **Phase 2** (Jan 2026): Core Platform Features  
+- **Phase 2** (Jan 2026): Core Platform Features
 - **Phase 2.5** (Jan 26, 2026): Notification System (300x faster delivery, 100+ test cases)
 - **Phase 3** (Mar 9, 2026): Production Excellence
 - **Milestone 1** (Mar 14, 2026): TextVerified Alignment - Stop the Bleeding

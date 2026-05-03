@@ -1,7 +1,7 @@
 # UI Overhaul — Master Task File
 
-**Created**: April 6, 2026  
-**Version**: 1.0  
+**Created**: April 6, 2026
+**Version**: 1.0
 **Status**: Planning → Ready to Execute
 
 ---
@@ -57,9 +57,9 @@ These DOM IDs are wired to polling logic — must stay:
 
 ## 📋 PHASE 1 — Design System Foundation
 
-**Goal**: Establish unified CSS tokens across all pages  
-**Risk**: Zero — additive only  
-**Time**: 2-3 hours  
+**Goal**: Establish unified CSS tokens across all pages
+**Risk**: Zero — additive only
+**Time**: 2-3 hours
 **Breaks SMS polling**: ❌ No
 
 ### Tasks
@@ -95,9 +95,9 @@ These DOM IDs are wired to polling logic — must stay:
 
 ## 📋 PHASE 2 — SMS Verification UI (Step 3 Rebuild)
 
-**Goal**: Premium SMS polling experience  
-**Risk**: MEDIUM — touches verify_modern.html  
-**Time**: 4-6 hours  
+**Goal**: Premium SMS polling experience
+**Risk**: MEDIUM — touches verify_modern.html
+**Time**: 4-6 hours
 **Breaks SMS polling**: ❌ No (if rules followed)
 
 ### Pre-work Checklist (Do Before Any Code)
@@ -111,9 +111,9 @@ These DOM IDs are wired to polling logic — must stay:
 
 ### Task 2.1 — Phone Number Display (Step 3 Card)
 
-**What**: Redesign the phone number display block  
-**File**: `templates/verify_modern.html` — Step 3 card only  
-**Preserve**: `#phone-number` ID, `copyPhoneNumber()` function  
+**What**: Redesign the phone number display block
+**File**: `templates/verify_modern.html` — Step 3 card only
+**Preserve**: `#phone-number` ID, `copyPhoneNumber()` function
 
 New design:
 ```
@@ -138,9 +138,9 @@ Implementation rules:
 
 ### Task 2.2 — Scanning Animation (Step 3 Card)
 
-**What**: Replace basic scanning animation with premium animated state  
-**File**: `templates/verify_modern.html` — scanning-container only  
-**Preserve**: `.scanning-container`, `.scanning-progress-bar`, `#elapsed-time`  
+**What**: Replace basic scanning animation with premium animated state
+**File**: `templates/verify_modern.html` — scanning-container only
+**Preserve**: `.scanning-container`, `.scanning-progress-bar`, `#elapsed-time`
 
 New design:
 ```
@@ -167,9 +167,9 @@ Implementation rules:
 
 ### Task 2.3 — SMS Code Arrival (Step 3 Card)
 
-**What**: Premium code reveal when SMS arrives  
-**File**: `templates/verify_modern.html` — `#code-received` section  
-**Preserve**: `id="code-received"`, `id="sms-code"`, `onclick="copySMSCode()"`  
+**What**: Premium code reveal when SMS arrives
+**File**: `templates/verify_modern.html` — `#code-received` section
+**Preserve**: `id="code-received"`, `id="sms-code"`, `onclick="copySMSCode()"`
 
 New design:
 ```
@@ -203,9 +203,9 @@ Implementation rules:
 
 ### Task 2.4 — Sound on Code Arrival
 
-**What**: Beep/chime sound when SMS code arrives  
-**File**: `static/js/sms-arrival-sound.js` (NEW file)  
-**Preserve**: Nothing to preserve — new file only  
+**What**: Beep/chime sound when SMS code arrives
+**File**: `static/js/sms-arrival-sound.js` (NEW file)
+**Preserve**: Nothing to preserve — new file only
 
 Implementation:
 ```javascript
@@ -245,9 +245,9 @@ That's the only change to existing logic.
 
 ### Task 2.5 — Enhanced Timer Display
 
-**What**: Visual ring/arc countdown timer  
-**File**: `templates/verify_modern.html` — timer section only  
-**Preserve**: `#elapsed-time`, `#progress-elapsed`, `#progress-remaining`  
+**What**: Visual ring/arc countdown timer
+**File**: `templates/verify_modern.html` — timer section only
+**Preserve**: `#elapsed-time`, `#progress-elapsed`, `#progress-remaining`
 
 Implementation:
 - SVG circle arc that depletes over 120 seconds
@@ -259,9 +259,9 @@ Implementation:
 
 ### Task 2.6 — Step 3 CSS
 
-**What**: New CSS for all Step 3 enhancements  
-**File**: `static/css/sms-polling-ui.css` (NEW file)  
-**Preserve**: All existing classes in `verification-design-system.css`  
+**What**: New CSS for all Step 3 enhancements
+**File**: `static/css/sms-polling-ui.css` (NEW file)
+**Preserve**: All existing classes in `verification-design-system.css`
 
 Contents:
 - `.phone-card` — premium phone display
@@ -293,9 +293,9 @@ Contents:
 
 ## 📋 PHASE 3 — Dashboard & Navigation
 
-**Goal**: Sleek sidebar, header, and dashboard stats  
-**Risk**: LOW — layout only  
-**Time**: 3-4 hours  
+**Goal**: Sleek sidebar, header, and dashboard stats
+**Risk**: LOW — layout only
+**Time**: 3-4 hours
 **Breaks SMS polling**: ❌ No
 
 ### Tasks
@@ -328,9 +328,9 @@ Contents:
 
 ## 📋 PHASE 4 — Wallet & Payments
 
-**Goal**: Premium payment UI  
-**Risk**: LOW  
-**Time**: 2-3 hours  
+**Goal**: Premium payment UI
+**Risk**: LOW
+**Time**: 2-3 hours
 **Breaks SMS polling**: ❌ No
 
 ### Tasks
@@ -359,9 +359,9 @@ Contents:
 
 ## 📋 PHASE 5 — Auth Pages
 
-**Goal**: Premium login/register/reset experience  
-**Risk**: LOW  
-**Time**: 2-3 hours  
+**Goal**: Premium login/register/reset experience
+**Risk**: LOW
+**Time**: 2-3 hours
 **Breaks SMS polling**: ❌ No
 
 ### Tasks
@@ -376,9 +376,9 @@ Contents:
 
 ## 📋 PHASE 6 — Remaining Pages
 
-**Goal**: Consistent UI across all remaining pages  
-**Risk**: LOW  
-**Time**: 4-6 hours  
+**Goal**: Consistent UI across all remaining pages
+**Risk**: LOW
+**Time**: 4-6 hours
 **Breaks SMS polling**: ❌ No
 
 ### Tasks
@@ -398,9 +398,9 @@ Contents:
 
 ## 📋 PHASE 7 — Code Issues (Parallel Track)
 
-**Goal**: Fix Critical/High findings from code scan  
-**Risk**: MEDIUM — backend changes  
-**Time**: Ongoing  
+**Goal**: Fix Critical/High findings from code scan
+**Risk**: MEDIUM — backend changes
+**Time**: Ongoing
 **Breaks SMS polling**: Only if backend routes change (they won't)
 
 ### Tasks
@@ -496,6 +496,6 @@ Each phase is complete when:
 
 ---
 
-**Start with**: Phase 1 (zero risk, unblocks all other phases)  
-**Then**: Phase 2 (highest user impact)  
+**Start with**: Phase 1 (zero risk, unblocks all other phases)
+**Then**: Phase 2 (highest user impact)
 **Parallel**: Phase 7 (code issues, independent track)

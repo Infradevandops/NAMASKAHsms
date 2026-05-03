@@ -1,7 +1,7 @@
 # ✅ VERIFIED: Balance Check Complete
 
-**Date**: 2026-04-17 17:03 UTC  
-**Status**: Investigation Complete  
+**Date**: 2026-04-17 17:03 UTC
+**Status**: Investigation Complete
 **API Balance Verified**: $2.40 USD
 
 ---
@@ -23,12 +23,12 @@
 **All 4 SMS verifications are stuck in "Still Waiting" status with NO refunds:**
 
 1. SMS #1 (4052744128) - Charged $2.50, no refund
-2. SMS #2 (9082407341) - Charged $2.50, no refund  
+2. SMS #2 (9082407341) - Charged $2.50, no refund
 3. SMS #3 (2708941176) - Charged $2.50, no refund
 4. SMS #4 (9083278521) - Charged $2.50, no refund
 
-**Total charged**: $10.00  
-**Total refunded**: $0.00  
+**Total charged**: $10.00
+**Total refunded**: $0.00
 **User lost**: $10.00 (should have been refunded)
 
 ---
@@ -132,25 +132,25 @@ Missing logs:
 ```python
 def get_sms_rate(user: User) -> Decimal:
     tier = user.subscription_tier
-    
+
     if tier == "custom":
         # Custom tier has $25 monthly quota
         if user.monthly_usage >= 25.00:
             return Decimal("0.20")  # Overage rate
         return Decimal("0.00")  # Within quota
-    
+
     elif tier == "pro":
         # Pro tier has $15 monthly quota
         if user.monthly_usage >= 15.00:
             return Decimal("0.30")  # Overage rate
         return Decimal("0.00")  # Within quota
-    
+
     elif tier == "payg":
         return Decimal("2.50")
-    
+
     elif tier == "freemium":
         return Decimal("2.22")
-    
+
     return Decimal("2.50")  # Fallback
 ```
 
@@ -164,18 +164,18 @@ async def check_timeout(verification):
     """Check if SMS has timed out and issue refund"""
     timeout_minutes = 10
     elapsed = (datetime.utcnow() - verification.created_at).total_seconds() / 60
-    
+
     if elapsed > timeout_minutes and verification.status == "PENDING":
         # Update status
         verification.status = "TIMEOUT"
-        
+
         # Issue refund
         await refund_service.refund_sms(
             user_id=verification.user_id,
             amount=verification.cost,
             reason="SMS timeout - no code received"
         )
-        
+
         # Send notification
         await notification_service.create_notification(
             user_id=verification.user_id,
@@ -183,7 +183,7 @@ async def check_timeout(verification):
             title="SMS Timeout - Refunded",
             message=f"${verification.cost:.2f} refunded. SMS timed out after {timeout_minutes} minutes."
         )
-        
+
         # Report to TextVerified for their refund
         await textverified_service.report_verification(verification.textverified_id)
 ```
@@ -214,7 +214,7 @@ NOTIFICATION_TYPES = [
 ```python
 class TransactionLog(Base):
     __tablename__ = "transaction_logs"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     transaction_type = Column(String(20), nullable=False)  # CHARGE, REFUND, TOPUP
@@ -280,12 +280,12 @@ This was likely:
 
 After fixes are deployed:
 
-✅ Custom tier charged $0.20/SMS (or $0.00 within quota)  
-✅ SMS timeout after 10 minutes  
-✅ Automatic refund on timeout  
-✅ Refund notification sent to user  
-✅ All transactions logged  
-✅ Balance always accurate  
+✅ Custom tier charged $0.20/SMS (or $0.00 within quota)
+✅ SMS timeout after 10 minutes
+✅ Automatic refund on timeout
+✅ Refund notification sent to user
+✅ All transactions logged
+✅ Balance always accurate
 ✅ 100% financial integrity
 
 ---
@@ -337,14 +337,14 @@ This will:
 psql $DATABASE_URL
 
 -- Issue refund
-UPDATE users 
-SET balance = balance + 10.00 
+UPDATE users
+SET balance = balance + 10.00
 WHERE id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 
 -- Mark SMS as refunded
-UPDATE sms_verifications 
-SET status = 'REFUNDED', refunded = true 
-WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622' 
+UPDATE sms_verifications
+SET status = 'REFUNDED', refunded = true
+WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622'
   AND created_at >= '2026-04-17 14:00:00';
 ```
 
@@ -362,7 +362,7 @@ Subject: $10.00 Refund Issued - We Apologize
 
 Hi [User],
 
-We've refunded $10.00 to your account due to a system error 
+We've refunded $10.00 to your account due to a system error
 that affected your SMS verifications on April 17.
 
 Your new balance: $12.40

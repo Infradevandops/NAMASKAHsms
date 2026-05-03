@@ -23,19 +23,19 @@ const OverviewManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             document.getElementById('target-count').textContent = `${data.current} / ${data.target}`;
             document.getElementById('target-progress').style.width = `${data.percentage}%`;
-            
+
             document.getElementById('stat-velocity').textContent = `${data.velocity} / day`;
             const statusElem = document.getElementById('stat-velocity-status');
-            
+
             if (data.projected_date) {
                 statusElem.textContent = `Projected Target: ${data.projected_date}`;
             } else {
                 statusElem.textContent = `Status: ${data.status}`;
             }
-            
+
             statusElem.style.color = data.status === 'On Track' ? 'var(--admin-success)' : 'var(--admin-danger)';
 
             // Fetch DAU separately from vitality as before or update if needed
@@ -56,7 +56,7 @@ const OverviewManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             const ctx = document.getElementById('signupChart').getContext('2d');
             if (this.signupChart) this.signupChart.destroy();
             this.signupChart = new Chart(ctx, {
@@ -79,7 +79,7 @@ const OverviewManager = {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { 
+                    scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
                         x: { grid: { display: false } }
                     }
@@ -94,12 +94,12 @@ const OverviewManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             const container = document.getElementById('load-heatmap');
             const max = Math.max(...data.map(h => h.count), 1);
-            
+
             container.innerHTML = data.map(h => `
-                <div style="flex:1; background:var(--admin-accent); border-radius:3px 3px 0 0; position:relative; height: ${(h.count / max * 100)}%" 
+                <div style="flex:1; background:var(--admin-accent); border-radius:3px 3px 0 0; position:relative; height: ${(h.count / max * 100)}%"
                      title="${h.count} attempts at ${h.hour}:00 UTC">
                      <span style="position:absolute; bottom:-18px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--admin-text-muted);">${h.hour}</span>
                 </div>

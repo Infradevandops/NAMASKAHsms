@@ -6,7 +6,7 @@
 const PricingManager = {
     templates: [],
     livePrices: [],
-    
+
     async init() {
         console.log('Pricing Manager initialized');
         await this.loadTemplates();
@@ -27,7 +27,7 @@ const PricingManager = {
             const data = await res.json();
             const el = document.getElementById('provider-balance');
             const alertEl = document.getElementById('balance-alert');
-            
+
             if (data.balance !== undefined) {
                 el.textContent = `$${data.balance.toFixed(2)}`;
                 if (data.balance < 20) {
@@ -61,7 +61,7 @@ const PricingManager = {
     async loadLivePrices(forceRefresh = false) {
         const container = document.getElementById('live-inventory-table');
         if (!container) return;
-        
+
         if (!forceRefresh) {
             container.innerHTML = '<tr><td colspan="5" class="text-center">Syncing with TextVerified...</td></tr>';
         }
@@ -82,7 +82,7 @@ const PricingManager = {
     renderTemplates() {
         const grid = document.getElementById('template-grid');
         if (!grid) return;
-        
+
         grid.innerHTML = '';
         if (this.templates.length === 0) {
             grid.innerHTML = '<div class="no-data">No pricing templates found.</div>';
@@ -94,7 +94,7 @@ const PricingManager = {
             card.className = `glass-card ${template.is_active ? 'border-primary' : ''}`;
             card.style.padding = '12px';
             card.style.fontSize = '12px';
-            
+
             const markup = template.markup_multiplier || 1.1;
             const markupPct = ((markup - 1) * 100).toFixed(0);
 
@@ -107,7 +107,7 @@ const PricingManager = {
                 </div>
                 <h4 style="margin:4px 0;">${template.name}</h4>
                 <p class="text-muted" style="margin-bottom:12px;">${template.description || 'No description'}</p>
-                
+
                 ${template.is_promotional ? `<div style="margin-bottom:8px;"><span class="badge badge-warning" style="font-size:10px;">🏷️ ${template.discount_percentage || 0}% OFF</span></div>` : ''}
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     ${!template.is_active ? `<button class="btn-primary" style="font-size:10px; padding:4px 8px;" onclick="PricingManager.activateTemplate(${template.id})">Activate</button>` : ''}
@@ -138,7 +138,7 @@ const PricingManager = {
 
     exportToCSV() {
         if (!this.livePrices.length) return;
-        
+
         const headers = ["Service", "Provider Cost", "Platform Price", "Markup (%)"];
         const rows = this.livePrices.map(p => [
             p.service_name,
@@ -147,7 +147,7 @@ const PricingManager = {
             p.markup_percentage
         ]);
 
-        let csvContent = "data:text/csv;charset=utf-8," 
+        let csvContent = "data:text/csv;charset=utf-8,"
             + headers.join(",") + "\n"
             + rows.map(e => e.join(",")).join("\n");
 
@@ -162,7 +162,7 @@ const PricingManager = {
 
     async activateTemplate(id) {
         if (!confirm('Are you sure you want to activate this pricing template? This will immediately affect all user purchases.')) return;
-        
+
         try {
             const response = await fetch(`/api/admin/pricing/templates/${id}/activate`, {
                 method: 'POST',
@@ -199,7 +199,7 @@ const PricingManager = {
         try {
             const response = await fetch('/api/admin/pricing/templates', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${this.getToken()}`,
                     'Content-Type': 'application/json'
                 },
@@ -296,13 +296,13 @@ const PricingManager = {
         const modal = document.getElementById('history-modal');
         const title = document.getElementById('history-modal-title');
         const container = document.getElementById('history-chart-container');
-        
+
         title.textContent = `Price History: ${name}`;
         modal.classList.add('active');
-        
+
         container.innerHTML = '<canvas id="priceHistoryChart"></canvas>';
         const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-        
+
         new Chart(ctx, {
             type: 'line',
             data: {

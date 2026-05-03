@@ -15,7 +15,7 @@ echo "   Action: Generate new key in Paystack dashboard"
 echo "   Update: Render environment variables"
 echo ""
 
-echo "2. TEXTVERIFIED_API_KEY" 
+echo "2. TEXTVERIFIED_API_KEY"
 echo "   Current: *** (exposed in logs)"
 echo "   Action: Generate new key in TextVerified dashboard"
 echo "   Update: Render environment variables"

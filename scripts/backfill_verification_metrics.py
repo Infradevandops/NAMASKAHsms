@@ -26,9 +26,9 @@ def backfill():
             Verification.status.in_(['failed', 'timeout', 'cancelled', 'error']),
             Verification.failure_category.is_(None)
         ).all()
-        
+
         print(f"Found {len(records)} records to backfill.")
-        
+
         count = 0
         for v in records:
             reason = None
@@ -40,15 +40,15 @@ def backfill():
                 reason = FailureReason.SMS_NOT_DELIVERED
             elif v.status == 'error':
                 reason = FailureReason.PROVIDER_ERROR
-            
+
             if reason:
                 v.failure_reason = reason
                 v.failure_category = REASON_TO_CATEGORY.get(reason, "OTHER")
                 count += 1
-        
+
         db.commit()
         print(f"Successfully backfilled {count} records.")
-        
+
     except Exception as e:
         db.rollback()
         print(f"Error during backfill: {e}")

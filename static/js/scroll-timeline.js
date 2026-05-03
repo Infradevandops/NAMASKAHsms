@@ -31,7 +31,7 @@ class ScrollTimeline {
 
     // Find all sections with data-timeline-section attribute
     const sections = document.querySelectorAll('[data-timeline-section]');
-    
+
     sections.forEach((section, index) => {
       this.sections.push(section);
 

@@ -20,15 +20,15 @@ def _column_exists(table, column):
     inspector = sa.inspect(bind)
     columns = [c["name"] for c in inspector.get_columns(table)]
     return column in columns
- 
- 
+
+
 def _index_exists(table, index):
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     indexes = [i["name"] for i in inspector.get_indexes(table)]
     return index in indexes
- 
- 
+
+
 def _table_exists(table):
     bind = op.get_bind()
     inspector = sa.inspect(bind)

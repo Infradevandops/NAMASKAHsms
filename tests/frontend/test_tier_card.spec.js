@@ -1,6 +1,6 @@
 /**
  * Tier Card Widget Tests
- * 
+ *
  * Tests for the dashboard tier card component including:
  * - State management (loading, error, loaded, etc.)
  * - Authentication handling
@@ -10,17 +10,17 @@
  */
 
 describe('Tier Card Widget', () => {
-    
+
     beforeEach(() => {
         cy.visit('/dashboard');
     });
 
     describe('Authentication States', () => {
-        
+
         it('shows login prompt when no auth token exists', () => {
             cy.clearLocalStorage();
             cy.reload();
-            
+
             cy.get('#tier-name').should('contain', 'Not logged in');
             cy.get('#tier-features-list a[href="/auth/login"]').should('exist');
             cy.get('#tier-features-list a').should('contain', 'Log in');
@@ -31,28 +31,28 @@ describe('Tier Card Widget', () => {
                 win.localStorage.setItem('access_token', 'invalid-expired-token');
             });
             cy.reload();
-            
+
             cy.get('#tier-name', { timeout: 12000 }).should('contain', 'Session expired');
             cy.get('#tier-features-list a[href="/auth/login"]').should('exist');
         });
 
         it('loads tier info when authenticated', () => {
             cy.login(); // Custom command - implement in cypress/support/commands.js
-            
+
             cy.get('#tier-name', { timeout: 10000 }).should('not.contain', 'Loading');
             cy.get('#tier-name').should('match', /Freemium|Pay-As-You-Go|Pro|Custom/);
         });
     });
 
     describe('Timeout Handling', () => {
-        
+
         it('shows timeout message after 10 seconds on slow response', () => {
             cy.login();
             cy.intercept('GET', '/api/tiers/current', {
                 delay: 15000,
                 body: {}
             }).as('slowTier');
-            
+
             cy.reload();
             cy.get('#tier-name', { timeout: 12000 }).should('contain', 'timed out');
             cy.get('#tier-features-list button').should('contain', 'Try again');
@@ -64,21 +64,21 @@ describe('Tier Card Widget', () => {
                 delay: 20000,
                 body: {}
             }).as('verySlowTier');
-            
+
             cy.reload();
             cy.get('#tier-name', { timeout: 17000 }).should('not.contain', 'Loading');
         });
     });
 
     describe('Error Handling', () => {
-        
+
         it('shows error state on 500 response', () => {
             cy.login();
             cy.intercept('GET', '/api/tiers/current', {
                 statusCode: 500,
                 body: { detail: 'Internal server error' }
             }).as('serverError');
-            
+
             cy.reload();
             cy.get('#tier-name', { timeout: 5000 }).should('contain', 'Error');
             cy.get('#tier-features-list button').should('contain', 'Retry');
@@ -89,7 +89,7 @@ describe('Tier Card Widget', () => {
             cy.intercept('GET', '/api/tiers/current', {
                 forceNetworkError: true
             }).as('networkError');
-            
+
             cy.reload();
             cy.get('#tier-name', { timeout: 12000 }).should('contain', 'Error');
         });
@@ -119,7 +119,7 @@ describe('Tier Card Widget', () => {
                     });
                 }
             }).as('tierApi');
-            
+
             cy.reload();
             cy.get('#tier-features-list button').contains('Retry').click();
             cy.get('#tier-name').should('contain', 'Freemium');
@@ -142,15 +142,15 @@ describe('Tier Card Widget', () => {
                     features: { api_access: true }
                 }
             }).as('successTier');
-            
+
             cy.reload();
             cy.get('#tier-name').should('contain', 'Pro');
-            
+
             // Now simulate error - should show cached data
             cy.intercept('GET', '/api/tiers/current', {
                 statusCode: 500
             }).as('failTier');
-            
+
             cy.reload();
             cy.get('#tier-name').should('contain', 'Pro');
             cy.get('#tier-features-list').should('contain', 'cached data');
@@ -158,7 +158,7 @@ describe('Tier Card Widget', () => {
     });
 
     describe('CTA Button Visibility', () => {
-        
+
         const tierCTATests = [
             {
                 tier: 'freemium',
@@ -199,14 +199,14 @@ describe('Tier Card Widget', () => {
                         features: {}
                     }
                 });
-                
+
                 cy.reload();
                 cy.get('#tier-name', { timeout: 5000 }).should('not.contain', 'Loading');
-                
+
                 visible.forEach(btnId => {
                     cy.get(`#${btnId}`).should('be.visible');
                 });
-                
+
                 hidden.forEach(btnId => {
                     cy.get(`#${btnId}`).should('not.be.visible');
                 });
@@ -215,13 +215,13 @@ describe('Tier Card Widget', () => {
     });
 
     describe('CTA Button Actions', () => {
-        
+
         it('Upgrade button navigates to pricing page', () => {
             cy.login();
             cy.intercept('GET', '/api/tiers/current', {
                 body: { current_tier: 'freemium', tier_name: 'Freemium', price_monthly: 0, quota_usd: 0, quota_used_usd: 0, quota_remaining_usd: 0, sms_count: 0, within_quota: true, overage_rate: 2.22, features: {} }
             });
-            
+
             cy.reload();
             cy.get('#upgrade-btn').click();
             cy.url().should('include', '/pricing');
@@ -232,7 +232,7 @@ describe('Tier Card Widget', () => {
             cy.intercept('GET', '/api/tiers/current', {
                 body: { current_tier: 'freemium', tier_name: 'Freemium', price_monthly: 0, quota_usd: 0, quota_used_usd: 0, quota_remaining_usd: 0, sms_count: 0, within_quota: true, overage_rate: 2.22, features: {} }
             });
-            
+
             cy.reload();
             cy.get('#compare-plans-btn').click();
             cy.get('#tier-compare-modal').should('be.visible');
@@ -243,7 +243,7 @@ describe('Tier Card Widget', () => {
             cy.intercept('GET', '/api/tiers/current', {
                 body: { current_tier: 'payg', tier_name: 'Pay-As-You-Go', price_monthly: 0, quota_usd: 100, quota_used_usd: 0, quota_remaining_usd: 100, sms_count: 0, within_quota: true, overage_rate: 2.50, features: {} }
             });
-            
+
             cy.reload();
             cy.get('#add-credits-btn').click();
             cy.url().should('include', '/wallet');
@@ -251,7 +251,7 @@ describe('Tier Card Widget', () => {
     });
 
     describe('Tier Badge Styling', () => {
-        
+
         const tierBadgeClasses = {
             freemium: 'tier-badge-freemium',
             payg: 'tier-badge-payg',
@@ -265,7 +265,7 @@ describe('Tier Card Widget', () => {
                 cy.intercept('GET', '/api/tiers/current', {
                     body: { current_tier: tier, tier_name: tier, price_monthly: 0, quota_usd: 0, quota_used_usd: 0, quota_remaining_usd: 0, sms_count: 0, within_quota: true, overage_rate: 2.22, features: {} }
                 });
-                
+
                 cy.reload();
                 cy.get('#tier-name .tier-badge').should('have.class', badgeClass);
             });
@@ -273,16 +273,16 @@ describe('Tier Card Widget', () => {
     });
 
     describe('Responsive Layout', () => {
-        
+
         it('stacks CTA buttons vertically on mobile', () => {
             cy.login();
             cy.intercept('GET', '/api/tiers/current', {
                 body: { current_tier: 'freemium', tier_name: 'Freemium', price_monthly: 0, quota_usd: 0, quota_used_usd: 0, quota_remaining_usd: 0, sms_count: 0, within_quota: true, overage_rate: 2.22, features: {} }
             });
-            
+
             cy.viewport(375, 667); // iPhone SE
             cy.reload();
-            
+
             cy.get('.tier-cta-container').should('have.css', 'flex-direction', 'column');
         });
     });

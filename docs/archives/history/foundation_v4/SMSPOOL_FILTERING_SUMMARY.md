@@ -1,7 +1,7 @@
 # SMSPool Filtering Implementation - Technical Summary
 
-**Based on**: app.log analysis + TextVerified codebase review  
-**Date**: Current  
+**Based on**: app.log analysis + TextVerified codebase review
+**Date**: Current
 **Status**: Implementation Ready
 
 ---
@@ -106,20 +106,20 @@ CARRIER_MAPPING = {
     "verizon": ["Verizon", "Verizon Wireless"],
     "att": ["AT&T", "AT&T Mobility"],
     "tmobile": ["T-Mobile", "T-Mobile USA"],
-    
+
     # UK
     "vodafone_uk": ["Vodafone UK", "Vodafone"],
     "ee": ["EE", "Everything Everywhere"],
     "o2_uk": ["O2 UK", "O2"],
-    
+
     # Germany
     "vodafone_de": ["Vodafone DE"],
     "telekom_de": ["Deutsche Telekom", "T-Mobile DE"],
-    
+
     # France
     "orange_fr": ["Orange France", "Orange"],
     "sfr": ["SFR"],
-    
+
     # India
     "airtel": ["Airtel", "Bharti Airtel"],
     "jio": ["Jio", "Reliance Jio"],
@@ -162,22 +162,22 @@ else:
     # NEW: SMSPool logic
     from app.services.providers.smspool_provider import SMSPoolProvider
     from app.services.filters.smspool_filters import SMSPoolFilters
-    
+
     smspool = SMSPoolProvider(api_key=settings.SMSPOOL_API_KEY)
-    
+
     # Map carrier filter
     operator = SMSPoolFilters.apply_carrier_filter(
         country=request.country,
         carrier=carrier
     )
-    
+
     # Purchase with operator filter
     result = await smspool.purchase_number(
         country_code=request.country,
         service=request.service,
         filters={"operator": operator, "line_type": "mobile"}
     )
-    
+
     # Map to TextVerified format for compatibility
     textverified_result = {
         "id": result["order_id"],

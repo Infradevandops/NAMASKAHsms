@@ -13,10 +13,10 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 (function() {
     const I18N_FIX_VERSION = '20260308j';
     const lastVersion = localStorage.getItem('i18n_version');
-    
+
     if (lastVersion !== I18N_FIX_VERSION) {
         console.log('🔄 Clearing old i18n cache...');
-        
+
         // Clear service worker caches
         if ('caches' in window) {
             caches.keys().then(names => {
@@ -28,11 +28,11 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                 });
             });
         }
-        
+
         // Mark as updated
         localStorage.setItem('i18n_version', I18N_FIX_VERSION);
         console.log('✓ Cache cleared, reloading...');
-        
+
         // Force reload without cache
         setTimeout(() => window.location.reload(true), 100);
     }
@@ -56,7 +56,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         font-weight: 600;
         border-radius: 0 0 8px 0;
     }
-    
+
     .skip-link:focus {
         top: 0;
     }
@@ -114,61 +114,61 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
-    
+
     .btn:focus-visible {
         outline: 2px solid var(--primary, #FE3C72);
         outline-offset: 2px;
     }
-    
+
     /* Currency selector hover effects */
     .currency-selector-btn:hover {
         background: rgba(254, 60, 114, 0.05) !important;
         border-color: #FE3C72 !important;
     }
-    
+
     .currency-selector-btn:focus-visible {
         outline: 2px solid #FE3C72;
         outline-offset: 2px;
     }
-    
+
     /* Currency dropdown scrollbar */
     .currency-dropdown::-webkit-scrollbar {
         width: 6px;
     }
-    
+
     .currency-dropdown::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
-    
+
     .currency-dropdown::-webkit-scrollbar-thumb {
         background: #FE3C72;
         border-radius: 10px;
     }
-    
+
     .currency-dropdown::-webkit-scrollbar-thumb:hover {
         background: #E0245E;
     }
-    
+
     .btn-primary {
         background: var(--color-primary, #FE3C72);
         color: white;
     }
-    
+
     .btn-primary:hover:not(:disabled) {
         background: var(--color-primary-dark, #5568d3);
     }
-    
+
     .btn-secondary {
         background: transparent;
         color: var(--color-primary, #FE3C72);
         border: 2px solid var(--color-primary, #FE3C72);
     }
-    
+
     .btn-secondary:hover:not(:disabled) {
         background: rgba(102, 126, 234, 0.1);
     }
-    
+
     /* Tier badge styles for header */
     .tier-badge {
         display: inline-block;
@@ -179,22 +179,22 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    
+
     .tier-badge-freemium {
         background: rgba(16, 185, 129, 0.15);
         color: #10B981;
     }
-    
+
     .tier-badge-payg {
         background: rgba(255, 120, 84, 0.15);
         color: #FF7854;
     }
-    
+
     .tier-badge-pro {
         background: rgba(245, 158, 11, 0.15);
         color: #F59E0B;
     }
-    
+
     .tier-badge-custom {
         background: rgba(139, 92, 246, 0.15);
         color: #8B5CF6;
@@ -224,9 +224,9 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
             <div class="header-actions">
                 <!-- Currency Selector -->
                 <div class="currency-selector-wrapper" style="position: relative;">
-                    <button class="currency-selector-btn" 
+                    <button class="currency-selector-btn"
                             id="currency-selector-btn"
-                            title="Change currency" 
+                            title="Change currency"
                             aria-label="Select currency"
                             aria-expanded="false"
                             aria-haspopup="true"
@@ -234,16 +234,16 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                         <span id="selected-currency-display">USD</span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 4.5 6 7.5 9 4.5"></polyline></svg>
                     </button>
-                    
+
                     <!-- Currency Dropdown -->
-                    <div class="currency-dropdown" 
-                         id="currency-dropdown" 
-                         role="menu" 
+                    <div class="currency-dropdown"
+                         id="currency-dropdown"
+                         role="menu"
                          aria-label="Currency selection menu"
                          style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid var(--border-color, #e5e7eb); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000; max-height: 400px; overflow-y: auto;">
                         <div style="padding: 12px; border-bottom: 1px solid var(--border-color, #e5e7eb);">
-                            <input type="text" 
-                                   id="currency-search" 
+                            <input type="text"
+                                   id="currency-search"
                                    placeholder="Search currencies..."
                                    aria-label="Search currencies"
                                    style="width: 100%; padding: 8px; border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; font-size: 13px;">
@@ -251,18 +251,18 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                         <div id="currency-list" style="padding: 4px;"></div>
                     </div>
                 </div>
-                
+
                 <!-- Enhanced Notification Bell (Industry Standard) -->
                 <div class="notification-bell-wrapper">
-                <button class="notification-bell-btn" 
-                        title="Notifications" 
+                <button class="notification-bell-btn"
+                        title="Notifications"
                         aria-label="Open notifications"
                         aria-expanded="false"
                         aria-haspopup="true">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                     <span class="notification-bell-badge" id="notification-bell-badge" aria-hidden="true"></span>
                 </button>
-                
+
                 <!-- Notification Dropdown -->
                 <div class="notification-dropdown" id="notification-dropdown" role="menu" aria-label="Notifications menu">
                     <div class="dropdown-header">
@@ -276,7 +276,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                     </div>
                 </div>
                 </div>
-                
+
                 <span id="header-tier-badge" class="tier-badge" style="display: none;" aria-label="Your subscription tier"></span>
                 {% include "components/balance.html" %}
                 {% block header_actions %}{% endblock %}
@@ -309,15 +309,15 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
     (async function loadHeaderTierBadge() {
         const badge = document.getElementById('header-tier-badge');
         if (!badge) return;
-        
+
         const token = localStorage.getItem('access_token');
         if (!token) return;
-        
+
         try {
             const response = await fetch('/api/v1/billing/tiers/current', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 const tier = data.current_tier || 'freemium';
@@ -333,7 +333,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                     'pro': 'tier-badge-pro',
                     'custom': 'tier-badge-custom'
                 };
-                
+
                 badge.textContent = tierNames[tier] || tier;
                 badge.className = `tier-badge ${tierClasses[tier] || ''}`;
                 badge.style.display = 'inline-block';

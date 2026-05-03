@@ -39,7 +39,7 @@ This document consolidates **CRITICAL_FINANCIAL_FIXES.md** and **STATUS_TRACKING
 
 ## 🗂️ IMPLEMENTATION PHASES (ALL COMPLETED)
 
-### PHASE 1: Database Schema Migration 
+### PHASE 1: Database Schema Migration
 **Status**: ✅ COMPLETED
 - Added transaction tracking and status columns.
 - Created indexes for performance optimization.
@@ -98,7 +98,7 @@ depends_on = None
 
 def upgrade() -> None:
     """Add financial tracking and status columns."""
-    
+
     # Add transaction linking columns
     op.add_column('verifications', sa.Column(
         'debit_transaction_id',
@@ -112,7 +112,7 @@ def upgrade() -> None:
         nullable=True,
         comment='Links to balance_transactions refund record'
     ))
-    
+
     # Add detailed status tracking columns
     op.add_column('verifications', sa.Column(
         'failure_reason',
@@ -126,7 +126,7 @@ def upgrade() -> None:
         nullable=True,
         comment='Failure category (user_action, provider_issue, system_validation, etc.)'
     ))
-    
+
     # Add SMS receipt tracking
     op.add_column('verifications', sa.Column(
         'sms_received',
@@ -141,7 +141,7 @@ def upgrade() -> None:
         nullable=True,
         comment='Timestamp when SMS was received'
     ))
-    
+
     # Add refund eligibility flag
     op.add_column('verifications', sa.Column(
         'refund_eligible',
@@ -150,7 +150,7 @@ def upgrade() -> None:
         nullable=False,
         comment='Whether this failure qualifies for refund'
     ))
-    
+
     # Create indexes for analytics queries
     op.create_index(
         'idx_verifications_sms_received',
@@ -172,7 +172,7 @@ def upgrade() -> None:
         ['user_id', 'refunded', 'created_at'],
         comment='Index for financial tracking'
     )
-    
+
     # Add foreign keys to balance_transactions
     op.create_foreign_key(
         'fk_verifications_debit_transaction',
@@ -194,7 +194,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove financial tracking and status columns."""
-    
+
     # Drop foreign keys
     op.drop_constraint(
         'fk_verifications_refund_transaction',
@@ -206,12 +206,12 @@ def downgrade() -> None:
         'verifications',
         type_='foreignkey'
     )
-    
+
     # Drop indexes
     op.drop_index('idx_verifications_refund_tracking')
     op.drop_index('idx_verifications_failure_reason')
     op.drop_index('idx_verifications_sms_received')
-    
+
     # Drop columns
     op.drop_column('verifications', 'refund_eligible')
     op.drop_column('verifications', 'sms_received_at')
@@ -248,7 +248,7 @@ SELECT COUNT(*) as column_count FROM information_schema.columns
 WHERE table_name = 'verifications'
 AND column_name IN (
     'debit_transaction_id',
-    'refund_transaction_id', 
+    'refund_transaction_id',
     'failure_reason',
     'failure_category',
     'sms_received',
@@ -268,7 +268,7 @@ AND indexname IN (
 -- Expected: 3 rows
 
 -- Verify default values
-SELECT column_name, column_default 
+SELECT column_name, column_default
 FROM information_schema.columns
 WHERE table_name = 'verifications'
 AND column_name IN ('sms_received', 'refund_eligible');
@@ -288,32 +288,32 @@ AND column_name IN ('sms_received', 'refund_eligible');
 
 class FailureReason:
     """Detailed failure reasons for verifications."""
-    
+
     # User Actions
     USER_CANCELLED = "user_cancelled"
     USER_TIMEOUT = "user_timeout"
-    
-    # Provider Issues  
+
+    # Provider Issues
     NUMBER_UNAVAILABLE = "number_unavailable"
     PROVIDER_API_ERROR = "provider_api_error"
     PROVIDER_TIMEOUT = "provider_timeout"
     SMS_NOT_DELIVERED = "sms_not_delivered"
-    
+
     # System Validation
     VOIP_REJECTED = "voip_rejected"
     CARRIER_MISMATCH = "carrier_mismatch"
     AREA_CODE_UNAVAILABLE = "area_code_unavailable"
     RETRY_EXHAUSTED = "retry_exhausted"
-    
+
     # Payment Issues
     INSUFFICIENT_BALANCE = "insufficient_balance"
     PAYMENT_FAILED = "payment_failed"
-    
+
     # Internal Errors
     INTERNAL_ERROR = "internal_error"
     DATABASE_ERROR = "database_error"
     CONFIGURATION_ERROR = "configuration_error"
-    
+
     ALL = [
         USER_CANCELLED,
         USER_TIMEOUT,
@@ -382,7 +382,7 @@ from app.core.constants import FailureReason, FailureCategory
 
 class Verification(BaseModel):
     # ... existing fields ...
-    
+
     # Financial tracking (NEW)
     debit_transaction_id = Column(
         UUID(as_uuid=True),
@@ -396,7 +396,7 @@ class Verification(BaseModel):
         nullable=True,
         comment='Links to balance_transactions refund record'
     )
-    
+
     # Detailed status tracking (NEW)
     failure_reason = Column(
         String(100),
@@ -408,7 +408,7 @@ class Verification(BaseModel):
         nullable=True,
         comment='Failure category (user_action, provider_issue, etc.)'
     )
-    
+
     # SMS receipt tracking (NEW)
     sms_received = Column(
         Boolean,
@@ -421,7 +421,7 @@ class Verification(BaseModel):
         nullable=True,
         comment='Timestamp when SMS was received'
     )
-    
+
     # Refund eligibility (NEW)
     refund_eligible = Column(
         Boolean,
@@ -457,7 +457,7 @@ def mark_verification_failed(
     refund_eligible: bool = True,
 ) -> None:
     """Mark verification as failed with detailed reason.
-    
+
     Args:
         db: Database session
         verification: Verification object to update
@@ -482,7 +482,7 @@ def mark_sms_code_received(
     sms_text: str,
 ) -> None:
     """Mark SMS code as received and verification completed.
-    
+
     Args:
         db: Database session
         verification: Verification object to update
@@ -592,11 +592,11 @@ def deduct_credits_for_verification(
     country_code: str,
 ) -> Tuple[bool, Optional[str]]:
     """Deduct credits and create transaction record.
-    
+
     Returns:
         Tuple of (success: bool, error_message: Optional[str])
     """
-    
+
     # Check sufficient balance
     if user.credits < cost:
         mark_verification_failed(
@@ -607,7 +607,7 @@ def deduct_credits_for_verification(
             refund_eligible=False,
         )
         return False, "Insufficient balance"
-    
+
     try:
         # Create debit transaction BEFORE modifying user credits
         debit_transaction = Transaction(
@@ -628,17 +628,17 @@ def deduct_credits_for_verification(
         )
         db.add(debit_transaction)
         db.flush()  # Flush to get transaction ID
-        
+
         # Link verification to transaction
         verification.debit_transaction_id = debit_transaction.id
-        
+
         # Deduct credits
         user.credits -= cost
-        
+
         db.commit()
-        
+
         return True, None
-        
+
     except Exception as e:
         db.rollback()
         mark_verification_failed(
@@ -691,7 +691,7 @@ from app.core.constants import TransactionType
 
 
 class AutoRefundService:
-    
+
     @staticmethod
     def process_verification_refund(
         db: Session,
@@ -699,27 +699,27 @@ class AutoRefundService:
         reason: str = "Automatic refund for failed verification",
     ) -> bool:
         """Process refund for verification failure.
-        
+
         Args:
             db: Database session
             verification: Verification to refund
             reason: Reason for refund
-            
+
         Returns:
             True if successful, False if failed
         """
-        
+
         if verification.refunded:
             return True  # Already refunded
-        
+
         if not verification.refund_eligible:
             return False  # Not eligible for refund
-        
+
         try:
             user = db.query(User).filter_by(id=verification.user_id).first()
             if not user:
                 return False
-            
+
             # Create refund transaction linked to original debit
             refund_transaction = Transaction(
                 id=str(uuid4()),
@@ -739,21 +739,21 @@ class AutoRefundService:
             )
             db.add(refund_transaction)
             db.flush()  # Get transaction ID
-            
+
             # Update verification with refund info
             verification.refunded = True
             verification.refund_amount = verification.cost
             verification.refund_reason = reason
             verification.refunded_at = datetime.utcnow()
             verification.refund_transaction_id = refund_transaction.id
-            
+
             # Credit user
             user.credits += verification.cost
-            
+
             db.commit()
-            
+
             return True
-            
+
         except Exception as e:
             db.rollback()
             return False
@@ -774,21 +774,21 @@ from app.services.auto_refund_service import AutoRefundService
 
 
 class RefundPolicyEnforcer:
-    
+
     @staticmethod
     def process_refunds(db: Session, timeout_minutes: int = 10) -> int:
         """Process refunds for failed verifications.
-        
+
         Args:
             db: Database session
             timeout_minutes: Minutes to wait before auto-refunding
-            
+
         Returns:
             Number of refunds processed
         """
-        
+
         timeout_threshold = datetime.utcnow() - timedelta(minutes=timeout_minutes)
-        
+
         # Query for verifications that should be refunded
         # FIX: Now includes 'error' status
         verifications_to_refund = db.query(Verification).filter(
@@ -800,7 +800,7 @@ class RefundPolicyEnforcer:
                 Verification.status.in_(['timeout', 'failed', 'cancelled', 'error'])
             )
         ).all()
-        
+
         refund_count = 0
         for verification in verifications_to_refund:
             if AutoRefundService.process_verification_refund(
@@ -809,7 +809,7 @@ class RefundPolicyEnforcer:
                 reason=f"Auto-refund: {verification.status} status after {timeout_minutes} minutes"
             ):
                 refund_count += 1
-        
+
         return refund_count
 ```
 
@@ -819,10 +819,10 @@ class RefundPolicyEnforcer:
 # Test transaction logging
 def test_transaction_logging():
     from app.services.sms_service import deduct_credits_for_verification
-    
+
     user = create_test_user(credits=10.00)
     verification = create_test_verification(user_id=user.id)
-    
+
     success, error = deduct_credits_for_verification(
         db=db,
         user=user,
@@ -831,11 +831,11 @@ def test_transaction_logging():
         service_name="TextVerified",
         country_code="US"
     )
-    
+
     assert success == True, "Transaction logging failed"
     assert verification.debit_transaction_id is not None, "Transaction not linked"
     assert float(user.credits) == 7.96, "Credits not deducted"
-    
+
     # Verify transaction record exists
     transaction = db.query(Transaction).filter_by(id=verification.debit_transaction_id).first()
     assert transaction is not None, "Transaction record not created"
@@ -844,7 +844,7 @@ def test_transaction_logging():
 # Test refund with transaction linking
 def test_refund_with_linking():
     from app.services.auto_refund_service import AutoRefundService
-    
+
     user = create_test_user(credits=7.96)
     verification = create_test_verification(
         user_id=user.id,
@@ -852,13 +852,13 @@ def test_refund_with_linking():
         cost=2.04,
         debit_transaction_id=uuid4()
     )
-    
+
     success = AutoRefundService.process_verification_refund(
         db=db,
         verification=verification,
         reason="Test refund"
     )
-    
+
     assert success == True, "Refund processing failed"
     assert verification.refunded == True, "Refund flag not set"
     assert verification.refund_transaction_id is not None, "Refund not linked"
@@ -867,7 +867,7 @@ def test_refund_with_linking():
 # Test refund enforcer now processes error status
 def test_refund_enforcer_error_status():
     from app.services.refund_policy_enforcer import RefundPolicyEnforcer
-    
+
     # Create verification with error status created >10 min ago
     verification = create_test_verification(
         status="error",
@@ -875,9 +875,9 @@ def test_refund_enforcer_error_status():
         refunded=False,
         created_at=datetime.utcnow() - timedelta(minutes=15)
     )
-    
+
     count = RefundPolicyEnforcer.process_refunds(db=db)
-    
+
     assert count > 0, "Error status not processed"
     db.refresh(verification)
     assert verification.refunded == True, "Verification not refunded"
@@ -902,11 +902,11 @@ def test_refund_enforcer_error_status():
         <p><strong>Country:</strong> {{ verification.country }}</p>
         <p><strong>Cost:</strong> ${{ verification.cost }}</p>
     </div>
-    
+
     <!-- NEW: Add cancel button for SMS verifications -->
     {% if verification.service_name == "SMS" and verification.status != "completed" and not verification.refunded %}
     <div class="verification-actions">
-        <button 
+        <button
             id="cancel-verification-btn-{{ verification.id }}"
             class="btn btn-danger"
             onclick="cancelVerification('{{ verification.id }}')">
@@ -917,7 +917,7 @@ def test_refund_enforcer_error_status():
         </small>
     </div>
     {% endif %}
-    
+
     <!-- Existing status display -->
     <div class="verification-status">
         <p><strong>Status:</strong> {{ verification.status }}</p>
@@ -938,7 +938,7 @@ async function cancelVerification(verificationId) {
     if (!confirm('Cancel this verification and get a refund?')) {
         return;
     }
-    
+
     try {
         const token = localStorage.getItem('auth_token');
         const response = await fetch(`/api/verification/cancel/${verificationId}`, {
@@ -948,7 +948,7 @@ async function cancelVerification(verificationId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             showNotification(
@@ -994,14 +994,14 @@ async function cancelVerification(verificationId) {
                 <td>{{ verification.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ verification.service_name }}</td>
                 <td>{{ verification.phone_number }}</td>
-                
+
                 <!-- Status with color coding -->
                 <td>
                     <span class="badge badge-{{ get_status_color(verification) }}">
                         {{ format_status(verification.status) }}
                     </span>
                 </td>
-                
+
                 <!-- NEW: Detailed failure info -->
                 <td>
                     {% if verification.sms_received %}
@@ -1014,10 +1014,10 @@ async function cancelVerification(verificationId) {
                         {{ verification.status_message }}
                     {% endif %}
                 </td>
-                
+
                 <!-- Amount charged -->
                 <td>${{ "%.2f"|format(verification.cost) }}</td>
-                
+
                 <!-- Refund info -->
                 <td>
                     {% if verification.refunded %}
@@ -1025,7 +1025,7 @@ async function cancelVerification(verificationId) {
                     {% elif verification.status == "completed" %}
                         —
                     {% else %}
-                        <button 
+                        <button
                             class="btn btn-sm btn-warning"
                             onclick="cancelVerification('{{ verification.id }}')">
                             Request Refund
@@ -1137,7 +1137,7 @@ FAILURE_MESSAGES = {
         "message": "Verification expired - you didn't check for the code in time",
         "refundable": True,
     },
-    
+
     # Provider Issues
     FailureReason.NUMBER_UNAVAILABLE: {
         "label": "Number Unavailable",
@@ -1159,7 +1159,7 @@ FAILURE_MESSAGES = {
         "message": "SMS code was not delivered within 10 minutes. Your payment has been refunded.",
         "refundable": True,
     },
-    
+
     # System Validation
     FailureReason.VOIP_REJECTED: {
         "label": "VOIP Rejected",
@@ -1181,7 +1181,7 @@ FAILURE_MESSAGES = {
         "message": "Maximum retry attempts reached (3/3). Your payment has been refunded.",
         "refundable": True,
     },
-    
+
     # Payment Issues
     FailureReason.INSUFFICIENT_BALANCE: {
         "label": "Insufficient Balance",
@@ -1193,7 +1193,7 @@ FAILURE_MESSAGES = {
         "message": "Payment processing failed. Please try again.",
         "refundable": False,
     },
-    
+
     # Internal Errors
     FailureReason.INTERNAL_ERROR: {
         "label": "Internal Error",
@@ -1217,11 +1217,11 @@ def format_failure_message(verification: Verification) -> str:
     """Get user-friendly failure message."""
     if not verification.failure_reason:
         return verification.error_message or "Verification failed"
-    
+
     msg_data = FAILURE_MESSAGES.get(verification.failure_reason)
     if msg_data:
         return msg_data.get("message", verification.error_message or "Verification failed")
-    
+
     return verification.error_message or "Verification failed"
 
 
@@ -1263,11 +1263,11 @@ async def get_analytics_summary(
     db: Session = Depends(get_db)
 ):
     """Get analytics summary with accurate metrics."""
-    
+
     verifications = db.query(Verification).filter(
         Verification.user_id == current_user.id
     ).all()
-    
+
     if not verifications:
         return {
             "total_attempts": 0,
@@ -1281,55 +1281,55 @@ async def get_analytics_summary(
             "failure_breakdown": [],
             "category_breakdown": [],
         }
-    
+
     # SMS Receipt Metrics (FIXED)
     total_attempts = len(verifications)
     sms_received_count = sum(1 for v in verifications if v.sms_received)
     sms_not_received_count = total_attempts - sms_received_count
-    
+
     # Calculate success rate only from attempts
     success_rate = (sms_received_count / total_attempts * 100) if total_attempts > 0 else 0.0
-    
+
     # Financial Metrics (FIXED - only non-refunded)
     total_charged = sum(float(v.cost or 0) for v in verifications)
     total_refunded = sum(
-        float(v.refund_amount or 0) 
-        for v in verifications 
+        float(v.refund_amount or 0)
+        for v in verifications
         if v.refunded
     )
     net_spent = total_charged - total_refunded
-    
+
     # Failure Breakdown
     failure_breakdown = {}
     for v in verifications:
         if v.failure_reason:
             reason = v.failure_reason
             failure_breakdown[reason] = failure_breakdown.get(reason, 0) + 1
-    
+
     # Category Breakdown
     category_breakdown = {}
     for v in verifications:
         if v.failure_category:
             cat = v.failure_category
             category_breakdown[cat] = category_breakdown.get(cat, 0) + 1
-    
+
     from app.core.messages import (
         format_failure_reason_label,
         format_category_label,
     )
-    
+
     return {
         # Core Metrics (FIXED)
         "total_attempts": total_attempts,
         "sms_received": sms_received_count,
         "sms_not_received": sms_not_received_count,
         "success_rate": round(success_rate, 1),
-        
+
         # Financial Metrics (FIXED)
         "total_charged": round(total_charged, 2),
         "total_refunded": round(total_refunded, 2),
         "net_spent": round(net_spent, 2),
-        
+
         # Failure Analysis
         "failure_breakdown": [
             {
@@ -1340,7 +1340,7 @@ async def get_analytics_summary(
             }
             for k, v in sorted(failure_breakdown.items(), key=lambda x: -x[1])
         ],
-        
+
         "category_breakdown": [
             {
                 "category": k,
@@ -1350,7 +1350,7 @@ async def get_analytics_summary(
             }
             for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])
         ],
-        
+
         # Current Balance
         "current_balance": round(float(current_user.credits or 0.0), 2),
     }
@@ -1364,13 +1364,13 @@ async def get_verification_history(
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get verification history with enhanced failure details."""
-    
+
     from app.core.messages import format_failure_message, format_failure_reason_label
-    
+
     verifications = db.query(Verification).filter(
         Verification.user_id == current_user.id
     ).order_by(Verification.created_at.desc()).offset(skip).limit(limit).all()
-    
+
     return {
         "verifications": [
             {
@@ -1379,31 +1379,31 @@ async def get_verification_history(
                 "service_name": v.service_name,
                 "country": v.country,
                 "status": v.status,
-                
+
                 # Enhanced failure info
                 "failure_reason": v.failure_reason,
                 "failure_reason_label": format_failure_reason_label(v.failure_reason) if v.failure_reason else None,
                 "failure_message": format_failure_message(v),
-                
+
                 # SMS receipt tracking
                 "sms_received": v.sms_received,
                 "sms_code": v.sms_code if v.sms_received else None,
                 "sms_received_at": v.sms_received_at.isoformat() if v.sms_received_at else None,
-                
+
                 # Refund info
                 "refunded": v.refunded,
                 "refund_amount": float(v.refund_amount) if v.refunded else None,
                 "refund_reason": v.refund_reason,
                 "refunded_at": v.refunded_at.isoformat() if v.refunded_at else None,
-                
+
                 # Financial details
                 "cost": float(v.cost) if v.cost else 0.0,
                 "carrier": v.assigned_carrier,
-                
+
                 # Transaction linking
                 "debit_transaction_id": str(v.debit_transaction_id) if v.debit_transaction_id else None,
                 "refund_transaction_id": str(v.refund_transaction_id) if v.refund_transaction_id else None,
-                
+
                 "created_at": v.created_at.isoformat() if v.created_at else None,
                 "completed_at": v.completed_at.isoformat() if v.completed_at else None,
             }
@@ -1437,24 +1437,24 @@ async def audit_user_financials(
     db: Session = Depends(get_db),
 ):
     """Audit all financial transactions for a user."""
-    
+
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     verifications = db.query(Verification).filter(
         Verification.user_id == user_id
     ).all()
-    
+
     transactions = db.query(Transaction).filter(
         Transaction.user_id == user_id
     ).order_by(Transaction.created_at.desc()).all()
-    
+
     # Calculate totals
     total_charged = sum(float(v.cost or 0) for v in verifications)
     total_refunded = sum(float(v.refund_amount or 0) for v in verifications if v.refunded)
     net_spent = total_charged - total_refunded
-    
+
     return {
         "user": {
             "id": str(user.id),
@@ -1501,19 +1501,19 @@ async def find_verifications_missing_transactions(
     db: Session = Depends(get_db),
 ):
     """Find verifications that have no transaction records."""
-    
+
     # Find verifications without debit transactions
     missing_debit = db.query(Verification).filter(
         Verification.debit_transaction_id.is_(None),
         Verification.cost > 0
     ).all()
-    
+
     # Find refunded verifications without refund transactions
     missing_refund = db.query(Verification).filter(
         Verification.refunded == True,
         Verification.refund_transaction_id.is_(None)
     ).all()
-    
+
     return {
         "missing_debit_transactions": {
             "count": len(missing_debit),
@@ -1561,7 +1561,7 @@ from app.core.constants import TransactionType
 
 def backfill_transactions() -> dict:
     """Backfill missing transaction records.
-    
+
     Returns:
         dict with statistics on records created
     """
@@ -1573,25 +1573,25 @@ def backfill_transactions() -> dict:
         "refund_transactions_created": 0,
         "errors": [],
     }
-    
+
     try:
         # Find all verifications with charges
         verifications_with_charges = db.query(Verification).filter(
             Verification.cost > 0
         ).all()
-        
+
         stats["total_verifications"] = db.query(Verification).count()
         stats["verifications_with_charges"] = len(verifications_with_charges)
-        
+
         print(f"Found {len(verifications_with_charges)} verifications with charges")
         print(f"Total verifications in system: {stats['total_verifications']}")
-        
+
         for i, v in enumerate(verifications_with_charges, 1):
             try:
                 # Skip if already has debit transaction
                 if v.debit_transaction_id:
                     continue
-                
+
                 # Create debit transaction
                 debit = Transaction(
                     id=str(uuid4()),
@@ -1612,7 +1612,7 @@ def backfill_transactions() -> dict:
                 db.flush()  # Get ID
                 v.debit_transaction_id = debit.id
                 stats["debit_transactions_created"] += 1
-                
+
                 # If refunded, create refund transaction
                 if v.refunded and v.refund_amount and v.refund_amount > 0:
                     refund = Transaction(
@@ -1635,29 +1635,29 @@ def backfill_transactions() -> dict:
                     db.flush()
                     v.refund_transaction_id = refund.id
                     stats["refund_transactions_created"] += 1
-                
+
                 db.commit()
-                
+
                 if i % 100 == 0:
                     print(f"  ✓ Backfilled {i}/{len(verifications_with_charges)}")
-                    
+
             except Exception as e:
                 db.rollback()
                 error_msg = f"Error backfilling verification {v.id}: {str(e)}"
                 print(f"  ✗ {error_msg}")
                 stats["errors"].append(error_msg)
-        
+
         print(f"\n✅ Backfill Complete!")
         print(f"   Debit transactions created: {stats['debit_transactions_created']}")
         print(f"   Refund transactions created: {stats['refund_transactions_created']}")
-        
+
         if stats["errors"]:
             print(f"\n⚠️  Errors encountered: {len(stats['errors'])}")
             for error in stats["errors"]:
                 print(f"   - {error}")
-        
+
         return stats
-        
+
     finally:
         db.close()
 
@@ -1665,13 +1665,13 @@ def backfill_transactions() -> dict:
 if __name__ == "__main__":
     try:
         stats = backfill_transactions()
-        
+
         # Return non-zero exit code if errors
         if stats["errors"]:
             sys.exit(1)
         else:
             sys.exit(0)
-            
+
     except Exception as e:
         print(f"❌ Fatal error: {str(e)}")
         sys.exit(1)
@@ -1710,19 +1710,19 @@ REFUND_REASON = "Emergency refund: Error status verification (March 2026 inciden
 
 def issue_emergency_refund() -> bool:
     """Issue emergency refund for affected user."""
-    
+
     db = SessionLocal()
-    
+
     try:
         user = db.query(User).filter_by(id=USER_ID).first()
         if not user:
             print(f"❌ User {USER_ID} not found")
             return False
-        
+
         print(f"User: {user.email}")
         print(f"Current Balance: ${user.credits:.2f}")
         print()
-        
+
         # Find unrefunded error verifications
         verifications = db.query(Verification).filter(
             Verification.user_id == USER_ID,
@@ -1730,15 +1730,15 @@ def issue_emergency_refund() -> bool:
             Verification.refunded == False,
             Verification.cost > 0
         ).all()
-        
+
         print(f"Found {len(verifications)} unrefunded error verifications:")
-        
+
         total_refund = 0.0
         refunded_ids = []
-        
+
         for v in verifications:
             print(f"  • {v.id}: ${v.cost:.2f} (created {v.created_at})")
-            
+
             try:
                 # Create refund transaction
                 refund_tx = Transaction(
@@ -1759,26 +1759,26 @@ def issue_emergency_refund() -> bool:
                 )
                 db.add(refund_tx)
                 db.flush()
-                
+
                 # Update verification
                 v.refunded = True
                 v.refund_amount = v.cost
                 v.refund_reason = REFUND_REASON
                 v.refunded_at = datetime.utcnow()
                 v.refund_transaction_id = refund_tx.id
-                
+
                 # Credit user
                 user.credits += v.cost
                 total_refund += v.cost
                 refunded_ids.append(str(v.id))
-                
+
             except Exception as e:
                 print(f"    ✗ Error refunding: {str(e)}")
                 db.rollback()
                 return False
-        
+
         db.commit()
-        
+
         print()
         print(f"✅ Refunded ${total_refund:.2f}")
         print(f"New Balance: ${user.credits:.2f}")
@@ -1786,14 +1786,14 @@ def issue_emergency_refund() -> bool:
         print(f"Refunded verification IDs:")
         for vid in refunded_ids:
             print(f"  • {vid}")
-        
+
         return True
-        
+
     except Exception as e:
         db.rollback()
         print(f"❌ Fatal error: {str(e)}")
         return False
-        
+
     finally:
         db.close()
 
@@ -1810,16 +1810,16 @@ if __name__ == "__main__":
     print("WARNING: This will immediately credit the user's account.")
     print("Review the details above before proceeding.")
     print()
-    
+
     response = input("Type 'YES' to confirm and proceed: ").strip().upper()
-    
+
     if response != "YES":
         print("❌ Cancelled")
         sys.exit(1)
-    
+
     print()
     success = issue_emergency_refund()
-    
+
     sys.exit(0 if success else 1)
 ```
 
@@ -1851,16 +1851,16 @@ from app.core.constants import FailureReason, TransactionType
 
 def verify_implementation() -> bool:
     """Run verification tests."""
-    
+
     db = SessionLocal()
     passed = 0
     failed = 0
-    
+
     print("=" * 70)
     print("FINANCIAL TRACKING IMPLEMENTATION VERIFICATION")
     print("=" * 70)
     print()
-    
+
     # Test 1: Database schema
     print("TEST 1: Database Schema")
     print("-" * 70)
@@ -1879,7 +1879,7 @@ def verify_implementation() -> bool:
         print(f"❌ FAILED: {str(e)}")
         failed += 1
     print()
-    
+
     # Test 2: Transaction logging
     print("TEST 2: Transaction Logging")
     print("-" * 70)
@@ -1889,16 +1889,16 @@ def verify_implementation() -> bool:
             Verification.debit_transaction_id.isnot(None),
             Verification.cost > 0
         ).order_by(Verification.created_at.desc()).first()
-        
+
         if recent_with_debit:
             debit_tx = db.query(Transaction).filter_by(
                 id=recent_with_debit.debit_transaction_id
             ).first()
-            
+
             assert debit_tx is not None, "Debit transaction not found"
             assert debit_tx.type == TransactionType.DEBIT, "Transaction type not DEBIT"
             assert float(debit_tx.amount) == float(recent_with_debit.cost), "Amount mismatch"
-            
+
             print(f"✅ Transaction logging working")
             print(f"   Sample: {debit_tx.id}")
             print(f"   Amount: ${float(debit_tx.amount):.2f}")
@@ -1909,7 +1909,7 @@ def verify_implementation() -> bool:
         print(f"❌ FAILED: {str(e)}")
         failed += 1
     print()
-    
+
     # Test 3: Refund transaction linking
     print("TEST 3: Refund Transaction Linking")
     print("-" * 70)
@@ -1918,16 +1918,16 @@ def verify_implementation() -> bool:
             Verification.refunded == True,
             Verification.refund_transaction_id.isnot(None)
         ).first()
-        
+
         if refunded:
             refund_tx = db.query(Transaction).filter_by(
                 id=refunded.refund_transaction_id
             ).first()
-            
+
             assert refund_tx is not None, "Refund transaction not found"
             assert refund_tx.type == TransactionType.REFUND, "Transaction type not REFUND"
             assert float(refund_tx.amount) == float(refunded.refund_amount), "Amount mismatch"
-            
+
             print(f"✅ Refund transaction linking working")
             print(f"   Sample: {refund_tx.id}")
             print(f"   Amount: ${float(refund_tx.amount):.2f}")
@@ -1938,7 +1938,7 @@ def verify_implementation() -> bool:
         print(f"❌ FAILED: {str(e)}")
         failed += 1
     print()
-    
+
     # Test 4: Status tracking
     print("TEST 4: Detailed Status Tracking")
     print("-" * 70)
@@ -1946,7 +1946,7 @@ def verify_implementation() -> bool:
         failed_with_reason = db.query(Verification).filter(
             Verification.failure_reason.isnot(None)
         ).first()
-        
+
         if failed_with_reason:
             assert failed_with_reason.failure_category is not None, "Missing failure_category"
             print(f"✅ Detailed status tracking working")
@@ -1959,7 +1959,7 @@ def verify_implementation() -> bool:
         print(f"❌ FAILED: {str(e)}")
         failed += 1
     print()
-    
+
     # Test 5: SMS receipt tracking
     print("TEST 5: SMS Receipt Tracking")
     print("-" * 70)
@@ -1967,7 +1967,7 @@ def verify_implementation() -> bool:
         sms_received = db.query(Verification).filter(
             Verification.sms_received == True
         ).first()
-        
+
         if sms_received:
             assert sms_received.sms_received_at is not None, "Missing sms_received_at"
             print(f"✅ SMS receipt tracking working")
@@ -1980,12 +1980,12 @@ def verify_implementation() -> bool:
         print(f"❌ FAILED: {str(e)}")
         failed += 1
     print()
-    
+
     # Summary
     print("=" * 70)
     print(f"RESULTS: {passed} passed, {failed} failed")
     print("=" * 70)
-    
+
     db.close()
     return failed == 0
 
@@ -2105,7 +2105,7 @@ alembic downgrade -1
 ## 📞 SUPPORT CONTACTS
 
 - **Database Issues**: DBA team
-- **Financial Audit Questions**: Finance team  
+- **Financial Audit Questions**: Finance team
 - **Transaction Issues**: Payment processing team
 - **Frontend Issues**: Frontend team
 
@@ -2122,7 +2122,7 @@ alembic downgrade -1
 
 ---
 
-**Status**: ✅ BRUTALLY STABLE (V5.0.0)  
+**Status**: ✅ BRUTALLY STABLE (V5.0.0)
 **Verification**: `python3 scripts/verify_brutal_stability.py` (Passed)
 **Next Steps**: Execute High-Concurrency Load Testing on Multi-Provider Router.
 

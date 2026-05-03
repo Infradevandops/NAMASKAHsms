@@ -221,6 +221,6 @@ Current usage: Monitor in Sentry dashboard → Settings → Usage & Billing
 
 ---
 
-**Status**: ✅ Integrated and Ready  
-**Last Updated**: April 25, 2026  
+**Status**: ✅ Integrated and Ready
+**Last Updated**: April 25, 2026
 **Version**: 4.4.2

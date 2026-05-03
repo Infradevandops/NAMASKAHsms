@@ -1,8 +1,8 @@
 # Verification Flow Ground-Root Assessment
 
-**Date**: January 2026  
-**Version**: 4.0.0  
-**Status**: Production Assessment  
+**Date**: January 2026
+**Version**: 4.0.0
+**Status**: Production Assessment
 
 ---
 
@@ -34,7 +34,7 @@ function selectImmersiveItem(value, label, price) {
     if (_modalType === 'service') {
         VerificationFlow.selectedService = value;
         VerificationFlow.selectedServicePrice = price;
-        
+
         // Show advanced options for PAYG+ users
         const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
         if (rank >= 1) {
@@ -73,30 +73,30 @@ async function loadServices() {
     try {
         await window.ServiceStore.init();
         const services = window.ServiceStore.getAll();
-        
+
         if (!services || services.length === 0) {
             throw new Error('No services available from API');
         }
-        
+
         _modalItems['service'] = _buildServiceItems(services);
-        
+
     } catch (error) {
         console.error('❌ Failed to load services:', error);
-        
+
         // Show error to user
         window.toast && window.toast.error(
             'Unable to load services from provider. Please refresh the page or contact support if the issue persists.'
         );
-        
+
         // Disable service selection
         const input = document.getElementById('service-search-input');
         if (input) {
             input.disabled = true;
             input.placeholder = 'Services unavailable - please refresh page';
         }
-        
+
         _modalItems['service'] = [];
-        
+
         // ❌ MISSING: Modal can still be opened
         // ❌ MISSING: Filter settings button still visible
         // ❌ MISSING: No retry mechanism
@@ -121,7 +121,7 @@ function openImmersiveModal(type) {
         window.toast && window.toast.error('Services unavailable. Please refresh the page.');
         return;  // Don't open modal
     }
-    
+
     // ... rest of modal code
 }
 ```
@@ -131,20 +131,20 @@ function openImmersiveModal(type) {
 function renderImmersiveList(type, query = '') {
     const listContainer = document.getElementById('modal-list-content');
     const items = _modalItems[type] || [];
-    
+
     if (items.length === 0) {
         // ✅ ADD: Hide filter settings button
         const filterBtn = document.querySelector('.modal-settings-btn');
         if (filterBtn) filterBtn.style.display = 'none';
-        
+
         listContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted);">No results found</div>';
         return;
     }
-    
+
     // ✅ ADD: Show filter button when services available
     const filterBtn = document.querySelector('.modal-settings-btn');
     if (filterBtn) filterBtn.style.display = 'block';
-    
+
     // ... rest of rendering code
 }
 ```
@@ -155,21 +155,21 @@ async function loadServices() {
     try {
         await window.ServiceStore.init();
         const services = window.ServiceStore.getAll();
-        
+
         if (!services || services.length === 0) {
             throw new Error('No services available from API');
         }
-        
+
         _modalItems['service'] = _buildServiceItems(services);
-        
+
     } catch (error) {
         console.error('❌ Failed to load services:', error);
-        
+
         // Show error with retry option
         window.toast && window.toast.error(
             'Unable to load services from provider. Please refresh the page or contact support if the issue persists.'
         );
-        
+
         // Disable service selection
         const input = document.getElementById('service-search-input');
         if (input) {
@@ -178,7 +178,7 @@ async function loadServices() {
             input.onclick = null;  // ✅ ADD: Remove click handler
             input.style.cursor = 'not-allowed';  // ✅ ADD: Visual feedback
         }
-        
+
         _modalItems['service'] = [];
     }
 }
@@ -186,7 +186,7 @@ async function loadServices() {
 // ✅ ADD: Retry function
 async function retryLoadServices() {
     window.toast && window.toast.info('Retrying...');
-    
+
     // Re-enable input
     const input = document.getElementById('service-search-input');
     if (input) {
@@ -195,9 +195,9 @@ async function retryLoadServices() {
         input.onclick = () => openImmersiveModal('service');
         input.style.cursor = 'pointer';
     }
-    
+
     await loadServices();
-    
+
     // Refresh modal if open
     if (document.getElementById('immersive-modal-container').innerHTML) {
         renderImmersiveList('service');
@@ -210,12 +210,12 @@ async function retryLoadServices() {
 function renderImmersiveList(type, query = '') {
     const listContainer = document.getElementById('modal-list-content');
     const items = _modalItems[type] || [];
-    
+
     if (items.length === 0) {
         // Hide filter button
         const filterBtn = document.querySelector('.modal-settings-btn');
         if (filterBtn) filterBtn.style.display = 'none';
-        
+
         // ✅ IMPROVED: Show error with retry button
         if (type === 'service') {
             listContainer.innerHTML = `
@@ -226,7 +226,7 @@ function renderImmersiveList(type, query = '') {
                     <div style="color:#6B7280; font-size:14px; margin-bottom:24px;">
                         Please check your connection and try again
                     </div>
-                    <button onclick="retryLoadServices(); closeImmersiveModal();" 
+                    <button onclick="retryLoadServices(); closeImmersiveModal();"
                             style="padding:10px 24px; background:#E8003D; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">
                         Retry
                     </button>
@@ -237,7 +237,7 @@ function renderImmersiveList(type, query = '') {
         }
         return;
     }
-    
+
     // ... rest of rendering code
 }
 ```
@@ -265,7 +265,7 @@ function renderImmersiveList(type, query = '') {
 function selectImmersiveItem(value, label, price) {
     if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
-        
+
         // Persist to server
         if (value) {
             fetch('/api/user/verification/area-codes', {
@@ -282,13 +282,13 @@ function selectImmersiveItem(value, label, price) {
 async def _build_area_code_preference(self, requested: str) -> List[str]:
     """Build proximity chain: [requested] + [same-state codes]"""
     by_state = await self._get_area_codes_by_state()
-    
+
     # Find state for requested code
     state = next((s for s, codes in by_state.items() if requested in codes), None)
-    
+
     if not state:
         return [requested]  # Single code only
-    
+
     siblings = [c for c in by_state[state] if c != requested]
     return [requested] + siblings  # Full proximity chain
 ```
@@ -314,12 +314,12 @@ async def create_verification(self, area_code: Optional[str] = None):
     if area_code:
         area_code_options = await self._build_area_code_preference(area_code)
         # TextVerified tries each code in order: [requested, same-state-1, same-state-2, ...]
-    
+
     result = await asyncio.to_thread(
         self.client.verifications.create,
         area_code_select_option=area_code_options,  # Ordered preference list
     )
-    
+
     # Check if fallback was applied
     assigned_number = result.number
     assigned_area_code = assigned_number[2:5] if assigned_number.startswith("+1") else None
@@ -422,13 +422,13 @@ async def request_verification(request: VerificationRequest):
     # Extract filters
     area_code = request.area_codes[0] if request.area_codes else None
     carrier = request.carriers[0] if request.carriers else None
-    
+
     # Log filters
     if area_code:
         logger.info(f"User {user_id} requesting area code: {area_code}")
     if carrier:
         logger.info(f"User {user_id} requesting carrier: {carrier}")
-    
+
     # Call TextVerified API with filters
     textverified_result = await tv_service.create_verification(
         service=request.service,
@@ -436,7 +436,7 @@ async def request_verification(request: VerificationRequest):
         area_code=area_code,
         carrier=carrier,
     )
-    
+
     # Create verification record with filter tracking
     verification = Verification(
         user_id=user_id,
@@ -464,7 +464,7 @@ async def create_verification(self, area_code, carrier):
     # Build preference lists
     area_code_options = await self._build_area_code_preference(area_code) if area_code else None
     carrier_options = self._build_carrier_preference(carrier) if carrier else None
-    
+
     # Call TextVerified API
     result = await asyncio.to_thread(
         self.client.verifications.create,
@@ -472,16 +472,16 @@ async def create_verification(self, area_code, carrier):
         area_code_select_option=area_code_options,  # [requested, same-state...]
         carrier_select_option=carrier_options,       # [requested] only
     )
-    
+
     # Extract assigned area code from phone number
     assigned_number = result.number
     assigned_area_code = assigned_number[2:5] if assigned_number.startswith("+1") else None
-    
+
     # Detect fallback
     fallback_applied = bool(
         area_code and assigned_area_code and assigned_area_code != area_code
     )
-    
+
     # Determine if same state
     same_state = True
     if fallback_applied:
@@ -489,7 +489,7 @@ async def create_verification(self, area_code, carrier):
         req_state = next((s for s, codes in by_state.items() if area_code in codes), None)
         asgn_state = next((s for s, codes in by_state.items() if assigned_area_code in codes), None)
         same_state = req_state is not None and req_state == asgn_state
-    
+
     return {
         "id": result.id,
         "phone_number": assigned_number,
@@ -534,7 +534,7 @@ function showFallbackWarning(requested, assigned, sameState) {
     const msg = sameState
         ? `<strong>${requested}</strong> unavailable — assigned nearby <strong>${assigned}</strong> (same state).`
         : `<strong>${requested}</strong> unavailable — assigned <strong>${assigned}</strong> (different state).`;
-    
+
     // Show warning banner
     // Show toast notification
 }
@@ -555,15 +555,15 @@ function showFallbackWarning(requested, assigned, sameState) {
 async def poll_sms(self, verification_id: str):
     """Poll TextVerified API for SMS messages"""
     verification = db.query(Verification).filter_by(id=verification_id).first()
-    
+
     if not verification.activation_id:
         return None
-    
+
     # Direct API call - no complex logic
     sms_list = await asyncio.to_thread(
         lambda: list(self.client.sms.list(verification.activation_id))
     )
-    
+
     if sms_list:
         latest = sms_list[-1]
         return {
@@ -571,7 +571,7 @@ async def poll_sms(self, verification_id: str):
             "code": latest.parsed_code,
             "received_at": latest.created_at.isoformat(),
         }
-    
+
     return None
 ```
 
@@ -690,7 +690,7 @@ class Verification(BaseModel):
     # Existing
     requested_area_code = Column(String)
     operator = Column(String)  # Rename to requested_carrier
-    
+
     # NEW FIELDS
     assigned_area_code = Column(String)    # ✅ Add this
     assigned_carrier = Column(String)      # ✅ Add this
@@ -730,7 +730,7 @@ receipt = VerificationReceipt(
     area_code=verification.assigned_area_code,      # ✅ Show actual
     isp_carrier=verification.assigned_carrier,      # ✅ Show actual
     amount_spent=verification.cost,
-    
+
     # Optional: Show both requested and assigned
     requested_area_code=verification.requested_area_code,
     requested_carrier=verification.requested_carrier,
@@ -843,7 +843,7 @@ receipt = VerificationReceipt(
    - Function: `openImmersiveModal()`
    - Add service availability check before opening modal
    - Show error toast if user tries to open empty modal
-   
+
    **Test**:
    ```javascript
    // Test: Modal should not open when services unavailable
@@ -853,7 +853,7 @@ receipt = VerificationReceipt(
            openImmersiveModal('service');
            expect(document.getElementById('immersive-modal-container').innerHTML).toBe('');
        });
-       
+
        it('should show error toast when trying to open empty service modal', () => {
            _modalItems['service'] = [];
            const toastSpy = jest.spyOn(window.toast, 'error');
@@ -868,7 +868,7 @@ receipt = VerificationReceipt(
    - Function: `renderImmersiveList()`
    - Hide sliders icon button when services array is empty
    - Show button when services are available
-   
+
    **Test**:
    ```javascript
    // Test: Filter button visibility
@@ -879,7 +879,7 @@ receipt = VerificationReceipt(
            const filterBtn = document.querySelector('.modal-settings-btn');
            expect(filterBtn.style.display).toBe('none');
        });
-       
+
        it('should show filter button when services available', () => {
            _modalItems['service'] = [{value: 'telegram', label: 'Telegram', price: 2.50}];
            renderImmersiveList('service');
@@ -894,7 +894,7 @@ receipt = VerificationReceipt(
    - Add `retryLoadServices()` function
    - Re-enable input and retry API call
    - Show retry button in error state
-   
+
    **Test**:
    ```javascript
    // Test: Retry functionality
@@ -902,13 +902,13 @@ receipt = VerificationReceipt(
        it('should re-enable input and retry loading', async () => {
            const input = document.getElementById('service-search-input');
            input.disabled = true;
-           
+
            await retryLoadServices();
-           
+
            expect(input.disabled).toBe(false);
            expect(input.placeholder).toBe('Search services e.g. Telegram, WhatsApp...');
        });
-       
+
        it('should show info toast when retrying', async () => {
            const toastSpy = jest.spyOn(window.toast, 'info');
            await retryLoadServices();
@@ -922,7 +922,7 @@ receipt = VerificationReceipt(
    - Function: `renderImmersiveList()`
    - Show error message with retry button instead of "No results found"
    - Include helpful error message
-   
+
    **Test**:
    ```javascript
    // Test: Error display
@@ -934,7 +934,7 @@ receipt = VerificationReceipt(
            expect(content).toContain('Unable to load services from provider');
            expect(content).toContain('Retry');
        });
-       
+
        it('should show generic "No results found" for other types', () => {
            _modalItems['area-code'] = [];
            renderImmersiveList('area-code');
@@ -950,7 +950,7 @@ receipt = VerificationReceipt(
    - Function: `loadServices()`
    - Remove onclick handler when services fail to load
    - Add visual feedback (cursor: not-allowed)
-   
+
    **Test**:
    ```javascript
    // Test: Input disabled state
@@ -1104,7 +1104,7 @@ receipt = VerificationReceipt(
 5. Test end-to-end flow with various scenarios
 6. Update user documentation
 
-**Timeline**: 
+**Timeline**:
 - Priority 0 fixes: 4-6 hours (IMMEDIATE)
 - Priority 1 fixes: 2-3 days
 - Priority 2 fixes: 3-5 days

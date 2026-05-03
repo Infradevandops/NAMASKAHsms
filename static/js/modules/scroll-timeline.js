@@ -27,7 +27,7 @@ class ScrollTimeline {
   setupElements() {
     // Get all timeline sections
     this.sections = Array.from(document.querySelectorAll('[data-timeline-section]'))
-    
+
     if (this.sections.length === 0) {
       console.warn('No timeline sections found')
       return
@@ -35,10 +35,10 @@ class ScrollTimeline {
 
     // Create timeline container
     this.createTimeline()
-    
+
     // Create progress bar
     this.createProgressBar()
-    
+
     // Create scroll to top button
     this.createScrollToTopButton()
   }
@@ -51,7 +51,7 @@ class ScrollTimeline {
     // Create line
     const line = document.createElement('div')
     line.className = 'scroll-timeline-line'
-    
+
     const lineProgress = document.createElement('div')
     lineProgress.className = 'scroll-timeline-line-progress'
     line.appendChild(lineProgress)
@@ -96,7 +96,7 @@ class ScrollTimeline {
     button.id = 'scroll-to-top'
     button.innerHTML = '↑'
     button.setAttribute('aria-label', 'Scroll to top')
-    
+
     button.addEventListener('click', () => this.scrollToTop())
     document.body.appendChild(button)
     this.scrollToTopButton = button
@@ -115,7 +115,7 @@ class ScrollTimeline {
 
     // Clear timeout
     clearTimeout(this.scrollTimeout)
-    
+
     // Set timeout to detect scroll end
     this.scrollTimeout = setTimeout(() => {
       this.isScrolling = false
@@ -213,7 +213,7 @@ class ScrollTimeline {
   destroy() {
     window.removeEventListener('scroll', () => this.handleScroll())
     window.removeEventListener('resize', () => this.updateProgress())
-    
+
     if (this.timelineContainer) {
       this.timelineContainer.remove()
     }

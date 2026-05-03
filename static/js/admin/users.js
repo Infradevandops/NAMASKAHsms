@@ -22,13 +22,13 @@ const UsersManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             const ctx = document.getElementById('retentionChart').getContext('2d');
             if (this.retentionChart) this.retentionChart.destroy();
-            
+
             // We'll plot the latest cohort's retention curve
             const latestCohort = data.cohorts[data.cohorts.length - 1];
-            
+
             this.retentionChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -46,7 +46,7 @@ const UsersManager = {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { title: { display: true, text: '90-Day Retention Curve', color: '#fff' } },
-                    scales: { 
+                    scales: {
                         y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.03)' } },
                         x: { grid: { display: false } }
                     }
@@ -64,7 +64,7 @@ const UsersManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             const tbody = document.getElementById('user-intelligence-table');
             tbody.innerHTML = data.users.map(u => `
                 <tr>
@@ -102,7 +102,7 @@ const UsersManager = {
                 <input type="number" id="credit-adj" step="0.01" value="0.00" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px; border-radius:4px;">
             </div>
         `;
-        
+
         document.getElementById('save-tier-btn').onclick = () => this.saveUserChanges(userId);
         modal.style.display = 'flex';
     },
@@ -110,7 +110,7 @@ const UsersManager = {
     async saveUserChanges(userId) {
         const tier = document.getElementById('new-tier').value;
         const credits = document.getElementById('credit-adj').value;
-        
+
         try {
             // Tier change
             await fetch(`/api/admin/tiers/users/${userId}/tier`, {
@@ -121,7 +121,7 @@ const UsersManager = {
                 },
                 body: JSON.stringify({ tier, duration_days: 30 })
             });
-            
+
             // Credit adjustment
             if (parseFloat(credits) !== 0) {
                  await fetch(`/api/admin/users/${userId}/credits`, {
@@ -133,7 +133,7 @@ const UsersManager = {
                     body: JSON.stringify({ amount: parseFloat(credits), reason: 'Admin adjustment' })
                 });
             }
-            
+
             document.getElementById('tier-modal').style.display = 'none';
             this.loadUserList();
             showToast('User updated successfully', 'success');

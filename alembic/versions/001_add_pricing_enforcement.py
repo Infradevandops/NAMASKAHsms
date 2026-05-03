@@ -20,8 +20,8 @@ def _column_exists(table, column):
     inspector = sa.inspect(bind)
     columns = [c["name"] for c in inspector.get_columns(table)]
     return column in columns
- 
- 
+
+
 def _table_exists(table):
     bind = op.get_bind()
     inspector = sa.inspect(bind)

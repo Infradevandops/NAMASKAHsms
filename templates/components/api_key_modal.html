@@ -263,10 +263,10 @@
 </style>
 
 <!-- Generate API Key Modal -->
-<div id="api-key-generate-modal" 
-     class="api-key-modal-overlay" 
-     role="dialog" 
-     aria-modal="true" 
+<div id="api-key-generate-modal"
+     class="api-key-modal-overlay"
+     role="dialog"
+     aria-modal="true"
      aria-labelledby="api-key-generate-title">
     <div class="api-key-modal">
         <div class="api-key-modal-header">
@@ -278,9 +278,9 @@
         <div class="api-key-modal-body">
             <div class="api-key-form-group">
                 <label class="api-key-form-label" for="api-key-name">Key Name</label>
-                <input type="text" 
-                       id="api-key-name" 
-                       class="api-key-form-input" 
+                <input type="text"
+                       id="api-key-name"
+                       class="api-key-form-input"
                        placeholder="e.g., Development, Production, Mobile App"
                        maxlength="50">
             </div>
@@ -298,10 +298,10 @@
 </div>
 
 <!-- Display Generated API Key Modal -->
-<div id="api-key-display-modal" 
-     class="api-key-modal-overlay" 
-     role="dialog" 
-     aria-modal="true" 
+<div id="api-key-display-modal"
+     class="api-key-modal-overlay"
+     role="dialog"
+     aria-modal="true"
      aria-labelledby="api-key-display-title">
     <div class="api-key-modal">
         <div class="api-key-modal-header">
@@ -314,11 +314,11 @@
             <div class="api-key-warning">
                 <span class="api-key-warning-icon"></span>
                 <div class="api-key-warning-text">
-                    <strong>Save this key now!</strong> For security reasons, this is the only time you'll see the full API key. 
+                    <strong>Save this key now!</strong> For security reasons, this is the only time you'll see the full API key.
                     Store it securely - you won't be able to view it again.
                 </div>
             </div>
-            
+
             <div class="api-key-info">
                 <div class="api-key-info-item">
                     <div class="api-key-info-label">Key Name</div>
@@ -329,7 +329,7 @@
                     <div class="api-key-info-value" id="api-key-created-date">-</div>
                 </div>
             </div>
-            
+
             <div class="api-key-display">
                 <div class="api-key-display-label">Your API Key</div>
                 <div class="api-key-display-value">
@@ -355,16 +355,16 @@ function showApiKeyGenerateModal() {
     previouslyFocusedElement = document.activeElement;
     const modal = document.getElementById('api-key-generate-modal');
     const nameInput = document.getElementById('api-key-name');
-    
+
     // Reset form
     nameInput.value = '';
-    
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    
+
     // Focus the input
     setTimeout(() => nameInput.focus(), 100);
-    
+
     // Add keyboard listener
     document.addEventListener('keydown', handleApiKeyModalKeydown);
 }
@@ -374,7 +374,7 @@ function closeApiKeyGenerateModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
     document.removeEventListener('keydown', handleApiKeyModalKeydown);
-    
+
     if (previouslyFocusedElement) {
         previouslyFocusedElement.focus();
     }
@@ -382,20 +382,20 @@ function closeApiKeyGenerateModal() {
 
 function showApiKeyDisplayModal(keyData) {
     const modal = document.getElementById('api-key-display-modal');
-    
+
     // Populate data
     document.getElementById('api-key-created-name').textContent = keyData.name || 'API Key';
     document.getElementById('api-key-created-date').textContent = new Date().toLocaleDateString();
     document.getElementById('api-key-full-value').textContent = keyData.key;
-    
+
     // Reset copy button
     const copyBtn = document.getElementById('api-key-copy-btn');
     copyBtn.classList.remove('copied');
     copyBtn.innerHTML = 'Copy';
-    
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    
+
     // Add keyboard listener
     document.addEventListener('keydown', handleApiKeyModalKeydown);
 }
@@ -405,12 +405,12 @@ function closeApiKeyDisplayModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
     document.removeEventListener('keydown', handleApiKeyModalKeydown);
-    
+
     // Refresh the API keys list
     if (typeof loadApiKeys === 'function') {
         loadApiKeys();
     }
-    
+
     if (previouslyFocusedElement) {
         previouslyFocusedElement.focus();
     }
@@ -420,10 +420,10 @@ async function generateApiKeyFromModal() {
     const nameInput = document.getElementById('api-key-name');
     const generateBtn = document.getElementById('api-key-generate-btn');
     const keyName = nameInput.value.trim() || 'API Key ' + new Date().toLocaleDateString();
-    
+
     generateBtn.disabled = true;
     generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
-    
+
     try {
         const token = localStorage.getItem('access_token');
         const res = await fetch('/api/auth/api-keys', {
@@ -434,17 +434,17 @@ async function generateApiKeyFromModal() {
             },
             body: JSON.stringify({ name: keyName })
         });
-        
+
         if (!res.ok) {
             throw new Error('Failed to generate API key');
         }
-        
+
         const newKey = await res.json();
-        
+
         // Close generate modal and show display modal
         closeApiKeyGenerateModal();
         showApiKeyDisplayModal({ name: keyName, key: newKey.key });
-        
+
     } catch (error) {
         console.error('Failed to generate API key:', error);
         alert('Failed to generate API key. Please try again.');
@@ -457,12 +457,12 @@ async function generateApiKeyFromModal() {
 async function copyApiKey() {
     const keyValue = document.getElementById('api-key-full-value').textContent;
     const copyBtn = document.getElementById('api-key-copy-btn');
-    
+
     try {
         await navigator.clipboard.writeText(keyValue);
         copyBtn.classList.add('copied');
         copyBtn.innerHTML = '✓ Copied!';
-        
+
         setTimeout(() => {
             copyBtn.classList.remove('copied');
             copyBtn.innerHTML = 'Copy';
@@ -477,10 +477,10 @@ async function copyApiKey() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        
+
         copyBtn.classList.add('copied');
         copyBtn.innerHTML = '✓ Copied!';
-        
+
         setTimeout(() => {
             copyBtn.classList.remove('copied');
             copyBtn.innerHTML = 'Copy';
@@ -492,7 +492,7 @@ function handleApiKeyModalKeydown(e) {
     if (e.key === 'Escape') {
         const generateModal = document.getElementById('api-key-generate-modal');
         const displayModal = document.getElementById('api-key-display-modal');
-        
+
         if (generateModal.classList.contains('active')) {
             closeApiKeyGenerateModal();
         } else if (displayModal.classList.contains('active')) {

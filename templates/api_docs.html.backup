@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="API documentation - Namaskah">
   <title>API Documentation - Namaskah</title>
-  
+
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/components.css') }}">
@@ -17,7 +17,7 @@
       gap: 0;
       min-height: 100vh;
     }
-    
+
     .docs-sidebar {
       background: var(--surface);
       border-right: 1px solid var(--border);
@@ -27,14 +27,14 @@
       height: 100vh;
       overflow-y: auto;
     }
-    
+
     .docs-sidebar-nav {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: var(--space-md);
     }
-    
+
     .docs-sidebar-nav a {
       display: flex;
       align-items: center;
@@ -46,36 +46,36 @@
       transition: all var(--transition-fast);
       font-size: 0.95rem;
     }
-    
+
     .docs-sidebar-nav a:hover,
     .docs-sidebar-nav a.active {
       background: white;
       color: var(--primary);
     }
-    
+
     .docs-sidebar-nav .icon {
       width: 20px;
       height: 20px;
     }
-    
+
     .docs-content {
       padding: var(--space-xl);
       overflow-y: auto;
     }
-    
+
     .docs-header {
       margin-bottom: var(--space-2xl);
     }
-    
+
     .docs-header h1 {
       margin: 0 0 var(--space-md) 0;
     }
-    
+
     .docs-header p {
       color: var(--neutral);
       margin: 0;
     }
-    
+
     .docs-section {
       background: white;
       border: 1px solid var(--border);
@@ -83,31 +83,31 @@
       padding: var(--space-xl);
       margin-bottom: var(--space-lg);
     }
-    
+
     .docs-section h2 {
       margin: 0 0 var(--space-lg) 0;
       display: flex;
       align-items: center;
       gap: var(--space-md);
     }
-    
+
     .docs-section h2 svg {
       width: 24px;
       height: 24px;
       color: var(--primary);
     }
-    
+
     .docs-section h3 {
       margin: var(--space-lg) 0 var(--space-md) 0;
       font-size: 1.1rem;
     }
-    
+
     .docs-section p {
       margin: 0 0 var(--space-md) 0;
       line-height: 1.6;
       color: #374151;
     }
-    
+
     .code-block {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -118,7 +118,7 @@
       overflow-x: auto;
       margin: var(--space-lg) 0;
     }
-    
+
     .endpoint {
       background: var(--surface);
       border-left: 4px solid var(--primary);
@@ -126,7 +126,7 @@
       margin: var(--space-lg) 0;
       border-radius: var(--radius-md);
     }
-    
+
     .endpoint-method {
       display: inline-block;
       padding: var(--space-sm) var(--space-md);
@@ -135,45 +135,45 @@
       font-size: 0.875rem;
       margin-right: var(--space-md);
     }
-    
+
     .method-get {
       background: rgba(16, 185, 129, 0.1);
       color: var(--success);
     }
-    
+
     .method-post {
       background: rgba(37, 99, 235, 0.1);
       color: var(--primary);
     }
-    
+
     .method-delete {
       background: rgba(239, 68, 68, 0.1);
       color: var(--error);
     }
-    
+
     .endpoint-path {
       font-family: var(--font-family-mono);
       font-size: 0.95rem;
     }
-    
+
     @media (max-width: 1024px) {
       .docs-container {
         grid-template-columns: 1fr;
       }
-      
+
       .docs-sidebar {
         position: relative;
         height: auto;
         border-right: none;
         border-bottom: 1px solid var(--border);
       }
-      
+
       .docs-sidebar-nav {
         flex-direction: row;
         flex-wrap: wrap;
       }
     }
-    
+
     @media (max-width: 640px) {
       .docs-content {
         padding: var(--space-lg);
@@ -188,7 +188,7 @@
       <div style="margin-bottom: var(--space-xl);">
         <h2 style="margin: 0; font-size: 1.25rem;">API Docs</h2>
       </div>
-      
+
       <ul class="docs-sidebar-nav">
         <li>
           <a href="#overview" class="active">
@@ -261,14 +261,14 @@ Authorization: Bearer YOUR_API_KEY
           <i class="ph ph-code"></i>
           Endpoints
         </h2>
-        
+
         <h3>SMS Verification</h3>
         <div class="endpoint">
           <span class="endpoint-method method-post">POST</span>
           <span class="endpoint-path">/sms/send</span>
           <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send SMS verification code</p>
         </div>
-        
+
         <div class="code-block">
 {
   "phone": "+------7890",
@@ -276,14 +276,14 @@ Authorization: Bearer YOUR_API_KEY
   "message": "Your code is: {code}"
 }
         </div>
-        
+
         <h3>Email Verification</h3>
         <div class="endpoint">
           <span class="endpoint-method method-post">POST</span>
           <span class="endpoint-path">/email/send</span>
           <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send email verification code</p>
         </div>
-        
+
         <h3>Verify Code</h3>
         <div class="endpoint">
           <span class="endpoint-method method-post">POST</span>
@@ -348,7 +348,7 @@ X-RateLimit-Reset: 1700000000
     </main>
   </div>
 
-  
+
   <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>
