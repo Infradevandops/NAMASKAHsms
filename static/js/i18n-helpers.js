@@ -1,10 +1,10 @@
 /**
  * i18n Helper Utilities
- * 
+ *
  * Provides helper functions for i18n-aware DOM manipulation
  * Use these instead of direct textContent/innerHTML assignments
  * to prevent translation key regression issues.
- * 
+ *
  * Usage:
  *   import { setI18nContent, updateI18nHTML } from '/static/js/i18n-helpers.js';
  *   setI18nContent('my-element-id', 'Hello World');
@@ -25,15 +25,15 @@ export async function waitForI18n() {
 /**
  * Set element content while preserving i18n system
  * Removes data-i18n attribute to indicate this is dynamic content
- * 
+ *
  * @param {string|HTMLElement} elementOrId - Element or element ID
  * @param {string} content - Content to set
  */
 export function setI18nContent(elementOrId, content) {
-    const el = typeof elementOrId === 'string' 
-        ? document.getElementById(elementOrId) 
+    const el = typeof elementOrId === 'string'
+        ? document.getElementById(elementOrId)
         : elementOrId;
-    
+
     if (!el) {
         console.warn(`[i18n-helpers] Element not found:`, elementOrId);
         return;
@@ -46,22 +46,22 @@ export function setI18nContent(elementOrId, content) {
 
 /**
  * Set element HTML while preserving i18n for child elements
- * 
+ *
  * @param {string|HTMLElement} elementOrId - Element or element ID
  * @param {string} html - HTML content to set
  */
 export function updateI18nHTML(elementOrId, html) {
-    const el = typeof elementOrId === 'string' 
-        ? document.getElementById(elementOrId) 
+    const el = typeof elementOrId === 'string'
+        ? document.getElementById(elementOrId)
         : elementOrId;
-    
+
     if (!el) {
         console.warn(`[i18n-helpers] Element not found:`, elementOrId);
         return;
     }
 
     el.innerHTML = html;
-    
+
     // Re-translate any new elements with data-i18n
     if (window.i18n && window.i18n.loaded) {
         el.querySelectorAll('[data-i18n]').forEach(child => {
@@ -76,7 +76,7 @@ export function updateI18nHTML(elementOrId, html) {
 
 /**
  * Update multiple elements at once
- * 
+ *
  * @param {Object} updates - Map of element IDs to content
  * @example
  *   updateMultiple({
@@ -95,15 +95,15 @@ export function updateMultiple(updates) {
  * Safely update element with translation key
  * If element has data-i18n, it will be translated
  * Otherwise, content is set directly
- * 
+ *
  * @param {string|HTMLElement} elementOrId - Element or element ID
  * @param {string} translationKey - Translation key (e.g., 'dashboard.title')
  */
 export function setTranslatedContent(elementOrId, translationKey) {
-    const el = typeof elementOrId === 'string' 
-        ? document.getElementById(elementOrId) 
+    const el = typeof elementOrId === 'string'
+        ? document.getElementById(elementOrId)
         : elementOrId;
-    
+
     if (!el) {
         console.warn(`[i18n-helpers] Element not found:`, elementOrId);
         return;
@@ -121,7 +121,7 @@ export function setTranslatedContent(elementOrId, translationKey) {
 
 /**
  * Create element with i18n support
- * 
+ *
  * @param {string} tag - HTML tag name
  * @param {Object} options - Element options
  * @param {string} options.translationKey - Translation key
@@ -132,30 +132,30 @@ export function setTranslatedContent(elementOrId, translationKey) {
  */
 export function createI18nElement(tag, options = {}) {
     const el = document.createElement(tag);
-    
+
     if (options.className) {
         el.className = options.className;
     }
-    
+
     if (options.attributes) {
         for (const [key, value] of Object.entries(options.attributes)) {
             el.setAttribute(key, value);
         }
     }
-    
+
     if (options.translationKey) {
         setTranslatedContent(el, options.translationKey);
     } else if (options.content) {
         el.textContent = options.content;
     }
-    
+
     return el;
 }
 
 /**
  * Batch update with i18n awareness
  * Useful for updating multiple elements after API calls
- * 
+ *
  * @param {Array<Object>} updates - Array of update objects
  * @example
  *   batchUpdate([
@@ -168,17 +168,17 @@ export function batchUpdate(updates) {
     for (const update of updates) {
         const el = document.getElementById(update.id);
         if (!el) continue;
-        
+
         if (update.removeI18n) {
             el.removeAttribute('data-i18n');
         }
-        
+
         if (update.translationKey) {
             setTranslatedContent(el, update.translationKey);
         } else if (update.content !== undefined) {
             el.textContent = update.content;
         }
-        
+
         if (update.html !== undefined) {
             updateI18nHTML(el, update.html);
         }

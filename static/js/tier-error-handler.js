@@ -1,9 +1,9 @@
 /**
  * Tier Error Handler
- * 
+ *
  * Intercepts HTTP 402 (Payment Required) responses globally and displays
  * the tier-locked modal to guide users to upgrade their subscription.
- * 
+ *
  * Feature: tier-system-rbac
  * Validates: Requirements 13.1, 13.2, 13.3, 13.4, 13.5
  */
@@ -20,12 +20,12 @@
     window.fetch = async function(...args) {
         try {
             const response = await originalFetch.apply(this, args);
-            
+
             // Check for 402 Payment Required
             if (response.status === 402) {
                 await handle402Response(response.clone(), args[0]);
             }
-            
+
             return response;
         } catch (error) {
             throw error;
@@ -41,7 +41,7 @@
         try {
             const data = await response.json();
             const detail = data.detail || {};
-            
+
             // Extract tier information from response
             const options = {
                 message: typeof detail === 'string' ? detail : detail.message,
@@ -49,7 +49,7 @@
                 currentTier: detail.current_tier || 'freemium',
                 upgradeUrl: detail.upgrade_url || '/pricing'
             };
-            
+
             // Show tier-locked modal if available
             if (typeof window.showTierLockedModal === 'function') {
                 window.showTierLockedModal(options);
@@ -57,21 +57,21 @@
                 // Fallback: show alert and redirect
                 const tierName = getTierDisplayName(options.requiredTier);
                 const message = options.message || `This feature requires ${tierName} tier or higher.`;
-                
+
                 if (confirm(message + '\n\nWould you like to upgrade now?')) {
                     window.location.href = options.upgradeUrl;
                 }
             }
-            
+
             console.log('[TierErrorHandler] 402 intercepted:', {
                 url: typeof url === 'string' ? url : url.url,
                 requiredTier: options.requiredTier,
                 currentTier: options.currentTier
             });
-            
+
         } catch (parseError) {
             console.error('[TierErrorHandler] Failed to parse 402 response:', parseError);
-            
+
             // Fallback for non-JSON responses
             if (typeof window.showTierLockedModal === 'function') {
                 window.showTierLockedModal({
@@ -125,23 +125,23 @@
         try {
             const data = JSON.parse(xhr.responseText);
             const detail = data.detail || {};
-            
+
             const options = {
                 message: typeof detail === 'string' ? detail : detail.message,
                 requiredTier: detail.required_tier || 'payg',
                 currentTier: detail.current_tier || 'freemium',
                 upgradeUrl: detail.upgrade_url || '/pricing'
             };
-            
+
             if (typeof window.showTierLockedModal === 'function') {
                 window.showTierLockedModal(options);
             }
-            
+
             console.log('[TierErrorHandler] XHR 402 intercepted:', {
                 url: xhr._url,
                 requiredTier: options.requiredTier
             });
-            
+
         } catch (e) {
             console.error('[TierErrorHandler] Failed to handle XHR 402:', e);
         }

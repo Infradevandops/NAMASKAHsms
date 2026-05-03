@@ -1,6 +1,6 @@
 /**
  * Loading Animations & Skeleton Loaders
- * 
+ *
  * Provides smooth loading states for data sections
  */
 
@@ -286,7 +286,7 @@
         flex-direction: column;
         width: 100%;
     }
-    
+
     .tier-cta-container .btn {
         width: 100%;
         justify-content: center;

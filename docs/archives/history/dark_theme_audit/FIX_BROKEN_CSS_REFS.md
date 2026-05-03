@@ -1,7 +1,7 @@
 # 🔧 Quick Fix: Broken CSS References
 
-**Time**: 1.25 hours  
-**Pages to Fix**: 5  
+**Time**: 1.25 hours
+**Pages to Fix**: 5
 **Issue**: Malformed Jinja2 syntax in CSS/JS references
 
 ---
@@ -131,45 +131,45 @@ PATTERNS = [
 def fix_file(filepath):
     """Fix CSS/JS references in a file."""
     path = Path(filepath)
-    
+
     if not path.exists():
         print(f"❌ File not found: {filepath}")
         return False
-    
+
     # Read file
     content = path.read_text()
     original = content
-    
+
     # Apply all patterns
     for pattern, replacement in PATTERNS:
         content = re.sub(pattern, replacement, content)
-    
+
     # Check if changes were made
     if content == original:
         print(f"✅ {filepath} - No changes needed")
         return True
-    
+
     # Backup original
     backup_path = path.with_suffix('.html.backup')
     backup_path.write_text(original)
     print(f"📦 Created backup: {backup_path}")
-    
+
     # Write fixed content
     path.write_text(content)
     print(f"✅ Fixed: {filepath}")
-    
+
     return True
 
 def main():
     """Fix all files."""
     print("🔧 Fixing broken CSS/JS references...\n")
-    
+
     success_count = 0
     for filepath in FILES:
         if fix_file(filepath):
             success_count += 1
         print()
-    
+
     print(f"\n✅ Fixed {success_count}/{len(FILES)} files")
     print("\n🧪 Next steps:")
     print("1. Test each page loads correctly")

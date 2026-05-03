@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadServices();
     loadBalance();
     loadRentals();
-    
+
     // Auto-refresh rentals every 30 seconds
     setInterval(loadRentals, 30000);
 });
@@ -258,10 +258,10 @@ async function loadServices() {
         });
         const data = await res.json();
         const services = data.services || [];
-        
+
         sel.innerHTML = '<option value="">-- Select a service --</option>' +
             services.map(s => `<option value="${s.name || s.id}">${s.name || s.id}</option>`).join('');
-        
+
         sel.addEventListener('change', (e) => {
             selectedService = e.target.value;
             updateCreateButton();
@@ -276,11 +276,11 @@ async function loadServices() {
 function selectDuration(hours, cost) {
     selectedDuration = hours;
     selectedDurationCost = cost;
-    
+
     // Update UI
     document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
     event.target.closest('.duration-option').classList.add('selected');
-    
+
     document.getElementById('rental-cost').textContent = formatMoney(cost);
     updateCreateButton();
 }
@@ -340,7 +340,7 @@ async function createRental() {
 
         const data = await response.json();
         window.toast?.success(`Rental created! Number: ${data.phone_number}`);
-        
+
         // Reset form
         selectedService = null;
         selectedDuration = null;
@@ -348,11 +348,11 @@ async function createRental() {
         document.getElementById('service-select').value = '';
         document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
         document.getElementById('rental-cost').textContent = formatMoney(0);
-        
+
         // Reload data
         loadBalance();
         loadRentals();
-        
+
     } catch (error) {
         console.error('Error:', error);
         window.toast?.error(error.message);
@@ -366,7 +366,7 @@ async function createRental() {
 // Load rentals
 async function loadRentals() {
     const container = document.getElementById('rentals-container');
-    
+
     try {
         const response = await fetch('/api/rentals/active', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
@@ -389,7 +389,7 @@ async function loadRentals() {
         }
 
         container.innerHTML = rentals.map(rental => renderRentalCard(rental)).join('');
-        
+
     } catch (error) {
         console.error('Error loading rentals:', error);
         container.innerHTML = `
@@ -409,17 +409,17 @@ function renderRentalCard(rental) {
     const remainingMs = expiresAt - now;
     const remainingHours = Math.max(0, remainingMs / (1000 * 60 * 60));
     const isExpiring = remainingHours < 24;
-    
+
     const statusClass = isExpiring ? 'status-expiring' : 'status-active';
     const statusText = isExpiring ? '⚠️ Expiring Soon' : '✅ Active';
-    
+
     return `
         <div class="rental-card">
             <div class="rental-header">
                 <div class="rental-phone">${rental.phone_number}</div>
                 <div class="rental-status ${statusClass}">${statusText}</div>
             </div>
-            
+
             <div class="rental-info">
                 <div class="info-item">
                     <div class="info-label">Service</div>
@@ -438,7 +438,7 @@ function renderRentalCard(rental) {
                     <div class="info-value">${formatMoney(parseFloat(rental.cost))}</div>
                 </div>
             </div>
-            
+
             <div class="rental-actions">
                 <button class="btn btn-primary" onclick="viewMessages(${rental.id})">
                     <span>📨</span>
@@ -461,20 +461,20 @@ function renderRentalCard(rental) {
 async function viewMessages(rentalId) {
     const modal = document.getElementById('rental-modal');
     const content = document.getElementById('modal-content');
-    
+
     content.innerHTML = '<div style="text-align: center; padding: 40px;">Loading messages...</div>';
     modal.style.display = 'block';
-    
+
     try {
         const response = await fetch(`/api/rentals/${rentalId}/messages`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
         });
-        
+
         if (!response.ok) throw new Error('Failed to load messages');
-        
+
         const data = await response.json();
         const messages = data.messages || [];
-        
+
         if (messages.length === 0) {
             content.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #6b7280;">
@@ -513,13 +513,13 @@ async function viewMessages(rentalId) {
 async function extendRental(rentalId) {
     const hours = prompt('How many hours to extend? (1-720)', '24');
     if (!hours) return;
-    
+
     const extraHours = parseFloat(hours);
     if (isNaN(extraHours) || extraHours <= 0 || extraHours > 720) {
         window.toast?.error('Please enter a valid number of hours (1-720)');
         return;
     }
-    
+
     try {
         const response = await fetch(`/api/rentals/${rentalId}/extend`, {
             method: 'POST',
@@ -529,17 +529,17 @@ async function extendRental(rentalId) {
             },
             body: JSON.stringify({ extra_hours: extraHours })
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Failed to extend rental');
         }
-        
+
         const data = await response.json();
         window.toast?.success(`Rental extended by ${extraHours} hours! Cost: ${formatMoney(data.extra_cost)}`);
         loadBalance();
         loadRentals();
-        
+
     } catch (error) {
         window.toast?.error(error.message);
     }
@@ -550,23 +550,23 @@ async function cancelRental(rentalId) {
     if (!confirm('Are you sure you want to cancel this rental? You will receive a prorated refund for unused time.')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/api/rentals/${rentalId}/cancel`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Failed to cancel rental');
         }
-        
+
         const data = await response.json();
         window.toast?.success(`Rental cancelled! Refund: ${formatMoney(data.refund_amount)}`);
         loadBalance();
         loadRentals();
-        
+
     } catch (error) {
         window.toast?.error(error.message);
     }

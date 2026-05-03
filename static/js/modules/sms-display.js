@@ -16,10 +16,10 @@ class SMSDisplay {
      */
     startPolling(verificationId) {
         this.pollCount = 0;
-        
+
         this.pollingInterval = setInterval(async () => {
             this.pollCount++;
-            
+
             try {
                 const response = await axios.get(`/api/verification/${verificationId}`);
                 const verification = response.data;
@@ -105,7 +105,7 @@ class SMSDisplay {
     displayTimestamp(timestamp) {
         const receivedTime = new Date(timestamp).toLocaleTimeString();
         const codeSectionEl = document.getElementById('sms-code-section');
-        
+
         if (codeSectionEl) {
             // Remove existing timestamp if any
             const existingTimestamp = codeSectionEl.querySelector('.sms-timestamp');
@@ -127,10 +127,10 @@ class SMSDisplay {
     updateCountdownToComplete() {
         const barEl = document.getElementById('countdown-bar');
         const textEl = document.getElementById('countdown-text');
-        
+
         if (barEl) barEl.style.width = '100%';
         if (textEl) textEl.textContent = 'SMS Received!';
-        
+
         if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
             this.countdownInterval = null;

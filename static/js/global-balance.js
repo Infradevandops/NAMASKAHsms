@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    
+
     async function loadBalance() {
         try {
             const response = await fetch('/api/user/balance', {
@@ -16,13 +16,13 @@
             const balance = parseFloat(data.credits) || 0;
             const fmt = typeof formatMoney === 'function' ? formatMoney : (v) => '$' + v.toFixed(2);
             const formatted = fmt(balance);
-            
+
             const headerBalance = document.getElementById('header-balance');
             const statBalance = document.getElementById('stat-balance');
             const walletBalance = document.getElementById('wallet-balance');
             const balanceAmount = document.getElementById('balance-amount');
             const balanceDisplay = document.getElementById('balance-display');
-            
+
             if (headerBalance) {
                 headerBalance.removeAttribute('data-i18n');
                 headerBalance.textContent = 'Balance: ' + formatted;
@@ -47,7 +47,7 @@
             console.error('Balance load failed:', error);
         }
     }
-    
+
     document.addEventListener('DOMContentLoaded', loadBalance);
     window.addEventListener('focus', loadBalance);
     window.syncBalance = loadBalance;

@@ -13,7 +13,7 @@ function storeTokens(data) {
 async function ensureValidToken() {
   const expiresAt = localStorage.getItem('token_expires_at')
   const now = Date.now()
-  
+
   // Refresh if token expires in less than 5 minutes
   if (expiresAt && now > (expiresAt - 300000)) {
     try {
@@ -21,14 +21,14 @@ async function ensureValidToken() {
       if (!refreshToken) {
         throw new Error('No refresh token available')
       }
-      
+
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${refreshToken}`
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         storeTokens(data)
@@ -46,7 +46,7 @@ async function ensureValidToken() {
       return false
     }
   }
-  
+
   return true
 }
 
@@ -64,7 +64,7 @@ async function handleLogin(e) {
   e.preventDefault()
   const emailInput = document.getElementById('email')
   const passwordInput = document.getElementById('password')
-  
+
   if (!emailInput || !passwordInput) {
     console.error('Login form inputs not found')
     return
@@ -100,7 +100,7 @@ async function handleRegister(e) {
   e.preventDefault()
   const emailInput = document.getElementById('email')
   const passwordInput = document.getElementById('password')
-  
+
   if (!emailInput || !passwordInput) {
     console.error('Register form inputs not found')
     return
@@ -145,7 +145,7 @@ async function handleLogout() {
   } catch (error) {
     console.error('Logout error:', error)
   }
-  
+
   localStorage.clear()
   window.location.href = '/auth/login'
 }

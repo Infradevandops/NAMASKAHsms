@@ -1,6 +1,6 @@
 """
 SMS ENGINE STABILITY TEST (V6.0.0)
-Mocks providers and verifies the adaptive polling logic handles 
+Mocks providers and verifies the adaptive polling logic handles
 successes, delays, and timeouts without crashing or task leakage.
 """
 
@@ -33,7 +33,7 @@ class MockDB:
 
 async def test_adaptive_polling_success():
     print("[1/3] Testing Adaptive Polling Success Logic...")
-    
+
     # Setup mock verification
     verification = MagicMock()
     verification.id = "test-v-123"
@@ -43,32 +43,32 @@ async def test_adaptive_polling_success():
     verification.service_name = "whatsapp"
     verification.created_at = datetime.now(timezone.utc)
     verification.ends_at = datetime.now(timezone.utc) + timedelta(minutes=5)
-    
+
     # Mocking DB and Service
     db = MockDB(verification)
     service = SMSPollingService()
-    
+
     # Mock Adaptive interval
     service.adaptive.get_optimal_interval = MagicMock(return_value=1.0)
-    
+
     # Mock 5sim Adapter (to be used inside the service)
     # Note: The service imports FiveSimAdapter inside _poll_fivesim
     # We will patch it by modifying the instance's method or mocking the import
-    
+
     mock_msg = MessageResult(text="Your code is 123456", code="123456", received_at=datetime.now(timezone.utc).isoformat())
-    
+
     # Logic to inject mock adapter
     # In a real test we'd use patch, but here we'll do a quick runtime override
     from app.services.providers.fivesim_adapter import FiveSimAdapter
     original_check = FiveSimAdapter.check_messages
     FiveSimAdapter.check_messages = AsyncMock(side_effect=[[], [mock_msg]])
-    
+
     # Mock completion logic to avoid DB real calls
     service._complete_verification = AsyncMock()
-    
+
     try:
         await service._poll_fivesim(verification, db, timeout_seconds=10.0)
-        
+
         if service._complete_verification.called:
             print("  [✓] Successfully detected SMS and triggered completion.")
         else:
@@ -76,13 +76,13 @@ async def test_adaptive_polling_success():
             return False
     finally:
         FiveSimAdapter.check_messages = original_check
-        
+
     return True
 
 async def test_csv_export_logic():
     print("[2/3] Checking Financial CSV Export Syntax...")
     from app.services.financial_statements_service import FinancialStatementsService
-    
+
     # Mock DB with some transactions
     tx = MagicMock()
     tx.id = "tx-1"
@@ -91,13 +91,13 @@ async def test_csv_export_logic():
     tx.amount = 1.99
     tx.balance_after = 28.01
     tx.description = "Test SMS"
-    
+
     db = MagicMock()
     db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [tx]
-    
+
     service = FinancialStatementsService(db)
     csv_content = await service.export_user_transactions_csv("user-123")
-    
+
     if "Transaction ID" in csv_content and "tx-1" in csv_content:
         print("  [✓] CSV export generated correctly with headers and data.")
         return True
@@ -109,12 +109,12 @@ async def main():
     print("=" * 60)
     print("NAMASKAH SMS ENGINE STABILITY ROLLOUT (V6.0.0)")
     print("=" * 60)
-    
+
     tests = [
         await test_adaptive_polling_success(),
         await test_csv_export_logic()
     ]
-    
+
     print("-" * 60)
     if all(tests):
         print("RESULT: PHASE 6 READY FOR DEPLOYMENT")

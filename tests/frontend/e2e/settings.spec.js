@@ -14,7 +14,7 @@ test.describe('Settings Page', () => {
         await new Promise((resolve, reject) => {
             db.run(`
                 INSERT OR REPLACE INTO users (
-                    id, email, password_hash, is_admin, is_moderator, 
+                    id, email, password_hash, is_admin, is_moderator,
                     credits, subscription_tier, created_at, free_verifications,
                     email_verified, bonus_sms_balance, monthly_quota_used,
                     referral_earnings, provider, language, currency,

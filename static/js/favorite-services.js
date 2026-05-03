@@ -46,7 +46,7 @@ class FavoriteServices {
         }
 
         container.innerHTML = this.favorites.map(f => `
-            <div onclick="selectService('${f.id}', '${f.name.replace(/'/g, "\\'")}', ${f.cost})" 
+            <div onclick="selectService('${f.id}', '${f.name.replace(/'/g, "\\'")}', ${f.cost})"
                  style="padding: 10px; cursor: pointer; border-bottom: 1px solid #f3f4f6; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center;"
                  onmouseover="this.style.background='#f9fafb'"
                  onmouseout="this.style.background='white'">
@@ -54,7 +54,7 @@ class FavoriteServices {
                     <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${f.name}</div>
                     <div style="font-size: 11px; color: #6b7280;">${formatMoney(f.cost)}</div>
                 </div>
-                <button onclick="event.stopPropagation(); favoriteServices.remove('${f.id}'); favoriteServices.renderUI('favorites-list')" 
+                <button onclick="event.stopPropagation(); favoriteServices.remove('${f.id}'); favoriteServices.renderUI('favorites-list')"
                         style="background: none; border: none; cursor: pointer; font-size: 16px; color: #f59e0b;">⭐</button>
             </div>
         `).join('');

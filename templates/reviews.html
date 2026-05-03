@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Reviews - Namaskah">
   <title>Reviews - Namaskah</title>
-  
+
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/design-tokens.css\') }}"
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/design-tokens.css\') }}"
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/components.css\') }}">
@@ -17,7 +17,7 @@
       padding: var(--space-xl);
       min-height: 100vh;
     }
-    
+
     .reviews-header {
       display: flex;
       align-items: center;
@@ -26,11 +26,11 @@
       flex-wrap: wrap;
       gap: var(--space-lg);
     }
-    
+
     .reviews-header h1 {
       margin: 0;
     }
-    
+
     .rating-summary {
       background: white;
       border: 1px solid var(--border);
@@ -39,98 +39,98 @@
       margin-bottom: var(--space-2xl);
       text-align: center;
     }
-    
+
     .rating-value {
       font-size: 3rem;
       font-weight: var(--font-weight-bold);
       color: var(--primary);
       margin: 0;
     }
-    
+
     .rating-stars {
       color: var(--warning);
       margin: var(--space-md) 0;
     }
-    
+
     .rating-count {
       color: var(--neutral);
       font-size: 0.95rem;
       margin: 0;
     }
-    
+
     .reviews-list {
       display: flex;
       flex-direction: column;
       gap: var(--space-lg);
       margin-bottom: var(--space-2xl);
     }
-    
+
     .review-card {
       background: white;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: var(--space-xl);
     }
-    
+
     .review-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: var(--space-lg);
     }
-    
+
     .review-author {
       font-weight: var(--font-weight-semibold);
       margin: 0;
     }
-    
+
     .review-date {
       font-size: 0.875rem;
       color: var(--neutral);
       margin: var(--space-xs) 0 0 0;
     }
-    
+
     .review-rating {
       color: var(--warning);
     }
-    
+
     .review-text {
       color: #374151;
       margin: 0 0 var(--space-lg) 0;
       line-height: 1.6;
     }
-    
+
     .review-actions {
       display: flex;
       gap: var(--space-md);
     }
-    
+
     .review-actions button {
       padding: var(--space-sm) var(--space-md);
       font-size: 0.875rem;
     }
-    
+
     .add-review-section {
       background: white;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: var(--space-xl);
     }
-    
+
     .add-review-section h2 {
       margin: 0 0 var(--space-lg) 0;
     }
-    
+
     .form-group {
       margin-bottom: var(--space-lg);
     }
-    
+
     .form-group label {
       display: block;
       margin-bottom: var(--space-sm);
       font-weight: var(--font-weight-medium);
     }
-    
+
     .form-group input,
     .form-group textarea {
       width: 100%;
@@ -140,17 +140,17 @@
       font-size: 0.95rem;
       font-family: var(--font-family-base);
     }
-    
+
     .form-group textarea {
       resize: vertical;
       min-height: 120px;
     }
-    
+
     .rating-input {
       display: flex;
       gap: var(--space-md);
     }
-    
+
     .rating-input label {
       display: flex;
       align-items: center;
@@ -158,7 +158,7 @@
       margin: 0;
       cursor: pointer;
     }
-    
+
     .pagination {
       display: flex;
       align-items: center;
@@ -166,7 +166,7 @@
       gap: var(--space-md);
       margin-top: var(--space-lg);
     }
-    
+
     .pagination button {
       padding: var(--space-sm) var(--space-md);
       border: 1px solid var(--border);
@@ -174,23 +174,23 @@
       border-radius: var(--radius-md);
       cursor: pointer;
     }
-    
+
     .pagination button.active {
       background: var(--primary);
       color: white;
       border-color: var(--primary);
     }
-    
+
     @media (max-width: 640px) {
       .reviews-container {
         padding: var(--space-lg);
       }
-      
+
       .reviews-header {
         flex-direction: column;
         align-items: flex-start;
       }
-      
+
       .review-header {
         flex-direction: column;
         align-items: flex-start;
@@ -243,7 +243,7 @@
           <button class="btn btn-sm btn-outline">Report</button>
         </div>
       </div>
-      
+
       <div class="review-card">
         <div class="review-header">
           <div>
@@ -258,7 +258,7 @@
           <button class="btn btn-sm btn-outline">Report</button>
         </div>
       </div>
-      
+
       <div class="review-card">
         <div class="review-header">
           <div>
@@ -291,12 +291,12 @@
     <!-- Add Review Form -->
     <div class="add-review-section" style="margin-top: var(--space-2xl);">
       <h2>Share Your Experience</h2>
-      
+
       <div class="form-group">
         <label>Your Name</label>
         <input type="text" placeholder="Enter your name">
       </div>
-      
+
       <div class="form-group">
         <label>Rating</label>
         <div class="rating-input">
@@ -307,12 +307,12 @@
           <label><input type="radio" name="rating" checked> ★★★★★</label>
         </div>
       </div>
-      
+
       <div class="form-group">
         <label>Your Review</label>
         <textarea placeholder="Share your experience with Namaskah..."></textarea>
       </div>
-      
+
       <button class="btn btn-primary" style="width: 100%;">
         <i class="ph ph-send"></i>
         Submit Review
@@ -324,7 +324,7 @@
     <p>&copy; 2025 Namaskah. All rights reserved.</p>
   </footer>
 
-  
+
   <script src="{{ url_for(\'static\', path=\'js/design-system.js\') }}"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /**
  * Frontend Performance Optimization
- * 
+ *
  * Implements:
  * - Lazy loading
  * - Code splitting
@@ -14,7 +14,7 @@
  */
 const LazyLoader = {
   modules: {},
-  
+
   /**
    * Load module lazily
    * @param {string} moduleName - Module name
@@ -25,7 +25,7 @@ const LazyLoader = {
     if (this.modules[moduleName]) {
       return this.modules[moduleName];
     }
-    
+
     try {
       const module = await loader();
       this.modules[moduleName] = module;
@@ -36,7 +36,7 @@ const LazyLoader = {
       throw error;
     }
   },
-  
+
   /**
    * Preload module
    * @param {string} moduleName - Module name
@@ -62,7 +62,7 @@ const CodeSplitter = {
     analytics: null,
     settings: null,
   },
-  
+
   /**
    * Load chunk
    * @param {string} chunkName - Chunk name
@@ -72,7 +72,7 @@ const CodeSplitter = {
     if (this.chunks[chunkName]) {
       return this.chunks[chunkName];
     }
-    
+
     try {
       const chunk = await import(`./chunks/${chunkName}.js`);
       this.chunks[chunkName] = chunk;
@@ -83,7 +83,7 @@ const CodeSplitter = {
       throw error;
     }
   },
-  
+
   /**
    * Preload chunks
    * @param {string[]} chunkNames - Chunk names to preload
@@ -112,7 +112,7 @@ const ResourceHints = {
     link.href = `//${domain}`;
     document.head.appendChild(link);
   },
-  
+
   /**
    * Add preconnect
    * @param {string} url - URL to preconnect
@@ -123,7 +123,7 @@ const ResourceHints = {
     link.href = url;
     document.head.appendChild(link);
   },
-  
+
   /**
    * Add prefetch
    * @param {string} url - URL to prefetch
@@ -134,7 +134,7 @@ const ResourceHints = {
     link.href = url;
     document.head.appendChild(link);
   },
-  
+
   /**
    * Add preload
    * @param {string} url - URL to preload
@@ -169,14 +169,14 @@ const ImageOptimizer = {
           }
         });
       });
-      
+
       observer.observe(img);
     } else {
       // Fallback for older browsers
       img.src = img.dataset.src;
     }
   },
-  
+
   /**
    * Lazy load all images
    */
@@ -184,7 +184,7 @@ const ImageOptimizer = {
     const images = document.querySelectorAll('img[data-src]');
     images.forEach(img => this.lazyLoad(img));
   },
-  
+
   /**
    * Optimize image size
    * @param {string} url - Image URL
@@ -218,7 +218,7 @@ const BundleOptimizer = {
       return null;
     }
   },
-  
+
   /**
    * Get bundle metrics
    * @returns {Promise} Bundle metrics
@@ -258,7 +258,7 @@ const PerformanceMonitor = {
       throw error;
     }
   },
-  
+
   /**
    * Get performance metrics
    * @returns {object} Performance metrics
@@ -266,7 +266,7 @@ const PerformanceMonitor = {
   getMetrics() {
     const navigation = performance.getEntriesByType('navigation')[0];
     const paint = performance.getEntriesByType('paint');
-    
+
     return {
       dns: navigation.domainLookupEnd - navigation.domainLookupStart,
       tcp: navigation.connectEnd - navigation.connectStart,
@@ -281,14 +281,14 @@ const PerformanceMonitor = {
       }))
     };
   },
-  
+
   /**
    * Report performance metrics
    */
   reportMetrics() {
     const metrics = this.getMetrics();
     console.log('Performance Metrics:', metrics);
-    
+
     // Send to monitoring service
     fetch('/api/metrics/performance', {
       method: 'POST',
@@ -305,13 +305,13 @@ function initializePerformanceOptimizations() {
   // Add resource hints
   ResourceHints.dnsPrefetch('api.example.com');
   ResourceHints.preconnect('https://cdn.example.com');
-  
+
   // Preload critical chunks
   CodeSplitter.preloadChunks(['tier', 'dashboard']);
-  
+
   // Lazy load images
   ImageOptimizer.lazyLoadAll();
-  
+
   // Report performance metrics
   if (document.readyState === 'complete') {
     PerformanceMonitor.reportMetrics();
@@ -320,7 +320,7 @@ function initializePerformanceOptimizations() {
       PerformanceMonitor.reportMetrics();
     });
   }
-  
+
   console.log('Performance optimizations initialized');
 }
 

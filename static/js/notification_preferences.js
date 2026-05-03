@@ -84,9 +84,9 @@ class NotificationPreferencesManager {
                         <!-- Enable/Disable Toggle -->
                         <div class="control-group">
                             <label>
-                                <input type="checkbox" 
-                                       class="pref-enabled" 
-                                       data-type="${type}" 
+                                <input type="checkbox"
+                                       class="pref-enabled"
+                                       data-type="${type}"
                                        ${pref.enabled !== false ? 'checked' : ''}>
                                 Enable ${this.formatNotificationType(type)} notifications
                             </label>
@@ -97,34 +97,34 @@ class NotificationPreferencesManager {
                             <label>Delivery Methods:</label>
                             <div class="delivery-methods">
                                 <label>
-                                    <input type="checkbox" 
-                                           class="pref-delivery" 
-                                           data-type="${type}" 
-                                           data-method="toast" 
+                                    <input type="checkbox"
+                                           class="pref-delivery"
+                                           data-type="${type}"
+                                           data-method="toast"
                                            ${this.hasDeliveryMethod(pref, 'toast') ? 'checked' : ''}>
                                     In-App Toast
                                 </label>
                                 <label>
-                                    <input type="checkbox" 
-                                           class="pref-delivery" 
-                                           data-type="${type}" 
-                                           data-method="email" 
+                                    <input type="checkbox"
+                                           class="pref-delivery"
+                                           data-type="${type}"
+                                           data-method="email"
                                            ${this.hasDeliveryMethod(pref, 'email') ? 'checked' : ''}>
                                     Email
                                 </label>
                                 <label>
-                                    <input type="checkbox" 
-                                           class="pref-delivery" 
-                                           data-type="${type}" 
-                                           data-method="sms" 
+                                    <input type="checkbox"
+                                           class="pref-delivery"
+                                           data-type="${type}"
+                                           data-method="sms"
                                            ${this.hasDeliveryMethod(pref, 'sms') ? 'checked' : ''}>
                                     SMS
                                 </label>
                                 <label>
-                                    <input type="checkbox" 
-                                           class="pref-delivery" 
-                                           data-type="${type}" 
-                                           data-method="webhook" 
+                                    <input type="checkbox"
+                                           class="pref-delivery"
+                                           data-type="${type}"
+                                           data-method="webhook"
                                            ${this.hasDeliveryMethod(pref, 'webhook') ? 'checked' : ''}>
                                     Webhook
                                 </label>

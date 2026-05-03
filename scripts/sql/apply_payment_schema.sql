@@ -27,13 +27,13 @@ COMMIT;
 
 -- Verify changes
 SELECT 'transactions columns:' as info;
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'transactions' 
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'transactions'
 AND column_name IN ('reference', 'idempotency_key', 'payment_log_id');
 
 SELECT 'payment_logs columns:' as info;
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'payment_logs' 
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'payment_logs'
 AND column_name IN ('idempotency_key', 'processing_started_at', 'processing_completed_at', 'state', 'state_transitions', 'lock_version');

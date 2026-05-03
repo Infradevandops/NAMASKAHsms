@@ -1,7 +1,7 @@
 # TextVerified Carrier Analysis - Full Picture
 
-**Date**: March 14, 2026  
-**Status**: CRITICAL ISSUE IDENTIFIED  
+**Date**: March 14, 2026
+**Status**: CRITICAL ISSUE IDENTIFIED
 **Impact**: Users cannot create verifications with carrier filters
 
 ---
@@ -33,7 +33,7 @@ FALLBACK_CARRIERS = [
 ]
 ```
 
-**Source**: 
+**Source**:
 - Primary: Database query of past verifications (`Verification.operator`)
 - Fallback: Hardcoded list above
 
@@ -111,13 +111,13 @@ def _extract_carrier_from_number(self, phone_number: str) -> Optional[str]:
     """
     if not phone_number:
         return None
-        
-    # TextVerified numbers are usually mobile. 
+
+    # TextVerified numbers are usually mobile.
     # Without a full lookup API, we return 'Mobile' as default if it looks like US number.
     clean = str(phone_number).replace("+", "").replace("-", "").replace(" ", "")
     if len(clean) >= 10:
         return "Mobile"  # ← ALWAYS RETURNS "Mobile"
-        
+
     return "Unknown"
 ```
 
@@ -132,17 +132,17 @@ def _extract_carrier_from_number(self, phone_number: str) -> Optional[str]:
 ```python
 if carrier:
     assigned_carrier = textverified_result.get("assigned_carrier")
-    
+
     # Basic normalization
     req_norm = carrier.lower().replace("-", "").replace(" ", "").replace("&", "")
     asgn_norm = (assigned_carrier or "").lower().replace("-", "").replace(" ", "")
-    
+
     if assigned_carrier and asgn_norm != req_norm:
         # STRICT MATCH - ALWAYS FAILS
         # User requests: "us_cellular"
         # TextVerified returns: "Mobile"
         # "mobile" != "us_cellular" → CANCEL + 409 ERROR
-        
+
         await tv_service.cancel_verification(textverified_result["id"])
         raise HTTPException(status_code=409, detail="Carrier mismatch")
 ```
@@ -151,15 +151,15 @@ if carrier:
 ```python
 if carrier:
     assigned_carrier = textverified_result.get("assigned_carrier")
-    
+
     # Accept "Mobile" as valid fallback for any mobile carrier request
     mobile_carriers = ["mobile", "cellular", "wireless"]
     req_norm = carrier.lower().replace("-", "").replace(" ", "").replace("&", "")
     asgn_norm = (assigned_carrier or "").lower().replace("-", "").replace(" ", "")
-    
+
     # Check if mismatch is acceptable (Mobile is valid fallback)
     is_mobile_fallback = asgn_norm in mobile_carriers and any(mc in req_norm for mc in mobile_carriers)
-    
+
     if assigned_carrier and asgn_norm != req_norm and not is_mobile_fallback:
         # Only reject if fundamentally incompatible (e.g., mobile vs landline)
         await tv_service.cancel_verification(textverified_result["id"])
@@ -202,8 +202,8 @@ Based on the Python SDK and API behavior:
 carrier_select_option: Optional[List[str]] = None
 ```
 
-**Purpose**: Filter numbers by carrier preference  
-**Format**: List of carrier identifiers  
+**Purpose**: Filter numbers by carrier preference
+**Format**: List of carrier identifiers
 **Behavior**: TextVerified attempts to match, but NO GUARANTEE
 
 #### 2. What TextVerified Can Filter By
@@ -370,15 +370,15 @@ async def get_real_carrier(phone_number: str) -> str:
 async def create_verification(...):
     # 1. Purchase number from TextVerified
     result = await tv_service.create_verification(...)
-    
+
     # 2. Lookup actual carrier
     actual_carrier = await carrier_lookup_api.lookup(result["phone_number"])
-    
+
     # 3. Validate against user request
     if carrier and actual_carrier.lower() != carrier.lower():
         await tv_service.cancel_verification(result["id"])
         raise HTTPException(409, "Carrier unavailable")
-    
+
     return result
 ```
 
@@ -404,23 +404,23 @@ async def create_verification(...):
 
 async def create_verification(...):
     result = await tv_service.create_verification(...)
-    
+
     if carrier:
         assigned = result.get("assigned_carrier", "Mobile")
-        
+
         # Log preference vs actual for analytics
         logger.info(f"Carrier preference: requested={carrier}, assigned={assigned}")
-        
+
         # Track mismatch rate
         metrics.carrier_mismatch_rate.inc()
-        
+
         # Notify user if different (non-blocking)
         if assigned.lower() != carrier.lower():
             await notify_user(
                 "We assigned a {assigned} number. "
                 "Your preferred carrier {carrier} was unavailable."
             )
-    
+
     return result  # Continue regardless
 ```
 
@@ -448,7 +448,7 @@ Tooltip: "We'll try to get your preferred carrier, but availability varies."
 
 ### Historical Data (From Database)
 ```sql
-SELECT 
+SELECT
     operator,
     COUNT(*) as total,
     COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
@@ -584,6 +584,6 @@ For questions about this analysis:
 
 ---
 
-**Last Updated**: March 14, 2026  
-**Author**: Amazon Q Developer  
+**Last Updated**: March 14, 2026
+**Author**: Amazon Q Developer
 **Status**: ACTIVE INVESTIGATION

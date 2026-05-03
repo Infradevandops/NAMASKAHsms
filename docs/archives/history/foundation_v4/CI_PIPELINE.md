@@ -1,7 +1,7 @@
 # CI Pipeline - Minimal & Reliable
 
-**Status**: Simplified for stability  
-**Performance**: ~3-4 minutes  
+**Status**: Simplified for stability
+**Performance**: ~3-4 minutes
 **Philosophy**: Block only on critical failures
 
 ---
@@ -120,8 +120,8 @@ pytest tests/e2e/ -v
 
 ## Philosophy
 
-> **Simple > Complex**  
-> **Reliable > Comprehensive**  
+> **Simple > Complex**
+> **Reliable > Comprehensive**
 > **Fast Feedback > Perfect Coverage**
 
 This CI pipeline prioritizes developer experience and deployment reliability over exhaustive checks. The goal is to catch real problems (secrets, syntax, test failures) while staying out of the way.

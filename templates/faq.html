@@ -31,7 +31,7 @@
 <body>
     <div class="container">
         <a href="/" class="back-btn">← Back to Home</a>
-        
+
         <div class="header">
             <h1>Frequently Asked Questions</h1>
             <p>Find answers to common questions about Namaskah SMS verification service</p>
@@ -41,7 +41,7 @@
 
         <div class="faq-section">
             <h2>Getting Started</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>How do I create an account?</h3>
@@ -81,7 +81,7 @@
 
         <div class="faq-section">
             <h2>SMS Verification</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>How long does it take to receive an SMS?</h3>
@@ -133,7 +133,7 @@
 
         <div class="faq-section">
             <h2>Pricing & Billing</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>How much does each SMS verification cost?</h3>
@@ -173,7 +173,7 @@
 
         <div class="faq-section">
             <h2>Security & Privacy</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>Is my data secure?</h3>
@@ -213,7 +213,7 @@
 
         <div class="faq-section">
             <h2>API & Integration</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>Do you have an API?</h3>
@@ -253,7 +253,7 @@
 
         <div class="faq-section">
             <h2>Support</h2>
-            
+
             <div class="faq-item" onclick="toggleFAQ(this)">
                 <div class="faq-question">
                     <h3>How do I contact support?</h3>
@@ -288,11 +288,11 @@
         function filterFAQ() {
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
             const faqItems = document.querySelectorAll('.faq-item');
-            
+
             faqItems.forEach(item => {
                 const question = item.querySelector('h3').textContent.toLowerCase();
                 const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
-                
+
                 if (question.includes(searchTerm) || answer.includes(searchTerm)) {
                     item.style.display = 'block';
                 } else {

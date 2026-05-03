@@ -24,7 +24,7 @@ class I18n {
             this.translations = window.EMBEDDED_TRANSLATIONS;
             this.fallback = window.EMBEDDED_TRANSLATIONS;
             this.loaded = true;
-            
+
             // Cache in localStorage for future visits
             try {
                 localStorage.setItem(`translations_${this.locale}`, JSON.stringify(this.translations));
@@ -33,7 +33,7 @@ class I18n {
             } catch (e) {
                 console.warn('[i18n] Failed to cache translations:', e);
             }
-            
+
             this._logSuccess();
             return;
         }
@@ -51,7 +51,7 @@ class I18n {
                 this.loaded = true;
                 console.log('[i18n] ✅ Using cached translations from localStorage');
                 this._logSuccess();
-                
+
                 // Fetch fresh copy in background for next visit
                 this._fetchAndCacheInBackground();
                 return;
@@ -67,7 +67,7 @@ class I18n {
 
     async _fetchTranslations() {
         console.log('[i18n] Fetching translations from server...');
-        
+
         let retries = 3;
         while (retries > 0) {
             try {
@@ -79,13 +79,13 @@ class I18n {
                         'Pragma': 'no-cache'
                     }
                 });
-                
+
                 if (res.ok) {
                     this.fallback = await res.json();
                     this.translations = this.fallback;
                     this.loaded = true;
                     console.log('[i18n] ✅ Fetched translations from server');
-                    
+
                     // Cache for future visits
                     try {
                         localStorage.setItem(`translations_${this.locale}`, JSON.stringify(this.translations));
@@ -94,7 +94,7 @@ class I18n {
                     } catch (e) {
                         console.warn('[i18n] Failed to cache translations:', e);
                     }
-                    
+
                     this._logSuccess();
                     return;
                 } else {
@@ -114,7 +114,7 @@ class I18n {
                 }
             }
         }
-        
+
         console.error('[i18n] ❌ Failed to load translations after 3 attempts!');
     }
 
@@ -135,7 +135,7 @@ class I18n {
 
     _logSuccess() {
         console.log('[i18n] Translations loaded:', Object.keys(this.translations).length, 'top-level keys');
-        
+
         // Test a few translations
         const testKeys = ['dashboard.title', 'common.dashboard', 'tiers.current_plan'];
         testKeys.forEach(key => {
@@ -147,14 +147,14 @@ class I18n {
     t(key, params = {}) {
         const value = this.getNestedValue(this.translations, key)
             || this.getNestedValue(this.fallback, key);
-        
+
         if (!value) {
             console.warn(`[i18n] Translation not found for key: ${key}`);
             console.log('[i18n] translations keys:', Object.keys(this.translations));
             console.log('[i18n] fallback keys:', Object.keys(this.fallback));
             return key;
         }
-        
+
         return this.interpolate(value, params);
     }
 
@@ -203,10 +203,10 @@ class I18n {
             console.warn('[i18n] translatePage() called but translations not loaded yet');
             return;
         }
-        
+
         const elements = document.querySelectorAll('[data-i18n]');
         console.log(`[i18n] Translating ${elements.length} elements`);
-        
+
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
             const params = el.getAttribute('data-i18n-params')
@@ -222,7 +222,7 @@ class I18n {
                 el.textContent = translated;
             }
         });
-        
+
         console.log('[i18n] Translation complete');
     }
 
@@ -231,10 +231,10 @@ class I18n {
      * Use this instead of direct textContent assignment
      */
     setContent(elementOrId, content, translationKey = null) {
-        const el = typeof elementOrId === 'string' 
-            ? document.getElementById(elementOrId) 
+        const el = typeof elementOrId === 'string'
+            ? document.getElementById(elementOrId)
             : elementOrId;
-        
+
         if (!el) return;
 
         if (translationKey) {
@@ -252,10 +252,10 @@ class I18n {
      * Set element HTML while preserving i18n for child elements
      */
     setHTML(elementOrId, html) {
-        const el = typeof elementOrId === 'string' 
-            ? document.getElementById(elementOrId) 
+        const el = typeof elementOrId === 'string'
+            ? document.getElementById(elementOrId)
             : elementOrId;
-        
+
         if (!el) return;
 
         el.innerHTML = html;
@@ -275,14 +275,14 @@ class I18n {
      * Update element content and re-translate if it has data-i18n
      */
     updateContent(elementOrId, content) {
-        const el = typeof elementOrId === 'string' 
-            ? document.getElementById(elementOrId) 
+        const el = typeof elementOrId === 'string'
+            ? document.getElementById(elementOrId)
             : elementOrId;
-        
+
         if (!el) return;
 
         const hasI18n = el.hasAttribute('data-i18n');
-        
+
         if (hasI18n) {
             // Element has translation key, preserve it
             const key = el.getAttribute('data-i18n');

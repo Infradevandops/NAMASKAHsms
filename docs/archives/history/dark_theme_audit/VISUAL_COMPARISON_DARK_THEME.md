@@ -1,6 +1,6 @@
 # 🎨 Visual Comparison: Before & After Dark Theme Fixes
 
-**Purpose**: Show stakeholders the impact of dark theme consistency fixes  
+**Purpose**: Show stakeholders the impact of dark theme consistency fixes
 **Date**: April 20, 2026
 
 ---
@@ -524,7 +524,7 @@ Consistent font stack
 
 ---
 
-**Prepared for**: Product Team, Design Team, Engineering Team  
-**Prepared by**: Amazon Q Developer  
-**Date**: April 20, 2026  
+**Prepared for**: Product Team, Design Team, Engineering Team
+**Prepared by**: Amazon Q Developer
+**Date**: April 20, 2026
 **Status**: Ready for Review

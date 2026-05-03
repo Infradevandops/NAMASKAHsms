@@ -1,9 +1,9 @@
 # SMSPool Integration Task
 
-**Version**: 1.0.0  
-**Status**: Planning  
-**Priority**: High  
-**Estimated Effort**: 3-4 weeks  
+**Version**: 1.0.0
+**Status**: Planning
+**Priority**: High
+**Estimated Effort**: 3-4 weeks
 **Target Release**: Q2 2026
 
 ---
@@ -37,38 +37,38 @@ graph TB
     subgraph "Request Layer"
         USER[User Request]
     end
-    
+
     subgraph "Routing Logic"
         ROUTER[Provider Router]
         COUNTRY_CHECK{Country == US?}
     end
-    
+
     subgraph "Provider Adapters"
         TV[TextVerified Adapter]
         SMSPOOL[SMSPool Adapter]
     end
-    
+
     subgraph "Filtering Layer"
         TV_FILTER[US Filters<br/>Carrier, Area Code, Line Type]
         SMSPOOL_FILTER[International Filters<br/>Carrier, Country, Operator]
     end
-    
+
     subgraph "External APIs"
         TV_API[TextVerified API]
         SMSPOOL_API[SMSPool API]
     end
-    
+
     USER --> ROUTER
     ROUTER --> COUNTRY_CHECK
     COUNTRY_CHECK -->|Yes| TV
     COUNTRY_CHECK -->|No| SMSPOOL
-    
+
     TV --> TV_FILTER
     SMSPOOL --> SMSPOOL_FILTER
-    
+
     TV_FILTER --> TV_API
     SMSPOOL_FILTER --> SMSPOOL_API
-    
+
     style ROUTER fill:#4CAF50
     style TV fill:#2196F3
     style SMSPOOL fill:#FF9800
@@ -86,28 +86,28 @@ graph TB
 ```python
 class SMSPoolClient:
     """SMSPool API client for international SMS verification"""
-    
+
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://api.smspool.net"
-    
+
     async def get_success_rates(self, service_id: int) -> dict:
         """Get success rates by country/operator"""
         pass
-    
+
     async def carrier_lookup(self, phone_number: str) -> dict:
         """Paid carrier lookup for filtering"""
         pass
-    
-    async def purchase_number(self, country: str, service: str, 
+
+    async def purchase_number(self, country: str, service: str,
                              carrier: Optional[str] = None) -> dict:
         """Purchase number with optional carrier filter"""
         pass
-    
+
     async def check_sms(self, order_id: str) -> dict:
         """Check for received SMS"""
         pass
-    
+
     async def get_balance(self) -> float:
         """Get account balance"""
         pass
@@ -149,7 +149,7 @@ from typing import Optional, Dict, List
 
 class SMSProvider(ABC):
     """Abstract base class for SMS providers"""
-    
+
     @abstractmethod
     async def purchase_number(
         self,
@@ -159,17 +159,17 @@ class SMSProvider(ABC):
     ) -> Dict:
         """Purchase a phone number"""
         pass
-    
+
     @abstractmethod
     async def check_messages(self, verification_id: str) -> List[Dict]:
         """Check for received messages"""
         pass
-    
+
     @abstractmethod
     async def carrier_lookup(self, phone_number: str) -> Dict:
         """Lookup carrier information"""
         pass
-    
+
     @abstractmethod
     async def get_balance(self) -> float:
         """Get provider balance"""
@@ -182,8 +182,8 @@ class SMSProvider(ABC):
 ```python
 class TextVerifiedProvider(SMSProvider):
     """TextVerified implementation (existing logic refactored)"""
-    
-    async def purchase_number(self, country_code: str, service: str, 
+
+    async def purchase_number(self, country_code: str, service: str,
                              filters: Optional[Dict] = None) -> Dict:
         # Existing TextVerified logic
         pass
@@ -205,30 +205,30 @@ logger = get_logger(__name__)
 
 class SMSPoolProvider(SMSProvider):
     """SMSPool implementation for international numbers.
-    
+
     CRITICAL API ENDPOINTS (from app.log analysis):
     1. /request/success_rate - Get best operators by country/service
     2. /carrier/paid_lookup - Pre-validate carrier/line type ($0.005/lookup)
     3. /order/sms - Purchase number with operator filter
     4. /sms/check - Poll for received SMS
-    
+
     FILTERING IMPLEMENTATION:
     - Country: Direct parameter (GB, DE, FR, etc.)
     - Carrier/Operator: Use operator parameter in purchase
     - State/City: NOT SUPPORTED (country-level only)
     - Line Type: Pre-validate with paid_lookup before purchase
-    
+
     COST STRUCTURE:
     - SMS: $0.10-$3.00 per message (country-dependent)
     - Carrier Lookup: $0.005 per lookup
     - Success Rate Query: FREE
     """
-    
+
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://api.smspool.net"
         self.client = httpx.AsyncClient(timeout=30.0)
-    
+
     async def purchase_number(
         self,
         country_code: str,
@@ -236,12 +236,12 @@ class SMSPoolProvider(SMSProvider):
         filters: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """Purchase number from SMSPool with operator filtering.
-        
+
         Args:
             country_code: ISO country code (GB, DE, FR, etc.)
             service: Service name (telegram, whatsapp, etc.)
             filters: {"operator": str, "line_type": str}
-        
+
         Returns:
             {
                 "phone_number": str,
@@ -255,12 +255,12 @@ class SMSPoolProvider(SMSProvider):
         filters = filters or {}
         operator = filters.get("operator")
         required_line_type = filters.get("line_type", "mobile")
-        
+
         # Step 1: Get best operator if not specified
         if not operator:
             operator = await self._auto_select_operator(country_code, service)
             logger.info(f"Auto-selected operator: {operator} for {country_code}/{service}")
-        
+
         # Step 2: Purchase number
         try:
             response = await self.client.post(
@@ -274,13 +274,13 @@ class SMSPoolProvider(SMSProvider):
             )
             response.raise_for_status()
             data = response.json()
-            
+
             if data.get("success") != 1:
                 raise Exception(f"SMSPool purchase failed: {data.get('message')}")
-            
+
             phone_number = data["number"]
             order_id = data["order_id"]
-            
+
             # Step 3: Validate line type (optional, costs $0.005)
             if required_line_type == "mobile":
                 validation = await self._validate_line_type(phone_number, required_line_type)
@@ -290,7 +290,7 @@ class SMSPoolProvider(SMSProvider):
                     raise Exception(
                         f"Number {phone_number} is {validation['carrier_type']}, not mobile"
                     )
-            
+
             return {
                 "phone_number": phone_number,
                 "order_id": order_id,
@@ -299,17 +299,17 @@ class SMSPoolProvider(SMSProvider):
                 "operator": operator,
                 "cost": data.get("cost", 0.0),
             }
-        
+
         except httpx.HTTPError as e:
             logger.error(f"SMSPool API error: {e}")
             raise Exception(f"Failed to purchase number: {e}")
-    
+
     async def check_messages(self, order_id: str) -> List[Dict]:
         """Check for received SMS messages.
-        
+
         Args:
             order_id: SMSPool order ID
-        
+
         Returns:
             [{"text": str, "code": str, "received_at": str}]
         """
@@ -320,29 +320,29 @@ class SMSPoolProvider(SMSProvider):
             )
             response.raise_for_status()
             data = response.json()
-            
+
             if data.get("status") == 3:  # Message received
                 return [{
                     "text": data.get("sms", ""),
                     "code": data.get("full_sms", ""),  # SMSPool returns full SMS
                     "received_at": datetime.now(timezone.utc).isoformat(),
                 }]
-            
+
             return []  # No messages yet
-        
+
         except httpx.HTTPError as e:
             logger.error(f"SMSPool check messages error: {e}")
             return []
-    
+
     async def carrier_lookup(self, phone_number: str) -> Dict[str, Any]:
         """Lookup carrier information (PAID: $0.005 per lookup).
-        
+
         CRITICAL: This is the PRIMARY mechanism for carrier filtering.
         Use this BEFORE purchase to validate carrier/line type.
-        
+
         Args:
             phone_number: Phone number to lookup
-        
+
         Returns:
             {
                 "carrier": str,
@@ -358,18 +358,18 @@ class SMSPoolProvider(SMSProvider):
             )
             response.raise_for_status()
             data = response.json()
-            
+
             return {
                 "carrier": data.get("carrier"),
                 "carrier_type": data.get("carrier_type"),
                 "country": data.get("country"),
                 "cost": 0.005,
             }
-        
+
         except httpx.HTTPError as e:
             logger.error(f"SMSPool carrier lookup error: {e}")
             return {"error": str(e)}
-    
+
     async def get_balance(self) -> float:
         """Get SMSPool account balance."""
         try:
@@ -380,11 +380,11 @@ class SMSPoolProvider(SMSProvider):
             response.raise_for_status()
             data = response.json()
             return float(data.get("balance", 0.0))
-        
+
         except httpx.HTTPError as e:
             logger.error(f"SMSPool balance error: {e}")
             return 0.0
-    
+
     async def _auto_select_operator(
         self,
         country_code: str,
@@ -392,14 +392,14 @@ class SMSPoolProvider(SMSProvider):
         min_success_rate: float = 0.85
     ) -> Optional[str]:
         """Auto-select best operator using success_rate endpoint.
-        
+
         CRITICAL: This is FREE and improves success rates significantly.
-        
+
         Args:
             country_code: ISO country code
             service: Service name
             min_success_rate: Minimum acceptable success rate (0.0-1.0)
-        
+
         Returns:
             Operator name or None
         """
@@ -410,17 +410,17 @@ class SMSPoolProvider(SMSProvider):
             )
             response.raise_for_status()
             data = response.json()
-            
+
             # Get operators for this country
             country_data = data.get(country_code, {})
-            
+
             # Sort by success rate
             operators = sorted(
                 country_data.items(),
                 key=lambda x: x[1].get("success_rate", 0),
                 reverse=True,
             )
-            
+
             # Return first operator above threshold
             for operator, stats in operators:
                 if stats.get("success_rate", 0) >= min_success_rate:
@@ -429,17 +429,17 @@ class SMSPoolProvider(SMSProvider):
                         f"{stats['success_rate']*100:.1f}% success rate"
                     )
                     return operator
-            
+
             # Fallback: return highest rated operator
             if operators:
                 return operators[0][0]
-            
+
             return None
-        
+
         except httpx.HTTPError as e:
             logger.error(f"SMSPool success rate query error: {e}")
             return None
-    
+
     async def _validate_line_type(
         self,
         phone_number: str,
@@ -447,16 +447,16 @@ class SMSPoolProvider(SMSProvider):
     ) -> Dict[str, Any]:
         """Validate line type using paid lookup."""
         lookup = await self.carrier_lookup(phone_number)
-        
+
         is_valid = lookup.get("carrier_type", "").lower() == required_type.lower()
-        
+
         return {
             "valid": is_valid,
             "carrier": lookup.get("carrier"),
             "carrier_type": lookup.get("carrier_type"),
             "country": lookup.get("country"),
         }
-    
+
     async def _cancel_order(self, order_id: str) -> bool:
         """Cancel an order (if number doesn't meet requirements)."""
         try:
@@ -477,17 +477,17 @@ class SMSPoolProvider(SMSProvider):
 ```python
 class ProviderRouter:
     """Routes requests to appropriate SMS provider"""
-    
+
     def __init__(self):
         self.textverified = TextVerifiedProvider()
         self.smspool = SMSPoolProvider()
-    
+
     def get_provider(self, country_code: str) -> SMSProvider:
         """Select provider based on country"""
         if country_code == "US":
             return self.textverified
         return self.smspool
-    
+
     async def purchase_number(self, country_code: str, service: str,
                              filters: Optional[Dict] = None) -> Dict:
         provider = self.get_provider(country_code)
@@ -504,7 +504,7 @@ class ProviderRouter:
 ```python
 class SMSPoolFilters:
     """Map Namaskah filters to SMSPool parameters.
-    
+
     CRITICAL CONTEXT FROM CODEBASE ANALYSIS:
     - TextVerified uses: area_code (3-digit US), carrier (verizon/att/tmobile)
     - SMSPool uses: country code, operator name, service ID
@@ -512,14 +512,14 @@ class SMSPoolFilters:
       * /request/success_rate - Get best operators by country/service
       * /carrier/paid_lookup - Validate carrier/line type BEFORE purchase
       * /order/sms - Purchase with country + operator filter
-    
+
     FILTERING STRATEGY:
     1. Country-based routing (US → TextVerified, International → SMSPool)
     2. Operator mapping (carrier name → SMSPool operator)
     3. Pre-purchase validation (paid_lookup for line type)
     4. Success rate optimization (auto-select best operator)
     """
-    
+
     # US Carrier → International Operator Mapping
     # Maps Namaskah's US carrier names to global operator equivalents
     CARRIER_MAPPING = {
@@ -527,34 +527,34 @@ class SMSPoolFilters:
         "verizon": ["Verizon", "Verizon Wireless"],
         "att": ["AT&T", "AT&T Mobility", "AT&T USA"],
         "tmobile": ["T-Mobile", "T-Mobile USA", "T-Mobile US"],
-        
+
         # UK carriers
         "vodafone_uk": ["Vodafone UK", "Vodafone"],
         "ee": ["EE", "Everything Everywhere"],
         "o2_uk": ["O2 UK", "O2"],
         "three_uk": ["Three UK", "3 UK"],
-        
+
         # Germany carriers
         "vodafone_de": ["Vodafone DE", "Vodafone Germany"],
         "telekom_de": ["Deutsche Telekom", "T-Mobile DE"],
         "o2_de": ["O2 Germany", "Telefonica Germany"],
-        
+
         # France carriers
         "orange_fr": ["Orange France", "Orange"],
         "sfr": ["SFR", "SFR France"],
         "bouygues": ["Bouygues Telecom", "Bouygues"],
-        
+
         # India carriers
         "airtel": ["Airtel", "Bharti Airtel"],
         "jio": ["Jio", "Reliance Jio"],
         "vodafone_idea": ["Vodafone Idea", "Vi"],
-        
+
         # Canada carriers
         "rogers": ["Rogers", "Rogers Wireless"],
         "bell": ["Bell", "Bell Mobility"],
         "telus": ["Telus", "Telus Mobility"],
     }
-    
+
     # State/Region → Country mapping for international requests
     # SMSPool doesn't have US state filtering, but has country-level
     STATE_TO_COUNTRY = {
@@ -565,56 +565,56 @@ class SMSPoolFilters:
         # Germany regions
         "BERLIN": "DE", "MUNICH": "DE", "HAMBURG": "DE",
     }
-    
+
     @staticmethod
     def apply_carrier_filter(country: str, carrier: Optional[str]) -> Optional[str]:
         """Convert Namaskah carrier name to SMSPool operator.
-        
+
         Args:
             country: ISO country code (GB, DE, FR, etc.)
             carrier: Namaskah carrier name (verizon, vodafone_uk, etc.)
-        
+
         Returns:
             SMSPool operator name or None
         """
         if not carrier:
             return None
-        
+
         # Normalize carrier name
         carrier_normalized = carrier.lower().replace(" ", "_").replace("-", "")
-        
+
         # Get operator variants
         operators = SMSPoolFilters.CARRIER_MAPPING.get(carrier_normalized, [])
-        
+
         if not operators:
             logger.warning(f"Unknown carrier: {carrier} for country {country}")
             return None
-        
+
         # Return first variant (most common name)
         return operators[0]
-    
+
     @staticmethod
     async def validate_line_type_pre_purchase(
         phone_number: str,
         required_type: str = "mobile"
     ) -> Dict[str, Any]:
         """Validate line type using SMSPool paid_lookup BEFORE purchase.
-        
+
         CRITICAL: This costs $0.005 per lookup but prevents wasted purchases.
         Use this to reject VOIP/landline numbers before buying.
-        
+
         Args:
             phone_number: Phone number to validate
             required_type: Required type (mobile, landline, voip)
-        
+
         Returns:
             {"valid": bool, "carrier": str, "carrier_type": str, "country": str}
         """
         try:
             lookup = await smspool_client.carrier_lookup(phone_number)
-            
+
             is_valid = lookup.get("carrier_type", "").lower() == required_type.lower()
-            
+
             return {
                 "valid": is_valid,
                 "carrier": lookup.get("carrier"),
@@ -625,26 +625,26 @@ class SMSPoolFilters:
         except Exception as e:
             logger.error(f"Carrier lookup failed: {e}")
             return {"valid": False, "error": str(e)}
-    
+
     @staticmethod
     def map_area_code_to_region(area_code: str, country: str = "US") -> Optional[str]:
         """Map US area code to region/state for international equivalent.
-        
+
         SMSPool doesn't support area code filtering, but we can:
         1. For US: Route to TextVerified (keeps area code support)
         2. For International: Ignore area code, use country-level
-        
+
         Args:
             area_code: 3-digit US area code
             country: Country code
-        
+
         Returns:
             Region name or None
         """
         if country != "US":
             logger.info(f"Area code {area_code} ignored for non-US country {country}")
             return None
-        
+
         # US area codes should route to TextVerified
         logger.info(f"Area code {area_code} requires TextVerified (US-only feature)")
         return None
@@ -666,7 +666,7 @@ if request.country == "US":
     # US requests → TextVerified (existing logic)
     provider_name = "textverified"
     logger.info(f"Routing to TextVerified for US request")
-    
+
     # Use existing TextVerified logic (lines 215-280)
     textverified_result = await tv_service.create_verification(
         service=request.service,
@@ -678,18 +678,18 @@ else:
     # International requests → SMSPool
     provider_name = "smspool"
     logger.info(f"Routing to SMSPool for international request: {request.country}")
-    
+
     # Map filters to SMSPool format
     from app.services.filters.smspool_filters import SMSPoolFilters
-    
+
     smspool_operator = SMSPoolFilters.apply_carrier_filter(
         country=request.country,
         carrier=carrier
     )
-    
+
     # Get SMSPool provider
     smspool_provider = provider_router.get_provider(request.country)
-    
+
     # Purchase number from SMSPool
     smspool_result = await smspool_provider.purchase_number(
         country_code=request.country,
@@ -699,7 +699,7 @@ else:
             "line_type": "mobile"  # Always require mobile
         }
     )
-    
+
     # Map SMSPool result to TextVerified format for compatibility
     textverified_result = {
         "id": smspool_result["order_id"],
@@ -742,41 +742,41 @@ verification = Verification(
 ```python
 class SuccessRateService:
     """Cache and analyze SMSPool success rates"""
-    
+
     async def get_best_operators(self, country: str, service: str) -> List[Dict]:
         """Get operators sorted by success rate"""
         cache_key = f"success_rates:{country}:{service}"
-        
+
         # Check cache (1 hour TTL)
         cached = await redis.get(cache_key)
         if cached:
             return json.loads(cached)
-        
+
         # Fetch from SMSPool
         rates = await smspool_client.get_success_rates(service_id=service)
         operators = rates.get(country, {})
-        
+
         # Sort by success rate
         sorted_operators = sorted(
             operators.items(),
             key=lambda x: x[1].get("success_rate", 0),
             reverse=True
         )
-        
+
         # Cache result
         await redis.setex(cache_key, 3600, json.dumps(sorted_operators))
-        
+
         return sorted_operators
-    
+
     async def auto_select_operator(self, country: str, service: str,
                                    min_success_rate: float = 0.85) -> Optional[str]:
         """Automatically select best performing operator"""
         operators = await self.get_best_operators(country, service)
-        
+
         for operator, data in operators:
             if data.get("success_rate", 0) >= min_success_rate:
                 return operator
-        
+
         return None  # No operator meets threshold
 ```
 
@@ -790,26 +790,26 @@ async def retry_with_fallback(
     max_attempts: int = 3
 ) -> bool:
     """Retry with different operators on failure"""
-    
+
     verification = await self.get_verification(verification_id)
-    
+
     for attempt in range(max_attempts):
         # Get next best operator
         operator = await success_rate_service.auto_select_operator(
             country=verification.country_code,
             service=verification.service
         )
-        
+
         # Attempt purchase with new operator
         result = await smspool_provider.purchase_number(
             country=verification.country_code,
             service=verification.service,
             filters={"carrier": operator}
         )
-        
+
         if result["success"]:
             return True
-    
+
     return False
 ```
 
@@ -823,30 +823,30 @@ async def retry_with_fallback(
 ```python
 class PricingService:
     """Calculate costs across providers"""
-    
+
     PROVIDER_MARKUP = {
         "textverified": 1.15,  # 15% markup
         "smspool": 1.20        # 20% markup (higher international costs)
     }
-    
+
     async def calculate_cost(self, country: str, service: str,
                             carrier: Optional[str] = None) -> Decimal:
         """Calculate user-facing cost"""
-        
+
         # Get provider
         provider_name = "textverified" if country == "US" else "smspool"
-        
+
         # Get base cost
         if provider_name == "smspool":
             rates = await smspool_client.get_success_rates(service)
             base_cost = rates.get(country, {}).get(carrier or "default", {}).get("cost", 2.50)
         else:
             base_cost = 2.22  # TextVerified base
-        
+
         # Apply markup
         markup = self.PROVIDER_MARKUP[provider_name]
         final_cost = Decimal(str(base_cost)) * Decimal(str(markup))
-        
+
         return final_cost.quantize(Decimal("0.01"))
 ```
 
@@ -856,17 +856,17 @@ class PricingService:
 ```python
 async def check_provider_balances() -> Dict[str, float]:
     """Monitor all provider balances"""
-    
+
     balances = {
         "textverified": await textverified_client.get_balance(),
         "smspool": await smspool_client.get_balance()
     }
-    
+
     # Alert if low
     for provider, balance in balances.items():
         if balance < 100.00:  # $100 threshold
             await send_alert(f"Low balance on {provider}: ${balance}")
-    
+
     return balances
 ```
 
@@ -884,10 +884,10 @@ async def get_international_countries(
     current_user: User = Depends(get_current_user)
 ):
     """Get available international countries from SMSPool"""
-    
+
     # Get success rates (includes all countries)
     rates = await smspool_client.get_success_rates(service_id=service or 1)
-    
+
     countries = []
     for country_code, operators in rates.items():
         if country_code != "US":  # Exclude US (handled by TextVerified)
@@ -897,7 +897,7 @@ async def get_international_countries(
                 "operators": list(operators.keys()),
                 "avg_success_rate": sum(op["success_rate"] for op in operators.values()) / len(operators)
             })
-    
+
     return {"countries": sorted(countries, key=lambda x: x["avg_success_rate"], reverse=True)}
 ```
 
@@ -911,14 +911,14 @@ async def create_verification(
     current_user: User = Depends(get_current_user)
 ):
     """Create verification with automatic provider routing"""
-    
+
     # Validate filters
     filters = {}
     if request.carrier:
         filters["carrier"] = request.carrier
     if request.line_type:
         filters["line_type"] = request.line_type
-    
+
     # Create verification (router handles provider selection)
     verification = await sms_service.create_verification(
         user_id=current_user.id,
@@ -926,7 +926,7 @@ async def create_verification(
         service=request.service,
         filters=filters
     )
-    
+
     return {
         "id": verification.id,
         "phone_number": verification.phone_number,
@@ -947,15 +947,15 @@ class TestSMSPoolProvider:
     async def test_purchase_number_success(self):
         """Test successful number purchase"""
         pass
-    
+
     async def test_carrier_filter_mapping(self):
         """Test carrier filter conversion"""
         pass
-    
+
     async def test_line_type_validation(self):
         """Test line type filtering"""
         pass
-    
+
     async def test_success_rate_caching(self):
         """Test success rate cache"""
         pass
@@ -969,11 +969,11 @@ class TestProviderRouting:
     async def test_us_routes_to_textverified(self):
         """Verify US requests use TextVerified"""
         pass
-    
+
     async def test_international_routes_to_smspool(self):
         """Verify international requests use SMSPool"""
         pass
-    
+
     async def test_filter_parity(self):
         """Verify filters work across providers"""
         pass
@@ -1144,8 +1144,8 @@ provider_routing_decisions = Counter("provider_routing_decisions", ["provider"])
 
 ---
 
-**Task Owner**: Backend Team  
-**Reviewers**: CTO, Product Manager  
+**Task Owner**: Backend Team
+**Reviewers**: CTO, Product Manager
 **Estimated Completion**: Q2 2026
 
 ---

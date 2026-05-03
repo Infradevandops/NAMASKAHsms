@@ -5,7 +5,7 @@ This guide covers common issues and solutions for SMS verifications on Namaskah.
 ## 1. Service Loading Errors
 **Problem**: The service selection input is disabled or shows "Services unavailable".
 - **Cause**: The SMS provider API is temporarily down or unreachable.
-- **Solution**: 
+- **Solution**:
     1. Wait 30-60 seconds and click the **Retry** button in the modal.
     2. Refresh the page.
     3. If the issue persists for more than 5 minutes, check our [Status Page](#) or contact support.
@@ -21,7 +21,7 @@ This guide covers common issues and solutions for SMS verifications on Namaskah.
 **Problem**: Your request failed with a "409 Conflict" or "Requested carrier unavailable" message.
 - **Cause**: You requested a specific carrier (e.g., Verizon) that our provider could not fulfill.
 - **Policy**: We strictly enforce carrier selection. If the provider assigns a different carrier than requested, we **automatically cancel and refund** the transaction immediately.
-- **Solution**: 
+- **Solution**:
     1. Try again in a few minutes.
     2. Try selecting "Any Carrier" if your use-case allows it.
     3. Select a different carrier.

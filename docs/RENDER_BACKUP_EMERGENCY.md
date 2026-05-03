@@ -285,7 +285,7 @@ Your backup contains:
    ```bash
    # Encrypt backup
    gpg -c render_backup_*/full_backup.sql.gz
-   
+
    # Upload encrypted file
    rclone copy full_backup.sql.gz.gpg gdrive:Namaskah-Backups/
    ```
@@ -425,7 +425,7 @@ rclone copy render_backup_*/ gdrive:Namaskah-Backups/render_final/
 
 ---
 
-**Status**: 🚨 URGENT - Backup immediately  
-**Priority**: P0 - Critical  
-**Time Required**: 12 minutes  
+**Status**: 🚨 URGENT - Backup immediately
+**Priority**: P0 - Critical
+**Time Required**: 12 minutes
 **Risk**: High if not done today

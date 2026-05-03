@@ -37,10 +37,10 @@ else
     echo -e "${RED}   Database may already be deleted or inaccessible.${NC}"
     echo ""
     echo -e "${YELLOW}Checking for existing backups...${NC}"
-    
+
     # Look for existing backups
     EXISTING_BACKUPS=$(find .. -name "render_backup_*" -o -name "namaskah_backup_*.sql*" -o -name "backup_*.sql*" 2>/dev/null | head -5)
-    
+
     if [ -n "$EXISTING_BACKUPS" ]; then
         echo -e "${GREEN}Found existing backups:${NC}"
         echo "$EXISTING_BACKUPS"
@@ -50,7 +50,7 @@ else
         echo -e "${RED}No existing backups found!${NC}"
         echo -e "${RED}If you have backups elsewhere, copy them to the project directory.${NC}"
     fi
-    
+
     exit 1
 fi
 echo ""
@@ -58,7 +58,7 @@ echo ""
 echo -e "${GREEN}[2/8] Getting database statistics...${NC}"
 # Get table counts
 psql "$RENDER_DB_URL" -t -c "
-SELECT 
+SELECT
     schemaname,
     tablename,
     n_live_tup as row_count

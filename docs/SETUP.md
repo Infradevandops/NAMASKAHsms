@@ -1,6 +1,6 @@
 # Namaskah SMS - Setup Guide
 
-**Last Updated:** April 17, 2026  
+**Last Updated:** April 17, 2026
 **Status:** **V5.0.0 Institutional-Grade (STABLE)**
 
 ---

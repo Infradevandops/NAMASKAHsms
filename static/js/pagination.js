@@ -43,18 +43,18 @@ class Pagination {
 
     renderButtons() {
         let buttons = [];
-        
+
         // Previous button
         buttons.push(`
             <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${this.currentPage - 1}" 
+                <a class="page-link" href="#" data-page="${this.currentPage - 1}"
                    aria-label="Previous page" ${this.currentPage === 1 ? 'aria-disabled="true" tabindex="-1"' : ''}>Previous</a>
             </li>
         `);
 
         // Page numbers
         const range = this.getPageRange();
-        
+
         if (range[0] > 1) {
             buttons.push(`<li class="page-item"><a class="page-link" href="#" data-page="1" aria-label="Go to page 1">1</a></li>`);
             if (range[0] > 2) buttons.push(`<li class="page-item disabled"><span class="page-link" aria-hidden="true">...</span></li>`);
@@ -63,7 +63,7 @@ class Pagination {
         range.forEach(page => {
             buttons.push(`
                 <li class="page-item ${page === this.currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${page}" 
+                    <a class="page-link" href="#" data-page="${page}"
                        aria-label="${page === this.currentPage ? 'Current page, page ' + page : 'Go to page ' + page}"
                        ${page === this.currentPage ? 'aria-current="page"' : ''}>${page}</a>
                 </li>
@@ -80,7 +80,7 @@ class Pagination {
         // Next button
         buttons.push(`
             <li class="page-item ${this.currentPage === this.totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${this.currentPage + 1}" 
+                <a class="page-link" href="#" data-page="${this.currentPage + 1}"
                    aria-label="Next page" ${this.currentPage === this.totalPages ? 'aria-disabled="true" tabindex="-1"' : ''}>Next</a>
             </li>
         `);
@@ -92,7 +92,7 @@ class Pagination {
         const half = Math.floor(this.maxButtons / 2);
         let start = Math.max(1, this.currentPage - half);
         let end = Math.min(this.totalPages, start + this.maxButtons - 1);
-        
+
         if (end - start < this.maxButtons - 1) {
             start = Math.max(1, end - this.maxButtons + 1);
         }
@@ -109,7 +109,7 @@ class Pagination {
                     this.onPageChange(page);
                 }
             });
-            
+
             // Keyboard navigation
             link.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -118,7 +118,7 @@ class Pagination {
                 }
             });
         });
-        
+
         // Arrow key navigation
         this.container.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && this.currentPage > 1) {

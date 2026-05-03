@@ -2,7 +2,7 @@
 -- Run this BEFORE deploying the refund policy enforcer
 
 -- Add refund tracking columns
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN IF NOT EXISTS refunded BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN IF NOT EXISTS refund_amount FLOAT,
 ADD COLUMN IF NOT EXISTS refund_reason VARCHAR(255),

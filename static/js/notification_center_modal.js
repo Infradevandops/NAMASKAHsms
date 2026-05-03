@@ -27,7 +27,7 @@ class NotificationCenterModal {
             const data = await response.json();
             const unreadCount = data.unread_count || 0;
             const badge = document.getElementById('notification-bell-badge');
-            
+
             if (badge) {
                 if (unreadCount > 0) {
                     badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
@@ -57,7 +57,7 @@ class NotificationCenterModal {
                     <div class="notification-modal-sidebar">
                         <div class="notification-filters">
                             <h3>Filters</h3>
-                            
+
                             <div class="filter-group">
                                 <label>Category</label>
                                 <select id="modal-category-filter">
@@ -115,7 +115,7 @@ class NotificationCenterModal {
     setupEventListeners() {
         // Close button
         this.modal.querySelector('.notification-modal-close').addEventListener('click', () => this.close());
-        
+
         // Overlay click
         this.modal.querySelector('.notification-modal-overlay').addEventListener('click', () => this.close());
 

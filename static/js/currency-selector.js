@@ -135,7 +135,7 @@
             // Check cache first
             const cached = localStorage.getItem('exchange_rates');
             const cacheTime = localStorage.getItem('exchange_rates_time');
-            
+
             if (cached && cacheTime) {
                 const age = Date.now() - parseInt(cacheTime);
                 // Use cache if less than 1 hour old
@@ -166,7 +166,7 @@
                 // Cache for 1 hour
                 localStorage.setItem('exchange_rates', JSON.stringify(exchangeRates));
                 localStorage.setItem('exchange_rates_time', Date.now().toString());
-                
+
                 console.log('[Currency] Fetched latest exchange rates');
             }
         } catch (error) {
@@ -188,8 +188,8 @@
         updateAllPrices();
 
         // Dispatch event for other components
-        window.dispatchEvent(new CustomEvent('currencyChanged', { 
-            detail: { currency: currentCurrency } 
+        window.dispatchEvent(new CustomEvent('currencyChanged', {
+            detail: { currency: currentCurrency }
         }));
     }
 
@@ -201,7 +201,7 @@
         if (!listEl) return;
 
         listEl.innerHTML = CURRENCIES.map(currency => `
-            <button class="currency-option" 
+            <button class="currency-option"
                     data-currency="${currency.code}"
                     role="menuitem"
                     style="width: 100%; text-align: left; padding: 10px 12px; border: none; background: ${currency.code === currentCurrency ? 'rgba(254, 60, 114, 0.1)' : 'transparent'}; cursor: pointer; border-radius: 8px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; font-size: 14px;"
@@ -280,7 +280,7 @@
     function openDropdown() {
         const dropdown = document.getElementById('currency-dropdown');
         const btn = document.getElementById('currency-selector-btn');
-        
+
         if (dropdown && btn) {
             dropdown.style.display = 'block';
             btn.setAttribute('aria-expanded', 'true');
@@ -300,7 +300,7 @@
     function closeDropdown() {
         const dropdown = document.getElementById('currency-dropdown');
         const btn = document.getElementById('currency-selector-btn');
-        
+
         if (dropdown && btn) {
             dropdown.style.display = 'none';
             btn.setAttribute('aria-expanded', 'false');
@@ -329,7 +329,7 @@
             const currency = CURRENCIES.find(c => c.code === option.dataset.currency);
             if (!currency) return;
 
-            const matches = 
+            const matches =
                 currency.code.toLowerCase().includes(term) ||
                 currency.name.toLowerCase().includes(term);
 
@@ -345,16 +345,16 @@
 
         currentCurrency = currencyCode;
         localStorage.setItem('user_currency', currencyCode);
-        
+
         // Update display
         updateCurrencyDisplay();
-        
+
         // Re-render list to show checkmark
         renderCurrencyList();
-        
+
         // Save preference
         saveCurrencyPreference(currencyCode);
-        
+
         // Close dropdown
         closeDropdown();
 
@@ -384,16 +384,16 @@
     function formatAmount(amountUSD, options = {}) {
         const converted = convertAmount(amountUSD);
         const currency = CURRENCIES.find(c => c.code === currentCurrency);
-        
-        const decimals = options.decimals !== undefined ? options.decimals : 
+
+        const decimals = options.decimals !== undefined ? options.decimals :
                         (currentCurrency === 'JPY' ? 0 : 2);
 
         const formatted = converted.toFixed(decimals);
-        
+
         if (options.showSymbol !== false && currency) {
             return `${currency.symbol}${formatted}`;
         }
-        
+
         return formatted;
     }
 

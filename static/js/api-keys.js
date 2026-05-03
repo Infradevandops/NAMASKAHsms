@@ -118,7 +118,7 @@ class APIKeyManager {
         limitContainer.innerHTML = `
       <div class="tier-limit-info">
         <div class="tier-limit-text">
-          <strong>Your Plan:</strong> ${tier.charAt(0).toUpperCase() + tier.slice(1)} 
+          <strong>Your Plan:</strong> ${tier.charAt(0).toUpperCase() + tier.slice(1)}
           (${tierLimit.display})
         </div>
         <div class="tier-limit-progress">
@@ -150,10 +150,10 @@ class APIKeyManager {
           <label for="api-key-name" style="display: block; margin-bottom: 8px; font-weight: 600;">
             Key Name
           </label>
-          <input 
-            type="text" 
-            id="api-key-name" 
-            placeholder="e.g., Production Server" 
+          <input
+            type="text"
+            id="api-key-name"
+            placeholder="e.g., Production Server"
             style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"
           >
         </div>
@@ -239,16 +239,16 @@ class APIKeyManager {
             ${keyData.name}
           </div>
           <div style="display: flex; gap: 10px; align-items: center;">
-            <input 
-              type="text" 
-              id="new-api-key-value" 
-              value="${keyData.key}" 
-              readonly 
+            <input
+              type="text"
+              id="new-api-key-value"
+              value="${keyData.key}"
+              readonly
               style="flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 13px;"
             >
-            <button 
-              class="api-key-btn" 
-              onclick="apiKeyManager.copyNewKey()" 
+            <button
+              class="api-key-btn"
+              onclick="apiKeyManager.copyNewKey()"
               style="padding: 12px 20px;"
             >
               <i class="ph ph-copy"></i> Copy

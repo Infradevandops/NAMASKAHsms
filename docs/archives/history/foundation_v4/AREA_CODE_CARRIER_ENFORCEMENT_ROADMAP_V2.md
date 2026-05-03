@@ -1,8 +1,8 @@
 # Area Code & Carrier Enforcement — Implementation Roadmap v2.0
 
-**Date**: March 2026  
-**Status**: COMPLETE  
-**Completed**: March 18, 2026 (v4.4.1)  
+**Date**: March 2026
+**Status**: COMPLETE
+**Completed**: March 18, 2026 (v4.4.1)
 **Total Effort**: 10.5 hours delivered
 
 ---
@@ -77,7 +77,7 @@ All 6 phases delivered in v4.4.1. See `docs/implementation/V4.4.1_COMPLETE.md` f
 
 ## Phase 0: Database Schema (30 min) 🔧
 
-**Priority**: CRITICAL — Must be done first  
+**Priority**: CRITICAL — Must be done first
 **Blocks**: All other phases
 
 ### Task 0.1: Add tracking fields to Verification model
@@ -137,7 +137,7 @@ alembic upgrade head
 
 ## Phase 1: Critical Bug Fixes (30 min) 🐛
 
-**Priority**: CRITICAL  
+**Priority**: CRITICAL
 **Dependencies**: None
 
 ### Task 1.1: Remove Sprint from pricing
@@ -205,7 +205,7 @@ return {
 
 ## Phase 2: Area Code Retry Loop (2 hours) 🔄
 
-**Priority**: HIGH  
+**Priority**: HIGH
 **Dependencies**: Phase 0, Phase 1
 
 ### Task 2.1: Add safe cancel helper
@@ -256,15 +256,15 @@ while retry_attempts < max_retries:
         area_code_select_option=area_code_options,
         carrier_select_option=carrier_options,
     )
-    
+
     assigned_number = result.number
     assigned_area_code = assigned_number[2:5] if assigned_number.startswith("+1") else None
-    
+
     # Check area code match
     if not area_code or assigned_area_code == area_code:
         area_code_matched = True
         break
-    
+
     # Mismatch — retry if not final attempt
     if retry_attempts < max_retries - 1:
         logger.warning(f"Area code mismatch: requested {area_code}, got {assigned_area_code}")
@@ -299,7 +299,7 @@ return {
 
 ## Phase 3: VOIP Rejection (1 hour) 📵
 
-**Priority**: MEDIUM  
+**Priority**: MEDIUM
 **Dependencies**: Phase 2
 
 ### Task 3.1: Add phonenumbers dependency
@@ -324,14 +324,14 @@ class PhoneValidator:
         try:
             parsed = phonenumbers.parse(phone, country)
             number_type = phonenumbers.number_type(parsed)
-            
+
             type_map = {
                 phonenumbers.NumberType.MOBILE: "MOBILE",
                 phonenumbers.NumberType.FIXED_LINE: "FIXED_LINE",
                 phonenumbers.NumberType.VOIP: "VOIP",
                 phonenumbers.NumberType.UNKNOWN: "UNKNOWN",
             }
-            
+
             return {
                 "valid": phonenumbers.is_valid_number(parsed),
                 "type": type_map.get(number_type, "UNKNOWN"),
@@ -379,7 +379,7 @@ return {
 
 ## Phase 4: Numverify Integration (3 hours) 🔍
 
-**Priority**: HIGH  
+**Priority**: HIGH
 **Dependencies**: Phase 3
 
 ### Task 4.1: Add Numverify config
@@ -412,22 +412,22 @@ logger = get_logger(__name__)
 
 class NumverifyService:
     BASE_URL = "https://apilayer.net/api/validate"
-    
+
     CARRIER_ALIASES = {
         "verizon": ["verizon", "cellco", "verizon wireless"],
         "att": ["at&t", "att", "cingular", "new cingular"],
         "tmobile": ["t-mobile", "tmobile", "metro", "metropcs", "sprint"],
     }
-    
+
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
         self.enabled = bool(api_key)
         self.client = httpx.AsyncClient(timeout=5.0) if self.enabled else None
-    
+
     async def lookup(self, phone: str) -> Dict[str, Any]:
         if not self.enabled:
             return {"success": False, "error": "Not configured"}
-        
+
         # Check cache
         cache_key = f"numverify:{phone}"
         try:
@@ -438,7 +438,7 @@ class NumverifyService:
                 return json.loads(cached)
         except Exception:
             pass
-        
+
         # API call
         try:
             response = await self.client.get(
@@ -446,38 +446,38 @@ class NumverifyService:
                 params={"number": phone, "country_code": "US", "access_key": self.api_key}
             )
             data = response.json()
-            
+
             if not data.get("valid"):
                 return {"success": False, "error": "Invalid"}
-            
+
             result = {
                 "success": True,
                 "carrier": data.get("carrier", "").lower(),
                 "line_type": data.get("line_type", "unknown"),
             }
-            
+
             # Cache for 5 minutes
             try:
                 import json
                 redis.setex(cache_key, 300, json.dumps(result))
             except Exception:
                 pass
-            
+
             return result
         except asyncio.TimeoutError:
             return {"success": False, "error": "Timeout"}
         except Exception as e:
             logger.error(f"Numverify failed: {e}")
             return {"success": False, "error": str(e)}
-    
+
     def matches_requested(self, requested: str, actual: str) -> bool:
         req_lower = requested.lower()
         act_lower = actual.lower()
-        
+
         for carrier, aliases in self.CARRIER_ALIASES.items():
             if req_lower in aliases:
                 return act_lower in aliases
-        
+
         return False
 ```
 
@@ -494,16 +494,16 @@ carrier_matched = True
 if carrier:
     from app.core.config import get_settings
     from app.services.numverify_service import NumverifyService
-    
+
     settings = get_settings()
     numverify = NumverifyService(settings.numverify_api_key)
-    
+
     if numverify.enabled:
         lookup = await numverify.lookup(assigned_number)
         if lookup["success"]:
             real_carrier = lookup["carrier"]
             carrier_matched = numverify.matches_requested(carrier, real_carrier)
-            
+
             if not carrier_matched and retry_attempts < max_retries - 1:
                 logger.warning(f"Carrier mismatch: requested {carrier}, got {real_carrier}")
                 await self._cancel_safe(result.id)
@@ -531,7 +531,7 @@ return {
 
 ## Phase 5: Analytics & Refund (2 hours) 💰
 
-**Priority**: MEDIUM  
+**Priority**: MEDIUM
 **Dependencies**: Phase 4
 
 ### Task 5.1: Store surcharges in Verification
@@ -563,7 +563,7 @@ verification = Verification(
 # Refund carrier surcharge if mismatch (tier-aware)
 if carrier and not textverified_result.get("carrier_matched", True):
     refund_amount = verification.carrier_surcharge
-    
+
     # PAYG: Refund the surcharge ($0.30)
     # Pro/Custom: Filters are included, but refund overage cost difference
     if refund_amount > 0:
@@ -575,7 +575,7 @@ if carrier and not textverified_result.get("carrier_matched", True):
             # Pro/Custom: Filters included in quota, but refund if overage was charged
             tier_config = TierConfig.get_tier_config(user.subscription_tier, db)
             overage_rate = tier_config.get("overage_rate", 0.30)
-            
+
             # If this SMS pushed them into overage, refund the overage portion
             quota_info = QuotaService.get_monthly_usage(db, user_id)
             if quota_info["quota_used"] > quota_info["quota_limit"]:
@@ -584,7 +584,7 @@ if carrier and not textverified_result.get("carrier_matched", True):
                 user.credits += overage_refund
                 refund_amount = overage_refund
                 logger.info(f"{user.subscription_tier.upper()} refund: ${overage_refund:.2f} overage to {user_id}")
-        
+
         # Notify user
         try:
             await notification_dispatcher.notify_carrier_mismatch_refund(
@@ -619,7 +619,7 @@ async def notify_carrier_mismatch_refund(
             message = f"Requested {requested_carrier}, got {actual_carrier}. ${refund_amount:.2f} surcharge refunded."
         else:
             message = f"Requested {requested_carrier}, got {actual_carrier}. ${refund_amount:.2f} overage refunded."
-        
+
         notification = self.notification_service.create_notification(
             user_id=user_id,
             notification_type="carrier_mismatch_refund",
@@ -663,7 +663,7 @@ if carrier:
 
 ## Phase 6: Integration Tests (2 hours) 🧪
 
-**Priority**: HIGH  
+**Priority**: HIGH
 **Dependencies**: All phases
 
 ### Task 6.1: Area code retry tests
@@ -775,8 +775,8 @@ def test_landline_rejected():
 
 ---
 
-**Total Effort**: 10.5 hours  
-**Phases**: 6  
-**Files Modified**: 6  
-**Files Created**: 5  
+**Total Effort**: 10.5 hours
+**Phases**: 6
+**Files Modified**: 6
+**Files Created**: 5
 **DB Migrations**: 1

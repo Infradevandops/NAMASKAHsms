@@ -1,7 +1,7 @@
 # Migration d6e7f8g9h0i1: Add Transaction IDs to Purchase Outcomes
 
-**Status**: ✅ COMPLETE  
-**Created**: 2026-03-20  
+**Status**: ✅ COMPLETE
+**Created**: 2026-03-20
 **Migration File**: `alembic/versions/d6e7f8g9h0i1_add_transaction_ids_to_purchase_outcomes.py`
 
 ---
@@ -21,15 +21,15 @@ Created migration `d6e7f8g9h0i1` to add the missing columns:
 ```python
 def upgrade():
     # Add debit_transaction_id column
-    op.add_column('purchase_outcomes', 
+    op.add_column('purchase_outcomes',
         sa.Column('debit_transaction_id', sa.Integer(), nullable=True)
     )
-    
+
     # Add refund_transaction_id column
     op.add_column('purchase_outcomes',
         sa.Column('refund_transaction_id', sa.Integer(), nullable=True)
     )
-    
+
     # Add foreign key constraints
     op.create_foreign_key(
         'fk_purchase_outcomes_debit_transaction',
@@ -37,7 +37,7 @@ def upgrade():
         ['debit_transaction_id'], ['id'],
         ondelete='SET NULL'
     )
-    
+
     op.create_foreign_key(
         'fk_purchase_outcomes_refund_transaction',
         'purchase_outcomes', 'balance_transactions',
@@ -63,7 +63,7 @@ Created isolated test that:
 2. Applies model definitions via `Base.metadata.create_all()`
 3. Inspects resulting schema
 
-**Result**: 
+**Result**:
 ```
 ✅ All required columns present: ['debit_transaction_id', 'refund_transaction_id']
 ```
@@ -120,6 +120,6 @@ d6e7f8g9h0i1 (add transaction IDs to purchase_outcomes) ← NEW
 
 ---
 
-**Status**: ✅ Deployed to Repository - Awaiting CI Verification  
-**Commit**: 2b891448  
+**Status**: ✅ Deployed to Repository - Awaiting CI Verification
+**Commit**: 2b891448
 **Date**: April 23, 2026

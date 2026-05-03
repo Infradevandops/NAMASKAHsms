@@ -40,24 +40,24 @@ COLUMN_MAPPINGS = {
 def migrate_table(conn, table_name):
     """Migrate a single table from CSV to Neon."""
     csv_file = BACKUP_DIR / f"{table_name}.csv"
-    
+
     if not csv_file.exists():
         print(f"⚠️  Skipping {table_name} - CSV not found")
         return 0
-    
+
     print(f"📦 Migrating {table_name}...")
-    
+
     with open(csv_file, 'r') as f:
         reader = csv.DictReader(f)
         rows = list(reader)
-        
+
         if not rows:
             print(f"   ℹ️  {table_name} is empty")
             return 0
-        
+
         # Get column names from CSV
         columns = list(rows[0].keys())
-        
+
         # Apply column name mappings if needed
         if table_name in COLUMN_MAPPINGS:
             mapping = COLUMN_MAPPINGS[table_name]
@@ -71,7 +71,7 @@ def migrate_table(conn, table_name):
                     new_row[new_col] = val
                 new_rows.append(new_row)
             rows = new_rows
-        
+
         # Convert empty strings to None for proper NULL handling
         cleaned_rows = []
         for row in rows:
@@ -86,12 +86,12 @@ def migrate_table(conn, table_name):
                 else:
                     cleaned_row[col] = val
             cleaned_rows.append(cleaned_row)
-        
+
         # Build INSERT query
         cols_str = ', '.join(columns)
         placeholders = ', '.join(['%s'] * len(columns))
         query = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
-        
+
         # Execute batch insert
         with conn.cursor() as cur:
             values = [[row[col] for col in columns] for row in cleaned_rows]
@@ -101,7 +101,7 @@ def migrate_table(conn, table_name):
                 except Exception as e:
                     print(f"   ⚠️  Error inserting row: {e}")
                     continue
-        
+
         conn.commit()
         print(f"   ✅ Migrated {len(cleaned_rows)} rows")
         return len(cleaned_rows)
@@ -111,15 +111,15 @@ def main():
     """Main migration function."""
     print("🚀 Starting migration from Render to Neon...")
     print(f"📂 Backup directory: {BACKUP_DIR}")
-    
+
     try:
         # Connect to Neon
         print("\n🔌 Connecting to Neon...")
         conn = psycopg2.connect(NEON_URL)
         print("✅ Connected to Neon PostgreSQL")
-        
+
         total_rows = 0
-        
+
         # Migrate each table
         for table in TABLES:
             try:
@@ -128,12 +128,12 @@ def main():
             except Exception as e:
                 print(f"❌ Error migrating {table}: {e}")
                 continue
-        
+
         print(f"\n✅ Migration complete! Total rows migrated: {total_rows}")
-        
+
         # Close connection
         conn.close()
-        
+
     except Exception as e:
         print(f"❌ Migration failed: {e}")
         sys.exit(1)

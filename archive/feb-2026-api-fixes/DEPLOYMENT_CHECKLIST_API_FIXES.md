@@ -253,9 +253,9 @@ curl -H "Authorization: Bearer $TOKEN" \
 - [x] Rollback procedure documented
 - [x] Team notified
 
-**Deployed By**: System Administrator  
-**Date**: January 18, 2026  
-**Time**: Current  
+**Deployed By**: System Administrator
+**Date**: January 18, 2026
+**Time**: Current
 **Status**: ✅ Success
 
 ---

@@ -15,7 +15,7 @@ class PendingTransactions {
 
             if (res.ok) {
                 const data = await res.json();
-                this.pending = (data.transactions || []).filter(t => 
+                this.pending = (data.transactions || []).filter(t =>
                     t.status === 'pending' || t.status === 'processing'
                 );
                 return this.pending;

@@ -1,8 +1,8 @@
 # 🚨 URGENT: Manual Refund Procedure
 
-**User ID**: `2986207f-4e45-4249-91c3-e5e13bae6622`  
-**Amount Owed**: $10.00  
-**Reason**: Tier pricing bug + No SMS received (0% success rate)  
+**User ID**: `2986207f-4e45-4249-91c3-e5e13bae6622`
+**Amount Owed**: $10.00
+**Reason**: Tier pricing bug + No SMS received (0% success rate)
 **Priority**: IMMEDIATE
 
 ---
@@ -44,13 +44,13 @@ psql -h localhost -U postgres -d namaskah
 
 ### Step 2: Check Current Balance
 ```sql
-SELECT 
-    id, 
-    email, 
-    subscription_tier, 
+SELECT
+    id,
+    email,
+    subscription_tier,
     balance,
     monthly_usage
-FROM users 
+FROM users
 WHERE id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 ```
 
@@ -65,13 +65,13 @@ balance: $2.40 (current)
 ### Step 3: Issue Refund
 ```sql
 -- Add $10.00 to user balance
-UPDATE users 
+UPDATE users
 SET balance = balance + 10.00,
     updated_at = NOW()
 WHERE id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 
 -- Verify new balance
-SELECT email, balance FROM users 
+SELECT email, balance FROM users
 WHERE id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 ```
 
@@ -83,7 +83,7 @@ balance: $12.40 (was $2.40, now $12.40)
 ### Step 4: Update SMS Verification Status
 ```sql
 -- Mark all 4 SMS as REFUNDED
-UPDATE sms_verifications 
+UPDATE sms_verifications
 SET status = 'REFUNDED',
     refunded = true,
     refund_amount = cost,
@@ -94,10 +94,10 @@ WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622'
   AND created_at >= '2026-04-17 14:00:00';
 
 -- Verify update
-SELECT id, service, phone_number, cost, status, refunded 
-FROM sms_verifications 
+SELECT id, service, phone_number, cost, status, refunded
+FROM sms_verifications
 WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622'
-ORDER BY created_at DESC 
+ORDER BY created_at DESC
 LIMIT 4;
 ```
 
@@ -105,7 +105,7 @@ LIMIT 4;
 ```sql
 -- Check if transaction_logs table exists
 SELECT EXISTS (
-    SELECT FROM information_schema.tables 
+    SELECT FROM information_schema.tables
     WHERE table_name = 'transaction_logs'
 );
 
@@ -180,39 +180,39 @@ async def issue_refund():
     from app.models.user import User
     from app.models.verification import SMSVerification
     from sqlalchemy import select, update
-    
+
     user_id = "2986207f-4e45-4249-91c3-e5e13bae6622"
     refund_amount = Decimal("10.00")
-    
+
     async for db in get_db():
         # Get user
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
-        
+
         if not user:
             print(f"❌ User {user_id} not found")
             return
-        
+
         print(f"User: {user.email}")
         print(f"Tier: {user.subscription_tier}")
         print(f"Current Balance: ${user.balance:.2f}")
-        
+
         # Calculate new balance
         old_balance = user.balance
         new_balance = old_balance + refund_amount
-        
+
         print(f"\nRefund Amount: ${refund_amount:.2f}")
         print(f"New Balance: ${new_balance:.2f}")
-        
+
         # Confirm
         confirm = input("\nProceed with refund? (yes/no): ")
         if confirm.lower() != 'yes':
             print("❌ Refund cancelled")
             return
-        
+
         # Update user balance
         user.balance = new_balance
-        
+
         # Update SMS verifications
         await db.execute(
             update(SMSVerification)
@@ -227,19 +227,19 @@ async def issue_refund():
                 updated_at=datetime.utcnow()
             )
         )
-        
+
         await db.commit()
-        
+
         print("\n✅ Refund issued successfully!")
         print(f"   Old Balance: ${old_balance:.2f}")
         print(f"   New Balance: ${new_balance:.2f}")
         print(f"   Refunded: ${refund_amount:.2f}")
-        
+
         # Send notification (if service available)
         try:
             from app.services.notification_service import NotificationService
             notification_service = NotificationService(db)
-            
+
             await notification_service.create_notification(
                 user_id=user.id,
                 type="refund",
@@ -250,7 +250,7 @@ async def issue_refund():
             print("✅ Notification sent")
         except Exception as e:
             print(f"⚠️  Could not send notification: {e}")
-        
+
         break
 
 if __name__ == "__main__":

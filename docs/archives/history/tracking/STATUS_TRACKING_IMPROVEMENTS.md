@@ -1,8 +1,8 @@
 # STATUS TRACKING & ANALYTICS IMPROVEMENTS
 
-**Status**: 🎯 High Priority - User Experience & Data Accuracy  
-**Created**: March 20, 2026  
-**Priority**: P1 - Important  
+**Status**: 🎯 High Priority - User Experience & Data Accuracy
+**Created**: March 20, 2026
+**Priority**: P1 - Important
 **Impact**: Misleading analytics, unclear failure reasons, poor UX
 
 ---
@@ -107,7 +107,7 @@ error_message = Column(String)    # Generic error text
 **Schema Changes:**
 ```sql
 -- Add new columns to verifications table
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN failure_reason VARCHAR(100),
 ADD COLUMN failure_category VARCHAR(50),
 ADD COLUMN sms_received BOOLEAN DEFAULT FALSE,
@@ -122,7 +122,7 @@ CREATE INDEX idx_verifications_failure_reason ON verifications(user_id, failure_
 ```python
 class Verification(BaseModel):
     # ... existing fields ...
-    
+
     # Enhanced status tracking
     failure_reason = Column(String(100), nullable=True)
     failure_category = Column(String(50), nullable=True)
@@ -136,27 +136,27 @@ class Verification(BaseModel):
 
 class FailureReason:
     """Detailed failure reasons for verifications."""
-    
+
     # User Actions
     USER_CANCELLED = "user_cancelled"
     USER_TIMEOUT = "user_timeout"
-    
+
     # Provider Issues
     NUMBER_UNAVAILABLE = "number_unavailable"
     PROVIDER_API_ERROR = "provider_api_error"
     PROVIDER_TIMEOUT = "provider_timeout"
     SMS_NOT_DELIVERED = "sms_not_delivered"
-    
+
     # System Validation
     VOIP_REJECTED = "voip_rejected"
     CARRIER_MISMATCH = "carrier_mismatch"
     AREA_CODE_UNAVAILABLE = "area_code_unavailable"
     RETRY_EXHAUSTED = "retry_exhausted"
-    
+
     # Payment Issues
     INSUFFICIENT_BALANCE = "insufficient_balance"
     PAYMENT_FAILED = "payment_failed"
-    
+
     # Internal Errors
     INTERNAL_ERROR = "internal_error"
     DATABASE_ERROR = "database_error"
@@ -297,8 +297,8 @@ successful = sum(1 for v in verifications if v.sms_received and v.status == "com
 
 # Only count non-refunded charges
 total_spent = sum(
-    float(v.cost or 0) 
-    for v in verifications 
+    float(v.cost or 0)
+    for v in verifications
     if not v.refunded  # Exclude refunded verifications
 )
 
@@ -324,49 +324,49 @@ return {
 ```python
 @router.get("/analytics/summary")
 async def get_analytics_summary(
-    user_id: str = Depends(get_current_user_id), 
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     verifications = db.query(Verification).filter(
         Verification.user_id == user_id
     ).all()
-    
+
     # SMS Receipt Metrics
     total_attempts = len(verifications)
     sms_received_count = sum(1 for v in verifications if v.sms_received)
     sms_not_received_count = total_attempts - sms_received_count
-    
+
     # Financial Metrics (only non-refunded)
     total_charged = sum(float(v.cost or 0) for v in verifications)
     total_refunded = sum(float(v.refund_amount or 0) for v in verifications if v.refunded)
     net_spent = total_charged - total_refunded
-    
+
     # Failure Breakdown
     failure_breakdown = {}
     for v in verifications:
         if v.failure_reason:
             reason = v.failure_reason
             failure_breakdown[reason] = failure_breakdown.get(reason, 0) + 1
-    
+
     # Category Breakdown
     category_breakdown = {}
     for v in verifications:
         if v.failure_category:
             cat = v.failure_category
             category_breakdown[cat] = category_breakdown.get(cat, 0) + 1
-    
+
     return {
         # Core Metrics
         "total_attempts": total_attempts,
         "sms_received": sms_received_count,
         "sms_not_received": sms_not_received_count,
         "success_rate": (sms_received_count / total_attempts * 100) if total_attempts else 0,
-        
+
         # Financial Metrics
         "total_charged": total_charged,
         "total_refunded": total_refunded,
         "net_spent": net_spent,
-        
+
         # Failure Analysis
         "failure_breakdown": [
             {"reason": k, "count": v, "label": format_failure_reason(k)}
@@ -376,7 +376,7 @@ async def get_analytics_summary(
             {"category": k, "count": v, "label": format_category(k)}
             for k, v in sorted(category_breakdown.items(), key=lambda x: -x[1])
         ],
-        
+
         # Current Balance
         "current_balance": float(user.credits or 0.0)
     }
@@ -400,20 +400,20 @@ async def get_verification_history(...):
                 "service_name": v.service_name,
                 "country": v.country,
                 "status": v.status,
-                
+
                 # ✅ Enhanced failure info
                 "failure_reason": v.failure_reason,
                 "failure_category": v.failure_category,
                 "failure_message": format_failure_message(v),
-                
+
                 # ✅ SMS receipt tracking
                 "sms_received": v.sms_received,
                 "sms_code": v.sms_code if v.sms_received else None,
-                
+
                 # ✅ Refund info
                 "refunded": v.refunded,
                 "refund_amount": float(v.refund_amount) if v.refunded else None,
-                
+
                 "cost": float(v.cost) if v.cost else 0.0,
                 "carrier": v.assigned_carrier,
                 "created_at": v.created_at.isoformat() if v.created_at else None,
@@ -433,34 +433,34 @@ async def get_verification_history(...):
 ```python
 def format_failure_message(verification: Verification) -> str:
     """Convert failure reason to user-friendly message."""
-    
+
     messages = {
         # User Actions
         "user_cancelled": "You cancelled this verification",
         "user_timeout": "Verification expired - you didn't check for the code in time",
-        
+
         # Provider Issues
         "number_unavailable": "No phone numbers available for your selected area code. Try a different area code or remove the filter.",
         "provider_api_error": "Our SMS provider is experiencing issues. Please try again in a few minutes.",
         "provider_timeout": "SMS provider took too long to respond. Your payment has been refunded.",
         "sms_not_delivered": "SMS code was not delivered within 10 minutes. Your payment has been refunded.",
-        
+
         # System Validation
         "voip_rejected": "The assigned number was VOIP/Landline (not mobile). We've refunded your payment. Try again for a mobile number.",
         "carrier_mismatch": "Could not find a number matching your carrier preference. Your payment has been refunded.",
         "area_code_unavailable": "No numbers available in your requested area code after 3 attempts. Your payment has been refunded.",
         "retry_exhausted": "Maximum retry attempts reached (3/3). Your payment has been refunded.",
-        
+
         # Payment Issues
         "insufficient_balance": "Insufficient balance. Please add credits to your wallet.",
         "payment_failed": "Payment processing failed. Please try again.",
-        
+
         # Internal Errors
         "internal_error": "An internal error occurred. Our team has been notified. Your payment has been refunded.",
         "database_error": "Database error occurred. Please try again.",
         "configuration_error": "System configuration error. Please contact support.",
     }
-    
+
     reason = verification.failure_reason
     return messages.get(reason, verification.error_message or "Verification failed")
 
@@ -523,14 +523,14 @@ Refunded: ✅ $2.04
     <span class="status-badge status-{{ verification.status }}">
         {{ verification.status | title }}
     </span>
-    
+
     {% if verification.failure_reason %}
     <div class="failure-details">
         <strong>{{ verification.failure_reason | format_reason }}</strong>
         <p class="text-muted">{{ verification.failure_message }}</p>
     </div>
     {% endif %}
-    
+
     {% if verification.refunded %}
     <span class="badge badge-success">
         ✅ Refunded ${{ verification.refund_amount }}
@@ -626,42 +626,42 @@ NET SPENT: $0.00
 
 ```sql
 -- Add failure tracking columns
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN IF NOT EXISTS failure_reason VARCHAR(100),
 ADD COLUMN IF NOT EXISTS failure_category VARCHAR(50),
 ADD COLUMN IF NOT EXISTS sms_received BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS refund_eligible BOOLEAN DEFAULT TRUE;
 
 -- Create indexes
-CREATE INDEX IF NOT EXISTS idx_verifications_sms_received 
+CREATE INDEX IF NOT EXISTS idx_verifications_sms_received
 ON verifications(user_id, sms_received);
 
-CREATE INDEX IF NOT EXISTS idx_verifications_failure_reason 
+CREATE INDEX IF NOT EXISTS idx_verifications_failure_reason
 ON verifications(user_id, failure_reason);
 
-CREATE INDEX IF NOT EXISTS idx_verifications_refunded 
+CREATE INDEX IF NOT EXISTS idx_verifications_refunded
 ON verifications(user_id, refunded);
 
 -- Backfill existing data
-UPDATE verifications 
-SET sms_received = TRUE 
+UPDATE verifications
+SET sms_received = TRUE
 WHERE sms_code IS NOT NULL AND sms_code != '';
 
-UPDATE verifications 
-SET sms_received = FALSE 
+UPDATE verifications
+SET sms_received = FALSE
 WHERE sms_code IS NULL OR sms_code = '';
 
-UPDATE verifications 
+UPDATE verifications
 SET failure_reason = 'sms_not_delivered',
     failure_category = 'provider_issue'
 WHERE status = 'error' AND sms_received = FALSE;
 
-UPDATE verifications 
-SET refund_eligible = FALSE 
+UPDATE verifications
+SET refund_eligible = FALSE
 WHERE sms_received = TRUE;
 
-UPDATE verifications 
-SET refund_eligible = TRUE 
+UPDATE verifications
+SET refund_eligible = TRUE
 WHERE sms_received = FALSE AND refunded = FALSE;
 ```
 
@@ -724,7 +724,7 @@ psql $DATABASE_URL -f migrations/add_failure_tracking.sql
 
 ### SMS Receipt Analysis
 ```sql
-SELECT 
+SELECT
     COUNT(*) as total_attempts,
     SUM(CASE WHEN sms_received THEN 1 ELSE 0 END) as sms_received_count,
     SUM(CASE WHEN NOT sms_received THEN 1 ELSE 0 END) as sms_not_received_count,
@@ -735,7 +735,7 @@ WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 
 ### Failure Breakdown
 ```sql
-SELECT 
+SELECT
     failure_reason,
     failure_category,
     COUNT(*) as count,
@@ -750,7 +750,7 @@ ORDER BY count DESC;
 
 ### Financial Reconciliation
 ```sql
-SELECT 
+SELECT
     SUM(cost) as total_charged,
     SUM(CASE WHEN refunded THEN refund_amount ELSE 0 END) as total_refunded,
     SUM(cost) - SUM(CASE WHEN refunded THEN refund_amount ELSE 0 END) as net_spent,
@@ -761,12 +761,12 @@ WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622';
 
 ---
 
-**Priority**: 🎯 P1 - High Priority  
-**Estimated Effort**: 2 days  
-**Risk**: Low - Additive changes, no breaking changes  
+**Priority**: 🎯 P1 - High Priority
+**Estimated Effort**: 2 days
+**Risk**: Low - Additive changes, no breaking changes
 **Impact**: High - Dramatically improves user experience and data accuracy
 
-**Next Steps**: 
+**Next Steps**:
 1. Run schema migration
 2. Update backend status tracking
 3. Fix analytics calculations

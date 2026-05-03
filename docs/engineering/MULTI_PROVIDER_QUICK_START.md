@@ -1,7 +1,7 @@
 # Multi-Provider Routing — Quick Start Guide
 
-**Status**: ✅ DEPLOYED  
-**Commit**: e230fed0  
+**Status**: ✅ DEPLOYED
+**Commit**: e230fed0
 **Date**: March 26, 2026
 
 ---

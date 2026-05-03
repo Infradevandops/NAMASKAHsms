@@ -1,6 +1,6 @@
 /**
  * Skeleton loading state to prevent UI flashing
- * 
+ *
  * This loader displays a skeleton/placeholder UI while the tier is being loaded.
  * It prevents the "freemium flash" by showing a loading state instead of the
  * actual UI with wrong tier information.
@@ -44,7 +44,7 @@ class SkeletonLoader {
                     background: #e5e7eb;
                 "></div>
             </div>
-            
+
             <!-- Main Content -->
             <div style="display: flex; flex: 1;">
                 <!-- Sidebar Skeleton -->
@@ -66,7 +66,7 @@ class SkeletonLoader {
                         "></div>
                     `).join('')}
                 </div>
-                
+
                 <!-- Content Skeleton -->
                 <div class="skeleton-content" style="
                     flex: 1;
@@ -113,7 +113,7 @@ class SkeletonLoader {
                 </div>
             </div>
         </div>
-        
+
         <style>
             @keyframes skeleton-pulse {
                 0%, 100% { opacity: 1; }
@@ -128,10 +128,10 @@ class SkeletonLoader {
             }
         </style>
     `;
-    
+
     /**
      * Show skeleton loading state
-     * 
+     *
      * Replaces the entire body with skeleton HTML to show loading state
      * while tier is being loaded.
      */
@@ -146,10 +146,10 @@ class SkeletonLoader {
             console.error('[SkeletonLoader] Failed to show skeleton:', error);
         }
     }
-    
+
     /**
      * Hide skeleton loading state
-     * 
+     *
      * Fades out and removes the skeleton, revealing the actual UI
      * that was rendered behind it.
      */
@@ -167,10 +167,10 @@ class SkeletonLoader {
             console.error('[SkeletonLoader] Failed to hide skeleton:', error);
         }
     }
-    
+
     /**
      * Check if skeleton is currently visible
-     * 
+     *
      * @returns {boolean} True if skeleton is visible
      */
     static isVisible() {

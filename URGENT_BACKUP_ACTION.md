@@ -122,17 +122,17 @@ rclone copy gdrive:Namaskah-Backups/latest/ ./recovered_backup/
 3. **Message**:
    ```
    Hello,
-   
-   My PostgreSQL database (namaskahdb, ID: dpg-d7geq9vlk1mc7386tjl0-a) 
+
+   My PostgreSQL database (namaskahdb, ID: dpg-d7geq9vlk1mc7386tjl0-a)
    appears to be deleted or inaccessible.
-   
+
    Can you:
    1. Confirm database status
    2. Provide any available backups
    3. Temporarily restore database for data extraction
-   
+
    This is production data for Namaskah SMS platform.
-   
+
    Thank you,
    [Your Name]
    ```
@@ -343,7 +343,7 @@ crontab -e  # Add daily backup
 
 **Current Status**: 🚨 Database inaccessible
 
-**Immediate Action**: 
+**Immediate Action**:
 1. Check Render dashboard (5 min)
 2. Search for local backups (2 min)
 3. Check cloud backups (3 min)
@@ -355,6 +355,6 @@ crontab -e  # Add daily backup
 
 ---
 
-**Priority**: 🚨 P0 - CRITICAL  
-**Action**: Check for backups NOW  
+**Priority**: 🚨 P0 - CRITICAL
+**Action**: Check for backups NOW
 **Time**: 10 minutes to assess situation

@@ -33,11 +33,11 @@ async def check_api_balance():
     print("=" * 80)
     print(f"Timestamp: {datetime.utcnow().isoformat()}")
     print()
-    
+
     # Get credentials
     api_key = os.getenv("TEXTVERIFIED_API_KEY")
     api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL")
-    
+
     if not api_key or not api_username:
         print("❌ Missing credentials")
         print("   TEXTVERIFIED_API_KEY:", "✅ Set" if api_key else "❌ Missing")
@@ -47,11 +47,11 @@ async def check_api_balance():
         print("  export TEXTVERIFIED_API_KEY='your_key'")
         print("  export TEXTVERIFIED_USERNAME='your_username'")
         return
-    
+
     print("✅ Credentials found")
     print(f"   Username: {api_username}")
     print()
-    
+
     # Initialize client
     try:
         client = textverified.TextVerified(
@@ -63,7 +63,7 @@ async def check_api_balance():
     except Exception as e:
         print(f"❌ Failed to initialize client: {e}")
         return
-    
+
     # Get balance
     print("Fetching balance from TextVerified API...")
     try:
@@ -77,7 +77,7 @@ async def check_api_balance():
     except Exception as e:
         print(f"❌ Failed to get balance: {e}")
         return
-    
+
     # Compare with logged values
     print("=" * 80)
     print("COMPARISON WITH LOGS")
@@ -98,16 +98,16 @@ async def check_api_balance():
     print("Dashboard (final screenshot):")
     print("  Balance: $2.40")
     print()
-    
+
     api_balance = float(balance)
-    
+
     print("=" * 80)
     print("ANALYSIS")
     print("=" * 80)
     print()
     print(f"Current API Balance: ${api_balance:.2f}")
     print()
-    
+
     # Check which scenario matches
     if abs(api_balance - 2.40) < 0.01:
         print("✅ SCENARIO 1: No refunds processed")
@@ -119,7 +119,7 @@ async def check_api_balance():
         print("   - Expected: Automatic refunds after timeout")
         print("   - Actual: No refunds processed")
         print()
-        
+
     elif abs(api_balance - 6.90) < 0.01:
         print("✅ SCENARIO 2: Partial refunds processed")
         print("   - Balance matches log at 14:20:09 ($6.90)")
@@ -131,7 +131,7 @@ async def check_api_balance():
         print("   - Actual balance: $6.90")
         print("   - Difference: $4.50 (missing refunds)")
         print()
-        
+
     elif abs(api_balance - 12.40) < 0.01:
         print("✅ SCENARIO 3: Full refunds processed")
         print("   - Balance matches starting balance ($12.40)")
@@ -143,7 +143,7 @@ async def check_api_balance():
         print("   - Actual balance: $12.40")
         print("   - Difference: $10.00 (all refunds missing)")
         print()
-        
+
     else:
         print("⚠️  SCENARIO 4: Unexpected balance")
         print(f"   - Current: ${api_balance:.2f}")
@@ -154,7 +154,7 @@ async def check_api_balance():
         print("   - Manual adjustments made")
         print("   - Other users sharing same account")
         print()
-    
+
     print("=" * 80)
     print("FINANCIAL INTEGRITY ISSUES")
     print("=" * 80)
@@ -166,7 +166,7 @@ async def check_api_balance():
     print("   - Overcharge: $2.30 per SMS")
     print("   - Total overcharge: $9.20 for 4 SMS")
     print()
-    
+
     print("2. ⚠️  BALANCE SYNC FAILURE")
     print(f"   - API Balance: ${api_balance:.2f}")
     print("   - Dashboard: $2.40")
@@ -176,7 +176,7 @@ async def check_api_balance():
     else:
         print("   - ✅ Synced correctly")
     print()
-    
+
     print("3. 📭 MISSING REFUND NOTIFICATIONS")
     if abs(api_balance - 2.40) > 0.01:
         refund_amount = api_balance - 2.40
@@ -188,13 +188,13 @@ async def check_api_balance():
         print("   - 4 SMS stuck in 'Still Waiting' status")
         print("   - Expected: Automatic timeout and refund")
     print()
-    
+
     print("4. 🕳️  MISSING TRANSACTION LOGS")
     print("   - No debit logs for SMS charges")
     print("   - No credit logs for refunds")
     print("   - No audit trail for balance changes")
     print()
-    
+
     print("=" * 80)
     print("NEXT STEPS")
     print("=" * 80)
@@ -227,7 +227,7 @@ async def check_api_balance():
     print("   - Log all credits (refunds)")
     print("   - Include metadata (tier, rate, reason)")
     print()
-    
+
     print("=" * 80)
     print(f"Report saved to: docs/tasks/BALANCE_SYNC_FINANCIAL_INTEGRITY.md")
     print("=" * 80)

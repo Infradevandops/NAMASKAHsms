@@ -1,13 +1,13 @@
 /**
  * API Retry Utility
- * 
+ *
  * Provides retry logic with exponential backoff for failed API calls.
  * Features:
  * - Configurable retry count (default: 3)
  * - Exponential backoff between retries
  * - Retry button UI component
  * - Integration with FrontendLogger
- * 
+ *
  * Converted to ES6 module - maintains backward compatibility via window attachment
  */
 

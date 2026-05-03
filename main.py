@@ -140,7 +140,7 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(SecurityHeadersMiddleware)
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
-    
+
     # Tier verification middleware (must be after auth middleware)
     @fastapi_app.middleware("http")
     async def tier_verification_wrapper(request: Request, call_next):

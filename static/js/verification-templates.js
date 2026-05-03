@@ -47,7 +47,7 @@ class VerificationTemplates {
         }
 
         container.innerHTML = this.templates.map(t => `
-            <div onclick="verificationTemplates.apply('${t.id}')" 
+            <div onclick="verificationTemplates.apply('${t.id}')"
                  style="padding: 12px; cursor: pointer; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;"
                  onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#FE3C72'"
                  onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'">
@@ -55,7 +55,7 @@ class VerificationTemplates {
                     <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${t.name}</div>
                     <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${t.serviceName} • ${formatMoney(t.cost)}</div>
                 </div>
-                <button onclick="event.stopPropagation(); verificationTemplates.remove('${t.id}'); verificationTemplates.renderUI('templates-list')" 
+                <button onclick="event.stopPropagation(); verificationTemplates.remove('${t.id}'); verificationTemplates.renderUI('templates-list')"
                         style="background: none; border: none; cursor: pointer; font-size: 16px; color: #ef4444; padding: 4px;">×</button>
             </div>
         `).join('');
@@ -83,12 +83,12 @@ class VerificationTemplates {
         modal.innerHTML = `
             <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;" onclick="event.stopPropagation()">
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Save Template</h3>
-                <input type="text" id="template-name-input" placeholder="Template name (e.g., WhatsApp US)" 
+                <input type="text" id="template-name-input" placeholder="Template name (e.g., WhatsApp US)"
                        style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
                 <div style="display: flex; gap: 8px;">
-                    <button onclick="this.closest('[style*=fixed]').remove()" 
+                    <button onclick="this.closest('[style*=fixed]').remove()"
                             style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
-                    <button onclick="verificationTemplates.saveFromModal()" 
+                    <button onclick="verificationTemplates.saveFromModal()"
                             style="flex: 1; padding: 12px; background: #FE3C72; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Save</button>
                 </div>
             </div>

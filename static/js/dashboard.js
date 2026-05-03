@@ -768,7 +768,7 @@ async function loadSettingsView() {
   settingsContainerEl.innerHTML = `
     <div style="max-width: 600px;">
       <h3 style="margin: 0 0 24px 0;">Account Settings</h3>
-      
+
       <div class="card" style="padding: 20px; margin-bottom: 20px;">
         <h4 style="margin: 0 0 16px 0;">Notifications</h4>
         <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px;">

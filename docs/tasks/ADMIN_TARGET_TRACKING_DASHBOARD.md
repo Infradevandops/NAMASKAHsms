@@ -1,10 +1,10 @@
 # Admin Portal - Monthly User Target Tracking Dashboard
 
-**Version**: 1.0.0  
-**Status**: Planning  
-**Priority**: HIGH  
-**Effort**: 2 days  
-**Created**: March 2026  
+**Version**: 1.0.0
+**Status**: Planning
+**Priority**: HIGH
+**Effort**: 2 days
+**Created**: March 2026
 **Target**: Month 6 Break-Even Goal
 
 ---
@@ -13,8 +13,8 @@
 
 Create an admin dashboard widget to track progress toward the 350 monthly user target (break-even point). Display current users, remaining users needed, percentage complete, and whether target is met.
 
-**Current State**: No visibility into monthly user acquisition targets  
-**Target State**: Real-time dashboard showing progress toward 350 user break-even goal  
+**Current State**: No visibility into monthly user acquisition targets
+**Target State**: Real-time dashboard showing progress toward 350 user break-even goal
 **Business Impact**: Track break-even progress, adjust marketing spend, monitor growth velocity
 
 ---
@@ -116,7 +116,7 @@ from app.models.user import User
 class TargetTrackingService:
     def __init__(self, db: Session):
         self.db = db
-    
+
     def get_current_month_target(self):
         """Get active target for current month"""
         current_month = datetime.now().strftime("%Y-%m")
@@ -124,7 +124,7 @@ class TargetTrackingService:
             MonthlyTarget.target_month == current_month,
             MonthlyTarget.is_active == True
         ).first()
-        
+
         if not target:
             # Create default target
             target = MonthlyTarget(
@@ -134,9 +134,9 @@ class TargetTrackingService:
             )
             self.db.add(target)
             self.db.commit()
-        
+
         return target
-    
+
     def get_current_user_stats(self):
         """Get current user counts by tier"""
         total = self.db.query(User).filter(User.is_active == True).count()
@@ -156,7 +156,7 @@ class TargetTrackingService:
             User.subscription_tier == "custom",
             User.is_active == True
         ).count()
-        
+
         return {
             "total": total,
             "freemium": freemium,
@@ -164,15 +164,15 @@ class TargetTrackingService:
             "pro": pro,
             "custom": custom
         }
-    
+
     def calculate_progress(self):
         """Calculate progress toward monthly target"""
         target = self.get_current_month_target()
         stats = self.get_current_user_stats()
-        
+
         remaining = target.target_users - stats["total"]
         percentage = (stats["total"] / target.target_users) * 100
-        
+
         # Calculate status
         if percentage >= 100:
             status = "Target Met"
@@ -186,21 +186,21 @@ class TargetTrackingService:
         else:
             status = "Behind"
             color = "red"
-        
+
         # Calculate daily acquisition rate
         days_in_month = datetime.now().day
         daily_rate = stats["total"] / days_in_month if days_in_month > 0 else 0
-        
+
         # Calculate days remaining
         days_left_in_month = (datetime.now().replace(day=1, month=datetime.now().month+1) - datetime.now()).days
-        
+
         # Projected completion
         if daily_rate > 0:
             days_to_target = remaining / daily_rate
             projected_date = datetime.now() + timedelta(days=days_to_target)
         else:
             projected_date = None
-        
+
         return {
             "target": target.target_users,
             "current": stats["total"],
@@ -213,35 +213,35 @@ class TargetTrackingService:
             "projected_date": projected_date.strftime("%Y-%m-%d") if projected_date else None,
             "breakdown": stats
         }
-    
+
     def calculate_revenue_status(self):
         """Calculate current revenue vs target"""
         from app.models.transaction import Transaction
-        
+
         # Get current month revenue
         start_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0)
         revenue = self.db.query(func.sum(Transaction.amount)).filter(
             Transaction.type == "credit",
             Transaction.created_at >= start_of_month
         ).scalar() or 0
-        
+
         target = self.get_current_month_target()
         gap = target.target_revenue - revenue
-        
+
         if revenue >= target.target_revenue:
             status = "Profitable"
         elif revenue >= (target.target_revenue * 0.9):
             status = "Break-even"
         else:
             status = "Investment Phase"
-        
+
         return {
             "current_revenue": float(revenue),
             "target_revenue": float(target.target_revenue),
             "gap": float(gap),
             "status": status
         }
-    
+
     def get_api_inventory_status(self):
         """Get API provider balance status"""
         # This would integrate with actual provider APIs
@@ -266,28 +266,28 @@ class TargetTrackingService:
             "monthly_spend": 320.00,
             "budget": 1250.00
         }
-    
+
     def create_daily_snapshot(self):
         """Create daily user snapshot for tracking"""
         today = date.today()
         stats = self.get_current_user_stats()
-        
+
         # Check if snapshot already exists
         existing = self.db.query(DailyUserSnapshot).filter(
             DailyUserSnapshot.snapshot_date == today
         ).first()
-        
+
         if existing:
             return existing
-        
+
         # Get yesterday's snapshot for comparison
         yesterday = today - timedelta(days=1)
         yesterday_snapshot = self.db.query(DailyUserSnapshot).filter(
             DailyUserSnapshot.snapshot_date == yesterday
         ).first()
-        
+
         new_users = stats["total"] - (yesterday_snapshot.total_users if yesterday_snapshot else 0)
-        
+
         snapshot = DailyUserSnapshot(
             snapshot_date=today,
             total_users=stats["total"],
@@ -297,10 +297,10 @@ class TargetTrackingService:
             custom_users=stats["custom"],
             new_users_today=new_users
         )
-        
+
         self.db.add(snapshot)
         self.db.commit()
-        
+
         return snapshot
 ```
 
@@ -352,7 +352,7 @@ async def get_full_dashboard(
 ):
     """Get complete dashboard data"""
     service = TargetTrackingService(db)
-    
+
     return {
         "progress": service.calculate_progress(),
         "revenue": service.calculate_revenue_status(),
@@ -384,12 +384,12 @@ class TargetDashboard {
         this.container = document.getElementById('target-dashboard');
         this.refreshInterval = 60000; // 1 minute
     }
-    
+
     async init() {
         await this.loadData();
         this.startAutoRefresh();
     }
-    
+
     async loadData() {
         try {
             const response = await fetch('/api/v1/admin/targets/dashboard', {
@@ -402,10 +402,10 @@ class TargetDashboard {
             this.renderError();
         }
     }
-    
+
     render(data) {
         const { progress, revenue, inventory } = data;
-        
+
         const html = `
             <div class="target-dashboard-grid">
                 <!-- User Target Progress -->
@@ -424,7 +424,7 @@ class TargetDashboard {
                             <span>${progress.percentage}% Complete</span>
                         </div>
                     </div>
-                    
+
                     <div class="target-details">
                         <div class="detail-row">
                             <span>Remaining:</span>
@@ -445,7 +445,7 @@ class TargetDashboard {
                         </div>
                         ` : ''}
                     </div>
-                    
+
                     <div class="tier-breakdown">
                         <h4>User Mix</h4>
                         <div class="tier-grid">
@@ -472,7 +472,7 @@ class TargetDashboard {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Revenue Status -->
                 <div class="dashboard-card">
                     <h3>Revenue Status</h3>
@@ -498,7 +498,7 @@ class TargetDashboard {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- API Inventory -->
                 <div class="dashboard-card">
                     <h3>API Inventory</h3>
@@ -530,14 +530,14 @@ class TargetDashboard {
                 </div>
             </div>
         `;
-        
+
         this.container.innerHTML = html;
     }
-    
+
     calculatePct(value, total) {
         return total > 0 ? ((value / total) * 100).toFixed(1) : 0;
     }
-    
+
     getProgressColor(color) {
         const colors = {
             'red': '#ef4444',
@@ -546,7 +546,7 @@ class TargetDashboard {
         };
         return colors[color] || '#6b7280';
     }
-    
+
     getRevenueColor(status) {
         const colors = {
             'Profitable': 'success',
@@ -555,7 +555,7 @@ class TargetDashboard {
         };
         return colors[status] || 'secondary';
     }
-    
+
     renderError() {
         this.container.innerHTML = `
             <div class="alert alert-danger">
@@ -563,7 +563,7 @@ class TargetDashboard {
             </div>
         `;
     }
-    
+
     startAutoRefresh() {
         setInterval(() => this.loadData(), this.refreshInterval);
     }
@@ -676,6 +676,6 @@ def test_revenue_status():
 
 ---
 
-**Status**: Ready for Implementation  
-**Estimated Effort**: 2 days  
+**Status**: Ready for Implementation
+**Estimated Effort**: 2 days
 **Priority**: HIGH (Critical for tracking break-even goal)

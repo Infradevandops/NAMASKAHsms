@@ -20,7 +20,7 @@ from app.core.textverified_health import get_health_monitor
 async def verify_mastery():
     print("🚀 Starting V6.0 Institutional Mastery Verification...")
     db = SessionLocal()
-    
+
     try:
         # 1. Verify Liquidity Audit
         print("\n--- 1. Liquidity Audit Verification ---")
@@ -28,7 +28,7 @@ async def verify_mastery():
         # To ensure we get a "low balance" alert, we can mock one provider balance if needed
         # but for now we'll just check if it runs without errors.
         await perform_liquidity_audit(db)
-        
+
         # Check if any logs were created
         logs = db.query(ActivityLog).filter(ActivityLog.action == "LIQUIDITY_ALARM").all()
         print(f"Detected {len(logs)} liquidity alarms in DB.")
@@ -43,7 +43,7 @@ async def verify_mastery():
         monitor.response_times = [6000.0] * 10
         metrics = monitor.get_metrics()
         print(f"Mocked monitor status: {metrics['status']}")
-        
+
         router = ProviderRouter()
         # This should log a warning about degradation and allow candidates to compete
         # Note: If no other US providers are enabled, it might still return TV or fail.
@@ -68,15 +68,15 @@ async def verify_mastery():
         )
         db.add(mock_v)
         db.commit()
-        
+
         print(f"Initial status: {mock_v.status}")
         await mark_verification_transcribing(db, mock_v, audio_url="https://audio.mock/123.mp3")
-        
+
         # Reload
         db.refresh(mock_v)
         print(f"Status after marking: {mock_v.status}")
         print(f"Audio URL: {mock_v.audio_url}")
-        
+
         if mock_v.status == "transcribing" and mock_v.audio_url:
             print("✅ Transcribing state logic verified.")
         else:

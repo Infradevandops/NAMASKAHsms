@@ -1,8 +1,8 @@
 # CI Test Restoration Plan - Institutional Grade
 
-**Status**: In Progress  
-**Created**: April 25, 2026  
-**Priority**: CRITICAL  
+**Status**: In Progress
+**Created**: April 25, 2026
+**Priority**: CRITICAL
 **Target Completion**: Q2 2026
 
 ---
@@ -11,15 +11,15 @@
 
 This document tracks the restoration of 105 test files that were temporarily removed from CI to achieve a passing pipeline. All tests must be fixed and restored to achieve institutional-grade quality standards.
 
-**Current State**: 8/113 test files running (7% coverage)  
-**Target State**: 113/113 test files running (90%+ coverage)  
+**Current State**: 8/113 test files running (7% coverage)
+**Target State**: 113/113 test files running (90%+ coverage)
 **Timeline**: 8 weeks (May-June 2026)
 
 ---
 
 ## Document Status
 
-✅ File created successfully  
+✅ File created successfully
 ⏳ Populating with comprehensive restoration plan...
 
 ---

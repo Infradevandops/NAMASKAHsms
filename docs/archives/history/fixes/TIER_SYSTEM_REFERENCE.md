@@ -1,8 +1,8 @@
 # Enterprise-Grade Tier Identification & Loading System
 ## Complete Analysis & Stable Implementation Plan
 
-**Status**: Production-Ready Solution  
-**Date**: March 15, 2026  
+**Status**: Production-Ready Solution
+**Date**: March 15, 2026
 **Stability Target**: 99.99% uptime, zero UI flashing, enterprise-grade
 
 ---
@@ -52,7 +52,7 @@ user = db.query(User).filter(User.id == user_id).first()
 if not user:
     return "freemium"  # Default for non-existent users
 ```
-**Purpose**: Prevent null reference errors  
+**Purpose**: Prevent null reference errors
 **Stability**: ✅ Guaranteed
 
 #### 2. **Database Freshness Check**
@@ -64,7 +64,7 @@ except Exception:
     self.db.expire_all()
     user = self.db.query(User).filter(User.id == user_id).first()
 ```
-**Purpose**: Prevent returning cached/stale tier from ORM session  
+**Purpose**: Prevent returning cached/stale tier from ORM session
 **Stability**: ✅ Guaranteed
 
 #### 3. **Tier Expiration Check**
@@ -79,7 +79,7 @@ if expires is not None and tier in ("pro", "custom"):
         db.commit()
         tier = "freemium"
 ```
-**Purpose**: Auto-downgrade expired subscriptions  
+**Purpose**: Auto-downgrade expired subscriptions
 **Stability**: ✅ Guaranteed
 
 #### 4. **Tier Validity Check**
@@ -89,7 +89,7 @@ valid_tiers = ["freemium", "payg", "pro", "custom"]
 if tier not in valid_tiers:
     tier = "freemium"  # Fallback to safe default
 ```
-**Purpose**: Prevent invalid tier values from propagating  
+**Purpose**: Prevent invalid tier values from propagating
 **Stability**: ✅ Guaranteed
 
 #### 5. **Feature Access Check**
@@ -105,7 +105,7 @@ feature_map = {
 }
 return feature_map.get(feature, False)
 ```
-**Purpose**: Verify user has access to specific feature  
+**Purpose**: Verify user has access to specific feature
 **Stability**: ✅ Guaranteed
 
 #### 6. **Tier Hierarchy Check**
@@ -116,7 +116,7 @@ current_level = tier_hierarchy.get(current_tier, 0)
 required_level = tier_hierarchy.get(required_tier, 0)
 return current_level >= required_level
 ```
-**Purpose**: Verify tier meets minimum requirements  
+**Purpose**: Verify tier meets minimum requirements
 **Stability**: ✅ Guaranteed
 
 ### Frontend Checks (Client-Side - DEFENSIVE)
@@ -131,7 +131,7 @@ if (!decoded.user_id) {
     window.location.href = '/auth/login';
 }
 ```
-**Purpose**: Prevent using invalid/expired tokens  
+**Purpose**: Prevent using invalid/expired tokens
 **Stability**: ✅ Guaranteed
 
 #### 8. **Tier Cache Validity Check**
@@ -142,7 +142,7 @@ if (cached && Date.now() - cached.ts < 3600000) {  // 1 hour TTL
     return cached.tier;
 }
 ```
-**Purpose**: Use cached tier to avoid unnecessary API calls  
+**Purpose**: Use cached tier to avoid unnecessary API calls
 **Stability**: ✅ Guaranteed
 
 #### 9. **API Response Format Check**
@@ -154,7 +154,7 @@ else if (d.user?.subscription_tier) freshTier = d.user.subscription_tier;
 else if (d.tier) freshTier = d.tier;
 freshTier = freshTier.toLowerCase();  // Normalize case
 ```
-**Purpose**: Handle API response variations  
+**Purpose**: Handle API response variations
 **Stability**: ✅ Guaranteed
 
 #### 10. **Tier Normalization Check**
@@ -163,7 +163,7 @@ freshTier = freshTier.toLowerCase();  // Normalize case
 const normalizedTier = (VerificationFlow.userTier || 'freemium').toLowerCase();
 const rank = VerificationFlow.tierRank[normalizedTier] || 0;
 ```
-**Purpose**: Prevent case-sensitivity bugs  
+**Purpose**: Prevent case-sensitivity bugs
 **Stability**: ✅ Guaranteed
 
 #### 11. **Feature Access Verification Check**
@@ -175,7 +175,7 @@ if (window.tierManager && !window.tierManager.checkFeatureAccess('area_codes')) 
     return;
 }
 ```
-**Purpose**: Prevent unauthorized feature access  
+**Purpose**: Prevent unauthorized feature access
 **Stability**: ✅ Guaranteed
 
 #### 12. **UI State Consistency Check**
@@ -190,7 +190,7 @@ if (hasService) {
     if (upsell) upsell.style.display = shouldShowUpsell ? 'block' : 'none';
 }
 ```
-**Purpose**: Ensure UI reflects actual tier  
+**Purpose**: Ensure UI reflects actual tier
 **Stability**: ✅ Guaranteed
 
 ---
@@ -210,15 +210,15 @@ async def verify_tier_middleware(request: Request, call_next):
     user_id = request.state.user_id
     if not user_id:
         return await call_next(request)
-    
+
     db = request.state.db
     tier_manager = TierManager(db)
     tier = tier_manager.get_user_tier(user_id)
-    
+
     # Store in request state for use in endpoints
     request.state.user_tier = tier
     request.state.tier_manager = tier_manager
-    
+
     return await call_next(request)
 ```
 
@@ -263,14 +263,14 @@ class TierLoader {
     static async loadTierBlocking() {
         // Block all UI rendering until tier is loaded
         const startTime = Date.now();
-        
+
         try {
             // Try cache first (instant)
             const cached = this.getCachedTier();
             if (cached && this.isCacheValid(cached)) {
                 return cached.tier;
             }
-            
+
             // Fetch from API with timeout
             const tier = await this.fetchTierWithTimeout(5000);
             this.cacheTier(tier);
@@ -281,20 +281,20 @@ class TierLoader {
             return this.getCachedTier()?.tier || 'freemium';
         }
     }
-    
+
     static async fetchTierWithTimeout(ms) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), ms);
-        
+
         try {
             const response = await fetch('/api/tiers/current', {
                 signal: controller.signal,
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
-            
+
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            
+
             // Normalize response
             let tier = data.current_tier || data.user?.subscription_tier || data.tier || 'freemium';
             return tier.toLowerCase();
@@ -302,7 +302,7 @@ class TierLoader {
             clearTimeout(timeout);
         }
     }
-    
+
     static getCachedTier() {
         try {
             return JSON.parse(localStorage.getItem('nsk_tier_cache'));
@@ -310,11 +310,11 @@ class TierLoader {
             return null;
         }
     }
-    
+
     static isCacheValid(cached) {
         return cached && (Date.now() - cached.ts < 3600000);  // 1 hour
     }
-    
+
     static cacheTier(tier) {
         localStorage.setItem('nsk_tier_cache', JSON.stringify({
             tier,
@@ -322,12 +322,12 @@ class TierLoader {
             checksum: this.calculateChecksum(tier)
         }));
     }
-    
+
     static calculateChecksum(tier) {
         // Simple checksum to detect tampering
         return btoa(tier + Date.now().toString().slice(0, 5));
     }
-    
+
     static getToken() {
         return localStorage.getItem('access_token') || '';
     }
@@ -350,7 +350,7 @@ class SkeletonLoader {
             </div>
         `;
     }
-    
+
     static hideSkeleton() {
         document.querySelector('.skeleton-container')?.remove();
     }
@@ -363,20 +363,20 @@ class SkeletonLoader {
 async function initializeApp() {
     // Show skeleton immediately
     SkeletonLoader.showSkeleton();
-    
+
     // Block on tier load
     const tier = await TierLoader.loadTierBlocking();
-    
+
     // Store in global state
     window.APP_STATE = {
         tier,
         tierRank: { freemium: 0, payg: 1, pro: 2, custom: 3 },
         tierRankValue: { freemium: 0, payg: 1, pro: 2, custom: 3 }[tier]
     };
-    
+
     // Hide skeleton
     SkeletonLoader.hideSkeleton();
-    
+
     // Now render actual UI
     await renderDashboard();
 }
@@ -407,11 +407,11 @@ class TierSync {
                 }
             }
         });
-        
+
         // Periodically verify tier hasn't changed
         setInterval(() => this.verifyTier(), 60000);  // Every minute
     }
-    
+
     static async verifyTier() {
         try {
             const response = await fetch('/api/tiers/current', {
@@ -419,7 +419,7 @@ class TierSync {
             });
             const data = await response.json();
             const serverTier = (data.current_tier || 'freemium').toLowerCase();
-            
+
             if (serverTier !== window.APP_STATE.tier) {
                 console.warn(`[TierSync] Tier mismatch detected: local=${window.APP_STATE.tier}, server=${serverTier}`);
                 window.APP_STATE.tier = serverTier;
@@ -443,7 +443,7 @@ class TierEvents {
     static emit(event, data) {
         window.dispatchEvent(new CustomEvent(`tier:${event}`, { detail: data }));
     }
-    
+
     static on(event, callback) {
         window.addEventListener(`tier:${event}`, (e) => callback(e.detail));
     }
@@ -463,31 +463,31 @@ TierEvents.on('changed', (newTier) => {
 # tests/unit/test_tier_identification.py
 def test_tier_identification_all_checks():
     """Test all 12 tier identification checks."""
-    
+
     # 1. User existence check
     assert get_user_tier('nonexistent') == 'freemium'
-    
+
     # 2. Database freshness check
     user = create_test_user(tier='pro')
     user.subscription_tier = 'custom'  # Modify in memory
     assert get_user_tier(user.id) == 'custom'  # Should reflect DB, not memory
-    
+
     # 3. Tier expiration check
     user = create_test_user(tier='pro', expires_at=datetime.now() - timedelta(days=1))
     assert get_user_tier(user.id) == 'freemium'  # Should auto-downgrade
-    
+
     # 4. Tier validity check
     user = create_test_user()
     user.subscription_tier = 'invalid_tier'
     assert get_user_tier(user.id) == 'freemium'  # Should fallback
-    
+
     # 5. Feature access check
     user = create_test_user(tier='freemium')
     assert not check_feature_access(user.id, 'api_access')
-    
+
     user = create_test_user(tier='pro')
     assert check_feature_access(user.id, 'api_access')
-    
+
     # 6. Tier hierarchy check
     assert check_tier_hierarchy('custom', 'pro')  # custom >= pro
     assert not check_tier_hierarchy('payg', 'pro')  # payg < pro
@@ -502,23 +502,23 @@ describe('Tier Identification System', () => {
         const startTime = performance.now();
         await initializeApp();
         const renderTime = performance.now() - startTime;
-        
+
         // Should render within 500ms
         expect(renderTime).toBeLessThan(500);
-        
+
         // Should not show skeleton after render
         expect(document.querySelector('.skeleton-container')).toBeNull();
     });
-    
+
     test('should maintain tier consistency across tabs', async () => {
         // Open two tabs
         const tab1 = window.open('/dashboard');
         const tab2 = window.open('/dashboard');
-        
+
         // Change tier in tab1
         await tab1.TierLoader.cacheTier('pro');
         tab1.TierEvents.emit('changed', 'pro');
-        
+
         // Tab2 should detect change
         await new Promise(resolve => {
             tab2.TierEvents.on('changed', (tier) => {
@@ -527,16 +527,16 @@ describe('Tier Identification System', () => {
             });
         });
     });
-    
+
     test('should verify tier on every request', async () => {
         const user = await createTestUser(tier='pro');
-        
+
         // Make request
         const response = await fetch('/api/verify/create', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${user.token}` }
         });
-        
+
         // Should include tier in response
         const data = await response.json();
         expect(data.user_tier).toBe('pro');
@@ -551,35 +551,35 @@ describe('Tier Identification E2E', () => {
     test('freemium user should not see premium features', async () => {
         await login('freemium@test.com');
         await page.goto('/dashboard');
-        
+
         // Should not see API keys section
         expect(await page.$('.api-keys-section')).toBeNull();
-        
+
         // Should see upgrade button
         expect(await page.$('.upgrade-btn')).toBeTruthy();
     });
-    
+
     test('pro user should see pro features', async () => {
         await login('pro@test.com');
         await page.goto('/dashboard');
-        
+
         // Should see API keys section
         expect(await page.$('.api-keys-section')).toBeTruthy();
-        
+
         // Should not see upgrade button
         expect(await page.$('.upgrade-btn')).toBeNull();
     });
-    
+
     test('tier change should reflect immediately', async () => {
         await login('freemium@test.com');
         await page.goto('/dashboard');
-        
+
         // Upgrade tier via API
         await upgradeUserTier('pro@test.com', 'pro');
-        
+
         // Refresh page
         await page.reload();
-        
+
         // Should see pro features
         expect(await page.$('.api-keys-section')).toBeTruthy();
     });
@@ -676,14 +676,14 @@ describe('Tier Identification E2E', () => {
 
 ## 📞 Support & Escalation
 
-**Critical Issues**: Immediate escalation to DevOps  
-**Tier Mismatches**: Automatic cache invalidation + reload  
-**API Failures**: Fallback to cached tier + retry  
+**Critical Issues**: Immediate escalation to DevOps
+**Tier Mismatches**: Automatic cache invalidation + reload
+**API Failures**: Fallback to cached tier + retry
 **Security Issues**: Immediate account lockdown + investigation
 
 ---
 
-**Status**: Ready for Implementation  
-**Estimated Effort**: 40 hours  
-**Risk Level**: Low (backward compatible)  
+**Status**: Ready for Implementation
+**Estimated Effort**: 40 hours
+**Risk Level**: Low (backward compatible)
 **ROI**: High (eliminates all tier-related issues)

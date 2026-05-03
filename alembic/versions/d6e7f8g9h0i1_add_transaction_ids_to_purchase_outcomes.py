@@ -18,15 +18,15 @@ depends_on = None
 
 def upgrade():
     # Add debit_transaction_id column (String to match balance_transactions.id)
-    op.add_column('purchase_outcomes', 
+    op.add_column('purchase_outcomes',
         sa.Column('debit_transaction_id', sa.String(), nullable=True)
     )
-    
+
     # Add refund_transaction_id column (String to match balance_transactions.id)
     op.add_column('purchase_outcomes',
         sa.Column('refund_transaction_id', sa.String(), nullable=True)
     )
-    
+
     # Add foreign key constraints
     op.create_foreign_key(
         'fk_purchase_outcomes_debit_transaction',
@@ -34,7 +34,7 @@ def upgrade():
         ['debit_transaction_id'], ['id'],
         ondelete='SET NULL'
     )
-    
+
     op.create_foreign_key(
         'fk_purchase_outcomes_refund_transaction',
         'purchase_outcomes', 'balance_transactions',
@@ -47,7 +47,7 @@ def downgrade():
     # Drop foreign key constraints
     op.drop_constraint('fk_purchase_outcomes_refund_transaction', 'purchase_outcomes', type_='foreignkey')
     op.drop_constraint('fk_purchase_outcomes_debit_transaction', 'purchase_outcomes', type_='foreignkey')
-    
+
     # Drop columns
     op.drop_column('purchase_outcomes', 'refund_transaction_id')
     op.drop_column('purchase_outcomes', 'debit_transaction_id')

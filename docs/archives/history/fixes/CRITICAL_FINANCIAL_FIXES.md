@@ -1,8 +1,8 @@
 # CRITICAL FINANCIAL FIXES
 
-**Status**: 🚨 URGENT - Production Financial Integrity Issues  
-**Created**: March 20, 2026  
-**Priority**: P0 - Critical  
+**Status**: 🚨 URGENT - Production Financial Integrity Issues
+**Created**: March 20, 2026
+**Priority**: P0 - Critical
 **Impact**: $10.20+ unaccounted, zero audit trail, broken refunds
 
 ---
@@ -40,7 +40,7 @@ SELECT id, credits, email FROM users WHERE id = '2986207f-4e45-4249-91c3-e5e13ba
 
 ### Failed Verifications Audit
 ```sql
-SELECT 
+SELECT
     id,
     status,
     cost,
@@ -48,7 +48,7 @@ SELECT
     refund_amount,
     activation_id,
     created_at
-FROM verifications 
+FROM verifications
 WHERE user_id = '2986207f-4e45-4249-91c3-e5e13bae6622'
 ORDER BY created_at DESC;
 ```
@@ -62,8 +62,8 @@ ORDER BY created_at DESC;
 | 4 | error | $2.04 | FALSE | NULL | lr_01KP... | 2026-03-20 |
 | 5 | error | $2.04 | FALSE | NULL | lr_01KP... | 2026-03-20 |
 
-**Total Charged:** $10.20  
-**Total Refunded:** $0.00  
+**Total Charged:** $10.20
+**Total Refunded:** $0.00
 **Missing Refunds:** $10.20
 
 ---
@@ -182,17 +182,17 @@ db.commit()
 
 **Verification Schema Update:**
 ```sql
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN debit_transaction_id UUID REFERENCES balance_transactions(id);
 
-ALTER TABLE verifications 
+ALTER TABLE verifications
 ADD COLUMN refund_transaction_id UUID REFERENCES balance_transactions(id);
 ```
 
 **Testing:**
 ```sql
 -- After fix, verify transaction logging works
-SELECT 
+SELECT
     bt.id,
     bt.user_id,
     bt.type,
@@ -241,7 +241,7 @@ def test_refund_enforcer_processes_error_status():
 ```python
 def process_verification_refund(verification_id: str, reason: str):
     verification = db.query(Verification).filter_by(id=verification_id).first()
-    
+
     # Create refund transaction
     refund_transaction = Transaction(
         id=str(uuid.uuid4()),
@@ -258,24 +258,24 @@ def process_verification_refund(verification_id: str, reason: str):
         }
     )
     db.add(refund_transaction)
-    
+
     # Update verification
     verification.refunded = True
     verification.refund_amount = verification.cost
     verification.refund_reason = reason
     verification.refunded_at = datetime.utcnow()
     verification.refund_transaction_id = refund_transaction.id  # LINK!
-    
+
     # Credit user
     user.credits += verification.cost
-    
+
     db.commit()
 ```
 
 **Audit Query:**
 ```sql
 -- Show debit → refund relationship
-SELECT 
+SELECT
     v.id as verification_id,
     v.status,
     v.cost,
@@ -302,7 +302,7 @@ ORDER BY v.created_at DESC;
 ```html
 <!-- After phone number display -->
 <div class="verification-actions">
-    <button 
+    <button
         id="cancel-verification-btn"
         class="btn btn-danger"
         onclick="cancelVerification('{{ verification.id }}')">
@@ -313,7 +313,7 @@ ORDER BY v.created_at DESC;
 <script>
 async function cancelVerification(verificationId) {
     if (!confirm('Cancel this verification and get a refund?')) return;
-    
+
     try {
         const response = await fetch(`/api/verification/cancel/${verificationId}`, {
             method: 'POST',
@@ -322,7 +322,7 @@ async function cancelVerification(verificationId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.ok) {
             showNotification('Verification cancelled. Refund processed.', 'success');
             setTimeout(() => window.location.reload(), 2000);
@@ -359,15 +359,15 @@ import uuid
 
 def backfill_transactions():
     db = next(get_db())
-    
+
     # Find verifications without transaction records
     verifications = db.query(Verification).filter(
         Verification.debit_transaction_id.is_(None),
         Verification.cost > 0
     ).all()
-    
+
     print(f"Found {len(verifications)} verifications without transaction records")
-    
+
     for v in verifications:
         # Create debit transaction
         debit = Transaction(
@@ -386,7 +386,7 @@ def backfill_transactions():
         )
         db.add(debit)
         v.debit_transaction_id = debit.id
-        
+
         # If refunded, create refund transaction
         if v.refunded and v.refund_amount:
             refund = Transaction(
@@ -405,9 +405,9 @@ def backfill_transactions():
             )
             db.add(refund)
             v.refund_transaction_id = refund.id
-        
+
         print(f"✓ Backfilled transactions for verification {v.id}")
-    
+
     db.commit()
     print(f"\n✅ Backfilled {len(verifications)} transaction records")
 
@@ -444,24 +444,24 @@ USER_ID = "2986207f-4e45-4249-91c3-e5e13bae6622"
 
 def issue_emergency_refund():
     db = next(get_db())
-    
+
     user = db.query(User).filter_by(id=USER_ID).first()
     print(f"User: {user.email}")
     print(f"Current Balance: ${user.credits:.2f}")
-    
+
     # Find unrefunded error verifications
     verifications = db.query(Verification).filter(
         Verification.user_id == USER_ID,
         Verification.status == "error",
         Verification.refunded == False
     ).all()
-    
+
     print(f"\nFound {len(verifications)} unrefunded verifications")
-    
+
     total_refund = 0
     for v in verifications:
         print(f"  - {v.id}: ${v.cost:.2f}")
-        
+
         # Create refund transaction
         refund = Transaction(
             id=str(uuid.uuid4()),
@@ -478,20 +478,20 @@ def issue_emergency_refund():
             }
         )
         db.add(refund)
-        
+
         # Update verification
         v.refunded = True
         v.refund_amount = v.cost
         v.refund_reason = "Emergency refund: Error status"
         v.refunded_at = datetime.utcnow()
         v.refund_transaction_id = refund.id
-        
+
         # Credit user
         user.credits += v.cost
         total_refund += v.cost
-    
+
     db.commit()
-    
+
     print(f"\n✅ Refunded ${total_refund:.2f}")
     print(f"New Balance: ${user.credits:.2f}")
 
@@ -596,7 +596,7 @@ python scripts/refund_user_2986207f.py
 
 ### User Financial Summary
 ```sql
-SELECT 
+SELECT
     u.id,
     u.email,
     u.credits as current_balance,
@@ -613,7 +613,7 @@ GROUP BY u.id, u.email, u.credits;
 
 ### Transaction Audit Trail
 ```sql
-SELECT 
+SELECT
     bt.created_at,
     bt.type,
     bt.amount,
@@ -629,12 +629,12 @@ ORDER BY bt.created_at DESC;
 
 ### Refund Efficiency Report
 ```sql
-SELECT 
+SELECT
     DATE(v.created_at) as date,
     COUNT(*) as total_verifications,
     COUNT(CASE WHEN v.status IN ('error', 'failed', 'timeout') THEN 1 END) as failed_count,
     COUNT(CASE WHEN v.refunded = TRUE THEN 1 END) as refunded_count,
-    ROUND(COUNT(CASE WHEN v.refunded = TRUE THEN 1 END)::numeric / 
+    ROUND(COUNT(CASE WHEN v.refunded = TRUE THEN 1 END)::numeric /
           NULLIF(COUNT(CASE WHEN v.status IN ('error', 'failed', 'timeout') THEN 1 END), 0) * 100, 2) as refund_rate
 FROM verifications v
 WHERE v.created_at >= NOW() - INTERVAL '30 days'
@@ -671,9 +671,9 @@ ORDER BY date DESC;
 
 ---
 
-**Priority**: 🚨 P0 - Critical  
-**Estimated Effort**: 2-3 days  
-**Risk**: High - Financial integrity at stake  
+**Priority**: 🚨 P0 - Critical
+**Estimated Effort**: 2-3 days
+**Risk**: High - Financial integrity at stake
 **Impact**: All users with failed verifications
 
 **Next Steps**: Execute Phase 1 (Emergency Refund) immediately, then proceed with systematic fixes.

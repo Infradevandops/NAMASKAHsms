@@ -16,10 +16,10 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
     inspector = sa.inspect(conn)
-    
+
     if "verifications" in inspector.get_table_names():
         existing_columns = [col["name"] for col in inspector.get_columns("verifications")]
-        
+
         if "outcome" not in existing_columns:
             op.add_column("verifications", sa.Column("outcome", sa.String(), nullable=True))
         if "cancel_reason" not in existing_columns:

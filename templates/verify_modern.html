@@ -118,17 +118,17 @@
                             <span id="ac-status-badge" style="display:none; font-size:12px; font-weight:600;"></span>
                         </label>
                         <div style="position:relative;">
-                            <input type="text" id="area-code-search-input" placeholder="e.g. 213" 
-                                oninput="debouncedCheckAreaCode(this.value)" 
+                            <input type="text" id="area-code-search-input" placeholder="e.g. 213"
+                                oninput="debouncedCheckAreaCode(this.value)"
                                 style="width:100%; padding:8px 32px 8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box; background:#fff; outline:none; transition: border-color 0.2s;" />
                             <div id="ac-spinner" style="display:none; position:absolute; right:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; border:2px solid #e5e7eb; border-top-color:#10b981; border-radius:50%; animation:ac-spin 0.8s linear infinite;"></div>
-                            <button id="clear-ac-btn" onclick="clearAreaCode()" 
+                            <button id="clear-ac-btn" onclick="clearAreaCode()"
                                 style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:#9ca3af; cursor:pointer; display:none;">✕</button>
                         </div>
                         <style>@keyframes ac-spin { to { transform: translateY(-50%) rotate(360deg); } }</style>
                         <div id="ac-message" style="font-size:12px; margin-top:6px; display:none;"></div>
                         <div id="ac-alternatives" style="margin-top:8px; display:none; flex-direction:column; gap:4px;"></div>
-                        
+
                         <div id="area-code-lock-msg" style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
                     </div>
                 </div>
@@ -402,7 +402,7 @@ function openImmersiveModal(type) {
                 <div class="modal-search-wrapper">
                     <div class="modal-search-field">
                         <i class="ph ph-magnifying-glass"></i>
-                        <input type="text" id="modal-search-input" class="modal-search-input" 
+                        <input type="text" id="modal-search-input" class="modal-search-input"
                                placeholder="Search ${type}..." oninput="filterImmersiveModal(this.value)" autofocus>
                     </div>
                     <button class="modal-settings-btn" onclick="toggleModalFilters()" title="Filter by area code">
@@ -451,9 +451,9 @@ function renderImmersiveList(type, query = '') {
     const listContainer = document.getElementById('modal-list-content');
     const items = _modalItems[type] || [];
     const normalizedQuery = query.toLowerCase();
-    
-    const filtered = items.filter(item => 
-        item.label.toLowerCase().includes(normalizedQuery) || 
+
+    const filtered = items.filter(item =>
+        item.label.toLowerCase().includes(normalizedQuery) ||
         (item.value || '').toLowerCase().includes(normalizedQuery)
     );
 
@@ -474,7 +474,7 @@ function renderImmersiveList(type, query = '') {
                     <div style="color:#6B7280; font-size:14px; margin-bottom:24px;">
                         Please check your connection and try again
                     </div>
-                    <button onclick="retryLoadServices(); closeImmersiveModal();" 
+                    <button onclick="retryLoadServices(); closeImmersiveModal();"
                             style="padding:10px 24px; background:#FE3C72; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">
                         Retry
                     </button>
@@ -649,23 +649,23 @@ function selectImmersiveItem(value, label, price) {
     if (_modalType === 'service') {
         VerificationFlow.selectedService = value;
         VerificationFlow.selectedServicePrice = price;
-        
+
         // Track recently used (max 5, deduplicated)
         _recentServices = [value, ..._recentServices.filter(id => id !== value)].slice(0, 5);
         localStorage.setItem('nsk_recent_services', JSON.stringify(_recentServices));
         localStorage.setItem('nsk_last_service', value);
-        
+
         const display = document.getElementById('service-selected-display');
         const input = document.getElementById('service-search-input');
-        
+
         input.value = label;
         display.style.display = 'flex';
         document.getElementById('service-display').textContent = label;
         const costEl = document.getElementById('selected-service-cost');
         if (costEl) costEl.textContent = price > 0 ? formatMoney(price) : '';
-        
+
         applyTierGating();
-        
+
     } else if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
         const acInput = document.getElementById('area-code-search-input');
@@ -673,7 +673,7 @@ function selectImmersiveItem(value, label, price) {
         if (acInput) acInput.value = label || '';
         if (clearBtn) clearBtn.style.display = value ? 'block' : 'none';
         updateSelectionChips();
-        
+
         // Persist to server
         if (value) {
             const token = localStorage.getItem('access_token');
@@ -689,7 +689,7 @@ function selectImmersiveItem(value, label, price) {
         if (cSel) cSel.value = value || '';
         updateSelectionChips();
     }
-    
+
     updatePricing();
     updateContinueBtn();
     closeImmersiveModal();
@@ -702,7 +702,7 @@ function clearServiceSelection() {
     document.getElementById('service-selected-display').style.display = 'none';
     document.getElementById('service-search-input').value = '';
     document.getElementById('continue-btn').disabled = true;
-    
+
     applyTierGating();
 }
 
@@ -722,16 +722,16 @@ function clearAreaCode() {
     if (acInput) acInput.value = '';
     if (clearBtn) clearBtn.style.display = 'none';
     VerificationFlow.selectedAreaCode = null;
-    
+
     // Phase 4 Check logic resets
     if(typeof debouncedCheckAreaCode === 'function') debouncedCheckAreaCode('');
-    
+
     updatePricing();
 }
 
 function updateContinueBtn() {
     const btn = document.getElementById('continue-btn');
-    
+
     // If we have a pending API check or error, disable
     const msg = document.getElementById('ac-message');
     let isErrorState = false;
@@ -740,7 +740,7 @@ function updateContinueBtn() {
     }
 
     if (btn) btn.disabled = !VerificationFlow.selectedService || isErrorState;
-    
+
     // Refresh balance when entering step 2 UI
     if (VerificationFlow.currentStep === 2) {
         loadStatusInfo();
@@ -812,9 +812,9 @@ function _buildServiceItems(services) {
         return true;
     });
     return [
-        ...unique.map(s => ({ 
-            value: s.id, 
-            label: s.name || s.id, 
+        ...unique.map(s => ({
+            value: s.id,
+            label: s.name || s.id,
             price: s.price,
             popular: popularIds.includes(s.id.toLowerCase())
         })),
@@ -828,19 +828,19 @@ function _buildServiceItems(services) {
 async function loadServices() {
     try {
         await window.ServiceStore.init();
-        
+
         const services = window.ServiceStore.getAll();
         if (!services || services.length === 0) {
             throw new Error('No services available from API');
         }
-        
+
         _modalItems['service'] = _buildServiceItems(services);
         console.log(`✅ Loaded ${services.length} services from TextVerified API`);
 
         // Hide retry button on success
         const retryBtn = document.getElementById('service-retry-btn');
         if (retryBtn) retryBtn.style.display = 'none';
-        
+
         // Subscribe to updates
         window.ServiceStore.subscribe((updatedServices) => {
             if (updatedServices && updatedServices.length > 0) {
@@ -850,12 +850,12 @@ async function loadServices() {
         });
     } catch (error) {
         console.error('❌ Failed to load services from TextVerified API:', error);
-        
+
         // Show error to user - DO NOT use fallback
         window.toast && window.toast.error(
             'Unable to load services from provider. Please refresh the page or contact support if the issue persists.'
         );
-        
+
         // Disable service selection
         const input = document.getElementById('service-search-input');
         if (input) {
@@ -868,18 +868,18 @@ async function loadServices() {
         // Show retry button
         const retryBtn = document.getElementById('service-retry-btn');
         if (retryBtn) retryBtn.style.display = 'block';
-        
+
         _modalItems['service'] = [];
     }
 }
 
 async function retryLoadServices() {
     window.toast && window.toast.info('Retrying...');
-    
+
     // Hide retry button while retrying
     const retryBtn = document.getElementById('service-retry-btn');
     if (retryBtn) retryBtn.style.display = 'none';
-    
+
     // Re-enable input
     const input = document.getElementById('service-search-input');
     if (input) {
@@ -888,10 +888,10 @@ async function retryLoadServices() {
         input.onclick = () => openImmersiveModal('service');
         input.style.cursor = 'pointer';
     }
-    
+
     // Retry loading
     await loadServices();
-    
+
     // Refresh modal if open
     const modalContainer = document.getElementById('immersive-modal-container');
     if (modalContainer && modalContainer.innerHTML) {
@@ -949,10 +949,10 @@ async function loadCarriers() {
         const data = res.ok ? await res.json() : {};
         const carriers = data.carriers || [];
         _modalItems['carrier'] = carriers.map(c => ({ value: c.id || c.name, label: c.name, price: c.price || 0.50 }));
-        
-        const html = '<option value="">Any Carrier</option>' + 
+
+        const html = '<option value="">Any Carrier</option>' +
             _modalItems['carrier'].map(c => `<option value="${c.value}">${c.label}</option>`).join('');
-        
+
         _lsSet(_LS_CARRIERS_KEY, html);
         console.log(`✅ Loaded ${carriers.length} carriers from API`);
     } catch (e) {
@@ -1001,7 +1001,7 @@ async function createVerification() {
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
         document.getElementById('display-verification-id').textContent = data.verification_id || '-';
-        
+
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
         updateProgress(3);
         startPolling();
@@ -1019,9 +1019,9 @@ async function createVerification() {
     } catch (error) {
         console.error('Error:', error);
         const msg = error.message || 'Failed to create verification';
-        
+
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
-        
+
         if (msg.includes('Out of stock') || msg.includes('unavailable')) {
             window.toast && window.toast.error(`${VerificationFlow.selectedService} is temporarily unavailable. Please try a different service.`);
         } else if (msg.includes('Insufficient')) {
@@ -1069,10 +1069,10 @@ function showFallbackWarning(requested, assigned, sameState) {
 function startPolling() {
     VerificationFlow.elapsedSeconds = 0;
     VerificationFlow.serverOffset = 0; // Offset between client and server time
-    
+
     let pollCount = 0;
     const initialDelay = 2000;
-    
+
     async function poll() {
         if (!VerificationFlow.verificationId || VerificationFlow.currentStep !== 3) return;
 
@@ -1080,10 +1080,10 @@ function startPolling() {
             const res = await fetch(`/api/verification/status/${VerificationFlow.verificationId}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
             });
-            
+
             if (res.ok) {
                 const data = await res.json();
-                
+
                 // 1. Synchronize Clocks (Phase 12: Brutal Parity)
                 if (data.server_time) {
                     const serverTime = new Date(data.server_time).getTime();
@@ -1094,19 +1094,19 @@ function startPolling() {
                 if ((data.status === 'completed' || data.status === 'success') && data.sms_code) {
                     VerificationFlow.smsReceived = true;
                     stopPolling();
-                    
+
                     document.getElementById('sms-code').textContent = data.sms_code;
                     document.getElementById('code-received').style.display = 'block';
                     document.querySelector('.scanning-container').style.display = 'none';
-                    
+
                     document.getElementById('receipt-carrier').textContent = data.assigned_carrier || data.operator || 'Auto';
                     document.getElementById('receipt-area-code').textContent = data.assigned_area_code || 'Any';
-                    
+
                     if (data.fallback_applied) {
                         document.getElementById('receipt-fallback-row').style.display = 'flex';
                         document.getElementById('receipt-requested-ac').textContent = data.requested_area_code || '-';
                     }
-                    
+
                     window.toast.success('SMS code received');
                     playArrivalSound();
                     if (localStorage.getItem('nsk_auto_copy') === 'true') {
@@ -1126,23 +1126,23 @@ function startPolling() {
                     const now = Date.now() + VerificationFlow.serverOffset;
                     const remainingMs = Math.max(0, endsAt - now);
                     const totalDurationMs = 120000; // 2 minutes standard
-                    
+
                     const remainingSec = Math.round(remainingMs / 1000);
                     const elapsedSec = Math.round((totalDurationMs - remainingMs) / 1000);
-                    
+
                     VerificationFlow.elapsedSeconds = elapsedSec;
-                    
+
                     // Update UI
                     const elEl = document.getElementById('elapsed-time');
                     const elapsedEl = document.getElementById('progress-elapsed');
                     const remainEl = document.getElementById('progress-remaining');
                     const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
-                    
+
                     if (elEl) elEl.textContent = elapsedSec;
                     if (elapsedEl) elapsedEl.textContent = elapsedSec + 's elapsed';
                     if (remainEl) remainEl.textContent = remainingSec + 's left';
                     if (progressFill) progressFill.style.width = Math.min(100, (elapsedSec / 120 * 100)) + '%';
-                    
+
                     updateTimerRing(elapsedSec, 120);
 
                     // Auto-timeout if server says we're done
@@ -1161,13 +1161,13 @@ function startPolling() {
         let nextDelay = 3000;
         if (pollCount < 5) nextDelay = 2000; // Fast start
         else if (pollCount > 15) nextDelay = 5000; // Back off
-        
+
         VerificationFlow.scanInterval = setTimeout(poll, nextDelay);
     }
-    
+
     // Kick off first poll
     poll();
-    
+
     // Background UI ticker (keeps the ring smooth between polls)
     const ticker = setInterval(() => {
         if (VerificationFlow.currentStep !== 3 || VerificationFlow.smsReceived) {
@@ -1367,7 +1367,7 @@ function resetFlow() {
     VerificationFlow.selectedCarrier = null;
     VerificationFlow.verificationId = null;
     VerificationFlow.elapsedSeconds = 0;
-    
+
     // UI resets
     clearServiceSelection();
     document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
@@ -1452,7 +1452,7 @@ async function loadTier() {
             if (d.current_tier) freshTier = d.current_tier;
             else if (d.user?.subscription_tier) freshTier = d.user.subscription_tier;
             else if (d.tier) freshTier = d.tier;
-            
+
             freshTier = freshTier.toLowerCase();
             localStorage.setItem('nsk_tier_cache', JSON.stringify({ ts: Date.now(), tier: freshTier }));
             if (freshTier !== VerificationFlow.userTier) {
@@ -1481,16 +1481,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
     // Load tier FIRST — must know tier before any UI renders
     await loadTier();
-    
+
     // Load services (critical path)
     await loadServices();
-    
+
     // Load balance in background
     loadBalance();
-    
+
     // Load presets (Pro+ only, non-blocking)
     loadPresets();
-    
+
     updateProgress(1);
 
     // Pre-select service from query param
@@ -1532,7 +1532,7 @@ async function loadBalance() {
 function updatePricing() {
     const areaCode = VerificationFlow.selectedAreaCode || null;
     const carrier = VerificationFlow.selectedCarrier || null;
-    
+
     // Use service price or default to 2.50
     let price = VerificationFlow.selectedServicePrice || 2.50;
     let filterCharges = 0;
@@ -1540,24 +1540,24 @@ function updatePricing() {
     // For PAYG, add premiums if selecting area code or specific carrier
     if (VerificationFlow.userTier === 'payg') {
         if (areaCode) {
-            const ac_premiums = { 
+            const ac_premiums = {
                 "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
-                "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30 
+                "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
             };
             filterCharges += ac_premiums[areaCode] || 0.25;
         }
         if (carrier) {
-            const c_premiums = { 
+            const c_premiums = {
                 "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
-                "att": 0.20, "at&t": 0.20, "sprint": 0.20 
+                "att": 0.20, "at&t": 0.20, "sprint": 0.20
             };
             filterCharges += c_premiums[carrier.toLowerCase()] || 0.50;
         }
     }
-    
+
     // Pro/Custom users get filters included ($0 surcharge)
     // Overage is handled on backend, not shown in base price preview
-    
+
     const total = price + filterCharges;
     document.getElementById('pricing-cost').textContent = formatMoney(total);
 }
@@ -1568,42 +1568,42 @@ let _acCheckAbort = null;
 function debouncedCheckAreaCode(value) {
     const btn = document.getElementById('clear-ac-btn');
     if (btn) btn.style.display = value ? 'block' : 'none';
-    
+
     // Reset state
     const input = document.getElementById('area-code-search-input');
     const badge = document.getElementById('ac-status-badge');
     const msg = document.getElementById('ac-message');
     const alts = document.getElementById('ac-alternatives');
     const spinner = document.getElementById('ac-spinner');
-    
+
     // Clean up purely visual locking if they haven't typed yet, just to be safe
     if (input) input.style.borderColor = '#e5e7eb';
     if (input) input.style.backgroundColor = '#fff';
     if (badge) badge.style.display = 'none';
     if (msg) msg.style.display = 'none';
     if (alts) alts.style.display = 'none';
-    
+
     // Basic validation
     const code = value.replace(/\D/g, '');
     VerificationFlow.selectedAreaCode = code.length === 3 ? code : null;
     updateSelectionChips();
     updateContinueBtn();
-    
+
     if (code.length < 3) {
         if (_acCheckTimeout) clearTimeout(_acCheckTimeout);
         if (spinner) spinner.style.display = 'none';
         return;
     }
-    
+
     if (!VerificationFlow.selectedService) return; // Need service to score
-    
+
     // Set loading
     if (spinner) spinner.style.display = 'block';
     if (btn) btn.style.display = 'none';
-    
+
     if (_acCheckTimeout) clearTimeout(_acCheckTimeout);
     if (_acCheckAbort) _acCheckAbort.abort();
-    
+
     _acCheckTimeout = setTimeout(() => {
         checkAreaCodeAPI(code);
     }, 500);
@@ -1617,16 +1617,16 @@ async function checkAreaCodeAPI(code) {
     const spinner = document.getElementById('ac-spinner');
     const btn = document.getElementById('clear-ac-btn');
     const continueBtn = document.getElementById('continue-btn');
-    
+
     _acCheckAbort = new AbortController();
     try {
         const res = await fetch(`/api/area-codes/check?service=${encodeURIComponent(VerificationFlow.selectedService)}&area_code=${encodeURIComponent(code)}`, {
             signal: _acCheckAbort.signal
         });
-        
+
         spinner.style.display = 'none';
         btn.style.display = 'block';
-        
+
         if (!res.ok) {
             // Probably unsupported provider format or invalid
             const data = await res.json().catch(()=>({}));
@@ -1637,9 +1637,9 @@ async function checkAreaCodeAPI(code) {
             updateContinueBtn();
             return;
         }
-        
+
         const data = await res.json();
-        
+
         if (data.status === 'available') {
             input.style.borderColor = '#10b981';
             input.style.backgroundColor = '#f0fdf4';
@@ -1650,7 +1650,7 @@ async function checkAreaCodeAPI(code) {
             msg.style.color = '#059669';
             msg.style.display = 'block';
             updateContinueBtn();
-            
+
         } else if (data.status === 'unavailable') {
             input.style.borderColor = '#f59e0b';
             input.style.backgroundColor = '#fffbeb';
@@ -1660,26 +1660,26 @@ async function checkAreaCodeAPI(code) {
             msg.textContent = data.message;
             msg.style.color = '#92400e';
             msg.style.display = 'block';
-            
+
             // Mark state as custom error to block continue button explicitly
             continueBtn.disabled = true;
-            
+
             if (data.alternatives && data.alternatives.length > 0) {
                 renderAlternatives(data.alternatives);
             }
-            
+
         } else if (data.status === 'unknown') {
             input.style.borderColor = '#e5e7eb';
             msg.textContent = data.message;
             msg.style.color = '#6b7280';
             msg.style.display = 'block';
             updateContinueBtn();
-            
+
             if (data.alternatives && data.alternatives.length > 0) {
                 renderAlternatives(data.alternatives);
             }
         }
-        
+
     } catch (e) {
         if (e.name === 'AbortError') return;
         spinner.style.display = 'none';
@@ -1696,18 +1696,18 @@ async function checkAreaCodeAPI(code) {
 function renderAlternatives(alts) {
     const list = document.getElementById('ac-alternatives');
     let html = '<div style="font-size:11px; font-weight:600; color:#6b7280; margin-top:4px;">Try nearby options:</div>';
-    
+
     alts.forEach(alt => {
         let dotColor = '#9ca3af'; // unknown
         if (alt.status === 'available') dotColor = '#10b981';
         if (alt.status === 'unavailable') dotColor = '#ef4444';
-        
+
         const tierLabels = {
             'same_city': 'Same City',
             'nearby': 'Nearby',
             'same_state': 'Same State'
         };
-        
+
         html += `
             <div onclick="selectAlternative('${alt.area_code}')" style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:#f9fafb; border:1px solid #f3f4f6; border-radius:6px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#f9fafb'">
                 <div style="display:flex; align-items:center; gap:8px;">

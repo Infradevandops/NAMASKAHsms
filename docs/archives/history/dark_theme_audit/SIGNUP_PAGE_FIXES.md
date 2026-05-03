@@ -1,6 +1,6 @@
 # 🔧 Sign Up Page Fixes - Status Report
 
-**Date**: April 20, 2026  
+**Date**: April 20, 2026
 **Status**: Partially Fixed
 
 ---
@@ -173,11 +173,11 @@ If you don't need Google OAuth right now, remove the button:
 
 ---
 
-**Status**: Terms acceptance ✅ FIXED  
-**Status**: Google OAuth ❌ NOT IMPLEMENTED  
+**Status**: Terms acceptance ✅ FIXED
+**Status**: Google OAuth ❌ NOT IMPLEMENTED
 **Action**: Deploy terms fix, decide on Google OAuth later
 
 ---
 
-**Prepared by**: Amazon Q Developer  
+**Prepared by**: Amazon Q Developer
 **Date**: April 20, 2026

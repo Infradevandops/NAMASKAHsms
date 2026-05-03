@@ -10,7 +10,7 @@ Manage user subscription tiers through web dashboard or API.
 - No API access
 - No special features
 
-**Pay-As-You-Go** - No monthly fee  
+**Pay-As-You-Go** - No monthly fee
 - $2.50 per SMS
 - Area code selection costs extra
 - No API access
@@ -22,7 +22,7 @@ Manage user subscription tiers through web dashboard or API.
 - Priority support
 
 **Custom** - $35/month
-- $25 monthly SMS credit  
+- $25 monthly SMS credit
 - Unlimited API keys
 - All features included
 - Dedicated support
@@ -52,7 +52,7 @@ GET /stats
 ```
 Shows user count for each tier.
 
-### List Users  
+### List Users
 ```
 GET /users?tier=pro&limit=50
 ```
@@ -67,7 +67,7 @@ Upgrades or downgrades a user.
 
 ### Bulk Update
 ```
-POST /users/bulk/tier  
+POST /users/bulk/tier
 Body: {"user_ids": ["user1", "user2"], "tier": "pro", "duration_days": 30}
 ```
 Updates multiple users at once.
@@ -110,7 +110,7 @@ Removes an API key.
 GET /api/verification/area-codes/US
 ```
 
-**Carrier Selection** - Requires Pro or higher  
+**Carrier Selection** - Requires Pro or higher
 ```
 GET /api/verification/carriers/US
 ```
@@ -140,7 +140,7 @@ DELETE /users/{id}/tier
 ## Response Codes
 
 - 200 = Success
-- 400 = Bad request  
+- 400 = Bad request
 - 403 = Admin access required
 - 404 = User not found
 - 500 = Server error
@@ -149,6 +149,6 @@ DELETE /users/{id}/tier
 ## System Details
 
 **Database:** User tier stored in users.subscription_tier field
-**Caching:** Tier checks cached for 60 seconds  
+**Caching:** Tier checks cached for 60 seconds
 **Performance:** Tier check takes less than 1ms
 **Hierarchy:** custom > pro > payg > freemium

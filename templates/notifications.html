@@ -13,19 +13,19 @@
         align-items: center;
         margin-bottom: 24px;
     }
-    
+
     .notifications-actions {
         display: flex;
         gap: 12px;
     }
-    
+
     .notification-filters {
         display: flex;
         gap: 8px;
         margin-bottom: 24px;
         flex-wrap: wrap;
     }
-    
+
     .filter-btn {
         padding: 8px 16px;
         border: 1px solid var(--border-color);
@@ -35,13 +35,13 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    
+
     .filter-btn:hover, .filter-btn.active {
         background: var(--primary);
         color: white;
         border-color: var(--primary);
     }
-    
+
     .filter-btn .count {
         background: rgba(0,0,0,0.1);
         padding: 2px 8px;
@@ -49,17 +49,17 @@
         font-size: 11px;
         margin-left: 6px;
     }
-    
+
     .filter-btn.active .count {
         background: rgba(255,255,255,0.2);
     }
-    
+
     .notification-list {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .notification-item {
         background: var(--bg-card);
         border-radius: var(--radius-card);
@@ -70,16 +70,16 @@
         transition: all 0.2s;
         border-left: 4px solid transparent;
     }
-    
+
     .notification-item:hover {
         box-shadow: var(--shadow-md);
     }
-    
+
     .notification-item.unread {
         border-left-color: var(--primary);
         background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, var(--bg-card) 100%);
     }
-    
+
     .notification-icon {
         width: 40px;
         height: 40px;
@@ -90,43 +90,43 @@
         font-size: 18px;
         flex-shrink: 0;
     }
-    
+
     .notification-icon.system { background: rgba(102, 126, 234, 0.1); }
     .notification-icon.payment { background: rgba(16, 185, 129, 0.1); }
     .notification-icon.verification { background: rgba(245, 158, 11, 0.1); }
     .notification-icon.security { background: rgba(239, 68, 68, 0.1); }
-    
+
     .notification-content {
         flex: 1;
         min-width: 0;
     }
-    
+
     .notification-title {
         font-weight: 600;
         margin-bottom: 4px;
         color: var(--text-primary);
     }
-    
+
     .notification-message {
         font-size: 14px;
         color: var(--text-secondary);
         margin-bottom: 8px;
         line-height: 1.5;
     }
-    
+
     .notification-meta {
         display: flex;
         gap: 16px;
         font-size: 12px;
         color: var(--text-muted);
     }
-    
+
     .notification-actions {
         display: flex;
         gap: 8px;
         align-items: flex-start;
     }
-    
+
     .notification-btn {
         padding: 6px 12px;
         border: none;
@@ -137,33 +137,33 @@
         transition: all 0.2s;
         color: var(--text-muted);
     }
-    
+
     .notification-btn:hover {
         background: var(--bg-body);
         color: var(--text-primary);
     }
-    
+
     .notification-btn.delete:hover {
         background: rgba(239, 68, 68, 0.1);
         color: #ef4444;
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
         color: var(--text-muted);
     }
-    
+
     .empty-state-icon {
         font-size: 48px;
         margin-bottom: 16px;
     }
-    
+
     .load-more {
         text-align: center;
         padding: 20px;
     }
-    
+
     .unread-dot {
         width: 8px;
         height: 8px;
@@ -171,18 +171,18 @@
         border-radius: 50%;
         flex-shrink: 0;
     }
-    
+
     @media (max-width: 768px) {
         .notifications-header {
             flex-direction: column;
             gap: 16px;
             align-items: flex-start;
         }
-        
+
         .notification-item {
             flex-direction: column;
         }
-        
+
         .notification-actions {
             margin-top: 12px;
         }
@@ -264,7 +264,7 @@
     let currentFilter = 'all';
     let offset = 0;
     const limit = 20;
-    
+
     // Notification type icons
     const typeIcons = {
         system: '',
@@ -273,7 +273,7 @@
         security: '',
         default: ''
     };
-    
+
     // Load notifications
     async function loadNotifications(append = false) {
         const token = localStorage.getItem('access_token');
@@ -281,17 +281,17 @@
             showError('Please log in to view notifications');
             return;
         }
-        
+
         if (!append) {
             offset = 0;
             showLoading();
         }
-        
+
         try {
             const response = await ApiRetry.fetchWithRetry(`/api/notifications?limit=${limit}&offset=${offset}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (!response.ok) {
                 if (response.status === 401) {
                     window.location.href = '/auth/login';
@@ -299,28 +299,28 @@
                 }
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (append) {
                 notifications = [...notifications, ...(data.notifications || [])];
             } else {
                 notifications = data.notifications || [];
             }
-            
+
             updateCounts(data);
             renderNotifications();
-            
+
             // Show/hide load more
-            document.getElementById('load-more').style.display = 
+            document.getElementById('load-more').style.display =
                 (data.notifications || []).length >= limit ? 'block' : 'none';
-            
+
         } catch (error) {
             console.error('[Notifications] Load failed:', error);
             showError(error.message || 'Failed to load notifications');
         }
     }
-    
+
     // Update filter counts
     function updateCounts(data) {
         const all = notifications.length;
@@ -328,24 +328,24 @@
         const system = notifications.filter(n => n.type === 'system').length;
         const payment = notifications.filter(n => n.type === 'payment').length;
         const verification = notifications.filter(n => n.type === 'verification').length;
-        
+
         document.getElementById('count-all').textContent = all;
         document.getElementById('count-unread').textContent = unread;
         document.getElementById('count-system').textContent = system;
         document.getElementById('count-payment').textContent = payment;
         document.getElementById('count-verification').textContent = verification;
-        
-        document.getElementById('unread-count').textContent = 
+
+        document.getElementById('unread-count').textContent =
             unread > 0 ? `${unread} unread notification${unread > 1 ? 's' : ''}` : 'All caught up!';
-        
+
         document.getElementById('mark-all-btn').disabled = unread === 0;
     }
-    
+
     // Render notifications
     function renderNotifications() {
         const container = document.getElementById('notification-list');
         const filtered = filterNotifications(notifications);
-        
+
         if (filtered.length === 0) {
             container.innerHTML = '';
             document.getElementById('empty-state').style.display = 'block';
@@ -353,19 +353,19 @@
             document.getElementById('loading-state').style.display = 'none';
             return;
         }
-        
+
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('error-state').style.display = 'none';
         document.getElementById('loading-state').style.display = 'none';
-        
+
         let html = '';
         for (const notif of filtered) {
             const icon = typeIcons[notif.type] || typeIcons.default;
             const timeAgo = formatTimeAgo(notif.created_at);
-            
+
             html += `
-                <div class="notification-item ${notif.is_read ? '' : 'unread'}" 
-                     data-id="${notif.id}" 
+                <div class="notification-item ${notif.is_read ? '' : 'unread'}"
+                     data-id="${notif.id}"
                      role="listitem"
                      aria-label="${notif.is_read ? '' : 'Unread: '}${escapeHtml(notif.title)}">
                     <div class="notification-icon ${notif.type || 'system'}">${icon}</div>
@@ -387,17 +387,17 @@
                 </div>
             `;
         }
-        
+
         container.innerHTML = html;
     }
-    
+
     // Filter notifications
     function filterNotifications(notifs) {
         if (currentFilter === 'all') return notifs;
         if (currentFilter === 'unread') return notifs.filter(n => !n.is_read);
         return notifs.filter(n => n.type === currentFilter);
     }
-    
+
     // Set filter
     function setFilter(filter) {
         currentFilter = filter;
@@ -407,7 +407,7 @@
         });
         renderNotifications();
     }
-    
+
     // Mark single notification as read
     async function markRead(id) {
         const token = localStorage.getItem('access_token');
@@ -416,7 +416,7 @@
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 const notif = notifications.find(n => n.id === id);
                 if (notif) notif.is_read = true;
@@ -427,7 +427,7 @@
             console.error('[Notifications] Mark read failed:', error);
         }
     }
-    
+
     // Mark all as read
     async function markAllRead() {
         const token = localStorage.getItem('access_token');
@@ -436,7 +436,7 @@
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 notifications.forEach(n => n.is_read = true);
                 updateCounts({});
@@ -446,7 +446,7 @@
             console.error('[Notifications] Mark all read failed:', error);
         }
     }
-    
+
     // Delete notification
     async function deleteNotification(id) {
         const token = localStorage.getItem('access_token');
@@ -455,7 +455,7 @@
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 notifications = notifications.filter(n => n.id !== id);
                 updateCounts({});
@@ -465,41 +465,41 @@
             console.error('[Notifications] Delete failed:', error);
         }
     }
-    
+
     // Load more
     function loadMore() {
         offset += limit;
         loadNotifications(true);
     }
-    
+
     // Utility functions
     function formatTimeAgo(isoString) {
         if (!isoString) return 'Unknown';
         const date = new Date(isoString);
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
-        
+
         if (diff < 60) return 'Just now';
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
         if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
         return date.toLocaleDateString();
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
     function showLoading() {
         document.getElementById('notification-list').innerHTML = '';
         document.getElementById('loading-state').style.display = 'block';
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('error-state').style.display = 'none';
     }
-    
+
     function showError(message) {
         document.getElementById('notification-list').innerHTML = '';
         document.getElementById('loading-state').style.display = 'none';
@@ -507,7 +507,7 @@
         document.getElementById('error-state').style.display = 'block';
         document.getElementById('error-message').textContent = message;
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', loadNotifications);
 </script>

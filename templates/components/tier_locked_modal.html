@@ -159,11 +159,11 @@
 }
 </style>
 
-<div id="tier-locked-modal" 
-     class="tier-locked-overlay" 
-     role="dialog" 
-     aria-modal="true" 
-     aria-labelledby="tier-locked-title" 
+<div id="tier-locked-modal"
+     class="tier-locked-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="tier-locked-title"
      aria-describedby="tier-locked-message">
     <div class="tier-locked-modal" tabindex="-1">
         <div class="tier-locked-icon" aria-hidden="true">
@@ -179,7 +179,7 @@
             Requires: Pay-As-You-Go
         </span>
         <div class="tier-locked-actions" role="group" aria-label="Modal actions">
-            <button class="tier-locked-upgrade-btn" 
+            <button class="tier-locked-upgrade-btn"
                     id="tier-locked-upgrade-btn"
                     onclick="window.location.href='/settings?tab=billing'"
                     aria-label="Upgrade your subscription plan">
@@ -188,7 +188,7 @@
                 </svg>
                 Upgrade Now
             </button>
-            <button class="tier-locked-close-btn" 
+            <button class="tier-locked-close-btn"
                     id="tier-locked-close-btn"
                     onclick="closeTierLockedModal()"
                     aria-label="Close this dialog">
@@ -230,51 +230,51 @@ function showTierLockedModal(options = {}) {
     const requiredEl = document.getElementById('tier-locked-required');
     const upgradeBtn = document.getElementById('tier-locked-upgrade-btn');
     const announcement = document.getElementById('tier-locked-announcement');
-    
+
     // Store currently focused element
     previouslyFocusedElement = document.activeElement;
-    
+
     // Set message
     if (options.message) {
         messageEl.textContent = options.message;
     } else {
         messageEl.textContent = 'This feature requires a higher subscription tier.';
     }
-    
+
     // Set required tier
     const requiredTier = options.requiredTier || 'payg';
     const tierName = TIER_DISPLAY_NAMES[requiredTier] || requiredTier;
     requiredEl.textContent = `Requires: ${tierName}`;
-    
+
     // Set tier badge color
     requiredEl.className = 'tier-locked-required';
     if (requiredTier === 'payg') requiredEl.classList.add('tier-badge-payg');
     else if (requiredTier === 'pro') requiredEl.classList.add('tier-badge-pro');
     else if (requiredTier === 'custom') requiredEl.classList.add('tier-badge-custom');
-    
+
     // Set upgrade URL
     const upgradeUrl = options.upgradeUrl || '/pricing';
     upgradeBtn.onclick = () => window.location.href = upgradeUrl;
-    
+
     // Show modal
     modal.classList.add('active');
-    
+
     // Announce to screen readers
     announcement.textContent = `Feature locked dialog opened. ${messageEl.textContent} ${requiredEl.textContent}`;
-    
+
     // Focus the modal content for screen readers
     setTimeout(() => {
         upgradeBtn.focus();
     }, 100);
-    
+
     // Close on overlay click
     modal.onclick = (e) => {
         if (e.target === modal) closeTierLockedModal();
     };
-    
+
     // Add keyboard event listeners
     document.addEventListener('keydown', handleModalKeydown);
-    
+
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
 }
@@ -282,18 +282,18 @@ function showTierLockedModal(options = {}) {
 function closeTierLockedModal() {
     const modal = document.getElementById('tier-locked-modal');
     const announcement = document.getElementById('tier-locked-announcement');
-    
+
     modal.classList.remove('active');
-    
+
     // Announce to screen readers
     announcement.textContent = 'Dialog closed';
-    
+
     // Remove keyboard event listeners
     document.removeEventListener('keydown', handleModalKeydown);
-    
+
     // Restore body scroll
     document.body.style.overflow = '';
-    
+
     // Return focus to previously focused element
     if (previouslyFocusedElement && previouslyFocusedElement.focus) {
         previouslyFocusedElement.focus();
@@ -302,20 +302,20 @@ function closeTierLockedModal() {
 
 function handleModalKeydown(e) {
     const modal = document.getElementById('tier-locked-modal');
-    
+
     // Close on Escape
     if (e.key === 'Escape') {
         e.preventDefault();
         closeTierLockedModal();
         return;
     }
-    
+
     // Trap focus within modal
     if (e.key === 'Tab') {
         const focusableElements = modal.querySelectorAll(FOCUSABLE_ELEMENTS);
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
-        
+
         if (e.shiftKey) {
             // Shift + Tab
             if (document.activeElement === firstElement) {

@@ -1,7 +1,7 @@
 # ✅ PRE-PUSH VERIFICATION COMPLETE
 
-**Date**: 2026-04-17  
-**Status**: ALL TESTS PASSED  
+**Date**: 2026-04-17
+**Status**: ALL TESTS PASSED
 **Ready to Push**: YES
 
 ---
@@ -205,7 +205,7 @@ psql $DATABASE_URL
 \i migrations/add_refund_fields.sql
 
 # Verify
-SELECT column_name FROM information_schema.columns 
+SELECT column_name FROM information_schema.columns
 WHERE table_name = 'verifications' AND column_name LIKE 'refund%';
 ```
 

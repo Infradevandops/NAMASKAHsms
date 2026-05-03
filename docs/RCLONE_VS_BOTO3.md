@@ -307,6 +307,6 @@ rclone check backups/ namaskah-backup:namaskah-backups/database/
 
 ---
 
-**Status**: Ready to implement  
-**Recommendation**: ✅ Switch to Rclone  
+**Status**: Ready to implement
+**Recommendation**: ✅ Switch to Rclone
 **Priority**: Medium (not urgent, but beneficial)

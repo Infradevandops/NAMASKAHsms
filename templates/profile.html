@@ -261,7 +261,7 @@
                 <span style="font-weight: 600; font-family: monospace; font-size: 12px;" id="profile-user-id">...</span>
             </div>
         </div>
-        
+
         <div style="margin-top: 24px;">
             <a href="/settings?tab=account" class="btn btn-secondary" style="width: 100%; text-align: center;">
                 Account Settings
@@ -329,12 +329,12 @@
                 document.getElementById('profile-tier').textContent = TIER_DISPLAY[tier] || tier;
                 document.getElementById('tier-badge').textContent = TIER_DISPLAY[tier] || tier;
                 document.getElementById('tier-badge').className = `tier-badge-profile tier-badge-${tier}`;
-                
+
                 const createdDate = new Date(user.created_at);
                 document.getElementById('profile-joined').textContent = createdDate.toLocaleDateString();
                 document.getElementById('member-since').textContent = createdDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 document.getElementById('profile-user-id').textContent = user.id?.substring(0, 8) + '...';
-                
+
                 if (user.last_login) {
                     document.getElementById('profile-last-login').textContent = new Date(user.last_login).toLocaleDateString();
                 } else {
@@ -344,7 +344,7 @@
 
             // Load verification stats
             await loadVerificationStats();
-            
+
             // Load balance
             await loadBalance();
 
@@ -359,7 +359,7 @@
             const res = await fetch('/api/analytics/summary', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (res.ok) {
                 const data = await res.json();
                 document.getElementById('stat-total').textContent = data.total_verifications || 0;
@@ -377,7 +377,7 @@
             const res = await fetch('/api/billing/balance', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (res.ok) {
                 const data = await res.json();
                 const balance = data.balance || data.credits || 0;
@@ -472,12 +472,12 @@
                 localStorage.setItem('language', lang);
                 localStorage.setItem('currency', curr);
                 if (window.pushPreferencesToBackend) pushPreferencesToBackend();
-                
+
                 // Update display name in header
                 if (displayName) {
                     document.getElementById('display-name').textContent = displayName;
                 }
-                
+
                 alert("Profile saved successfully!");
             } else {
                 alert("Failed to save profile. Please try again.");

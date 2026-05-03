@@ -18,22 +18,22 @@ def _column_exists(table, column):
     inspector = sa.inspect(bind)
     columns = [c["name"] for c in inspector.get_columns(table)]
     return column in columns
- 
- 
+
+
 def _index_exists(table, index):
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     indexes = [i["name"] for i in inspector.get_indexes(table)]
     return index in indexes
- 
- 
+
+
 def _table_exists(table):
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     tables = inspector.get_table_names()
     return table in tables
- 
- 
+
+
 def upgrade():
     if not _table_exists("transactions"):
         return
@@ -46,7 +46,7 @@ def upgrade():
         op.create_index("ix_transactions_idempotency_key", "transactions", ["idempotency_key"], unique=True)
     if not _index_exists("transactions", "ix_transactions_payment_log_id"):
         op.create_index("ix_transactions_payment_log_id", "transactions", ["payment_log_id"], unique=False)
- 
+
     pl_cols = [
         ("idempotency_key", sa.String(), True),
         ("processing_started_at", sa.DateTime(), True),

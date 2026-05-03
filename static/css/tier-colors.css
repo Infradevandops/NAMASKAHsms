@@ -1,8 +1,8 @@
 /**
  * Tier System Color Standards
- * 
+ *
  * Standardized colors for tier badges and UI elements
- * 
+ *
  * Tier Colors:
  * - Freemium: Green (#10B981)
  * - PayG: Orange (#FF7854)
@@ -15,15 +15,15 @@
     --tier-freemium: #10B981;
     --tier-freemium-light: rgba(16, 185, 129, 0.1);
     --tier-freemium-dark: #059669;
-    
+
     --tier-payg: #FF7854;
     --tier-payg-light: rgba(255, 120, 84, 0.1);
     --tier-payg-dark: #E85D3A;
-    
+
     --tier-pro: #F59E0B;
     --tier-pro-light: rgba(245, 158, 11, 0.1);
     --tier-pro-dark: #D97706;
-    
+
     --tier-custom: #8B5CF6;
     --tier-custom-light: rgba(139, 92, 246, 0.1);
     --tier-custom-dark: #7C3AED;

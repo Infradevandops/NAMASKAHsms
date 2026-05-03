@@ -1,6 +1,6 @@
 /**
  * Frontend Logging Utility
- * 
+ *
  * Provides structured logging for frontend operations including:
  * - API calls and responses
  * - Errors with stack traces

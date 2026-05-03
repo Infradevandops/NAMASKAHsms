@@ -75,7 +75,7 @@ All other tables exist but have no data yet (new installation).
 
 # Need to export:
 - sms_transactions
-- verifications  
+- verifications
 - payment_logs
 - subscription_tiers
 - tiers
@@ -236,6 +236,6 @@ Run the export script above to get all critical tables as CSV.
 
 ---
 
-**Status**: ✅ Database accessible, ready to migrate  
-**Risk**: Low (small database, easy to backup)  
+**Status**: ✅ Database accessible, ready to migrate
+**Risk**: Low (small database, easy to backup)
 **Time**: 30 minutes to complete migration

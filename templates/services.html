@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Services - Namaskah">
   <title>Services - Namaskah</title>
-  
+
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/design-tokens.css\') }}"
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/design-tokens.css\') }}"
   <link rel="stylesheet" href="{{ url_for(\'static\', path=\'css/components.css\') }}">
@@ -15,7 +15,7 @@
       padding: var(--space-xl);
       min-height: 100vh;
     }
-    
+
     .services-header {
       text-align: center;
       margin-bottom: var(--space-2xl);
@@ -23,17 +23,17 @@
       margin-left: auto;
       margin-right: auto;
     }
-    
+
     .services-header h1 {
       margin: 0 0 var(--space-md) 0;
     }
-    
+
     .services-header p {
       color: var(--neutral);
       margin: 0;
       font-size: 1.1rem;
     }
-    
+
     .services-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -43,7 +43,7 @@
       margin-left: auto;
       margin-right: auto;
     }
-    
+
     .service-card {
       background: white;
       border: 1px solid var(--border);
@@ -51,38 +51,38 @@
       padding: var(--space-xl);
       transition: all var(--transition-fast);
     }
-    
+
     .service-card:hover {
       box-shadow: var(--shadow-lg);
       border-color: var(--primary);
       transform: translateY(-4px);
     }
-    
+
     .service-icon {
       width: 48px;
       height: 48px;
       margin-bottom: var(--space-lg);
       color: var(--primary);
     }
-    
+
     .service-title {
       font-size: 1.25rem;
       font-weight: var(--font-weight-semibold);
       margin: 0 0 var(--space-md) 0;
     }
-    
+
     .service-description {
       color: var(--neutral);
       margin: 0 0 var(--space-lg) 0;
       line-height: 1.6;
     }
-    
+
     .service-features {
       list-style: none;
       padding: 0;
       margin: 0 0 var(--space-lg) 0;
     }
-    
+
     .service-features li {
       display: flex;
       align-items: center;
@@ -91,27 +91,27 @@
       color: var(--neutral);
       font-size: 0.95rem;
     }
-    
+
     .service-features svg {
       width: 16px;
       height: 16px;
       color: var(--success);
       flex-shrink: 0;
     }
-    
+
     .service-price {
       font-size: 1.75rem;
       font-weight: var(--font-weight-bold);
       color: var(--primary);
       margin: 0 0 var(--space-lg) 0;
     }
-    
+
     .service-price-label {
       font-size: 0.875rem;
       color: var(--neutral);
       margin: 0;
     }
-    
+
     .pricing-table {
       max-width: 1000px;
       margin: 0 auto var(--space-2xl);
@@ -120,12 +120,12 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
     }
-    
+
     .pricing-table table {
       width: 100%;
       border-collapse: collapse;
     }
-    
+
     .pricing-table th {
       background: var(--surface);
       padding: var(--space-lg);
@@ -133,16 +133,16 @@
       font-weight: var(--font-weight-semibold);
       border-bottom: 2px solid var(--border);
     }
-    
+
     .pricing-table td {
       padding: var(--space-lg);
       border-bottom: 1px solid var(--border);
     }
-    
+
     .pricing-table tbody tr:hover {
       background: var(--surface);
     }
-    
+
     .cta-section {
       text-align: center;
       background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
@@ -152,35 +152,35 @@
       max-width: 600px;
       margin: 0 auto;
     }
-    
+
     .cta-section h2 {
       color: white;
       margin: 0 0 var(--space-md) 0;
     }
-    
+
     .cta-section p {
       color: rgba(255, 255, 255, 0.9);
       margin: 0 0 var(--space-lg) 0;
     }
-    
+
     .cta-section .btn {
       background: white;
       color: var(--primary);
     }
-    
+
     .cta-section .btn:hover {
       background: var(--surface);
     }
-    
+
     @media (max-width: 640px) {
       .services-container {
         padding: var(--space-lg);
       }
-      
+
       .services-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .pricing-table {
         overflow-x: auto;
       }
@@ -320,7 +320,7 @@
     </div>
   </footer>
 
-  
+
   <script src="{{ url_for(\'static\', path=\'js/design-system.js\') }}"></script>
 </body>
 </html>

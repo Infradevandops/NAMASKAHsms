@@ -2,7 +2,7 @@
 -- Run this against production database to find refund candidates
 
 -- 1. PENDING VERIFICATIONS OLDER THAN 10 MINUTES (LIKELY FAILED)
-SELECT 
+SELECT
     v.id as verification_id,
     v.user_id,
     u.email as user_email,
@@ -28,7 +28,7 @@ ORDER BY v.created_at DESC;
 
 
 -- 2. FAILED VERIFICATIONS THAT WERE CHARGED
-SELECT 
+SELECT
     v.id as verification_id,
     v.user_id,
     u.email as user_email,
@@ -50,7 +50,7 @@ ORDER BY v.created_at DESC;
 
 
 -- 3. VERIFICATIONS WITHOUT SMS CODE AFTER 5+ MINUTES
-SELECT 
+SELECT
     v.id as verification_id,
     v.user_id,
     u.email as user_email,
@@ -76,7 +76,7 @@ ORDER BY v.created_at DESC;
 
 
 -- 4. CHECK FOR REFUND TRANSACTIONS
-SELECT 
+SELECT
     v.id as verification_id,
     v.user_id,
     v.cost as charged_amount,
@@ -88,7 +88,7 @@ SELECT
     t.created_at as refund_time
 FROM verifications v
 LEFT JOIN transactions t ON (
-    t.user_id = v.user_id 
+    t.user_id = v.user_id
     AND t.transaction_type IN ('refund', 'credit_adjustment')
     AND t.created_at > v.created_at
     AND t.created_at < v.created_at + INTERVAL '1 hour'
@@ -105,7 +105,7 @@ ORDER BY v.created_at DESC;
 
 
 -- 5. AGGREGATE STATS - MONEY AT RISK
-SELECT 
+SELECT
     COUNT(*) as total_unreceived,
     SUM(v.cost) as total_charged_usd,
     AVG(v.cost) as avg_cost,
@@ -124,7 +124,7 @@ ORDER BY total_charged_usd DESC;
 
 
 -- 6. USER IMPACT REPORT
-SELECT 
+SELECT
     u.id as user_id,
     u.email,
     COUNT(*) as failed_verifications,
@@ -146,7 +146,7 @@ ORDER BY total_lost_usd DESC;
 
 -- 7. REFUND CANDIDATES (AUTO-REFUND SCRIPT)
 -- Use this to generate refund transactions
-SELECT 
+SELECT
     v.id as verification_id,
     v.user_id,
     u.email,
@@ -154,18 +154,18 @@ SELECT
     v.service_name,
     v.status,
     v.created_at,
-    CASE 
-        WHEN v.status = 'pending' AND v.created_at < NOW() - INTERVAL '10 minutes' 
+    CASE
+        WHEN v.status = 'pending' AND v.created_at < NOW() - INTERVAL '10 minutes'
             THEN 'TIMEOUT_REFUND'
-        WHEN v.status IN ('failed', 'error') 
+        WHEN v.status IN ('failed', 'error')
             THEN 'FAILURE_REFUND'
-        WHEN v.status = 'cancelled' 
+        WHEN v.status = 'cancelled'
             THEN 'CANCELLATION_REFUND'
     END as refund_reason
 FROM verifications v
 JOIN users u ON v.user_id = u.id
 LEFT JOIN transactions t ON (
-    t.user_id = v.user_id 
+    t.user_id = v.user_id
     AND t.transaction_type = 'refund'
     AND t.created_at > v.created_at
     AND ABS(t.amount - v.cost) < 0.01

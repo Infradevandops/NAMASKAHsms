@@ -275,11 +275,11 @@ class VerificationManager {
     startPolling() {
         let pollCount = 0;
         const maxPolls = 600; // 20 minutes at 2-second intervals
-        
+
         // Poll every 2 seconds
         this.pollingInterval = setInterval(async () => {
             pollCount++;
-            
+
             try {
                 const response = await axios.get(`/api/verification/${this.currentVerification.verification_id}`);
                 const verification = response.data;
@@ -464,14 +464,14 @@ ${v.sms_code ? `SMS Code: ${v.sms_code}` : ''}
         navigator.clipboard.writeText(text).then(() => {
             // Show success toast
             this.showSuccess('Copied to clipboard!');
-            
+
             // Visual feedback on button
             const button = event.target.closest('button');
             if (button) {
                 const originalHTML = button.innerHTML;
                 button.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     button.innerHTML = originalHTML;
                     button.disabled = false;

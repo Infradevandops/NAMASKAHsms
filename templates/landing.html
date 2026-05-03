@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Namaskah - Keep Your Real Number Private</title>
   <meta name="description" content="Register on any website without exposing your phone number. No spam. No data brokers. Get verification codes instantly.">
-  
+
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
@@ -23,7 +23,7 @@
   </script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #FDFBF7; color: #37352F; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
@@ -41,13 +41,13 @@
         <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
         <span class="font-bold text-xl tracking-tight">Namaskah</span>
       </a>
-      
+
       <div class="hidden md:flex gap-8 text-sm">
         <a href="#how-it-works" class="text-zinc-600 hover:text-[#37352F] transition">How It Works</a>
         <a href="#pricing" class="text-zinc-600 hover:text-[#37352F] transition">Pricing</a>
         <a href="/docs" class="text-zinc-600 hover:text-[#37352F] transition">API Docs</a>
       </div>
-      
+
       <div class="hidden md:flex gap-4 items-center">
         {% if user %}
         <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
@@ -56,12 +56,12 @@
         <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Get Started Free →</a>
         {% endif %}
       </div>
-      
+
       <button @click="open = !open" class="md:hidden">
         <i class="ph ph-list text-2xl"></i>
       </button>
     </div>
-    
+
     <div x-show="open" x-transition class="md:hidden border-t border-black/5 bg-white">
       <div class="px-6 py-4 space-y-4">
         <a href="#how-it-works" class="block text-zinc-600">How It Works</a>
@@ -91,7 +91,7 @@
         No spam. No data brokers. No exposed phone number.<br>
         Setup your account in seconds and get verification codes instantly.
       </p>
-      
+
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
         <a href="/auth/register" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white shadow-lg shadow-brand-500/20">
           Get Started Free →
@@ -100,7 +100,7 @@
           See How It Works
         </a>
       </div>
-      
+
       <!-- Trust Bar -->
       <div class="flex flex-wrap justify-center gap-8 text-sm text-zinc-500">
         <div class="flex items-center gap-2">
@@ -126,7 +126,7 @@
         <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] mb-4">Every time you give out your number,<br>you lose control.</h2>
         <p class="text-xl text-zinc-600">Here's what happens when you expose your real phone number online:</p>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-6">
@@ -135,7 +135,7 @@
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Data Brokers Sell Your Number</h3>
           <p class="text-zinc-600 leading-relaxed">Your phone number gets added to marketing databases and sold to the highest bidder. You become a product.</p>
         </div>
-        
+
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6">
             <i class="ph-fill ph-phone-x text-3xl text-orange-500"></i>
@@ -143,7 +143,7 @@
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Endless Spam Calls</h3>
           <p class="text-zinc-600 leading-relaxed">Every signup means more robocalls, scam attempts, and unwanted marketing messages flooding your phone.</p>
         </div>
-        
+
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6">
             <i class="ph-fill ph-shield-warning text-3xl text-purple-500"></i>
@@ -162,7 +162,7 @@
         <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] mb-4">Get verified in 3 simple steps</h2>
         <p class="text-xl text-zinc-600">No complicated setup. No personal info required. Just instant verification.</p>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
         <div class="text-center">
           <div class="w-20 h-20 bg-brand-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-500/20">
@@ -171,7 +171,7 @@
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Pick Your Service</h3>
           <p class="text-zinc-600 leading-relaxed">Choose from WhatsApp, Telegram, Discord, Facebook, or 100+ other services.</p>
         </div>
-        
+
         <div class="text-center">
           <div class="w-20 h-20 bg-brand-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-500/20">
             <span class="text-3xl font-bold text-white">2</span>
@@ -179,7 +179,7 @@
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Get a Number Instantly</h3>
           <p class="text-zinc-600 leading-relaxed">Receive a temporary phone number in seconds. No waiting, no delays.</p>
         </div>
-        
+
         <div class="text-center">
           <div class="w-20 h-20 bg-brand-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-500/20">
             <span class="text-3xl font-bold text-white">3</span>
@@ -198,20 +198,20 @@
         <h2 class="text-4xl md:text-5xl font-bold mb-4">Why Namaskah?</h2>
         <p class="text-xl text-zinc-300">Real benefits that protect your privacy</p>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
           <i class="ph-fill ph-device-mobile text-4xl text-brand-400 mb-6"></i>
           <h3 class="text-2xl font-bold mb-4">Real SIM Cards</h3>
           <p class="text-zinc-300 leading-relaxed">Not VoIP numbers that get rejected. We use physical mobile devices with real SIM cards for 100% success rate.</p>
         </div>
-        
+
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
           <i class="ph-fill ph-arrow-counter-clockwise text-4xl text-brand-400 mb-6"></i>
           <h3 class="text-2xl font-bold mb-4">Auto-Refund Guarantee</h3>
           <p class="text-zinc-300 leading-relaxed">If you don't receive your code, we automatically refund your credits. No questions asked.</p>
         </div>
-        
+
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
           <i class="ph-fill ph-lightning text-4xl text-brand-400 mb-6"></i>
           <h3 class="text-2xl font-bold mb-4">Instant Delivery</h3>
@@ -228,7 +228,7 @@
         <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] mb-4">Works with your favorite services</h2>
         <p class="text-xl text-zinc-600">100+ services supported and growing</p>
       </div>
-      
+
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
         <div class="p-6 bg-white rounded-2xl border border-zinc-200 hover:border-brand-500 hover:shadow-lg transition cursor-pointer text-center">
           <div class="mb-3 flex justify-center"><svg width="40" height="40" viewBox="0 0 48 48"><path fill="#25D366" d="M24 4C12.95 4 4 12.95 4 24c0 3.54.93 6.86 2.55 9.74L4 44l10.55-2.77A19.87 19.87 0 0 0 24 44c11.05 0 20-8.95 20-20S35.05 4 24 4zm0 36c-3.18 0-6.15-.9-8.68-2.46l-.62-.37-6.44 1.69 1.72-6.28-.41-.65A15.9 15.9 0 0 1 8 24c0-8.84 7.16-16 16-16s16 7.16 16 16-7.16 16-16 16zm8.77-11.96c-.48-.24-2.84-1.4-3.28-1.56-.44-.16-.76-.24-1.08.24s-1.24 1.56-1.52 1.88-.56.36-1.04.12c-.48-.24-2.02-.74-3.85-2.37-1.42-1.27-2.38-2.83-2.66-3.31s-.03-.74.21-.98c.22-.21.48-.56.72-.84.24-.28.32-.48.48-.8s.08-.6-.04-.84c-.12-.24-1.08-2.6-1.48-3.56-.39-.94-.79-.81-1.08-.82h-.92c-.28 0-.76.1-1.16.52s-1.52 1.48-1.52 3.62 1.56 4.2 1.78 4.49c.22.28 3.08 4.7 7.46 6.59 1.04.45 1.86.72 2.49.92.95.3 1.82.26 2.5.16.76-.12 2.84-1.16 3.24-2.28s.4-2.08.28-2.28c-.12-.2-.44-.32-.92-.56z"/></svg></div>
@@ -287,7 +287,7 @@
     <div class="max-w-7xl mx-auto px-6">
       <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] text-center mb-4">Simple, honest pricing</h2>
       <p class="text-xl text-zinc-600 text-center mb-16">Start free, upgrade as you grow</p>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Freemium -->
         <div class="p-8 bg-white rounded-3xl border-2 border-zinc-200 hover:shadow-xl transition">
@@ -304,7 +304,7 @@
           </ul>
           <a href="/auth/register?tier=freemium" class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3 rounded-xl font-semibold text-center transition text-white">Get Started</a>
         </div>
-        
+
         <!-- Pay-As-You-Go -->
         <div class="p-8 bg-white rounded-3xl border-2 border-zinc-200 hover:shadow-xl transition">
           <div class="text-sm font-bold text-orange-500 mb-2">FLEXIBLE</div>
@@ -320,7 +320,7 @@
           </ul>
           <a href="/auth/register?tier=payg" class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3 rounded-xl font-semibold text-center transition text-white">Get Started</a>
         </div>
-        
+
         <!-- Pro -->
         <div class="p-8 bg-[#37352F] rounded-3xl border-2 border-[#37352F] shadow-xl relative">
           <div class="absolute -top-3 right-6 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
@@ -337,7 +337,7 @@
           </ul>
           <a href="/auth/register?tier=pro" class="block w-full bg-white hover:bg-zinc-100 py-3 rounded-xl font-semibold text-center transition text-[#37352F]">Get Started</a>
         </div>
-        
+
         <!-- Custom -->
         <div class="p-8 bg-white rounded-3xl border-2 border-zinc-200 hover:shadow-xl transition">
           <div class="text-sm font-bold text-purple-500 mb-2">FOR POWER USERS</div>
@@ -379,7 +379,7 @@
           </div>
           <p class="text-zinc-400 text-sm">Keep your real number private. Verify anywhere, anytime.</p>
         </div>
-        
+
         <div>
           <h4 class="font-bold mb-4">Platform</h4>
           <ul class="space-y-2 text-sm text-zinc-400">
@@ -388,7 +388,7 @@
             <li><a href="/docs" class="hover:text-white transition">API Docs</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 class="font-bold mb-4">Support</h4>
           <ul class="space-y-2 text-sm text-zinc-400">
@@ -396,7 +396,7 @@
             <li><a href="/status" class="hover:text-white transition">Status</a></li>
           </ul>
         </div>
-        
+
         <div>
           <h4 class="font-bold mb-4">Legal</h4>
           <ul class="space-y-2 text-sm text-zinc-400">
@@ -405,7 +405,7 @@
           </ul>
         </div>
       </div>
-      
+
       <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <p class="text-zinc-500 text-sm">© 2025 Namaskah. All rights reserved.</p>
         <div class="flex gap-4">

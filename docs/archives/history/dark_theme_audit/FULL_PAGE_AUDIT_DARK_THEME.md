@@ -1,17 +1,17 @@
 # 🎨 Full Page Audit: Dark Theme Consistency
 
-**Date**: April 20, 2026  
-**Scope**: All 24 HTML pages in Namaskah application  
+**Date**: April 20, 2026
+**Scope**: All 24 HTML pages in Namaskah application
 **Objective**: Identify dark theme issues and prioritize fixes
 
 ---
 
 ## 📊 Executive Summary
 
-**Total Pages Audited**: 24  
-**Pages with Dark Theme Issues**: 6  
-**Pages with Partial Issues**: 3  
-**Pages Fully Compliant**: 15  
+**Total Pages Audited**: 24
+**Pages with Dark Theme Issues**: 6
+**Pages with Partial Issues**: 3
+**Pages Fully Compliant**: 15
 
 **Estimated Fix Time**: 1.75 hours (Option 1 - Critical fixes only)
 
@@ -20,15 +20,15 @@
 ## 🚨 Critical Issues (Fix Immediately)
 
 ### 1. **terms.html** - CRITICAL ❌
-**Status**: Standalone dark theme (not using base template)  
+**Status**: Standalone dark theme (not using base template)
 **Issues**:
 - Hardcoded dark background (`#0f172a`)
 - Not using `public_base.html` template
 - No theme toggle support
 - Inconsistent with brand colors
 
-**Impact**: High - Legal page, frequently visited  
-**Fix Time**: 30 minutes  
+**Impact**: High - Legal page, frequently visited
+**Fix Time**: 30 minutes
 **Priority**: P0
 
 **Recommended Fix**:
@@ -43,15 +43,15 @@
 ---
 
 ### 2. **privacy.html** - CRITICAL ❌
-**Status**: Standalone dark theme (not using base template)  
+**Status**: Standalone dark theme (not using base template)
 **Issues**:
 - Hardcoded dark background (`#0f172a`)
 - Not using `public_base.html` template
 - No theme toggle support
 - Inconsistent with brand colors
 
-**Impact**: High - Legal page, GDPR compliance visibility  
-**Fix Time**: 30 minutes  
+**Impact**: High - Legal page, GDPR compliance visibility
+**Fix Time**: 30 minutes
 **Priority**: P0
 
 **Recommended Fix**: Same as terms.html
@@ -59,15 +59,15 @@
 ---
 
 ### 3. **faq.html** - CRITICAL ❌
-**Status**: Standalone dark theme (not using base template)  
+**Status**: Standalone dark theme (not using base template)
 **Issues**:
 - Hardcoded dark background (`#0f172a`)
 - Not using `public_base.html` template
 - No theme toggle support
 - Has JavaScript for FAQ toggle (needs CSP nonce)
 
-**Impact**: High - Support page, high traffic  
-**Fix Time**: 35 minutes  
+**Impact**: High - Support page, high traffic
+**Fix Time**: 35 minutes
 **Priority**: P0
 
 **Recommended Fix**: Extend `public_base.html` + preserve FAQ functionality
@@ -77,15 +77,15 @@
 ## ⚠️ High Priority Issues
 
 ### 4. **cookies.html** - HIGH PRIORITY ⚠️
-**Status**: Broken CSS references  
+**Status**: Broken CSS references
 **Issues**:
 - Malformed CSS href: `/static/css/design-tokens.css') }}`
 - Should be: `{{ url_for('static', path='css/design-tokens.css') }}`
 - Multiple broken asset references
 - Uses design tokens but not properly integrated
 
-**Impact**: Medium - Legal compliance page  
-**Fix Time**: 20 minutes  
+**Impact**: Medium - Legal compliance page
+**Fix Time**: 20 minutes
 **Priority**: P1
 
 **Recommended Fix**:
@@ -96,50 +96,50 @@
 ---
 
 ### 5. **services.html** - HIGH PRIORITY ⚠️
-**Status**: Broken CSS references  
+**Status**: Broken CSS references
 **Issues**:
 - Same malformed CSS href issue
 - Uses design tokens but not properly loaded
 - Missing theme support
 
-**Impact**: Medium - Marketing page  
-**Fix Time**: 20 minutes  
+**Impact**: Medium - Marketing page
+**Fix Time**: 20 minutes
 **Priority**: P1
 
 ---
 
 ### 6. **reviews.html** - HIGH PRIORITY ⚠️
-**Status**: Broken CSS references  
+**Status**: Broken CSS references
 **Issues**:
 - Same malformed CSS href issue
 - Uses design tokens but not properly loaded
 
-**Impact**: Low - Social proof page  
-**Fix Time**: 15 minutes  
+**Impact**: Low - Social proof page
+**Fix Time**: 15 minutes
 **Priority**: P1
 
 ---
 
 ### 7. **affiliate_program.html** - HIGH PRIORITY ⚠️
-**Status**: Broken CSS references  
+**Status**: Broken CSS references
 **Issues**:
 - Same malformed CSS href issue
 - Uses design tokens but not properly loaded
 
-**Impact**: Low - Affiliate marketing page  
-**Fix Time**: 15 minutes  
+**Impact**: Low - Affiliate marketing page
+**Fix Time**: 15 minutes
 **Priority**: P1
 
 ---
 
 ### 8. **api_docs.html** - HIGH PRIORITY ⚠️
-**Status**: Broken CSS references  
+**Status**: Broken CSS references
 **Issues**:
 - Same malformed CSS href issue
 - Uses design tokens but not properly loaded
 
-**Impact**: Medium - Developer documentation  
-**Fix Time**: 15 minutes  
+**Impact**: Medium - Developer documentation
+**Fix Time**: 15 minutes
 **Priority**: P1
 
 ---
@@ -249,7 +249,7 @@
    - Fix CSS references
    - Test asset loading
 
-**Total**: 2 hours 15 minutes  
+**Total**: 2 hours 15 minutes
 **Impact**: Fixes 83% of critical issues
 
 ---
@@ -265,7 +265,7 @@ Includes Option 1 + :
 - Testing and QA (1 hour)
 - Documentation updates (30 min)
 
-**Total**: 4 hours  
+**Total**: 4 hours
 **Impact**: 100% dark theme consistency
 
 ---
@@ -282,7 +282,7 @@ Includes Option 2 + :
 - Create style guide
 - Add automated tests
 
-**Total**: 8 hours  
+**Total**: 8 hours
 **Impact**: Production-grade theme system
 
 ---
@@ -596,6 +596,6 @@ base.html (root)
 
 ---
 
-**Prepared by**: Amazon Q Developer  
-**Date**: April 20, 2026  
+**Prepared by**: Amazon Q Developer
+**Date**: April 20, 2026
 **Version**: 1.0

@@ -1,8 +1,8 @@
 # Admin Provider Pricing Management - Implementation Plan
 
-**Date**: March 20, 2026  
-**Version**: 4.4.1  
-**Status**: 🎯 BACKEND COMPLETE - UI NEEDED  
+**Date**: March 20, 2026
+**Version**: 4.4.1
+**Status**: 🎯 BACKEND COMPLETE - UI NEEDED
 **Effort**: 4-8 hours (UI only)
 
 ---
@@ -798,10 +798,10 @@ python scripts/development/view_price_history.py whatsapp
 
 ## 🎉 Conclusion
 
-**Backend**: ✅ 100% Complete  
-**Frontend**: ⏳ 0% Complete (4-8 hours needed)  
-**Total Effort**: 4-8 hours  
-**Priority**: HIGH  
+**Backend**: ✅ 100% Complete
+**Frontend**: ⏳ 0% Complete (4-8 hours needed)
+**Total Effort**: 4-8 hours
+**Priority**: HIGH
 **Complexity**: LOW (UI only)
 
 **Next Steps**:
@@ -816,9 +816,9 @@ python scripts/development/view_price_history.py whatsapp
 
 ## 🎯 TASK: Admin Pricing Template Switcher (Full Implementation)
 
-**Priority**: HIGH  
-**Effort**: 3-4 hours  
-**Status**: 🔴 NOT STARTED  
+**Priority**: HIGH
+**Effort**: 3-4 hours
+**Status**: 🔴 NOT STARTED
 **Added**: March 2026
 
 ---
@@ -853,7 +853,7 @@ Admin portal has 4 pricing templates in the database but:
 - [ ] Create migration to insert "Promotional 50% Off" template
   - `is_promotional = true`, `discount_percentage = 50.00`
   - Tier pricing: all monthly prices at 50% of Standard
-- [ ] Create migration to insert "Holiday Special" template  
+- [ ] Create migration to insert "Holiday Special" template
   - `is_promotional = true`, `discount_percentage = 30.00`
   - Tier pricing: all monthly prices at 70% of Standard
 - [ ] Optionally remove "EU Pricing" and "Test Pricing" (or keep as-is)
@@ -862,7 +862,7 @@ Admin portal has 4 pricing templates in the database but:
 ```
 payg_trial: $0.00/mo, $1.25 overage (50% of $2.50)
 starter:    $4.50/mo, $0.25 overage
-pro:        $12.50/mo, $0.15 overage  
+pro:        $12.50/mo, $0.15 overage
 custom:     $17.50/mo, $0.10 overage
 ```
 
@@ -981,8 +981,8 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
 
 ---
 
-**Document Version**: 1.1  
-**Last Updated**: March 2026  
+**Document Version**: 1.1
+**Last Updated**: March 2026
 **Author**: Amazon Q Developer
 
 
@@ -1005,7 +1005,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
 <body class="premium-admin">
     <div class="admin-v2-container">
         {% include 'admin/header.html' %}
-        
+
         <!-- Live Prices Section -->
         <div class="glass-card">
             <div class="card-header">
@@ -1019,7 +1019,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                     </button>
                 </div>
             </div>
-            
+
             <!-- Filters -->
             <div class="filters-row">
                 <label>
@@ -1033,7 +1033,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                     <option value="change">Recent Changes</option>
                 </select>
             </div>
-            
+
             <!-- Prices Table -->
             <div class="table-container">
                 <table class="admin-table" id="prices-table">
@@ -1054,64 +1054,64 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="table-footer">
                 <span id="last-updated">Last updated: Never</span>
                 <span id="auto-refresh-status">Auto-refresh: <span class="status-active">ON</span></span>
             </div>
         </div>
     </div>
-    
+
     <script nonce="{{ request.state.csp_nonce }}">
         const token = localStorage.getItem('access_token');
         let allPrices = [];
         let autoRefreshInterval = null;
-        
+
         // Popular services list
         const POPULAR_SERVICES = [
             'whatsapp', 'telegram', 'instagram', 'facebook', 'twitter',
             'google', 'microsoft', 'amazon', 'netflix', 'uber',
             'discord', 'tiktok', 'snapchat', 'linkedin', 'paypal'
         ];
-        
+
         async function loadPrices(forceRefresh = false) {
             try {
                 const refreshIcon = document.getElementById('refresh-icon');
                 refreshIcon.style.animation = 'spin 1s linear infinite';
-                
+
                 const response = await fetch(
                     `/api/v1/admin/pricing/providers/live?force_refresh=${forceRefresh}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
-                
+
                 if (!response.ok) throw new Error('Failed to fetch prices');
-                
+
                 const data = await response.json();
                 allPrices = data.prices || [];
-                
+
                 renderPrices();
                 updateLastUpdated(data.updated_at);
-                
+
                 refreshIcon.style.animation = '';
                 showToast('Prices updated successfully', 'success');
             } catch (error) {
                 console.error('Error loading prices:', error);
                 showToast('Failed to load prices', 'error');
-                document.getElementById('prices-body').innerHTML = 
+                document.getElementById('prices-body').innerHTML =
                     '<tr><td colspan="6" class="error">Failed to load prices. Please try again.</td></tr>';
             }
         }
-        
+
         function renderPrices() {
             let prices = [...allPrices];
-            
+
             // Filter popular only
             if (document.getElementById('popular-only').checked) {
-                prices = prices.filter(p => 
+                prices = prices.filter(p =>
                     POPULAR_SERVICES.includes(p.service_id.toLowerCase())
                 );
             }
-            
+
             // Sort
             const sortBy = document.getElementById('sort-by').value;
             if (sortBy === 'name') {
@@ -1123,14 +1123,14 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             } else if (sortBy === 'change') {
                 prices.sort((a, b) => Math.abs(b.price_change || 0) - Math.abs(a.price_change || 0));
             }
-            
+
             const tbody = document.getElementById('prices-body');
-            
+
             if (prices.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="no-data">No prices available</td></tr>';
                 return;
             }
-            
+
             tbody.innerHTML = prices.map(p => `
                 <tr>
                     <td><strong>${p.service}</strong></td>
@@ -1142,7 +1142,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                 </tr>
             `).join('');
         }
-        
+
         function formatPriceChange(change, percent) {
             if (!change || change === 0) {
                 return '<span class="price-change neutral">─</span>';
@@ -1151,30 +1151,30 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             const className = change > 0 ? 'increase' : 'decrease';
             return `<span class="price-change ${className}">${arrow} ${percent}</span>`;
         }
-        
+
         function formatTimestamp(timestamp) {
             if (!timestamp) return 'Unknown';
             const date = new Date(timestamp);
             return date.toLocaleString();
         }
-        
+
         function updateLastUpdated(timestamp) {
             const elem = document.getElementById('last-updated');
             elem.textContent = `Last updated: ${formatTimestamp(timestamp)}`;
         }
-        
+
         function refreshPrices() {
             loadPrices(true);
         }
-        
+
         function filterPrices() {
             renderPrices();
         }
-        
+
         function sortPrices() {
             renderPrices();
         }
-        
+
         function exportToCSV() {
             const csv = [
                 ['Service', 'Provider Cost', 'Platform Price', 'Markup', 'Change', 'Last Updated'],
@@ -1187,7 +1187,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                     p.last_updated
                 ])
             ].map(row => row.join(',')).join('\\n');
-            
+
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1195,10 +1195,10 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             a.download = `provider-prices-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-            
+
             showToast('CSV exported successfully', 'success');
         }
-        
+
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
@@ -1211,32 +1211,32 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
-        
+
         // Auto-refresh every 5 minutes
         function startAutoRefresh() {
             autoRefreshInterval = setInterval(() => {
                 loadPrices(false);
             }, 5 * 60 * 1000);
         }
-        
+
         // Initial load
         document.addEventListener('DOMContentLoaded', () => {
             loadPrices();
             startAutoRefresh();
         });
-        
+
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
         });
     </script>
-    
+
     <style>
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        
+
         .filters-row {
             display: flex;
             gap: 20px;
@@ -1244,15 +1244,15 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             padding: 15px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .price-change {
             font-weight: 600;
         }
-        
+
         .price-change.increase { color: #ef4444; }
         .price-change.decrease { color: #10b981; }
         .price-change.neutral { color: #6b7280; }
-        
+
         .table-footer {
             display: flex;
             justify-content: space-between;
@@ -1260,7 +1260,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             font-size: 13px;
             color: var(--admin-text-muted);
         }
-        
+
         .status-active {
             color: #10b981;
             font-weight: 600;
@@ -1286,7 +1286,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
 <body class="premium-admin">
     <div class="admin-v2-container">
         {% include 'admin/header.html' %}
-        
+
         <div class="glass-card">
             <div class="card-header">
                 <h2 class="card-title">📋 Pricing Templates</h2>
@@ -1294,11 +1294,11 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                     + New Template
                 </button>
             </div>
-            
+
             <div id="templates-list" class="templates-grid">
                 <div class="loading">Loading templates...</div>
             </div>
-            
+
             <div class="card-footer">
                 <button class="btn-secondary" onclick="rollbackToPrevious()">
                     ⏮️ Rollback to Previous Pricing
@@ -1306,7 +1306,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             </div>
         </div>
     </div>
-    
+
     <!-- Create/Edit Template Modal -->
     <div id="template-modal" class="modal">
         <div class="modal-content">
@@ -1317,19 +1317,19 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             <div class="modal-body">
                 <form id="template-form">
                     <input type="hidden" id="template-id">
-                    
+
                     <div class="form-group">
                         <label>Template Name *</label>
-                        <input type="text" id="template-name" required 
+                        <input type="text" id="template-name" required
                                placeholder="e.g., Black Friday 2026">
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Description</label>
                         <textarea id="template-description" rows="3"
                                   placeholder="Brief description of this pricing template"></textarea>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>Region</label>
@@ -1339,7 +1339,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                                 <option value="GLOBAL">Global</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label>Currency</label>
                             <select id="template-currency">
@@ -1349,10 +1349,10 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Activation Notes</label>
-                        <input type="text" id="activation-notes" 
+                        <input type="text" id="activation-notes"
                                placeholder="Optional notes for activation">
                     </div>
                 </form>
@@ -1363,37 +1363,37 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             </div>
         </div>
     </div>
-    
+
     <script nonce="{{ request.state.csp_nonce }}">
         const token = localStorage.getItem('access_token');
         let templates = [];
-        
+
         async function loadTemplates() {
             try {
                 const response = await fetch('/api/v1/admin/pricing/templates', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to fetch templates');
-                
+
                 const data = await response.json();
                 templates = data.templates || [];
                 renderTemplates();
             } catch (error) {
                 console.error('Error loading templates:', error);
-                document.getElementById('templates-list').innerHTML = 
+                document.getElementById('templates-list').innerHTML =
                     '<div class="error">Failed to load templates</div>';
             }
         }
-        
+
         function renderTemplates() {
             const container = document.getElementById('templates-list');
-            
+
             if (templates.length === 0) {
                 container.innerHTML = '<div class="no-data">No templates found. Create your first template!</div>';
                 return;
             }
-            
+
             container.innerHTML = templates.map(t => `
                 <div class="template-card ${t.is_active ? 'active' : ''}">
                     <div class="template-header">
@@ -1409,48 +1409,48 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                         </div>
                     </div>
                     <div class="template-actions">
-                        ${t.is_active ? 
+                        ${t.is_active ?
                             `<button class="btn-warning" onclick="deactivateTemplate(${t.id})">Deactivate</button>` :
                             `<button class="btn-success" onclick="activateTemplate(${t.id})">Activate</button>`
                         }
                         <button class="btn-secondary" onclick="cloneTemplate(${t.id})">Clone</button>
-                        ${!t.is_active ? 
+                        ${!t.is_active ?
                             `<button class="btn-danger" onclick="deleteTemplate(${t.id})">Delete</button>` : ''
                         }
                     </div>
                 </div>
             `).join('');
         }
-        
+
         function openCreateModal() {
             document.getElementById('modal-title').textContent = 'Create Pricing Template';
             document.getElementById('template-form').reset();
             document.getElementById('template-id').value = '';
             document.getElementById('template-modal').classList.add('show');
         }
-        
+
         function closeModal() {
             document.getElementById('template-modal').classList.remove('show');
         }
-        
+
         async function saveTemplate() {
             const id = document.getElementById('template-id').value;
             const name = document.getElementById('template-name').value;
             const description = document.getElementById('template-description').value;
             const region = document.getElementById('template-region').value;
             const currency = document.getElementById('template-currency').value;
-            
+
             if (!name) {
                 showToast('Template name is required', 'error');
                 return;
             }
-            
+
             try {
-                const url = id ? 
-                    `/api/v1/admin/pricing/templates/${id}` : 
+                const url = id ?
+                    `/api/v1/admin/pricing/templates/${id}` :
                     '/api/v1/admin/pricing/templates';
                 const method = id ? 'PUT' : 'POST';
-                
+
                 const response = await fetch(url, {
                     method,
                     headers: {
@@ -1465,9 +1465,9 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                         tiers: [] // Simplified - can be extended
                     })
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to save template');
-                
+
                 showToast('Template saved successfully', 'success');
                 closeModal();
                 loadTemplates();
@@ -1476,12 +1476,12 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                 showToast('Failed to save template', 'error');
             }
         }
-        
+
         async function activateTemplate(templateId) {
             if (!confirm('Activate this pricing template? This will deactivate the current active template.')) {
                 return;
             }
-            
+
             try {
                 const notes = prompt('Activation notes (optional):') || '';
                 const response = await fetch(
@@ -1491,9 +1491,9 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                         headers: { 'Authorization': `Bearer ${token}` }
                     }
                 );
-                
+
                 if (!response.ok) throw new Error('Failed to activate template');
-                
+
                 showToast('Template activated successfully', 'success');
                 loadTemplates();
             } catch (error) {
@@ -1501,37 +1501,37 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
                 showToast('Failed to activate template', 'error');
             }
         }
-        
+
         async function deactivateTemplate(templateId) {
             showToast('Deactivation not implemented - activate another template instead', 'info');
         }
-        
+
         async function cloneTemplate(templateId) {
             const newName = prompt('Enter name for cloned template:');
             if (!newName) return;
-            
+
             showToast('Clone functionality coming soon', 'info');
             // TODO: Implement clone API call
         }
-        
+
         async function deleteTemplate(templateId) {
             if (!confirm('Delete this template? This action cannot be undone.')) {
                 return;
             }
-            
+
             showToast('Delete functionality coming soon', 'info');
             // TODO: Implement delete API call
         }
-        
+
         async function rollbackToPrevious() {
             if (!confirm('Rollback to the previous active pricing template?')) {
                 return;
             }
-            
+
             showToast('Rollback functionality coming soon', 'info');
             // TODO: Implement rollback API call
         }
-        
+
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
@@ -1544,11 +1544,11 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
-        
+
         // Initial load
         document.addEventListener('DOMContentLoaded', loadTemplates);
     </script>
-    
+
     <style>
         .templates-grid {
             display: grid;
@@ -1556,7 +1556,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             gap: 20px;
             padding: 20px 0;
         }
-        
+
         .template-card {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
@@ -1564,24 +1564,24 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             padding: 20px;
             transition: all 0.3s;
         }
-        
+
         .template-card.active {
             border-color: #10b981;
             background: rgba(16,185,129,0.1);
         }
-        
+
         .template-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        
+
         .template-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-        
+
         .template-meta {
             display: flex;
             gap: 15px;
@@ -1589,7 +1589,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             color: var(--admin-text-muted);
             margin-top: 10px;
         }
-        
+
         .template-actions {
             display: flex;
             gap: 10px;
@@ -1597,7 +1597,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             padding-top: 15px;
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -1610,11 +1610,11 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             align-items: center;
             justify-content: center;
         }
-        
+
         .modal.show {
             display: flex;
         }
-        
+
         .modal-content {
             background: #1a1a2e;
             border-radius: 8px;
@@ -1623,7 +1623,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             max-height: 90vh;
             overflow-y: auto;
         }
-        
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -1631,7 +1631,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             padding: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .modal-close {
             background: none;
             border: none;
@@ -1639,11 +1639,11 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             font-size: 24px;
             cursor: pointer;
         }
-        
+
         .modal-body {
             padding: 20px;
         }
-        
+
         .modal-footer {
             display: flex;
             justify-content: flex-end;
@@ -1651,17 +1651,17 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             padding: 20px;
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
         }
-        
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -1672,7 +1672,7 @@ curl -X POST http://localhost:8000/api/admin/pricing/rollback \
             border-radius: 4px;
             color: white;
         }
-        
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     webhook_received BOOLEAN DEFAULT FALSE NOT NULL,
     credited BOOLEAN DEFAULT FALSE NOT NULL,
     error_message VARCHAR,
-    
+
     -- Idempotency and state machine
     idempotency_key VARCHAR UNIQUE,
     processing_started_at TIMESTAMP,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     state VARCHAR(20) DEFAULT 'pending',
     state_transitions JSONB,
     lock_version INTEGER DEFAULT 0 NOT NULL,
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -48,12 +48,12 @@ CREATE TABLE IF NOT EXISTS sms_transactions (
     service VARCHAR,
     filters VARCHAR,
     status VARCHAR DEFAULT 'completed',
-    
+
     -- Idempotency and linking
     reference VARCHAR UNIQUE,
     idempotency_key VARCHAR UNIQUE,
     payment_log_id VARCHAR,
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

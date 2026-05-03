@@ -14,37 +14,37 @@ class NotificationSystem {
         this.activeToasts = new Set();
         this.maxToasts = 5;
         this.unreadCount = 0;
-        
+
         this.init().catch(e => console.error('NotificationSystem init failed:', e));
     }
 
     async init() {
         if (this.isInitialized) return;
-        
+
         console.log('🔔 Initializing Enhanced Notification System...');
-        
+
         // Create toast container
         this.createToastContainer();
-        
+
         // Initialize header notification bell
         this.initializeHeaderBell();
-        
+
         // Load initial notifications
         await this.loadNotifications();
-        
+
         // Initialize WebSocket for real-time notifications
         this.initializeWebSocket();
-        
+
         // Set up periodic refresh
         this.startPeriodicRefresh();
-        
+
         this.isInitialized = true;
         console.log('✅ Enhanced Notification System initialized');
     }
 
     createToastContainer() {
         if (document.getElementById('toast-container')) return;
-        
+
         const container = document.createElement('div');
         container.id = 'toast-container';
         container.className = 'toast-container';
@@ -56,7 +56,7 @@ class NotificationSystem {
     initializeHeaderBell() {
         const bellBtn = document.querySelector('.notification-bell-btn');
         const dropdown = document.querySelector('.notification-dropdown');
-        
+
         if (!bellBtn) {
             console.warn('⚠️ Notification bell button not found');
             return;
@@ -157,7 +157,7 @@ class NotificationSystem {
         }
 
         list.innerHTML = notifications.map(notification => `
-            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+            <div class="notification-item ${notification.is_read ? '' : 'unread'}"
                  onclick="notificationSystem.markAsRead('${notification.id}', '${notification.link || ''}')"
                  tabindex="0"
                  role="button"
@@ -198,7 +198,7 @@ class NotificationSystem {
         if (!dropdown) return;
 
         const isVisible = dropdown.classList.contains('show');
-        
+
         if (isVisible) {
             this.closeNotificationDropdown();
         } else {
@@ -211,10 +211,10 @@ class NotificationSystem {
         if (!dropdown) return;
 
         dropdown.classList.add('show');
-        
+
         // Load fresh notifications when opening
         this.loadNotifications();
-        
+
         // Focus management
         const firstItem = dropdown.querySelector('.notification-item');
         if (firstItem) {
@@ -283,7 +283,7 @@ class NotificationSystem {
 
         const toast = this.createToastElement(notification);
         const container = document.getElementById('toast-container');
-        
+
         if (!container) return;
 
         container.appendChild(toast);
@@ -316,7 +316,7 @@ class NotificationSystem {
                 <div class="toast-message">${this.escapeHtml(notification.message || '')}</div>
                 <div class="toast-time">Just now</div>
             </div>
-            <button class="toast-close" onclick="notificationSystem.dismissToast(this.parentElement, '${notification.id}')" 
+            <button class="toast-close" onclick="notificationSystem.dismissToast(this.parentElement, '${notification.id}')"
                     aria-label="Close notification">
                 ✕
             </button>
@@ -486,17 +486,17 @@ class NotificationSystem {
 
     handleNewNotification(notification) {
         console.log('🔔 New notification received:', notification);
-        
+
         // Show toast notification
         this.showToast(notification);
-        
+
         // Play sound
         this.playNotificationSound();
-        
+
         // Update unread count
         this.unreadCount++;
         this.updateNotificationBadge();
-        
+
         // Prepend to notification list
         this.prependNotificationToList(notification);
     }
@@ -513,7 +513,7 @@ class NotificationSystem {
 
         // Create notification element
         const notifHtml = `
-            <div class="notification-item unread" 
+            <div class="notification-item unread"
                  onclick="notificationSystem.markAsRead('${notification.id}', '${notification.link || ''}')"
                  tabindex="0"
                  role="button"
@@ -540,7 +540,7 @@ class NotificationSystem {
 
         const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
         console.log(`🔄 Scheduling WebSocket reconnection in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
-        
+
         setTimeout(() => {
             this.reconnectAttempts++;
             this.initializeWebSocket();
@@ -560,16 +560,16 @@ class NotificationSystem {
 
     formatTime(timestamp) {
         if (!timestamp) return '';
-        
+
         const date = new Date(timestamp);
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
-        
+
         if (diff < 60) return 'Just now';
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
         if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-        
+
         return date.toLocaleDateString();
     }
 

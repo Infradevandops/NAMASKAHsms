@@ -1,7 +1,7 @@
 # 🔧 Quick Implementation Guide: Dark Theme Fixes
 
-**Estimated Time**: 1.75 hours  
-**Difficulty**: Easy  
+**Estimated Time**: 1.75 hours
+**Difficulty**: Easy
 **Files to Modify**: 5
 
 ---
@@ -50,7 +50,7 @@ cp templates/terms.html templates/terms.html.backup
         margin: 0 auto;
         padding: 40px 20px;
     }
-    
+
     .terms-header {
         background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
         padding: 40px 20px;
@@ -59,17 +59,17 @@ cp templates/terms.html templates/terms.html.backup
         margin-bottom: 40px;
         color: white;
     }
-    
+
     .terms-header h1 {
         font-size: 36px;
         margin-bottom: 12px;
     }
-    
+
     .terms-header p {
         opacity: 0.9;
         font-size: 14px;
     }
-    
+
     .terms-section {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
@@ -77,36 +77,36 @@ cp templates/terms.html templates/terms.html.backup
         padding: 24px;
         margin-bottom: 20px;
     }
-    
+
     .terms-section h2 {
         font-size: 24px;
         color: var(--primary);
         margin-bottom: 16px;
     }
-    
+
     .terms-section h3 {
         font-size: 18px;
         color: var(--success);
         margin-top: 16px;
         margin-bottom: 12px;
     }
-    
+
     .terms-section p {
         color: var(--text-secondary);
         margin-bottom: 12px;
         line-height: 1.6;
     }
-    
+
     .terms-section ul {
         margin-left: 20px;
         margin-bottom: 12px;
     }
-    
+
     .terms-section li {
         margin-bottom: 8px;
         color: var(--text-secondary);
     }
-    
+
     .highlight {
         background: rgba(239, 68, 68, 0.1);
         padding: 16px;
@@ -143,7 +143,7 @@ cp templates/terms.html templates/terms.html.backup
     </div>
 
     <!-- Add remaining sections following same pattern -->
-    
+
     <div class="terms-section">
         <h2>15. Contact Information</h2>
         <p>If you have any questions about these Terms of Service, please contact us at:</p>
@@ -201,7 +201,7 @@ cp templates/terms.html templates/terms.html.backup
         margin: 0 auto;
         padding: 40px 20px;
     }
-    
+
     .faq-header {
         background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
         padding: 40px 20px;
@@ -210,7 +210,7 @@ cp templates/terms.html templates/terms.html.backup
         margin-bottom: 40px;
         color: white;
     }
-    
+
     .faq-item {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
@@ -218,7 +218,7 @@ cp templates/terms.html templates/terms.html.backup
         margin-bottom: 12px;
         overflow: hidden;
     }
-    
+
     .faq-question {
         padding: 16px;
         cursor: pointer;
@@ -227,37 +227,37 @@ cp templates/terms.html templates/terms.html.backup
         align-items: center;
         transition: all 0.3s;
     }
-    
+
     .faq-question:hover {
         background: var(--bg-secondary);
     }
-    
+
     .faq-question h3 {
         font-size: 16px;
         margin: 0;
         color: var(--text-primary);
     }
-    
+
     .faq-toggle {
         font-size: 20px;
         transition: transform 0.3s;
         color: var(--text-secondary);
     }
-    
+
     .faq-item.open .faq-toggle {
         transform: rotate(180deg);
     }
-    
+
     .faq-answer {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
     }
-    
+
     .faq-item.open .faq-answer {
         max-height: 500px;
     }
-    
+
     .faq-answer-content {
         padding: 16px;
         border-top: 1px solid var(--border-color);
@@ -275,7 +275,7 @@ cp templates/terms.html templates/terms.html.backup
 
     <div class="faq-section">
         <h2 style="margin-bottom: 20px; color: var(--text-primary);">Getting Started</h2>
-        
+
         <div class="faq-item" onclick="toggleFAQ(this)">
             <div class="faq-question">
                 <h3>How do I create an account?</h3>
@@ -422,12 +422,12 @@ git push origin fix/dark-theme-consistency
 
 ## 📊 Success Criteria
 
-✅ All 5 pages load without errors  
-✅ Theme toggle works on all pages  
-✅ No hardcoded colors (use CSS variables)  
-✅ Consistent with brand design  
-✅ Mobile responsive  
-✅ No console errors  
+✅ All 5 pages load without errors
+✅ Theme toggle works on all pages
+✅ No hardcoded colors (use CSS variables)
+✅ Consistent with brand design
+✅ Mobile responsive
+✅ No console errors
 
 ---
 

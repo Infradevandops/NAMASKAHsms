@@ -14,14 +14,14 @@ sys.path.insert(0, str(project_root))
 
 def run_migration():
     """Run Alembic migration on remote database."""
-    
+
     print("🔄 Remote Database Migration")
     print("=" * 50)
     print()
-    
+
     # Check for DATABASE_URL
     db_url = os.getenv("DATABASE_URL")
-    
+
     if not db_url:
         print("❌ ERROR: DATABASE_URL not set")
         print()
@@ -34,7 +34,7 @@ def run_migration():
         print("  DATABASE_URL='your_db_url' python scripts/deployment/migrate_remote_db.py")
         print()
         return False
-    
+
     # Mask password in display
     display_url = db_url
     if "@" in db_url and "://" in db_url:
@@ -47,10 +47,10 @@ def run_migration():
                 if ":" in creds:
                     user = creds.split(":")[0]
                     display_url = f"{protocol}://{user}:****@{host}"
-    
+
     print(f"📊 Database: {display_url}")
     print()
-    
+
     # Import alembic
     try:
         from alembic.config import Config
@@ -62,20 +62,20 @@ def run_migration():
         print("  pip install -r requirements.txt")
         print()
         return False
-    
+
     # Set up Alembic config
     alembic_cfg = Config(str(project_root / "alembic.ini"))
     alembic_cfg.set_main_option("sqlalchemy.url", db_url)
-    
+
     try:
         print("🔍 Checking current migration status...")
         command.current(alembic_cfg, verbose=True)
         print()
-        
+
         print("⬆️  Running migrations...")
         command.upgrade(alembic_cfg, "head")
         print()
-        
+
         print("✅ Migration completed successfully!")
         print()
         print("=" * 50)
@@ -85,9 +85,9 @@ def run_migration():
         print("2. Test login at https://namaskahsms.onrender.com/login")
         print("3. Verify all features are working")
         print()
-        
+
         return True
-        
+
     except Exception as e:
         print()
         print(f"❌ Migration failed: {e}")

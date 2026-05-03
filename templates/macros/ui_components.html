@@ -1,7 +1,7 @@
 {#
     UI Component Macros
     Reusable Jinja2 macros for consistent UI components across templates
-    
+
     Usage:
     {% from "macros/ui_components.html" import tier_badge, button, card, alert, loading_spinner %}
 #}
@@ -9,12 +9,12 @@
 {# ============================================================================
    TIER BADGE
    Displays a tier badge with appropriate styling
-   
+
    Parameters:
    - tier: string (freemium|payg|pro|custom)
    - size: string (sm|md|lg) - default: md
    - solid: boolean - use solid background - default: false
-   
+
    Example:
    {{ tier_badge('pro') }}
    {{ tier_badge('freemium', size='lg', solid=true) }}
@@ -42,7 +42,7 @@
 {# ============================================================================
    BUTTON
    Renders a button with consistent styling
-   
+
    Parameters:
    - text: string - button text
    - variant: string (primary|secondary|success|error|outline|ghost) - default: primary
@@ -55,7 +55,7 @@
    - icon: string - optional icon class (e.g., 'ph ph-plus')
    - aria_label: string - accessibility label
    - attrs: dict - additional attributes
-   
+
    Example:
    {{ button('Submit', variant='primary', type='submit') }}
    {{ button('Cancel', variant='ghost', href='/dashboard') }}
@@ -66,7 +66,7 @@
 {% set aria = aria_label or text %}
 
 {% if href and not disabled %}
-<a href="{{ href }}" 
+<a href="{{ href }}"
    class="{{ classes }}"
    {% if id %}id="{{ id }}"{% endif %}
    aria-label="{{ aria }}"
@@ -97,7 +97,7 @@
 {# ============================================================================
    CARD
    Renders a card container
-   
+
    Parameters:
    - title: string - optional card title
    - id: string - optional id attribute
@@ -105,7 +105,7 @@
    - header: boolean - show header section - default: true if title provided
    - footer: boolean - show footer section - default: false
    - aria_label: string - accessibility label
-   
+
    Example:
    {% call card(title='User Profile', id='profile-card') %}
        <p>Card content here</p>
@@ -136,14 +136,14 @@
 {# ============================================================================
    ALERT
    Renders an alert/notification message
-   
+
    Parameters:
    - message: string - alert message
    - type: string (success|warning|error|info) - default: info
    - dismissible: boolean - show close button - default: false
    - id: string - optional id attribute
    - icon: string - optional icon class
-   
+
    Example:
    {{ alert('Operation successful!', type='success') }}
    {{ alert('Please check your input', type='warning', dismissible=true) }}
@@ -174,12 +174,12 @@
 {# ============================================================================
    LOADING SPINNER
    Renders a loading spinner
-   
+
    Parameters:
    - size: string (sm|md|lg) - default: md
    - text: string - optional loading text
    - inline: boolean - inline display - default: false
-   
+
    Example:
    {{ loading_spinner() }}
    {{ loading_spinner(size='lg', text='Loading data...') }}
@@ -202,12 +202,12 @@
 {# ============================================================================
    SKELETON LOADER
    Renders a skeleton loading placeholder
-   
+
    Parameters:
    - type: string (text|title|avatar|card|button) - default: text
    - lines: int - number of text lines - default: 3
    - width: string - custom width - default: 100%
-   
+
    Example:
    {{ skeleton('text', lines=4) }}
    {{ skeleton('card') }}
@@ -239,7 +239,7 @@
 {# ============================================================================
    FORM INPUT
    Renders a form input with label and error handling
-   
+
    Parameters:
    - name: string - input name attribute
    - label: string - input label
@@ -250,7 +250,7 @@
    - error: string - error message
    - help: string - help text
    - id: string - optional id (defaults to name)
-   
+
    Example:
    {{ form_input('email', 'Email Address', type='email', required=true) }}
    {{ form_input('password', 'Password', type='password', error='Password is required') }}
@@ -283,14 +283,14 @@
 {# ============================================================================
    PROGRESS BAR
    Renders a progress bar
-   
+
    Parameters:
    - value: number - current value (0-100)
    - max: number - maximum value - default: 100
    - label: string - optional label
    - variant: string (default|success|warning|danger) - default: default
    - show_percentage: boolean - show percentage text - default: true
-   
+
    Example:
    {{ progress_bar(75) }}
    {{ progress_bar(90, variant='warning', label='Storage Used') }}
@@ -305,10 +305,10 @@
         {% if show_percentage %}<span>{{ percentage }}%</span>{% endif %}
     </div>
     {% endif %}
-    <div class="progress {{ variant_class }}" 
-         role="progressbar" 
-         aria-valuenow="{{ value }}" 
-         aria-valuemin="0" 
+    <div class="progress {{ variant_class }}"
+         role="progressbar"
+         aria-valuenow="{{ value }}"
+         aria-valuemin="0"
          aria-valuemax="{{ max }}"
          aria-label="{{ label or 'Progress' }}: {{ percentage }}%">
         <div class="progress-fill" style="width: {{ percentage }}%;"></div>
@@ -320,14 +320,14 @@
 {# ============================================================================
    EMPTY STATE
    Renders an empty state placeholder
-   
+
    Parameters:
    - title: string - empty state title
    - message: string - description message
    - icon: string - icon class - default: ph ph-folder-open
    - action_text: string - optional action button text
    - action_href: string - optional action button href
-   
+
    Example:
    {{ empty_state('No items found', 'Try adjusting your filters') }}
    {{ empty_state('No API Keys', 'Create your first API key', action_text='Create Key', action_href='/api-keys/new') }}
@@ -347,7 +347,7 @@
 {# ============================================================================
    TIER CARD (Full)
    Renders a complete tier card with features and CTA
-   
+
    Parameters:
    - tier: string (freemium|payg|pro|custom)
    - name: string - tier display name
@@ -356,7 +356,7 @@
    - cta_text: string - CTA button text
    - cta_href: string - CTA button href
    - is_current: boolean - is this the user's current tier
-   
+
    Example:
    {{ tier_card_full('pro', 'Pro', '$29/mo', features, 'Upgrade Now', '/pricing') }}
    ============================================================================ #}

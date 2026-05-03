@@ -3,9 +3,9 @@
 ## 🎯 Quick Decision Tree
 
 ```
-Need PostgreSQL? 
+Need PostgreSQL?
 ├─ YES
-│  ├─ No credit card? 
+│  ├─ No credit card?
 │  │  ├─ YES → Supabase (500MB) or Neon (3GB)
 │  │  └─ NO → Railway ($5 credit) or Fly.io
 │  └─ Database size?
@@ -224,7 +224,7 @@ Total:            28 min
 
 ### For Namaskah: **SUPABASE**
 
-**One-Line Reason**: 
+**One-Line Reason**:
 Best free tier, PostgreSQL, no credit card, perfect size match, excellent features.
 
 **Migration Command**:
@@ -251,6 +251,6 @@ Best free tier, PostgreSQL, no credit card, perfect size match, excellent featur
 
 ---
 
-**Decision**: ✅ Supabase  
-**Action**: Sign up and migrate  
+**Decision**: ✅ Supabase
+**Action**: Sign up and migrate
 **Timeline**: Today (25 minutes)

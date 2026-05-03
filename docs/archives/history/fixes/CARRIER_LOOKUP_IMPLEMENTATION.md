@@ -1,8 +1,8 @@
 # Carrier Lookup Implementation & Analysis
 
-**Date**: March 14, 2026  
-**Status**: Phase 1 Complete (CarrierAnalytics), Phase 2-4 Planned  
-**Current Approach**: Internal CarrierAnalytics + TextVerified API  
+**Date**: March 14, 2026
+**Status**: Phase 1 Complete (CarrierAnalytics), Phase 2-4 Planned
+**Current Approach**: Internal CarrierAnalytics + TextVerified API
 **Future**: Google libphonenumber (Phase 2), Numverify API (Phase 3)
 
 ---
@@ -27,7 +27,7 @@ TextVerified API does not return specific carrier information. The `assigned_car
 
 It never returns specific carriers like "Verizon", "AT&T", "T-Mobile", etc.
 
-**Impact**: 
+**Impact**:
 - Cannot validate carrier preferences post-purchase
 - Cannot build accurate carrier success rates
 - Cannot optimize carrier recommendations
@@ -58,24 +58,24 @@ Return Response to User
 ```python
 class CarrierAnalytics(BaseModel):
     __tablename__ = "carrier_analytics"
-    
+
     # Reference fields
     verification_id = Column(String, nullable=False, index=True)
     user_id = Column(String, nullable=False, index=True)
-    
+
     # Carrier preference tracking
     requested_carrier = Column(String, nullable=False)  # "verizon", "att", "tmobile"
     sent_to_textverified = Column(String, nullable=False)  # Normalized: "verizon"
     textverified_response = Column(String)  # What API returned: "Mobile"
-    
+
     # Assignment details
     assigned_phone = Column(String)  # +1415...
     assigned_area_code = Column(String)  # "415"
-    
+
     # Outcome tracking
     outcome = Column(String)  # accepted, cancelled, timeout, completed, error
     exact_match = Column(Boolean, default=False)  # Did assigned match requested?
-    
+
     # Timestamps
     created_at = Column(DateTime, nullable=False, index=True)
 ```
@@ -190,7 +190,7 @@ for carrier_name, total, matches in analytics_query:
 **Query**: What % of Verizon requests succeeded?
 
 ```sql
-SELECT 
+SELECT
     requested_carrier,
     COUNT(*) as total_requests,
     SUM(CASE WHEN exact_match = true THEN 1 ELSE 0 END) as exact_matches,
@@ -216,7 +216,7 @@ us_cellular        | 15             | 12            | 80.0
 **Query**: Which carriers do users prefer?
 
 ```sql
-SELECT 
+SELECT
     requested_carrier,
     COUNT(*) as preference_count,
     ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM carrier_analytics) * 100, 1) as percentage
@@ -240,7 +240,7 @@ us_cellular        | 5                | 5.0
 **Query**: What types does TextVerified return?
 
 ```sql
-SELECT 
+SELECT
     textverified_response,
     COUNT(*) as count,
     ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM carrier_analytics) * 100, 1) as percentage
@@ -265,7 +265,7 @@ VOIP                 | 1     | 1.0
 **Query**: What happens to carrier-filtered requests?
 
 ```sql
-SELECT 
+SELECT
     outcome,
     COUNT(*) as count,
     ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM carrier_analytics) * 100, 1) as percentage
@@ -289,7 +289,7 @@ error     | 0     | 0.0
 **Query**: What carriers does a specific user prefer?
 
 ```sql
-SELECT 
+SELECT
     requested_carrier,
     COUNT(*) as requests,
     SUM(CASE WHEN exact_match = true THEN 1 ELSE 0 END) as matches
@@ -434,7 +434,7 @@ def validate_phone_number(phone: str, country: str = "US") -> dict:
         number = phonenumbers.parse(phone, country)
         if not phonenumbers.is_valid_number(number):
             return {"valid": False, "error": "Invalid phone number"}
-        
+
         number_type = phonenumberutil.number_type(number)
         type_name = {
             0: "FIXED_LINE",
@@ -450,7 +450,7 @@ def validate_phone_number(phone: str, country: str = "US") -> dict:
             10: "VOICEMAIL",
             11: "UNKNOWN"
         }.get(number_type, "UNKNOWN")
-        
+
         return {
             "valid": True,
             "country_code": number.country_code,
@@ -540,7 +540,7 @@ class NumverifyService:
     def __init__(self):
         self.api_key = os.getenv("NUMVERIFY_API_KEY")
         self.base_url = "https://numverify.com/api/validate"
-    
+
     async def lookup_carrier(self, phone: str) -> dict:
         """Lookup carrier for phone number."""
         try:
@@ -554,7 +554,7 @@ class NumverifyService:
                 timeout=5
             )
             data = response.json()
-            
+
             if data.get("valid"):
                 return {
                     "valid": True,
@@ -574,7 +574,7 @@ if verification.assigned_carrier == "Mobile":
     # Try to get real carrier from Numverify
     numverify = NumverifyService()
     carrier_info = await numverify.lookup_carrier(verification.phone_number)
-    
+
     if carrier_info["valid"]:
         # Update CarrierAnalytics with real carrier
         analytics.textverified_response = "Mobile"
@@ -780,7 +780,7 @@ exact_match_rate = Gauge(
 
 ```sql
 -- Real-time carrier success rate
-SELECT 
+SELECT
     requested_carrier,
     COUNT(*) as total,
     SUM(CASE WHEN exact_match THEN 1 ELSE 0 END) as matches,
@@ -791,7 +791,7 @@ GROUP BY requested_carrier
 ORDER BY success_rate DESC;
 
 -- TextVerified response distribution (last 24h)
-SELECT 
+SELECT
     textverified_response,
     COUNT(*) as count,
     ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM carrier_analytics WHERE created_at > NOW() - INTERVAL '24 hours') * 100, 1) as percentage
@@ -800,7 +800,7 @@ WHERE created_at > NOW() - INTERVAL '24 hours'
 GROUP BY textverified_response;
 
 -- Outcome distribution (last 24h)
-SELECT 
+SELECT
     outcome,
     COUNT(*) as count
 FROM carrier_analytics
@@ -823,12 +823,12 @@ def test_carrier_analytics_recorded():
         "country": "US",
         "carriers": ["verizon"]
     })
-    
+
     # Check CarrierAnalytics record
     analytics = db.query(CarrierAnalytics).filter(
         CarrierAnalytics.verification_id == response["verification_id"]
     ).first()
-    
+
     assert analytics is not None
     assert analytics.requested_carrier == "verizon"
     assert analytics.textverified_response == "Mobile"
@@ -848,10 +848,10 @@ def test_carrier_endpoint_real_rates():
             "country": "US",
             "carriers": ["verizon"]
         })
-    
+
     # Get carrier list
     response = client.get("/api/verification/carriers/US")
-    
+
     # Check success rate is calculated
     verizon = next(c for c in response["carriers"] if c["id"] == "verizon")
     assert verizon["success_rate"] > 0
@@ -908,6 +908,6 @@ def test_carrier_endpoint_real_rates():
 
 ---
 
-**Last Updated**: March 14, 2026  
-**Owner**: Engineering Team  
+**Last Updated**: March 14, 2026
+**Owner**: Engineering Team
 **Status**: Phase 1 Complete, Phases 2-4 Planned

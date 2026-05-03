@@ -9,7 +9,7 @@ class ToastNotification {
         this.toasts = [];
         this.addStyles();
     }
-    
+
     createContainer() {
         const container = document.createElement('div');
         container.id = 'toast-container';
@@ -26,7 +26,7 @@ class ToastNotification {
         document.body.appendChild(container);
         return container;
     }
-    
+
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
@@ -40,7 +40,7 @@ class ToastNotification {
                     opacity: 1;
                 }
             }
-            
+
             @keyframes slideOut {
                 from {
                     transform: translateX(0);
@@ -51,18 +51,18 @@ class ToastNotification {
                     opacity: 0;
                 }
             }
-            
+
             .toast {
                 animation: slideIn 0.3s ease-out;
             }
-            
+
             .toast.removing {
                 animation: slideOut 0.3s ease-in;
             }
         `;
         document.head.appendChild(style);
     }
-    
+
     show(message, type = 'info', duration = 3000) {
         const toast = document.createElement('div');
         const icons = {
@@ -71,14 +71,14 @@ class ToastNotification {
             'warning': '⚠️',
             'info': 'ℹ️'
         };
-        
+
         const colors = {
             'success': '#10b981',
             'error': '#ef4444',
             'warning': '#f59e0b',
             'info': '#3b82f6'
         };
-        
+
         toast.className = 'toast';
         toast.style.cssText = `
             background: white;
@@ -92,7 +92,7 @@ class ToastNotification {
             border-left: 4px solid ${colors[type] || colors['info']};
             pointer-events: auto;
         `;
-        
+
         toast.innerHTML = `
             <span style="font-size: 18px; flex-shrink: 0;">${icons[type] || icons['info']}</span>
             <span style="flex: 1; font-size: 14px; color: #333;">${this.escapeHtml(message)}</span>
@@ -111,10 +111,10 @@ class ToastNotification {
                 flex-shrink: 0;
             ">×</button>
         `;
-        
+
         this.container.appendChild(toast);
         this.toasts.push(toast);
-        
+
         if (duration > 0) {
             setTimeout(() => {
                 toast.classList.add('removing');
@@ -125,23 +125,23 @@ class ToastNotification {
             }, duration);
         }
     }
-    
+
     success(message, duration = 3000) {
         this.show(message, 'success', duration);
     }
-    
+
     error(message, duration = 5000) {
         this.show(message, 'error', duration);
     }
-    
+
     warning(message, duration = 4000) {
         this.show(message, 'warning', duration);
     }
-    
+
     info(message, duration = 3000) {
         this.show(message, 'info', duration);
     }
-    
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

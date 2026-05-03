@@ -1,6 +1,6 @@
 # Deployment Strategy - Final Setup
 
-**Date**: March 9, 2026  
+**Date**: March 9, 2026
 **Strategy**: GitHub (Production) → GitLab (Auto-Backup)
 
 ---
@@ -180,9 +180,9 @@ git push origin main
 ## Repository Roles
 
 ### GitHub (Primary - Production Source)
-**Purpose**: Clean, tested, production-ready code  
-**Who pushes**: You (developers)  
-**Auto-deploys to**: Render.com  
+**Purpose**: Clean, tested, production-ready code
+**Who pushes**: You (developers)
+**Auto-deploys to**: Render.com
 **Quality gates**: Tests must pass before deploy
 
 **Workflow**:
@@ -194,9 +194,9 @@ git push origin main
 ```
 
 ### GitLab (Secondary - Auto-Backup)
-**Purpose**: Backup, mirror, redundancy  
-**Who pushes**: GitHub Actions (automatic)  
-**Auto-deploys to**: Nothing (backup only)  
+**Purpose**: Backup, mirror, redundancy
+**Who pushes**: GitHub Actions (automatic)
+**Auto-deploys to**: Nothing (backup only)
 **Quality gates**: None (mirrors everything)
 
 **Workflow**:
@@ -415,9 +415,9 @@ git push origin main
 # Everything else is automatic
 ```
 
-**Time to set up**: 5 minutes  
-**Maintenance**: Minimal  
-**Reliability**: High  
+**Time to set up**: 5 minutes
+**Maintenance**: Minimal
+**Reliability**: High
 **Cost**: Free (within limits)
 
 ---

@@ -1,6 +1,6 @@
 /**
  * Error Messages Utility
- * 
+ *
  * Provides user-friendly error messages with actionable next steps
  */
 

@@ -1,7 +1,7 @@
 # Session Recovery Action Plan
 
-**Created**: March 20, 2026  
-**Status**: Active  
+**Created**: March 20, 2026
+**Status**: Active
 **Priority**: Execute in order
 
 ---
@@ -22,25 +22,25 @@
 ## ✅ Quick Wins (Execute Now - 2 Hours Total)
 
 ### Win 1: Fix Voice Verification UI (30 min)
-**Problem**: Carrier selector shown but ignored by backend  
-**File**: `templates/voice_verify_modern.html`  
-**Action**: Remove carrier dropdown (lines with `carrier-select`)  
+**Problem**: Carrier selector shown but ignored by backend
+**File**: `templates/voice_verify_modern.html`
+**Action**: Remove carrier dropdown (lines with `carrier-select`)
 **Impact**: Eliminates user confusion
 
 ### Win 2: Check CI Status (15 min)
-**Problem**: CI may be failing  
-**Action**: Run `pytest tests/unit/ -v --maxfail=5`  
+**Problem**: CI may be failing
+**Action**: Run `pytest tests/unit/ -v --maxfail=5`
 **Impact**: Know what's broken
 
 ### Win 3: Remove Dead Rental Code (30 min)
-**Problem**: Rental service exists but unreachable  
+**Problem**: Rental service exists but unreachable
 **Files to Remove**:
 - `app/services/rental_service.py`
 - `app/api/verification/rental_endpoints.py`
 **Impact**: Cleaner codebase
 
 ### Win 4: Document Current State (45 min)
-**Problem**: No single source of truth  
+**Problem**: No single source of truth
 **Action**: Create `CURRENT_STATE.md` with:
 - What works ✅
 - What's broken ❌
@@ -59,9 +59,9 @@
 - 2027: Multi-provider expansion
 
 ### Task 2: Admin Provider Pricing - Quick Win (2 hours)
-**Implement**: Basic provider price viewer  
-**Endpoint**: `GET /api/v1/admin/pricing/providers/live`  
-**UI**: Simple table in admin dashboard  
+**Implement**: Basic provider price viewer
+**Endpoint**: `GET /api/v1/admin/pricing/providers/live`
+**UI**: Simple table in admin dashboard
 **Impact**: Admin can see TextVerified prices
 
 ### Task 3: Update Documentation (1 hour)

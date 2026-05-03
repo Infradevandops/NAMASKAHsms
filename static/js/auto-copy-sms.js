@@ -83,7 +83,7 @@ class AutoCopySMS {
 
         indicator.classList.remove('d-none');
         indicator.classList.add('animate__animated', 'animate__fadeIn');
-        
+
         setTimeout(() => {
             indicator.classList.add('animate__fadeOut');
             setTimeout(() => {
@@ -107,7 +107,7 @@ class AutoCopySMS {
 function enhancedCopyToClipboard(elementId, buttonId) {
     const element = document.getElementById(elementId);
     const button = document.getElementById(buttonId);
-    
+
     if (!element || !button) return;
 
     const text = element.value;

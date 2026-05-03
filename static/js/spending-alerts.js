@@ -17,7 +17,7 @@ class SpendingAlerts {
 
     check(currentSpending) {
         const monthKey = new Date().toISOString().slice(0, 7);
-        
+
         this.thresholds.forEach(threshold => {
             const alertKey = `${monthKey}-${threshold}`;
             if (currentSpending >= threshold && !this.alerts[alertKey]) {

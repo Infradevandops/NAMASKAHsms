@@ -1,6 +1,6 @@
 # Namaskah SMS API Guide
 
-**Version**: 2.5.0  
+**Version**: 2.5.0
 **Last Updated**: 2026-01-18
 
 ---
@@ -75,7 +75,7 @@ Authorization: Bearer <token>
 ### Verification
 
 #### Create Verification
-- **Body**: 
+- **Body**:
   ```json
   {
     "service": "telegram",

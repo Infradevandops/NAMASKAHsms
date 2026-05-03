@@ -140,12 +140,12 @@ function openModal(options = {}) {
     const template = document.getElementById('modal-template');
     const modal = template.cloneNode(true);
     modal.id = 'active-modal';
-    
+
     // Set content
     if (options.title) modal.querySelector('.modal-title').textContent = options.title;
     if (options.body) modal.querySelector('.modal-body').textContent = options.body;
     if (options.confirmText) modal.querySelector('#modal-confirm-btn').textContent = options.confirmText;
-    
+
     // Variant
     if (options.variant === 'danger') {
         modal.querySelector('.modal').classList.add('modal-danger');
@@ -170,18 +170,18 @@ function openModal(options = {}) {
             closeModal(modal);
         }
     };
-    
+
     modal.onclick = (e) => {
         if (e.target === modal) closeModal(modal);
     };
 
     document.body.appendChild(modal);
-    
+
     // Trigger animation
     requestAnimationFrame(() => {
         modal.classList.add('active');
     });
-    
+
     return modal;
 }
 

@@ -315,10 +315,10 @@
 }
 </style>
 
-<div id="tier-compare-modal" 
-     class="tier-compare-overlay" 
-     role="dialog" 
-     aria-modal="true" 
+<div id="tier-compare-modal"
+     class="tier-compare-overlay"
+     role="dialog"
+     aria-modal="true"
      aria-labelledby="tier-compare-title">
     <div class="tier-compare-modal">
         <div class="tier-compare-header">
@@ -332,7 +332,7 @@
                     <!-- Cards loaded dynamically -->
                 </div>
             </div>
-            
+
             <!-- Feature Comparison Table -->
             <div class="tier-compare-section">
                 <h3 class="tier-compare-section-title">Feature Comparison</h3>
@@ -441,13 +441,13 @@ let tierCompareCurrentTier = 'freemium';
 async function showTierCompareModal(currentTier) {
     tierCompareCurrentTier = currentTier || 'freemium';
     const modal = document.getElementById('tier-compare-modal');
-    
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    
+
     // Load tier cards
     await loadTierCompareCards();
-    
+
     // Add keyboard listener
     document.addEventListener('keydown', handleTierCompareKeydown);
 }
@@ -461,7 +461,7 @@ function closeTierCompareModal() {
 
 async function loadTierCompareCards() {
     const container = document.getElementById('tier-compare-cards');
-    
+
     const tiers = [
         {
             code: 'freemium',
@@ -496,13 +496,13 @@ async function loadTierCompareCards() {
             btnClass: 'tier-compare-card-btn-custom'
         }
     ];
-    
+
     container.innerHTML = tiers.map(tier => {
         const isCurrent = tier.code === tierCompareCurrentTier;
         const cardClass = `tier-compare-card tier-compare-card-${tier.code}${isCurrent ? ' current' : ''}`;
         const btnText = isCurrent ? 'Current Plan' : (tier.code === 'custom' ? 'Contact Sales' : 'Select Plan');
         const btnDisabled = isCurrent ? 'disabled' : '';
-        
+
         return `
             <div class="${cardClass}">
                 <div class="tier-compare-card-name">${tier.name}</div>

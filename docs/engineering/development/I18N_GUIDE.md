@@ -1,6 +1,6 @@
 # i18n Guide
 
-**Status**: ✅ Implemented  
+**Status**: ✅ Implemented
 **Last Updated**: March 8, 2026
 
 ---

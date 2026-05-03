@@ -95,7 +95,7 @@ psql "postgresql://namaskahdb:mT7K2xu1EZyrb6r8ER5pbpWGEffMyPW5@dpg-d7geq9vlk1mc7
 ./start.sh
 ```
 
-**Expected**: 
+**Expected**:
 - ✅ Database connection successful
 - ✅ Refund enforcer starts (or fails gracefully)
 - ✅ Application listens on port 8000

@@ -5,7 +5,7 @@
 // Error handler
 export function handleError(error, context = '') {
   console.error(`Error${context ? ` in ${context}` : ''}:`, error)
-  
+
   // Show user-friendly error message
   showErrorNotification(
     error.message || 'An error occurred. Please try again.'
@@ -184,7 +184,7 @@ export function formatDate(date, format = 'MM/DD/YYYY') {
   const day = String(d.getDate()).padStart(2, '0')
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const year = d.getFullYear()
-  
+
   return format
     .replace('DD', day)
     .replace('MM', month)
@@ -247,7 +247,7 @@ export function addAnimationStyles() {
         opacity: 1;
       }
     }
-    
+
     @keyframes slideOut {
       from {
         transform: translateX(0);

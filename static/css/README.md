@@ -44,7 +44,7 @@ These files have been consolidated into `core.css`:
     <!-- Core styles (always include) -->
     <link rel="stylesheet" href="/static/css/core.css">
     <link rel="stylesheet" href="/static/css/tier-colors.css">
-    
+
     <!-- Page-specific styles -->
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>

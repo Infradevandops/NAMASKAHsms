@@ -11,7 +11,7 @@
 
 ### Backup Storage (Multi-Cloud)
 ✅ **Google Drive** - 15GB free (Daily backups)
-✅ **OneDrive** - 5GB free (Weekly backups)  
+✅ **OneDrive** - 5GB free (Weekly backups)
 ✅ **MEGA** - 20GB free (Monthly archives)
 
 **Total Free Storage: 40GB**
@@ -156,7 +156,7 @@ Automatically runs on 1st of month via same script
 - **Total**: ~600MB
 - **Remaining**: 19.4GB
 
-**Total Backup Coverage**: 
+**Total Backup Coverage**:
 - Daily: Last 30 days
 - Weekly: Last 4 weeks
 - Monthly: Last 12 months
@@ -350,7 +350,7 @@ rclone lsd gdrive:
 
 ---
 
-**Status**: ✅ Ready to implement  
-**Cost**: $0/month  
-**Setup Time**: 30 minutes  
+**Status**: ✅ Ready to implement
+**Cost**: $0/month
+**Setup Time**: 30 minutes
 **Maintenance**: Automatic (cron job)

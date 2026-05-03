@@ -33,8 +33,8 @@ class DatabaseOptimizer:
                 conn.execute(
                     text(
                         """
-                    CREATE INDEX IF NOT EXISTS idx_user_tier 
-                    ON users(id, tier) 
+                    CREATE INDEX IF NOT EXISTS idx_user_tier
+                    ON users(id, tier)
                     WHERE deleted_at IS NULL
                 """
                     )
@@ -43,8 +43,8 @@ class DatabaseOptimizer:
                 conn.execute(
                     text(
                         """
-                    CREATE INDEX IF NOT EXISTS idx_user_tier_updated 
-                    ON users(id, tier_updated_at) 
+                    CREATE INDEX IF NOT EXISTS idx_user_tier_updated
+                    ON users(id, tier_updated_at)
                     WHERE deleted_at IS NULL
                 """
                     )
@@ -54,7 +54,7 @@ class DatabaseOptimizer:
                 conn.execute(
                     text(
                         """
-                    CREATE INDEX IF NOT EXISTS idx_tier_features 
+                    CREATE INDEX IF NOT EXISTS idx_tier_features
                     ON subscription_tiers(name, features)
                 """
                     )
@@ -64,7 +64,7 @@ class DatabaseOptimizer:
                 conn.execute(
                     text(
                         """
-                    CREATE INDEX IF NOT EXISTS idx_verification_user 
+                    CREATE INDEX IF NOT EXISTS idx_verification_user
                     ON verifications(user_id, created_at)
                 """
                     )
@@ -74,7 +74,7 @@ class DatabaseOptimizer:
                 conn.execute(
                     text(
                         """
-                    CREATE INDEX IF NOT EXISTS idx_transaction_user 
+                    CREATE INDEX IF NOT EXISTS idx_transaction_user
                     ON transactions(user_id, created_at)
                 """
                     )

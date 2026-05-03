@@ -20,10 +20,10 @@ const ComplianceManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const data = await res.json();
-            
+
             // Render basic summary (we'll add this to the Control & Audit tab)
             const summaryGrid = document.getElementById('full-audit-table'); // We'll put it elsewhere if needed
-            
+
             // Build a compliance HUD
             const hud = document.createElement('div');
             hud.className = 'glass-card';
@@ -49,7 +49,7 @@ const ComplianceManager = {
                     `).join('')}
                 </div>
             `;
-            
+
             const container = document.getElementById('page-audit');
             container.insertBefore(hud, container.firstChild);
         } catch (e) { console.error('[Compliance] Report failed:', e); }
@@ -61,7 +61,7 @@ const ComplianceManager = {
                 headers: { 'Authorization': `Bearer ${this.getToken()}` }
             });
             const logs = await res.json();
-            
+
             const tbody = document.getElementById('full-audit-table');
             tbody.innerHTML = logs.map(l => `
                 <tr>

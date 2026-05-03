@@ -1,6 +1,6 @@
 # SMS Logic — Full Assessment
 
-**Date**: April 6, 2026 | **Last Updated**: April 7, 2026  
+**Date**: April 6, 2026 | **Last Updated**: April 7, 2026
 **Scope**: Every deviation from TV's standard flow, all in-between logic gaps, voice verification, and newly discovered issues.
 
 ---
@@ -12,7 +12,7 @@
 ### ✅ Deviation 1 — Wrong SMS Retrieval Method
 **FIXED** — `poll_sms_standard()` now uses `sms.incoming(data=tv_object)` correctly.
 
-**Was:** `sms.list(string_id)` — queried all SMS across entire account history  
+**Was:** `sms.list(string_id)` — queried all SMS across entire account history
 **Now:** `sms.incoming(data=VerificationExpanded, since=created_at)` — only fresh SMS for this activation
 
 **File:** `app/services/textverified_service.py` → `poll_sms_standard()`
@@ -22,7 +22,7 @@
 ### ✅ Deviation 2 — `parsed_code` Was Being Ignored
 **FIXED** — `parsed_code` from TV used first. Regex is last resort only.
 
-**Was:** Broken regex `\b(\d{4,8})\b` missed hyphenated codes like `806-185`  
+**Was:** Broken regex `\b(\d{4,8})\b` missed hyphenated codes like `806-185`
 **Now:** `sms.parsed_code` → hyphen regex → plain digit regex (in that order)
 
 **Files:** `textverified_service.py` → `poll_sms_standard()`, `get_sms()`, and `sms_polling_service.py` → `_poll_legacy()`
@@ -32,7 +32,7 @@
 ### ✅ Deviation 3 — `VerificationExpanded` Object Discarded After Creation
 **FIXED** — `ends_at` and `tv_object` now returned from `create_verification()`.
 
-**Was:** Only `id` and `number` extracted, everything else discarded  
+**Was:** Only `id` and `number` extracted, everything else discarded
 **Now:** `ends_at` stored, `tv_object` passed to `poll_sms_standard()`
 
 **File:** `textverified_service.py` → `create_verification()` returns full dict including `tv_object`
@@ -40,7 +40,7 @@
 ---
 
 ### ⚠️ Deviation 4 — TV Verification State Never Read
-**PARTIAL** — `get_verification_details()` added to read real TV state.  
+**PARTIAL** — `get_verification_details()` added to read real TV state.
 Platform still maintains its own `status` string. Full sync with TV state enum not yet implemented.
 
 **What works:**
@@ -68,7 +68,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 5 — `verifications.report()` Never Called
 **FIXED** — `report_verification()` now called on timeout.
 
-**Was:** Platform ate every failed verification cost  
+**Was:** Platform ate every failed verification cost
 **Now:** `report_verification()` called on timeout → TV refunds automatically. Platform `AutoRefundService` is fallback only if TV report fails.
 
 **File:** `sms_polling_service.py` → `_handle_timeout()`
@@ -78,7 +78,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 6 — `ends_at` Never Used
 **FIXED** — `ends_at` from TV now used to calculate real polling timeout.
 
-**Was:** Hardcoded 10-minute timer regardless of TV's actual expiry  
+**Was:** Hardcoded 10-minute timer regardless of TV's actual expiry
 **Now:** `timeout = min(ends_at_delta, config_max)` — uses TV's real expiry
 
 **File:** `sms_polling_service.py` → `_poll_verification()` lines 72-78
@@ -88,7 +88,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 7 — Voice Route Called Non-Existent Endpoint
 **FIXED** — Route corrected in `voice_verify_modern.html`.
 
-**Was:** `fetch('/api/verify/create')` → 404 always  
+**Was:** `fetch('/api/verify/create')` → 404 always
 **Now:** `fetch('/api/verification/request')` → correct endpoint
 
 ---
@@ -96,7 +96,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 8 — `submitVoiceCode()` Not Defined
 **FIXED** — Manual code input section removed entirely.
 
-**Was:** Static HTML had a button calling undefined `submitVoiceCode()` → JS error  
+**Was:** Static HTML had a button calling undefined `submitVoiceCode()` → JS error
 **Now:** Replaced with empty `#code-input-section` div. Polling JS auto-populates it with code display + copy button on success.
 
 **File:** `templates/voice_verify_modern.html`
@@ -106,7 +106,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ⚠️ Deviation 9 — `pricing-balance` Missing in Voice Template
 **FIXED** — Element added to Step 2 pricing card.
 
-**Was:** `getElementById('pricing-balance')` → null error on every load  
+**Was:** `getElementById('pricing-balance')` → null error on every load
 **Now:** Element present at line 107, balance loads via `loadBalance()`
 
 **Note:** `loadBalance()` calls `/api/billing/balance` — if this endpoint is slow or fails, the balance shows `$0.00` with no error feedback to the user.
@@ -116,7 +116,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 10 — Voice Polling Used Wrong Endpoint
 **FIXED** — Polling endpoint corrected.
 
-**Was:** `fetch('/api/verify/${id}/status')` → 404  
+**Was:** `fetch('/api/verify/${id}/status')` → 404
 **Now:** `fetch('/api/verification/status/${verificationId}')` → correct
 
 ---
@@ -124,7 +124,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 11 — Voice Area Codes Hardcoded
 **FIXED** — Hardcoded options removed. Dynamic load with clean fallback.
 
-**Was:** 4 hardcoded `<option>` elements (212, 310, 415, 479) as silent fallback  
+**Was:** 4 hardcoded `<option>` elements (212, 310, 415, 479) as silent fallback
 **Now:** Select starts with "Loading area codes...", `loadAreaCodes()` populates dynamically. On API failure, falls back to single "Any Area Code" option.
 
 **File:** `templates/voice_verify_modern.html`
@@ -134,7 +134,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Deviation 12 — Voice Polling `setInterval` Leak
 **FIXED** — Replaced with `setTimeout` chain.
 
-**Was:** `setInterval` kept running after navigation → background API calls  
+**Was:** `setInterval` kept running after navigation → background API calls
 **Now:** `setTimeout` chain, `clearTimeout` on success/cancel/reset
 
 **File:** `templates/voice_verify_modern.html` → `startWaiting()` function
@@ -148,7 +148,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Issue 13 — Frontend Outcome Endpoint Mismatch (SMS Template)
 **FIXED** — Backend aligned to match frontend.
 
-**Was:** Frontend sent `POST /api/verification/outcome/{id}`, backend expected `PATCH /api/verification/{id}/outcome` → 404/405  
+**Was:** Frontend sent `POST /api/verification/outcome/{id}`, backend expected `PATCH /api/verification/{id}/outcome` → 404/405
 **Now:** Backend changed to `POST /api/verification/outcome/{id}` — matches both SMS and voice frontend calls.
 
 **File:** `app/api/verification/outcome_endpoint.py`
@@ -158,7 +158,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Issue 14 — Voice Tier Gate Missing at API Level
 **FIXED** — Server-side tier enforcement added.
 
-**Was:** Any user could POST `capability: 'voice'` regardless of tier  
+**Was:** Any user could POST `capability: 'voice'` regardless of tier
 **Now:** `purchase_endpoints.py` checks `capability == 'voice'` requires PAYG+ via `tier_manager.check_tier_hierarchy()`. Returns 402 for Freemium users.
 
 **File:** `app/api/verification/purchase_endpoints.py`
@@ -168,7 +168,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Issue 15 — Fake `_TVVerif` Object in Polling Service
 **FIXED** — Added missing attributes to `_TVVerif`.
 
-**Was:** Only had `number`, `created_at`, `id` — fragile if TV library inspects more  
+**Was:** Only had `number`, `created_at`, `id` — fragile if TV library inspects more
 **Now:** `_TVVerif` also carries `ends_at` and `service_name` from `tv_details` and `verification` record.
 
 **File:** `app/services/sms_polling_service.py`
@@ -178,7 +178,7 @@ ReservationState.VERIFICATION_REFUNDED
 ### ✅ Issue 16 — Voice Template Has No Timeout Outcome Call
 **FIXED** — Voice template now calls outcome endpoint on timeout.
 
-**Was:** Voice timeout just called `showError()` — no outcome recorded  
+**Was:** Voice timeout just called `showError()` — no outcome recorded
 **Now:** On 300s timeout, voice template POSTs `{outcome: 'timeout'}` to `/api/verification/outcome/{id}` before showing error, matching the SMS template pattern.
 
 **File:** `templates/voice_verify_modern.html`

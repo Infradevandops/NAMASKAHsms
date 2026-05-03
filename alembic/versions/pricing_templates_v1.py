@@ -24,7 +24,7 @@ def upgrade():
     inspector = sa.inspect(bind)
     is_sqlite = bind.dialect.name == "sqlite"
     json_cast = "" if is_sqlite else "::jsonb"
- 
+
     if "users" not in inspector.get_table_names():
         return
 

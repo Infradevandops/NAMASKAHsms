@@ -1,7 +1,7 @@
 # Production Database Migration Guide
 
-**Date**: April 18, 2026  
-**Migration**: Add Credit Hold & Reconciliation Fields to Users Table  
+**Date**: April 18, 2026
+**Migration**: Add Credit Hold & Reconciliation Fields to Users Table
 **Status**: ⚠️ REQUIRED - Login is currently broken without this migration
 
 ---
@@ -69,24 +69,24 @@ If Alembic fails, you can run this SQL directly on your production database:
 
 ```sql
 -- Add credit hold fields
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN IF NOT EXISTS credit_hold_amount NUMERIC(10, 4) NOT NULL DEFAULT 0.0;
 
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN IF NOT EXISTS credit_hold_reason VARCHAR;
 
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN IF NOT EXISTS credit_hold_until TIMESTAMP;
 
 -- Add reconciliation tracking
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN IF NOT EXISTS last_reconciliation_at TIMESTAMP;
 
 -- Create indices for performance
-CREATE INDEX IF NOT EXISTS ix_users_credit_hold_until 
+CREATE INDEX IF NOT EXISTS ix_users_credit_hold_until
 ON users(credit_hold_until);
 
-CREATE INDEX IF NOT EXISTS ix_users_last_reconciliation_at 
+CREATE INDEX IF NOT EXISTS ix_users_last_reconciliation_at
 ON users(last_reconciliation_at);
 ```
 
@@ -104,13 +104,13 @@ After running the migration:
 
 2. **Verify columns exist**:
    ```sql
-   SELECT column_name, data_type 
-   FROM information_schema.columns 
-   WHERE table_name = 'users' 
+   SELECT column_name, data_type
+   FROM information_schema.columns
+   WHERE table_name = 'users'
    AND column_name IN (
-     'credit_hold_amount', 
-     'credit_hold_reason', 
-     'credit_hold_until', 
+     'credit_hold_amount',
+     'credit_hold_reason',
+     'credit_hold_until',
      'last_reconciliation_at'
    );
    ```
@@ -191,6 +191,6 @@ pip install -r requirements.txt
 
 ---
 
-**Status**: Ready to deploy ✅  
-**Priority**: CRITICAL 🚨  
+**Status**: Ready to deploy ✅
+**Priority**: CRITICAL 🚨
 **Estimated Time**: 2-5 minutes

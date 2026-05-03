@@ -81,15 +81,15 @@ FALLBACK_SERVICES = [
 async def get_services(country: str):
     """Get services with fallback on error."""
     settings = get_settings()
-    
+
     try:
         # Try to get from API
         raw = await _tv.get_services_list()
-        
+
         if not raw:
             logger.warning(f"Empty services list for {country}, using fallback")
             raw = FALLBACK_SERVICES
-        
+
         return {
             "services": [
                 {
@@ -103,10 +103,10 @@ async def get_services(country: str):
             "total": len(raw),
             "source": "api"
         }
-    
+
     except Exception as e:
         logger.error(f"Failed to get services for {country}: {str(e)}", exc_info=True)
-        
+
         # Return fallback services
         return {
             "services": [
@@ -128,7 +128,7 @@ async def get_services(country: str):
 async def get_services_batch_pricing(country: str):
     """Return services with accurate pricing from 24h cache. Warms cache if cold."""
     settings = get_settings()
-    
+
     try:
         # Try cache first
         cached = await cache.get("tv:services_list")
@@ -146,14 +146,14 @@ async def get_services_batch_pricing(country: str):
                 "total": len(cached),
                 "source": "cache"
             }
-        
+
         # Cache cold — try API
         raw = await _tv.get_services_list()
-        
+
         if not raw:
             logger.warning(f"Empty services list for {country}, using fallback")
             raw = FALLBACK_SERVICES
-        
+
         return {
             "services": [
                 {
@@ -167,10 +167,10 @@ async def get_services_batch_pricing(country: str):
             "total": len(raw),
             "source": "warming"
         }
-    
+
     except Exception as e:
         logger.error(f"Failed to get batch pricing for {country}: {str(e)}", exc_info=True)
-        
+
         # Return fallback
         return {
             "services": [
@@ -196,12 +196,12 @@ async def get_services_batch_pricing(country: str):
 async function loadServices() {
     console.log('Loading services for US...');
     const select = document.getElementById('service-select');
-    
+
     try {
         // Show loading state
         select.innerHTML = '<option value="">Loading services...</option>';
         select.disabled = true;
-        
+
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/countries/US/services`, {
             headers: { 'Authorization': `Bearer ${token}` },
@@ -211,7 +211,7 @@ async function loadServices() {
         if (res.data && res.data.services && res.data.services.length > 0) {
             allServices = res.data.services;
             servicesLoaded = true;
-            
+
             // Populate select
             select.innerHTML = '<option value="">Select a service...</option>';
             allServices.forEach(service => {
@@ -220,13 +220,13 @@ async function loadServices() {
                 option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
                 select.appendChild(option);
             });
-            
+
             select.disabled = false;
-            
+
             // Show source indicator
             const source = res.data.source || 'unknown';
             console.log(`✅ Loaded ${allServices.length} services from ${source}`);
-            
+
             // If using fallback, show warning
             if (source === 'fallback') {
                 console.warn('⚠️ Using fallback services - API unavailable');
@@ -237,7 +237,7 @@ async function loadServices() {
         }
     } catch (error) {
         console.error(`❌ Failed to load services:`, error);
-        
+
         // Use hardcoded fallback
         allServices = [
             { id: 'telegram', name: 'Telegram', cost: 2.00 },
@@ -250,7 +250,7 @@ async function loadServices() {
             { id: 'tiktok', name: 'TikTok', cost: 2.70 }
         ];
         servicesLoaded = true;
-        
+
         // Populate select with fallback
         select.innerHTML = '<option value="">Select a service...</option>';
         allServices.forEach(service => {
@@ -259,9 +259,9 @@ async function loadServices() {
             option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
             select.appendChild(option);
         });
-        
+
         select.disabled = false;
-        
+
         console.log(`⚠️ Using ${allServices.length} fallback services`);
         showNotification('Using cached services - API unavailable', 'warning');
     }
@@ -283,7 +283,7 @@ function showNotification(message, type = 'info') {
         z-index: 10000;
         animation: slideIn 0.3s ease-out;
     `;
-    
+
     document.body.appendChild(notification);
     setTimeout(() => notification.remove(), 5000);
 }
@@ -327,11 +327,11 @@ async def get_services_list(self) -> List[Dict[str, Any]]:
             ),
             timeout=10.0,  # 10 second timeout
         )
-        
+
         if not services:
             logger.warning("TextVerified returned empty services list")
             return self._mock_services()
-        
+
         result = [
             {
                 "id": s.service_name,
@@ -341,20 +341,20 @@ async def get_services_list(self) -> List[Dict[str, Any]]:
             }
             for s in services
         ]
-        
+
         try:
             await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
         except Exception:
             pass
-        
+
         # Kick off background pricing fetch
         asyncio.create_task(self._fetch_and_cache_pricing(services))
         return result
-    
+
     except asyncio.TimeoutError:
         logger.error("TextVerified API timeout (10s)")
         return self._mock_services()
-    
+
     except Exception as e:
         logger.error(f"Failed to get services: {e}", exc_info=True)
         return self._mock_services()

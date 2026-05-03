@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Namaskah - Premium SMS Verification Platform</title>
   <meta name="description" content="Real SIM cards. No VoIP. 100% success rate. Trusted by {{ user_count|default(10000) }}+ developers worldwide.">
-  
+
   <!-- Preconnect to CDNs for faster loading -->
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Tailwind Config - must be AFTER script loads -->
   <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
@@ -39,34 +39,34 @@
   </script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  
+
   <!-- Debug: Check if Alpine loads -->
   <script nonce="{{ request.state.csp_nonce }}">
     window.addEventListener('alpine:init', () => {
       console.log('Alpine.js initialized successfully');
     });
   </script>
-  
+
   <style>
     /* Base styles - Always load even if Tailwind fails */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
+    body {
       background: #FDFBF7;
-      color: #37352F; 
+      color: #37352F;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
     }
-    .glass { 
-      background: rgba(255, 255, 255, 0.05); 
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
     }
-    
+
     /* Fallback styles if Tailwind doesn't load */
     a { color: #06b6d4; text-decoration: none; }
     a:hover { color: #22d3ee; }
     button { cursor: pointer; border: none; background: none; }
-    input { 
+    input {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -76,10 +76,10 @@
       font-size: 1rem;
     }
     input:focus { outline: 2px solid #06b6d4; }
-    
+
     /* Smooth scroll */
     html { scroll-behavior: smooth; }
-    
+
     /* Loading animation */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -97,13 +97,13 @@
         <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
         <span class="font-bold text-xl tracking-tight">Namaskah</span>
       </a>
-      
+
       <div class="hidden md:flex gap-8 text-sm">
         <a href="#pricing" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="pricing">Pricing</a>
         <a href="#features" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="features">Features</a>
         <a href="/docs" class="text-zinc-600 hover:text-[#37352F] transition" data-i18n="apiDocs">API Docs</a>
       </div>
-      
+
       <div class="hidden md:flex gap-4 items-center">
         {% if user %}
         <a href="/dashboard" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition">Dashboard</a>
@@ -112,9 +112,9 @@
         <a href="/auth/login" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition" data-i18n="login">Login</a>
         <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white" data-i18n="startVerifying">Start Verifying →</a>
         {% endif %}
-        
+
         <!-- Language/Currency Selector -->
-        <div x-data="{ 
+        <div x-data="{
           open: false,
           currency: localStorage.getItem('currency') || 'USD',
           language: localStorage.getItem('language') || 'en',
@@ -128,14 +128,14 @@
             localStorage.setItem(type, value);
             document.cookie = `${type}=${value}; path=/; max-age=31536000`;
             document.cookie = `preferences_set=true; path=/; max-age=31536000`;
-            
+
             // Save to database if authenticated
             fetch('/api/user/preferences', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ language: this.language, currency: this.currency })
             }).catch(() => {});
-            
+
             // Reload page to apply changes
             setTimeout(() => location.reload(), 100);
           }
@@ -163,9 +163,9 @@
               <button @click="setPreference('currency', 'INR')" :class="currency === 'INR' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
                 <span>🇮🇳</span> INR - Indian Rupee
               </button>
-              
+
               <div class="border-t border-white/10 my-2"></div>
-              
+
               <div class="text-xs font-bold text-zinc-500 px-3 py-2 uppercase tracking-wider">Language</div>
               <button @click="setPreference('language', 'en')" :class="language === 'en' ? 'bg-brand-500/20 text-brand-400' : 'text-zinc-300'" class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition flex items-center gap-2">
                 <span>🇺🇸</span> English
@@ -201,12 +201,12 @@
           </div>
         </div>
       </div>
-      
+
       <button @click="open = !open" class="md:hidden">
         <i class="ph ph-list text-2xl"></i>
       </button>
     </div>
-    
+
     <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-[#16213e]/95 backdrop-blur-xl">
       <div class="px-6 py-4 space-y-4">
         <a href="#pricing" class="block text-zinc-600">Pricing</a>
@@ -232,7 +232,7 @@
       <p class="text-xl text-zinc-600 mb-12 max-w-2xl mx-auto">
         <span data-i18n="description">Real SIM cards. No VoIP. 100% success rate. Trusted by</span> {{ user_count|default(10000) }}+ <span data-i18n="developers">developers worldwide</span>.
       </p>
-      
+
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
         {% if user %}
         <a href="/dashboard" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white" data-i18n="dashboard">
@@ -247,7 +247,7 @@
         </a>
         {% endif %}
       </div>
-      
+
       <!-- Search Bar with Autocomplete -->
       <script nonce="{{ request.state.csp_nonce }}">
         window.servicesData = {{ services|tojson|safe }};
@@ -265,9 +265,9 @@
         }
       }" class="relative max-w-2xl mx-auto">
         <i class="ph ph-magnifying-glass absolute left-6 top-6 text-brand-400 text-xl"></i>
-        <input 
+        <input
           x-model="search"
-          type="text" 
+          type="text"
           data-i18n-placeholder="searchPlaceholder"
           placeholder="Which service do you need to verify?"
           class="w-full glass border border-white/20 rounded-2xl py-6 pl-16 pr-24 text-xl focus:outline-none focus:ring-4 focus:ring-brand-500/30 focus:border-brand-500 transition placeholder:text-zinc-500 bg-white/5"
@@ -276,15 +276,15 @@
           @blur="setTimeout(() => showDropdown = false, 200)"
         >
         <kbd class="absolute right-4 top-6 px-3 py-1 bg-zinc-800/50 rounded-lg border border-white/10 text-xs text-zinc-500 font-mono hidden sm:block">ENTER</kbd>
-        
+
         <!-- Autocomplete Dropdown -->
-        <div 
-          x-show="showDropdown && filteredServices().length > 0" 
+        <div
+          x-show="showDropdown && filteredServices().length > 0"
           x-transition
           class="absolute top-full mt-2 w-full bg-zinc-900/95 backdrop-blur-xl rounded-2xl border border-white/10 max-h-80 overflow-y-auto shadow-2xl z-50"
         >
           <template x-for="service in filteredServices()" :key="service.name">
-            <div 
+            <div
               @click="selectService(service.name)"
               class="p-4 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 transition flex items-center justify-between"
             >
@@ -303,7 +303,7 @@
   <!-- Bento Grid Features -->
   <section id="features" class="py-24 max-w-7xl mx-auto px-6">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-      
+
       <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform overflow-hidden relative group">
         <div class="relative z-10">
           <div class="w-12 h-12 bg-brand-500/20 rounded-2xl flex items-center justify-center text-brand-400 mb-6">
@@ -327,7 +327,7 @@
         </div>
         <i class="ph ph-device-mobile absolute -right-10 top-10 text-[400px] opacity-5 group-hover:opacity-10 transition"></i>
       </div>
-      
+
       <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
         <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
           <i class="ph ph-lock text-2xl text-zinc-600"></i>
@@ -337,7 +337,7 @@
           <p class="text-zinc-600 leading-relaxed">No personal info required. Pay with crypto and stay anonymous.</p>
         </div>
       </div>
-      
+
       <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
         <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
           <i class="ph ph-code text-2xl text-zinc-600"></i>
@@ -347,7 +347,7 @@
           <p class="text-zinc-600 leading-relaxed">Integrate in minutes. Fetch numbers programmatically at speed.</p>
         </div>
       </div>
-      
+
       <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform">
         <div class="flex justify-between items-center mb-8">
           <h3 class="text-2xl font-bold text-[#37352F]">Live Availability</h3>
@@ -359,7 +359,7 @@
           </script>
           <div x-data="{ services: window.servicesDataGrid || [] }">
             <template x-for="service in services.slice(0, 6)" :key="service.name">
-            <div 
+            <div
               @click="window.location.href='/verify?service=' + service.name"
               class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-brand-500/30 transition cursor-pointer group"
             >
@@ -374,7 +374,7 @@
           </div>
         </div>
       </div>
-      
+
     </div>
   </section>
 
@@ -382,7 +382,7 @@
   <section id="pricing" class="py-24 max-w-7xl mx-auto px-6">
     <h2 class="text-4xl md:text-5xl font-bold text-[#37352F] text-center mb-4">Choose Your Plan</h2>
     <p class="text-xl text-zinc-600 text-center mb-16">Start free, upgrade as you grow</p>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- Freemium Tier -->
       <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
@@ -413,14 +413,14 @@
             <span class="text-sm">Basic support</span>
           </li>
         </ul>
-        <a 
+        <a
           href="/auth/register?tier=freemium"
           class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
           Get it now
         </a>
       </div>
-      
+
       <!-- Pay-As-You-Go Tier -->
       <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
         <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-payg text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">FLEXIBLE</span>
@@ -450,14 +450,14 @@
             <span class="text-sm">No monthly commitment</span>
           </li>
         </ul>
-        <a 
+        <a
           href="/auth/register?tier=payg"
           class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
           Get it now
         </a>
       </div>
-      
+
       <!-- Pro Tier -->
       <div class="p-8 rounded-3xl bg-[#37352F] border-2 border-[#37352F] hover:shadow-2xl transition-all relative">
         <span class="absolute -top-3 right-6 bg-white text-[#37352F] text-xs font-bold px-4 py-1.5 rounded-full shadow-md">Best Seller</span>
@@ -487,14 +487,14 @@
             <span class="text-sm">Priority support</span>
           </li>
         </ul>
-        <a 
+        <a
           href="/auth/register?tier=pro"
           class="block w-full bg-white hover:bg-zinc-100 py-3.5 rounded-xl font-semibold text-center transition text-[#37352F]"
         >
           Get it now
         </a>
       </div>
-      
+
       <!-- Custom Tier -->
       <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
         <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">ENTERPRISE</span>
@@ -524,7 +524,7 @@
             <span class="text-sm">Dedicated support</span>
           </li>
         </ul>
-        <a 
+        <a
           href="/auth/register?tier=custom"
           class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
@@ -539,12 +539,12 @@
     <!-- Gradient Background -->
     <div class="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f1419]"></div>
     <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-    
+
     <div class="relative z-10">
       <!-- Main Footer Content -->
       <div class="max-w-7xl mx-auto px-6 pt-20 pb-12">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
-          
+
           <!-- Brand Column -->
           <div class="md:col-span-4">
             <div class="flex items-center gap-3 mb-6">
@@ -571,7 +571,7 @@
               </a>
             </div>
           </div>
-          
+
           <!-- Platform Links -->
           <div class="md:col-span-2">
             <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Platform</h4>
@@ -602,7 +602,7 @@
               </li>
             </ul>
           </div>
-          
+
           <!-- Resources Links -->
           <div class="md:col-span-2">
             <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Resources</h4>
@@ -633,7 +633,7 @@
               </li>
             </ul>
           </div>
-          
+
           <!-- Company Links -->
           <div class="md:col-span-2">
             <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Company</h4>
@@ -664,7 +664,7 @@
               </li>
             </ul>
           </div>
-          
+
           <!-- Legal Links -->
           <div class="md:col-span-2">
             <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Legal</h4>
@@ -696,10 +696,10 @@
             </ul>
           </div>
         </div>
-        
+
         <!-- Divider -->
         <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8"></div>
-        
+
         <!-- Bottom Bar -->
         <div class="flex flex-col md:flex-row items-center justify-between gap-6">
           <!-- Copyright -->
@@ -708,10 +708,10 @@
             <span class="hidden md:inline">•</span>
             <span>All rights reserved.</span>
           </p>
-          
+
           <!-- Language/Currency Selector -->
-          <div x-data="{ 
-            lang: localStorage.getItem('language') || 'en', 
+          <div x-data="{
+            lang: localStorage.getItem('language') || 'en',
             curr: localStorage.getItem('currency') || 'USD',
             langOpen: false,
             currOpen: false
@@ -741,7 +741,7 @@
                 </button>
               </div>
             </div>
-            
+
             <!-- Currency Dropdown -->
             <div class="relative">
               <button @click="currOpen = !currOpen; langOpen = false" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm">
@@ -768,7 +768,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Payment Methods -->
           <div class="flex items-center gap-4">
             <span class="text-zinc-600 text-xs uppercase tracking-wider font-semibold">We Accept</span>
@@ -866,22 +866,22 @@
       const lang = localStorage.getItem('language') || 'en';
       const currency = localStorage.getItem('currency') || 'USD';
       const t = translations[lang] || translations.en;
-      
+
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (t[key]) el.textContent = t[key];
       });
-      
+
       document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         if (t[key]) el.placeholder = t[key];
       });
-      
+
       document.querySelectorAll('[data-price]').forEach(el => {
         const usdPrice = parseFloat(el.getAttribute('data-price'));
         el.textContent = formatPrice(usdPrice, currency);
       });
-      
+
       document.querySelectorAll('[data-i18n="perMonth"]').forEach(el => {
         el.textContent = t.perMonth;
       });
