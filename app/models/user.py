@@ -42,6 +42,10 @@ class User(BaseModel):
     referred_by = Column(String)
     referral_earnings = Column(Numeric(10, 4), default=0.0, nullable=False)
 
+    # Terms acceptance
+    terms_accepted = Column(Boolean, default=False, nullable=False)
+    terms_accepted_at = Column(DateTime, nullable=True)
+
     # Google OAuth fields
     google_id = Column(String(255), nullable=True, index=True)
     provider = Column(String(50), default="email", nullable=False)

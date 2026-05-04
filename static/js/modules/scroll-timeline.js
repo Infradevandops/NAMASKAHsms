@@ -227,4 +227,3 @@ class ScrollTimeline {
 }
 
 export { ScrollTimeline }
-

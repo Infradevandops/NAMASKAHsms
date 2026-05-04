@@ -12,6 +12,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+
 def run_migration():
     """Run Alembic migration on remote database."""
 
@@ -31,7 +32,9 @@ def run_migration():
         print()
         print("Or run with:")
         print()
-        print("  DATABASE_URL='your_db_url' python scripts/deployment/migrate_remote_db.py")
+        print(
+            "  DATABASE_URL='your_db_url' python scripts/deployment/migrate_remote_db.py"
+        )
         print()
         return False
 
@@ -53,8 +56,8 @@ def run_migration():
 
     # Import alembic
     try:
-        from alembic.config import Config
         from alembic import command
+        from alembic.config import Config
     except ImportError:
         print("❌ ERROR: Alembic not installed")
         print()

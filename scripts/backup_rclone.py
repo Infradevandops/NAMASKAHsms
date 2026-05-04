@@ -41,7 +41,9 @@ def check_rclone():
         )
         logger.info(f"Rclone version: {result.stdout.split()[1]}")
     except FileNotFoundError:
-        logger.error("Rclone not installed. Install: curl https://rclone.org/install.sh | bash")
+        logger.error(
+            "Rclone not installed. Install: curl https://rclone.org/install.sh | bash"
+        )
         sys.exit(1)
     except subprocess.CalledProcessError:
         logger.error("Rclone not working properly")
@@ -75,6 +77,7 @@ def backup_database() -> Path:
 
     # Parse DATABASE_URL
     import urllib.parse
+
     p = urllib.parse.urlparse(DATABASE_URL)
     env = {
         **os.environ,
@@ -123,9 +126,12 @@ def sync_to_cloud(local_path: Path, remote_path: str, sync_type: str = "copy"):
         str(local_path),
         remote_full,
         "--progress",
-        "--stats", "1s",
-        "--transfers", "4",
-        "--checkers", "8",
+        "--stats",
+        "1s",
+        "--transfers",
+        "4",
+        "--checkers",
+        "8",
     ]
 
     # Add encryption if configured
@@ -204,10 +210,13 @@ def restore_database(source: str):
         logger.error(f"Backup file not found: {local_path}")
         sys.exit(1)
 
-    logger.warning(f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!")
+    logger.warning(
+        f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!"
+    )
 
     # Parse DATABASE_URL
     import urllib.parse
+
     p = urllib.parse.urlparse(DATABASE_URL)
     env = {
         **os.environ,
@@ -246,11 +255,15 @@ def list_backups():
     check_rclone()
 
     logger.info("Available backups:")
-    subprocess.run([
-        "rclone", "ls",
-        f"{RCLONE_REMOTE}:{BACKUP_BUCKET}/database/",
-        "--max-depth", "1",
-    ])
+    subprocess.run(
+        [
+            "rclone",
+            "ls",
+            f"{RCLONE_REMOTE}:{BACKUP_BUCKET}/database/",
+            "--max-depth",
+            "1",
+        ]
+    )
 
 
 if __name__ == "__main__":

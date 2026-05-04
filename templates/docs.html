@@ -1,0 +1,270 @@
+{% extends "public_base.html" %}
+
+{% block page_title %}API Documentation{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+    .docs-hero {
+        background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 24px;
+        margin-bottom: 48px;
+        color: white;
+    }
+    .docs-hero h1 { font-size: 42px; margin-bottom: 12px; font-weight: 800; }
+    .docs-hero p { font-size: 18px; opacity: 0.95; }
+    .docs-container { max-width: 960px; margin: 0 auto; }
+    .endpoint-group { margin-bottom: 48px; }
+    .endpoint-group h2 {
+        font-size: 28px; font-weight: 700; color: #37352F;
+        margin-bottom: 20px; padding-bottom: 12px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .endpoint {
+        background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+        padding: 20px; margin-bottom: 12px; transition: border-color 0.2s;
+    }
+    .endpoint:hover { border-color: #FE3C72; }
+    .endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .method {
+        font-size: 12px; font-weight: 700; padding: 4px 10px;
+        border-radius: 6px; font-family: monospace; min-width: 56px; text-align: center;
+    }
+    .method.get { background: #DCFCE7; color: #166534; }
+    .method.post { background: #DBEAFE; color: #1E40AF; }
+    .method.put { background: #FEF9C3; color: #854D0E; }
+    .method.delete { background: #FEE2E2; color: #B91C1C; }
+    .endpoint-path { font-family: monospace; font-size: 15px; font-weight: 600; color: #37352F; }
+    .endpoint-desc { font-size: 14px; color: #6b7280; margin-left: 68px; }
+    .auth-badge {
+        font-size: 11px; font-weight: 600; padding: 2px 8px;
+        border-radius: 4px; background: #FFF0F3; color: #FE3C72; margin-left: auto;
+    }
+    .tier-note { font-size: 11px; color: #9CA3AF; margin-left: 68px; margin-top: 4px; }
+    .info-card {
+        background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;
+        padding: 24px; margin-bottom: 32px;
+    }
+    .info-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #37352F; }
+    .info-card p { font-size: 14px; color: #6b7280; line-height: 1.7; margin-bottom: 8px; }
+    .info-card code {
+        background: #E2E8F0; padding: 2px 6px; border-radius: 4px;
+        font-size: 13px; font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block public_content %}
+<div class="docs-container" style="padding: 40px 20px;">
+    <div class="docs-hero">
+        <h1>API Documentation</h1>
+        <p>Integrate SMS verification into your applications</p>
+    </div>
+
+    <div class="info-card">
+        <h3>Getting Started</h3>
+        <p>Base URL: <code>https://vrenum.onrender.com/api</code></p>
+        <p>All authenticated endpoints require a Bearer token in the <code>Authorization</code> header.</p>
+        <p>API access requires a <strong>Pro</strong> tier or above. Generate API keys from your <a href="/api-keys" style="color: #FE3C72;">API Keys</a> page.</p>
+    </div>
+
+    <div class="info-card">
+        <h3>Authentication</h3>
+        <p>Include your token in every request:</p>
+        <p><code>Authorization: Bearer your_access_token</code></p>
+        <p>Or use an API key:</p>
+        <p><code>X-API-Key: nsk_live_your_api_key</code></p>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>Authentication</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/auth/register</span>
+            </div>
+            <div class="endpoint-desc">Create a new account</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/auth/login</span>
+            </div>
+            <div class="endpoint-desc">Login and receive JWT token</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/auth/me</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Get current user info</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/auth/logout</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Revoke current token</div>
+        </div>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>SMS Verification</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/verify/create</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Request a new SMS verification number</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/verify/status/{id}</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Check verification status and retrieve SMS code</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/verify/{id}/messages</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Get messages received for a verification</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/verify/history</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">List past verifications</div>
+        </div>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>Wallet & Payments</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/v1/wallet/stats</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Get wallet balance and spending stats</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/v1/wallet/paystack/initialize</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Initialize a Paystack payment to add credits</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/v1/wallet/history</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Transaction history with filtering</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/v1/wallet/export/csv</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Export transactions as CSV</div>
+        </div>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>Tiers & Billing</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/v1/billing/tiers</span>
+            </div>
+            <div class="endpoint-desc">List all available tiers</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/v1/billing/tiers/current</span>
+                <span class="auth-badge">Auth Required</span>
+            </div>
+            <div class="endpoint-desc">Get your current tier and quota usage</div>
+        </div>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>Countries & Services</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/countries</span>
+            </div>
+            <div class="endpoint-desc">List available countries</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/services</span>
+            </div>
+            <div class="endpoint-desc">List all available services</div>
+        </div>
+    </div>
+
+    <div class="endpoint-group">
+        <h2>API Keys</h2>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/api/keys</span>
+                <span class="auth-badge">Pro+</span>
+            </div>
+            <div class="endpoint-desc">List your API keys</div>
+            <div class="tier-note">Requires Pro tier or above</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/api/keys/generate</span>
+                <span class="auth-badge">Pro+</span>
+            </div>
+            <div class="endpoint-desc">Generate a new API key</div>
+            <div class="tier-note">Requires Pro tier or above</div>
+        </div>
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method delete">DELETE</span>
+                <span class="endpoint-path">/api/keys/{id}</span>
+                <span class="auth-badge">Pro+</span>
+            </div>
+            <div class="endpoint-desc">Revoke an API key</div>
+            <div class="tier-note">Requires Pro tier or above</div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h3>Rate Limits</h3>
+        <p>API requests are rate-limited per tier:</p>
+        <p>• <strong>Freemium/PAYG</strong>: 60 requests/minute</p>
+        <p>• <strong>Pro</strong>: 300 requests/minute</p>
+        <p>• <strong>Custom</strong>: 1000 requests/minute</p>
+        <p>Rate limit headers are included in every response: <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code></p>
+    </div>
+
+    <div class="info-card">
+        <h3>Need Help?</h3>
+        <p>Check our <a href="/faq" style="color: #FE3C72;">FAQ</a> or <a href="/contact" style="color: #FE3C72;">contact support</a>.</p>
+        <p>Interactive API explorer available at <code>/docs</code> (Swagger UI) when running locally.</p>
+    </div>
+</div>
+{% endblock %}

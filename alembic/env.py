@@ -1,11 +1,12 @@
 """Alembic environment configuration."""
 
-
 # Add the project root to the path
 import os
 import sys
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config, pool
+
 from alembic import context
 from app.core.config import settings
 from app.core.database import Base
@@ -35,13 +36,14 @@ target_metadata = Base.metadata
 def get_url():
     """Get database URL from settings with resilient fallback."""
     import os
+
     if os.getenv("USE_TEST_DB") == "true":
         return "sqlite:///./test.db"
 
     url = settings.database_url
     if "dpg-" in url and not os.getenv("DATABASE_URL"):
-         if os.getenv("ALLOW_SQLITE_FALLBACK") == "true":
-             return "sqlite:///./namaskah_fallback.db"
+        if os.getenv("ALLOW_SQLITE_FALLBACK") == "true":
+            return "sqlite:///./namaskah_fallback.db"
     return url
 
 

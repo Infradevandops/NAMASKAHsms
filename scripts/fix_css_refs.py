@@ -13,19 +13,25 @@ from typing import List, Tuple
 
 # Files to fix
 FILES = [
-    'templates/cookies.html',
-    'templates/services.html',
-    'templates/reviews.html',
-    'templates/affiliate_program.html',
-    'templates/api_docs.html',
+    "templates/cookies.html",
+    "templates/services.html",
+    "templates/reviews.html",
+    "templates/affiliate_program.html",
+    "templates/api_docs.html",
 ]
 
 # Patterns to fix
 PATTERNS: List[Tuple[str, str]] = [
     # CSS files - malformed syntax
-    (r'href="/static/css/([^\']+)\.css\'\) }}"', r'href="{{ url_for(\'static\', path=\'css/\1.css\') }}"'),
+    (
+        r'href="/static/css/([^\']+)\.css\'\) }}"',
+        r'href="{{ url_for(\'static\', path=\'css/\1.css\') }}"',
+    ),
     # JS files - malformed syntax
-    (r'src="/static/js/([^\']+)\.js\'\) }}"', r'src="{{ url_for(\'static\', path=\'js/\1.js\') }}"'),
+    (
+        r'src="/static/js/([^\']+)\.js\'\) }}"',
+        r'src="{{ url_for(\'static\', path=\'js/\1.js\') }}"',
+    ),
 ]
 
 
@@ -48,7 +54,7 @@ def fix_file(filepath: str) -> bool:
 
     # Read file
     try:
-        content = path.read_text(encoding='utf-8')
+        content = path.read_text(encoding="utf-8")
         original = content
     except Exception as e:
         print(f"❌ Error reading file: {e}")
@@ -70,15 +76,15 @@ def fix_file(filepath: str) -> bool:
 
     # Backup original
     try:
-        backup_path = path.with_suffix('.html.backup')
-        backup_path.write_text(original, encoding='utf-8')
+        backup_path = path.with_suffix(".html.backup")
+        backup_path.write_text(original, encoding="utf-8")
         print(f"   📦 Created backup: {backup_path.name}")
     except Exception as e:
         print(f"   ⚠️  Warning: Could not create backup: {e}")
 
     # Write fixed content
     try:
-        path.write_text(content, encoding='utf-8')
+        path.write_text(content, encoding="utf-8")
         print(f"   ✅ Fixed successfully")
         return True
     except Exception as e:
@@ -128,5 +134,5 @@ def main():
     return 0 if success_count == len(FILES) else 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     exit(main())

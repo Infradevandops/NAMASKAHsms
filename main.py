@@ -5,6 +5,9 @@ Namaskah SMS - Optimized Application Factory
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import jwt
+import uvicorn
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,47 +15,48 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
-from app.api.core.gdpr import router as gdpr_router
-from app.api.core.google_oauth import router as google_oauth_router
+
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
-from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
-from app.api.core.api_key_endpoints import router as api_key_router
-from app.api.core.forwarding import router as forwarding_router
-from app.api.core.blacklist import router as blacklist_router
-from app.api.core.referrals import router as referrals_router
 from app.api.billing.router import router as billing_router
 from app.api.compatibility_routes import router as compatibility_router
+from app.api.core.api_key_endpoints import router as api_key_router
+from app.api.core.blacklist import router as blacklist_router
+from app.api.core.contact import router as contact_router
+from app.api.core.forwarding import router as forwarding_router
+from app.api.core.gdpr import router as gdpr_router
+from app.api.core.google_oauth import router as google_oauth_router
 from app.api.core.notification_endpoints import router as notification_router
+from app.api.core.referrals import router as referrals_router
+from app.api.core.user_settings import auth_router as user_auth_router
+from app.api.core.user_settings_endpoints import (
+    router as user_settings_endpoints_router,
+)
 from app.api.dashboard_router import router as dashboard_router
 from app.api.health import router as health_router
-from app.api.preview_router import router as preview_router
 from app.api.main_routes import router as routes_router
+from app.api.preview_router import router as preview_router
 from app.api.v1.router import v1_router
-from app.api.websocket_endpoints import router as websocket_router
 
 # Temporarily disabled for CI fix
 from app.api.verification.area_code_endpoints import router as area_code_router
 from app.api.verification.carrier_endpoints import router as carrier_router
+from app.api.verification.outcome_endpoint import router as outcome_router
 from app.api.verification.pricing_endpoints import router as pricing_router
 from app.api.verification.router import router as verification_router
-from app.api.verification.outcome_endpoint import router as outcome_router
+from app.api.websocket_endpoints import router as websocket_router
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.lifespan import lifespan
 from app.core.logging import get_logger, setup_logging
-
 from app.core.unified_error_handling import setup_unified_middleware
 from app.core.unified_rate_limiting import setup_unified_rate_limiting
 from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
-from app.middleware.xss_protection import XSSProtectionMiddleware
 from app.middleware.tier_verification import tier_verification_middleware
-import jwt
+from app.middleware.xss_protection import XSSProtectionMiddleware
 from app.models.base import Base
-import uvicorn
-
 
 # Import modular routers
 
@@ -166,10 +170,14 @@ def create_app() -> FastAPI:
     # Auth endpoints
     fastapi_app.include_router(auth_router)
     fastapi_app.include_router(user_settings_endpoints_router)
+    fastapi_app.include_router(user_auth_router)
     fastapi_app.include_router(api_key_router)
     fastapi_app.include_router(forwarding_router)
     fastapi_app.include_router(blacklist_router)
     fastapi_app.include_router(referrals_router, prefix="/api")
+
+    # Contact form
+    fastapi_app.include_router(contact_router)
 
     # Compatibility routes (API aliases for frontend)
     fastapi_app.include_router(compatibility_router, prefix="/api")
@@ -186,6 +194,7 @@ def create_app() -> FastAPI:
     # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
     from app.api.core.dashboard_activity import router as dashboard_activity_router
     from app.api.core.textverified_balance import router as textverified_balance_router
+
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(textverified_balance_router)
     fastapi_app.include_router(admin_router, prefix="/api")
@@ -221,7 +230,13 @@ def create_app() -> FastAPI:
             "version": settings.version,
             "database": db_status,
             "static_files": {"mounted": STATIC_DIR.exists()},
-            "templates": {"count": (len(list(TEMPLATES_DIR.glob("*.html"))) if TEMPLATES_DIR.exists() else 0)},
+            "templates": {
+                "count": (
+                    len(list(TEMPLATES_DIR.glob("*.html")))
+                    if TEMPLATES_DIR.exists()
+                    else 0
+                )
+            },
         }
 
     return fastapi_app

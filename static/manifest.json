@@ -6,7 +6,7 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#6366f1",
+  "theme_color": "#FE3C72",
   "background_color": "#ffffff",
   "icons": [
     {
@@ -58,19 +58,5 @@
       "purpose": "any"
     }
   ],
-  "categories": ["productivity"],
-  "screenshots": [
-    {
-      "src": "/static/images/screenshot-540x720.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/static/images/screenshot-1280x720.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ]
+  "categories": ["productivity"]
 }

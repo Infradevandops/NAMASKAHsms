@@ -6,8 +6,8 @@ Create Date: 2025-12-27
 """
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 
 revision = "001_pricing_enforcement"
 down_revision = "pricing_templates_v1"
@@ -33,11 +33,23 @@ def upgrade():
     if not _table_exists("users"):
         return
     if not _column_exists("users", "bonus_sms_balance"):
-        op.add_column("users", sa.Column("bonus_sms_balance", sa.Float(), nullable=False, server_default="0.0"))
+        op.add_column(
+            "users",
+            sa.Column(
+                "bonus_sms_balance", sa.Float(), nullable=False, server_default="0.0"
+            ),
+        )
     if not _column_exists("users", "monthly_quota_used"):
-        op.add_column("users", sa.Column("monthly_quota_used", sa.Float(), nullable=False, server_default="0.0"))
+        op.add_column(
+            "users",
+            sa.Column(
+                "monthly_quota_used", sa.Float(), nullable=False, server_default="0.0"
+            ),
+        )
     if not _column_exists("users", "monthly_quota_reset_date"):
-        op.add_column("users", sa.Column("monthly_quota_reset_date", sa.Date(), nullable=True))
+        op.add_column(
+            "users", sa.Column("monthly_quota_reset_date", sa.Date(), nullable=True)
+        )
 
     if not _table_exists("monthly_quota_usage"):
         op.create_table(
@@ -53,8 +65,12 @@ def upgrade():
             sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
             sa.UniqueConstraint("user_id", "month", name="uq_user_month"),
         )
-        op.create_index("ix_monthly_quota_usage_user_id", "monthly_quota_usage", ["user_id"])
-        op.create_index("ix_monthly_quota_usage_month", "monthly_quota_usage", ["month"])
+        op.create_index(
+            "ix_monthly_quota_usage_user_id", "monthly_quota_usage", ["user_id"]
+        )
+        op.create_index(
+            "ix_monthly_quota_usage_month", "monthly_quota_usage", ["month"]
+        )
 
 
 def downgrade():

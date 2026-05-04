@@ -30,11 +30,7 @@ TABLES = [
 ]
 
 # Column name mappings (CSV -> Database)
-COLUMN_MAPPINGS = {
-    "pricing_templates": {
-        "metadata": "template_metadata"
-    }
-}
+COLUMN_MAPPINGS = {"pricing_templates": {"metadata": "template_metadata"}}
 
 
 def migrate_table(conn, table_name):
@@ -47,7 +43,7 @@ def migrate_table(conn, table_name):
 
     print(f"📦 Migrating {table_name}...")
 
-    with open(csv_file, 'r') as f:
+    with open(csv_file, "r") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
@@ -77,19 +73,19 @@ def migrate_table(conn, table_name):
         for row in rows:
             cleaned_row = {}
             for col, val in row.items():
-                if val == '':
+                if val == "":
                     cleaned_row[col] = None
-                elif val == 't':
+                elif val == "t":
                     cleaned_row[col] = True
-                elif val == 'f':
+                elif val == "f":
                     cleaned_row[col] = False
                 else:
                     cleaned_row[col] = val
             cleaned_rows.append(cleaned_row)
 
         # Build INSERT query
-        cols_str = ', '.join(columns)
-        placeholders = ', '.join(['%s'] * len(columns))
+        cols_str = ", ".join(columns)
+        placeholders = ", ".join(["%s"] * len(columns))
         query = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
 
         # Execute batch insert

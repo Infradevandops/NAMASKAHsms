@@ -425,4 +425,3 @@ curl -H "Authorization: Bearer TOKEN" \
 - ✅ User can always select a service
 
 This fix should be applied **IMMEDIATELY** before the verification flow overhaul.
-

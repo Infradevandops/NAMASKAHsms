@@ -4,18 +4,20 @@ import asyncio
 import os
 import sys
 from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 # Add project root to path
 sys.path.append(os.getcwd())
 
 from app.core.database import SessionLocal
+from app.core.textverified_health import get_health_monitor
 from app.models.system import ActivityLog, ServiceStatus
 from app.models.verification import Verification
 from app.services.providers.provider_health_check import perform_liquidity_audit
-from app.services.verification_status_service import mark_verification_transcribing
 from app.services.providers.provider_router import ProviderRouter
-from app.core.textverified_health import get_health_monitor
+from app.services.verification_status_service import mark_verification_transcribing
+
 
 async def verify_mastery():
     print("🚀 Starting V6.0 Institutional Mastery Verification...")
@@ -30,10 +32,14 @@ async def verify_mastery():
         await perform_liquidity_audit(db)
 
         # Check if any logs were created
-        logs = db.query(ActivityLog).filter(ActivityLog.action == "LIQUIDITY_ALARM").all()
+        logs = (
+            db.query(ActivityLog).filter(ActivityLog.action == "LIQUIDITY_ALARM").all()
+        )
         print(f"Detected {len(logs)} liquidity alarms in DB.")
         for log in logs:
-            print(f"  [ALARM] Provider: {log.element}, Status: {log.status}, Details: {log.details}")
+            print(
+                f"  [ALARM] Provider: {log.element}, Status: {log.status}, Details: {log.details}"
+            )
 
         # 2. Verify Health-Aware Routing Logic
         print("\n--- 2. Health-Aware Routing Verification ---")
@@ -64,13 +70,15 @@ async def verify_mastery():
             status="pending",
             capability="voice",
             provider="textverified",
-            cost=2.50
+            cost=2.50,
         )
         db.add(mock_v)
         db.commit()
 
         print(f"Initial status: {mock_v.status}")
-        await mark_verification_transcribing(db, mock_v, audio_url="https://audio.mock/123.mp3")
+        await mark_verification_transcribing(
+            db, mock_v, audio_url="https://audio.mock/123.mp3"
+        )
 
         # Reload
         db.refresh(mock_v)
@@ -89,10 +97,12 @@ async def verify_mastery():
     except Exception as e:
         print(f"❌ Verification failed with error: {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         db.close()
         print("\n--- Verification Complete ---")
+
 
 if __name__ == "__main__":
     # Ensure background tasks don't block and use local SQLite

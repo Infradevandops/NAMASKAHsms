@@ -3,27 +3,29 @@ Institutional Financial Integrity Audit Script.
 Verifies consistency between User balances, Analytics Transactions, and strict Audit Logs.
 """
 
-import sys
 import os
+import sys
 from datetime import datetime, timezone
-from sqlalchemy import func, create_engine
+
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.config import settings
-from app.models.user import User, Referral, Subscription, Webhook
-from app.models.transaction import Transaction, PaymentLog
-from app.models.balance_transaction import BalanceTransaction
-from app.models.verification import Verification
-from app.models.user_preference import UserPreference
 from app.models.activity import Activity
-from app.models.notification import Notification
+from app.models.balance_transaction import BalanceTransaction
 from app.models.device_token import DeviceToken
 from app.models.enterprise import EnterpriseAccount
-from app.models.reseller import ResellerAccount
+from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
+from app.models.reseller import ResellerAccount
+from app.models.transaction import PaymentLog, Transaction
+from app.models.user import Referral, Subscription, User, Webhook
+from app.models.user_preference import UserPreference
+from app.models.verification import Verification
+
 
 def run_audit():
     engine = create_engine(settings.database_url)
@@ -44,14 +46,20 @@ def run_audit():
         current_balance = float(user.credits or 0.0)
 
         # 2. Sum of BalanceTransactions (Audit Trail)
-        audit_sum = db.query(func.sum(BalanceTransaction.amount)).filter(
-            BalanceTransaction.user_id == user.id
-        ).scalar() or 0.0
+        audit_sum = (
+            db.query(func.sum(BalanceTransaction.amount))
+            .filter(BalanceTransaction.user_id == user.id)
+            .scalar()
+            or 0.0
+        )
 
         # 3. Sum of Transactions (Analytics)
-        analytics_sum = db.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == user.id
-        ).scalar() or 0.0
+        analytics_sum = (
+            db.query(func.sum(Transaction.amount))
+            .filter(Transaction.user_id == user.id)
+            .scalar()
+            or 0.0
+        )
 
         # Check for Balance-Audit discrepancy
         # Note: Allow small epsilon for floating point issues
@@ -87,6 +95,7 @@ def run_audit():
         print("RESULT: PASS - Financial integrity is strictly enforced.")
     else:
         print("RESULT: FAIL - Reconciliation required for anomalous accounts.")
+
 
 if __name__ == "__main__":
     run_audit()
