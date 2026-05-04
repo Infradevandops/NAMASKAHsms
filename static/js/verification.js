@@ -878,4 +878,3 @@ async function checkAreaCodeAPI(code) {
         if(btn) btn.disabled = false;
     }
 }
-

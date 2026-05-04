@@ -6,8 +6,8 @@ Create Date: 2026-01-22
 """
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 
 revision = "002_add_idempotency_key"
 down_revision = "001_pricing_enforcement"
@@ -40,13 +40,19 @@ def upgrade():
     if not _table_exists("verifications"):
         return
     if not _column_exists("verifications", "idempotency_key"):
-        op.add_column("verifications", sa.Column("idempotency_key", sa.String(), nullable=True))
+        op.add_column(
+            "verifications", sa.Column("idempotency_key", sa.String(), nullable=True)
+        )
     if not _index_exists("verifications", "ix_verifications_idempotency_key"):
-        op.create_index("ix_verifications_idempotency_key", "verifications", ["idempotency_key"], unique=False)
+        op.create_index(
+            "ix_verifications_idempotency_key",
+            "verifications",
+            ["idempotency_key"],
+            unique=False,
+        )
 
 
 def downgrade():
-
     """Remove idempotency_key column from verifications table."""
     op.drop_index("ix_verifications_idempotency_key", table_name="verifications")
     op.drop_column("verifications", "idempotency_key")

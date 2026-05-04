@@ -4,11 +4,11 @@ Covers the 18 bug fixes documented in docs/SMS_LOGIC.md.
 Each test is named after the deviation it guards against.
 """
 
+import os
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
-import os
 
 # Institutional Stability: Force test environment before any imports
 os.environ["ALLOW_SQLITE_FALLBACK"] = "true"
@@ -146,7 +146,10 @@ async def test_create_verification_returns_ends_at_and_tv_object():
     with patch(
         "asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result
     ), patch.object(
-        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415", "202"]
+        svc,
+        "_build_area_code_preference",
+        new_callable=AsyncMock,
+        return_value=["415", "202"],
     ), patch.object(
         svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
     ):
@@ -167,7 +170,9 @@ async def test_create_verification_returns_ends_at_and_tv_object():
             ) as MockPI:
                 MockCL.return_value.enabled = False
                 MockPI.log_outcome = AsyncMock()
-                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
+                MockPI.score_availability = AsyncMock(
+                    return_value=MagicMock(available=True)
+                )
 
                 result = await svc.create_verification(
                     service="whatsapp",
@@ -307,15 +312,19 @@ async def test_area_code_fallback_same_state():
             }
             MockCL.return_value.enabled = False
 
-            with patch("app.services.textverified_service.PurchaseIntelligenceService") as MockPI:
+            with patch(
+                "app.services.textverified_service.PurchaseIntelligenceService"
+            ) as MockPI:
                 MockPI.log_outcome = AsyncMock()
-                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
+                MockPI.score_availability = AsyncMock(
+                    return_value=MagicMock(available=True)
+                )
 
                 result = await svc.create_verification(
-                service="whatsapp",
-                country="US",
-                area_code="415",
-            )
+                    service="whatsapp",
+                    country="US",
+                    area_code="415",
+                )
 
     assert result["fallback_applied"] is True
     assert result["same_state_fallback"] is True
@@ -371,15 +380,19 @@ async def test_voip_rejection_triggers_retry():
             ]
             MockCL.return_value.enabled = False
 
-            with patch("app.services.textverified_service.PurchaseIntelligenceService") as MockPI:
+            with patch(
+                "app.services.textverified_service.PurchaseIntelligenceService"
+            ) as MockPI:
                 MockPI.log_outcome = AsyncMock()
-                MockPI.score_availability = AsyncMock(return_value=MagicMock(available=True))
+                MockPI.score_availability = AsyncMock(
+                    return_value=MagicMock(available=True)
+                )
 
                 result = await svc.create_verification(
-                service="whatsapp",
-                country="US",
-                max_retries=3,
-            )
+                    service="whatsapp",
+                    country="US",
+                    max_retries=3,
+                )
 
     assert result["voip_rejected"] is True
     assert result["retry_attempts"] >= 1

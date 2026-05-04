@@ -217,4 +217,3 @@ The page now renders correctly with:
 - All external CDN resources loading
 
 **Key Lesson:** Always check security middleware and CSP headers when external resources fail to load silently.
-

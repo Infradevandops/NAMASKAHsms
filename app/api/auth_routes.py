@@ -37,6 +37,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     username: Optional[str] = None
+    terms_accepted: bool = False
 
 
 class TokenResponse(BaseModel):
@@ -143,12 +144,21 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             register_data.password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
 
+        # Validate terms acceptance
+        if not register_data.terms_accepted:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You must accept the Terms of Service and Privacy Policy",
+            )
+
         # Create user
         user = User(
             email=register_data.email,
             password_hash=password_hash,
             is_active=True,
             credits=0.0,
+            terms_accepted=True,
+            terms_accepted_at=datetime.now(timezone.utc),
         )
 
         db.add(user)
@@ -167,7 +177,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             base_url = (
                 settings.base_url
                 if hasattr(settings, "base_url") and settings.base_url
-                else "https://namaskahsms.onrender.com"
+                else "https://vrenum.onrender.com"
             )
             asyncio.create_task(
                 email_service.send_verification_email(

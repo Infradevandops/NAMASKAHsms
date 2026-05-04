@@ -11,21 +11,32 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 # Colors
 class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    CYAN = '\033[0;36m'
-    NC = '\033[0m'
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    CYAN = "\033[0;36m"
+    NC = "\033[0m"
+
 
 def print_header():
-    print(f"{Colors.BLUE}╔════════════════════════════════════════════════════════════╗{Colors.NC}")
-    print(f"{Colors.BLUE}║     Interactive Render Database Backup                    ║{Colors.NC}")
-    print(f"{Colors.BLUE}║     Namaskah SMS Platform                                 ║{Colors.NC}")
-    print(f"{Colors.BLUE}╚════════════════════════════════════════════════════════════╝{Colors.NC}")
+    print(
+        f"{Colors.BLUE}╔════════════════════════════════════════════════════════════╗{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}║     Interactive Render Database Backup                    ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}║     Namaskah SMS Platform                                 ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}╚════════════════════════════════════════════════════════════╝{Colors.NC}"
+    )
     print()
+
 
 def get_connection_string():
     """Prompt user for connection string."""
@@ -42,11 +53,13 @@ def get_connection_string():
     print()
 
     # Try to use existing connection string
-    existing_url = os.environ.get('DATABASE_URL', '')
-    if existing_url and 'render.com' in existing_url:
-        print(f"{Colors.GREEN}Found existing connection string in environment{Colors.NC}")
+    existing_url = os.environ.get("DATABASE_URL", "")
+    if existing_url and "render.com" in existing_url:
+        print(
+            f"{Colors.GREEN}Found existing connection string in environment{Colors.NC}"
+        )
         use_existing = input(f"Use this? (y/n): ").strip().lower()
-        if use_existing == 'y':
+        if use_existing == "y":
             return existing_url
 
     # Prompt for new connection string
@@ -58,18 +71,25 @@ def get_connection_string():
         sys.exit(1)
 
     # Validate format
-    if not connection_string.startswith('postgresql://'):
-        print(f"{Colors.RED}❌ Invalid format. Should start with 'postgresql://'{Colors.NC}")
+    if not connection_string.startswith("postgresql://"):
+        print(
+            f"{Colors.RED}❌ Invalid format. Should start with 'postgresql://'{Colors.NC}"
+        )
         sys.exit(1)
 
-    if 'render.com' not in connection_string:
-        print(f"{Colors.YELLOW}⚠️  Warning: Connection string doesn't contain 'render.com'{Colors.NC}")
-        print(f"{Colors.YELLOW}   Make sure you copied the FULL connection string{Colors.NC}")
+    if "render.com" not in connection_string:
+        print(
+            f"{Colors.YELLOW}⚠️  Warning: Connection string doesn't contain 'render.com'{Colors.NC}"
+        )
+        print(
+            f"{Colors.YELLOW}   Make sure you copied the FULL connection string{Colors.NC}"
+        )
         proceed = input("Proceed anyway? (y/n): ").strip().lower()
-        if proceed != 'y':
+        if proceed != "y":
             sys.exit(1)
 
     return connection_string
+
 
 def test_connection(db_url):
     """Test database connection."""
@@ -78,14 +98,16 @@ def test_connection(db_url):
     print()
 
     result = subprocess.run(
-        ["psql", db_url, "-c", "SELECT version();"],
-        capture_output=True,
-        text=True
+        ["psql", db_url, "-c", "SELECT version();"], capture_output=True, text=True
     )
 
     if result.returncode == 0:
         print(f"{Colors.GREEN}✅ Connection successful!{Colors.NC}")
-        version = result.stdout.split('\n')[2].strip() if len(result.stdout.split('\n')) > 2 else 'Unknown'
+        version = (
+            result.stdout.split("\n")[2].strip()
+            if len(result.stdout.split("\n")) > 2
+            else "Unknown"
+        )
         print(f"   {version}")
         return True
     else:
@@ -99,6 +121,7 @@ def test_connection(db_url):
         print("  - Network issue")
         return False
 
+
 def get_database_info(db_url):
     """Get database statistics."""
     print()
@@ -107,18 +130,30 @@ def get_database_info(db_url):
 
     # Get database size
     result = subprocess.run(
-        ["psql", db_url, "-t", "-c", "SELECT pg_size_pretty(pg_database_size(current_database()));"],
+        [
+            "psql",
+            db_url,
+            "-t",
+            "-c",
+            "SELECT pg_size_pretty(pg_database_size(current_database()));",
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
     db_size = result.stdout.strip() if result.returncode == 0 else "Unknown"
     print(f"{Colors.BLUE}Database Size:{Colors.NC} {db_size}")
 
     # Get table count
     result = subprocess.run(
-        ["psql", db_url, "-t", "-c", "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"],
+        [
+            "psql",
+            db_url,
+            "-t",
+            "-c",
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';",
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
     table_count = result.stdout.strip() if result.returncode == 0 else "Unknown"
     print(f"{Colors.BLUE}Tables:{Colors.NC} {table_count}")
@@ -127,22 +162,28 @@ def get_database_info(db_url):
     print()
     print(f"{Colors.BLUE}Table Statistics:{Colors.NC}")
     result = subprocess.run(
-        ["psql", db_url, "-c", """
+        [
+            "psql",
+            db_url,
+            "-c",
+            """
         SELECT
             tablename,
             n_live_tup as rows
         FROM pg_stat_user_tables
         ORDER BY n_live_tup DESC
         LIMIT 10;
-        """],
+        """,
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
         print(result.stdout)
 
     return db_size, table_count
+
 
 def confirm_backup():
     """Ask user to confirm backup."""
@@ -156,8 +197,11 @@ def confirm_backup():
     print("  ✅ Export critical data as JSON")
     print()
 
-    confirm = input(f"{Colors.CYAN}Proceed with backup? (y/n):{Colors.NC} ").strip().lower()
-    return confirm == 'y'
+    confirm = (
+        input(f"{Colors.CYAN}Proceed with backup? (y/n):{Colors.NC} ").strip().lower()
+    )
+    return confirm == "y"
+
 
 def backup_database(db_url):
     """Backup database."""
@@ -177,9 +221,9 @@ def backup_database(db_url):
 
     result = subprocess.run(
         ["pg_dump", db_url, "--no-owner", "--no-acl"],
-        stdout=open(full_backup, 'w'),
+        stdout=open(full_backup, "w"),
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
@@ -195,8 +239,8 @@ def backup_database(db_url):
 
     subprocess.run(
         ["gzip", "-c", str(full_backup)],
-        stdout=open(compressed, 'wb'),
-        stderr=subprocess.PIPE
+        stdout=open(compressed, "wb"),
+        stderr=subprocess.PIPE,
     )
 
     size = compressed.stat().st_size / (1024 * 1024)
@@ -208,8 +252,8 @@ def backup_database(db_url):
 
     subprocess.run(
         ["pg_dump", db_url, "--schema-only", "--no-owner", "--no-acl"],
-        stdout=open(schema, 'w'),
-        stderr=subprocess.PIPE
+        stdout=open(schema, "w"),
+        stderr=subprocess.PIPE,
     )
 
     size = schema.stat().st_size / 1024
@@ -222,25 +266,37 @@ def backup_database(db_url):
 
     # Get tables
     result = subprocess.run(
-        ["psql", db_url, "-t", "-c", "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"],
+        [
+            "psql",
+            db_url,
+            "-t",
+            "-c",
+            "SELECT tablename FROM pg_tables WHERE schemaname = 'public';",
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
-        tables = [t.strip() for t in result.stdout.strip().split('\n') if t.strip()]
+        tables = [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
         for table in tables:
             csv_file = csv_dir / f"{table}.csv"
             subprocess.run(
-                ["psql", db_url, "-c", f"\\COPY (SELECT * FROM {table}) TO '{csv_file}' WITH CSV HEADER;"],
-                capture_output=True
+                [
+                    "psql",
+                    db_url,
+                    "-c",
+                    f"\\COPY (SELECT * FROM {table}) TO '{csv_file}' WITH CSV HEADER;",
+                ],
+                capture_output=True,
             )
         print(f"   ✅ Exported {len(tables)} tables")
 
     # Create manifest
     manifest = backup_dir / "BACKUP_MANIFEST.txt"
-    with open(manifest, 'w') as f:
-        f.write(f"""
+    with open(manifest, "w") as f:
+        f.write(
+            f"""
 Render PostgreSQL Backup
 ========================
 
@@ -258,19 +314,27 @@ psql "NEW_DATABASE_URL" < full_backup.sql
 
 Or use migration script:
 ./scripts/migrate_database.sh supabase "NEW_URL"
-""")
+"""
+        )
 
     return backup_dir
 
+
 def print_summary(backup_dir, db_size):
     """Print backup summary."""
-    total_size = sum(f.stat().st_size for f in backup_dir.rglob('*') if f.is_file())
+    total_size = sum(f.stat().st_size for f in backup_dir.rglob("*") if f.is_file())
     total_size_mb = total_size / (1024 * 1024)
 
     print()
-    print(f"{Colors.GREEN}╔════════════════════════════════════════════════════════════╗{Colors.NC}")
-    print(f"{Colors.GREEN}║                  BACKUP COMPLETE! ✅                       ║{Colors.NC}")
-    print(f"{Colors.GREEN}╚════════════════════════════════════════════════════════════╝{Colors.NC}")
+    print(
+        f"{Colors.GREEN}╔════════════════════════════════════════════════════════════╗{Colors.NC}"
+    )
+    print(
+        f"{Colors.GREEN}║                  BACKUP COMPLETE! ✅                       ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.GREEN}╚════════════════════════════════════════════════════════════╝{Colors.NC}"
+    )
     print()
     print(f"{Colors.BLUE}Backup Location:{Colors.NC} {backup_dir}")
     print(f"{Colors.BLUE}Total Size:{Colors.NC} {total_size_mb:.2f} MB")
@@ -285,13 +349,14 @@ def print_summary(backup_dir, db_size):
     print(f"   rclone copy {backup_dir}/ gdrive:Namaskah-Backups/")
     print()
     print(f"3. {Colors.CYAN}Migrate to Supabase:{Colors.NC}")
-    print(f"   ./scripts/migrate_database.sh supabase \"NEW_URL\"")
+    print(f'   ./scripts/migrate_database.sh supabase "NEW_URL"')
     print()
     print(f"4. {Colors.CYAN}Or restore manually:{Colors.NC}")
-    print(f"   psql \"NEW_URL\" < {backup_dir}/full_backup.sql")
+    print(f'   psql "NEW_URL" < {backup_dir}/full_backup.sql')
     print()
     print(f"{Colors.GREEN}✅ Your data is safe!{Colors.NC}")
     print()
+
 
 def main():
     """Main workflow."""
@@ -330,6 +395,7 @@ def main():
         print()
         print(f"{Colors.RED}❌ Backup failed!{Colors.NC}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     try:

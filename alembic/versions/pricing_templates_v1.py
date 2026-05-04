@@ -5,8 +5,10 @@ Revision ID: pricing_templates_v1
 Created: 2025-12-25
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
+
 # from sqlalchemy.dialects import postgresql - Removed for cross-dialect compatibility
 
 
@@ -17,7 +19,6 @@ depends_on = None
 
 
 def upgrade():
-
     """Create pricing templates tables"""
 
     bind = op.get_bind()
@@ -235,7 +236,6 @@ def upgrade():
 
 
 def downgrade():
-
     """Remove pricing templates tables"""
     op.drop_table("user_pricing_assignments")
     op.drop_table("pricing_history")

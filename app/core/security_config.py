@@ -51,7 +51,6 @@ class SecurityConfig:
 
     ALLOWED_HOSTS = [
         "vrenum.onrender.com",
-        "namaskah.onrender.com",
         "api.namaskah.com",
         "localhost",
         "127.0.0.1",

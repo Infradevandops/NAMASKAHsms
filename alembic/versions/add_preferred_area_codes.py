@@ -4,11 +4,13 @@ Revision ID: add_preferred_area_codes
 Revises: add_user_preferences
 Create Date: 2026-01-18
 """
-from alembic import op
+
 import sqlalchemy as sa
 
-revision = 'add_preferred_area_codes'
-down_revision = '003_payment_idempotency'
+from alembic import op
+
+revision = "add_preferred_area_codes"
+down_revision = "003_payment_idempotency"
 branch_labels = None
 depends_on = None
 
@@ -30,9 +32,12 @@ def _table_exists(table):
 def upgrade():
     if not _table_exists("user_preferences"):
         return
-    if not _column_exists('user_preferences', 'preferred_area_codes'):
-        op.add_column('user_preferences', sa.Column('preferred_area_codes', sa.String(), nullable=True))
+    if not _column_exists("user_preferences", "preferred_area_codes"):
+        op.add_column(
+            "user_preferences",
+            sa.Column("preferred_area_codes", sa.String(), nullable=True),
+        )
 
 
 def downgrade():
-    op.drop_column('user_preferences', 'preferred_area_codes')
+    op.drop_column("user_preferences", "preferred_area_codes")

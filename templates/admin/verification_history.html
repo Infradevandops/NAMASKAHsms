@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaskah | Verification History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin_premium.css">
+</head>
+<body class="premium-admin">
+    <div class="admin-v2-container">
+        {% include 'admin/header.html' %}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <h2 style="font-size:24px; font-weight:700;">Verification History</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <select id="status-filter" onchange="loadHistory()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 12px; border-radius:6px;">
+                    <option value="">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <a href="/admin" class="btn-secondary" style="text-decoration:none; padding:8px 16px; border-radius:8px;">← Back to Admin</a>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" style="margin-bottom:32px;">
+            <div class="stat-card">
+                <div class="stat-label">Total Verifications</div>
+                <div class="stat-value" id="stat-total">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed</div>
+                <div class="stat-value" id="stat-completed" style="color:#10b981;">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Failed</div>
+                <div class="stat-value" id="stat-failed" style="color:#ef4444;">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Success Rate</div>
+                <div class="stat-value" id="stat-rate">--</div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Service</th>
+                        <th>Phone</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table">
+                    <tr><td colspan="7" style="text-align:center; padding:40px; color:var(--admin-text-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+            <div id="pagination" style="display:flex; justify-content:center; gap:8px; margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+        let currentPage = 1;
+        const pageSize = 25;
+
+        async function loadHistory() {
+            const status = document.getElementById('status-filter').value;
+            let url = `/api/admin/verifications?page=${currentPage}&limit=${pageSize}`;
+            if (status) url += `&status=${status}`;
+
+            try {
+                const res = await fetch(url, { headers });
+                if (!res.ok) {
+                    document.getElementById('history-table').innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Failed to load data</td></tr>';
+                    return;
+                }
+                const data = await res.json();
+                const items = data.verifications || data.items || data || [];
+                const total = data.total || items.length;
+
+                document.getElementById('stat-total').textContent = total;
+                const completed = items.filter(v => v.status === 'completed').length;
+                const failed = items.filter(v => v.status === 'failed').length;
+                document.getElementById('stat-completed').textContent = data.completed || completed;
+                document.getElementById('stat-failed').textContent = data.failed || failed;
+                document.getElementById('stat-rate').textContent = total > 0 ? `${((data.completed || completed) / total * 100).toFixed(1)}%` : '0%';
+
+                if (items.length === 0) {
+                    document.getElementById('history-table').innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">No verifications found</td></tr>';
+                    return;
+                }
+
+                document.getElementById('history-table').innerHTML = items.map(v => {
+                    const statusColor = v.status === 'completed' ? '#10b981' : v.status === 'failed' ? '#ef4444' : '#f59e0b';
+                    return `<tr>
+                        <td style="font-family:monospace; font-size:12px;">${(v.id || '').substring(0, 8)}</td>
+                        <td>${v.user_email || v.user_id || '-'}</td>
+                        <td>${v.service_name || '-'}</td>
+                        <td style="font-family:monospace;">${v.phone_number || '-'}</td>
+                        <td>$${parseFloat(v.cost || 0).toFixed(2)}</td>
+                        <td style="color:${statusColor}; font-weight:600;">${v.status}</td>
+                        <td style="font-size:12px;">${new Date(v.created_at).toLocaleString()}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>

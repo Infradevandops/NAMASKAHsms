@@ -43,6 +43,7 @@ def backup_database() -> Path:
 
     # Parse DATABASE_URL
     import urllib.parse
+
     p = urllib.parse.urlparse(DATABASE_URL)
     env = {
         **os.environ,
@@ -75,7 +76,9 @@ def backup_database() -> Path:
         sys.exit(1)
 
     size = local_path.stat().st_size
-    logger.info(f"✅ Database backup complete: {size:,} bytes ({size/1024/1024:.2f} MB)")
+    logger.info(
+        f"✅ Database backup complete: {size:,} bytes ({size/1024/1024:.2f} MB)"
+    )
     return local_path
 
 
@@ -84,12 +87,16 @@ def sync_to_gdrive(local_path: Path):
     logger.info("Syncing to Google Drive (15GB free)...")
 
     try:
-        subprocess.run([
-            "rclone", "copy",
-            str(local_path),
-            f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
-            "--progress",
-        ], check=True)
+        subprocess.run(
+            [
+                "rclone",
+                "copy",
+                str(local_path),
+                f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
+                "--progress",
+            ],
+            check=True,
+        )
         logger.info("✅ Synced to Google Drive")
     except subprocess.CalledProcessError as e:
         logger.error(f"❌ Google Drive sync failed: {e}")
@@ -105,12 +112,16 @@ def sync_to_onedrive(local_path: Path):
     logger.info("Syncing to OneDrive (5GB free)...")
 
     try:
-        subprocess.run([
-            "rclone", "copy",
-            str(local_path),
-            f"{ONEDRIVE_REMOTE}:Namaskah-Backups/database/",
-            "--progress",
-        ], check=True)
+        subprocess.run(
+            [
+                "rclone",
+                "copy",
+                str(local_path),
+                f"{ONEDRIVE_REMOTE}:Namaskah-Backups/database/",
+                "--progress",
+            ],
+            check=True,
+        )
         logger.info("✅ Synced to OneDrive")
     except subprocess.CalledProcessError as e:
         logger.error(f"❌ OneDrive sync failed: {e}")
@@ -126,12 +137,16 @@ def sync_to_mega(local_path: Path):
     logger.info("Syncing to MEGA (20GB free)...")
 
     try:
-        subprocess.run([
-            "rclone", "copy",
-            str(local_path),
-            f"{MEGA_REMOTE}:Namaskah-Backups/database/",
-            "--progress",
-        ], check=True)
+        subprocess.run(
+            [
+                "rclone",
+                "copy",
+                str(local_path),
+                f"{MEGA_REMOTE}:Namaskah-Backups/database/",
+                "--progress",
+            ],
+            check=True,
+        )
         logger.info("✅ Synced to MEGA")
     except subprocess.CalledProcessError as e:
         logger.error(f"❌ MEGA sync failed: {e}")
@@ -158,20 +173,30 @@ def cleanup_cloud_backups():
 
     # Google Drive: Keep last 30 backups
     try:
-        result = subprocess.run([
-            "rclone", "lsf",
-            f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
-            "--files-only",
-        ], capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [
+                "rclone",
+                "lsf",
+                f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
+                "--files-only",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
-        files = sorted(result.stdout.strip().split('\n'))
+        files = sorted(result.stdout.strip().split("\n"))
         if len(files) > 30:
             old_files = files[:-30]  # Keep last 30
             for old_file in old_files:
-                subprocess.run([
-                    "rclone", "delete",
-                    f"{GDRIVE_REMOTE}:Namaskah-Backups/database/{old_file}",
-                ], check=True)
+                subprocess.run(
+                    [
+                        "rclone",
+                        "delete",
+                        f"{GDRIVE_REMOTE}:Namaskah-Backups/database/{old_file}",
+                    ],
+                    check=True,
+                )
                 logger.info(f"🗑️  Removed from Google Drive: {old_file}")
     except subprocess.CalledProcessError:
         logger.warning("⚠️  Could not cleanup Google Drive")
@@ -212,24 +237,33 @@ def list_backups():
 
     # Google Drive
     logger.info("Google Drive (15GB free):")
-    subprocess.run([
-        "rclone", "ls",
-        f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
-    ])
+    subprocess.run(
+        [
+            "rclone",
+            "ls",
+            f"{GDRIVE_REMOTE}:Namaskah-Backups/database/",
+        ]
+    )
 
     # OneDrive
     logger.info("\nOneDrive (5GB free):")
-    subprocess.run([
-        "rclone", "ls",
-        f"{ONEDRIVE_REMOTE}:Namaskah-Backups/database/",
-    ])
+    subprocess.run(
+        [
+            "rclone",
+            "ls",
+            f"{ONEDRIVE_REMOTE}:Namaskah-Backups/database/",
+        ]
+    )
 
     # MEGA
     logger.info("\nMEGA (20GB free):")
-    subprocess.run([
-        "rclone", "ls",
-        f"{MEGA_REMOTE}:Namaskah-Backups/database/",
-    ])
+    subprocess.run(
+        [
+            "rclone",
+            "ls",
+            f"{MEGA_REMOTE}:Namaskah-Backups/database/",
+        ]
+    )
 
 
 def restore_database(source: str):
@@ -244,15 +278,22 @@ def restore_database(source: str):
         LOCAL_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Downloading {source}...")
-        subprocess.run([
-            "rclone", "copy",
-            source,
-            str(LOCAL_BACKUP_DIR),
-            "--progress",
-        ], check=True)
+        subprocess.run(
+            [
+                "rclone",
+                "copy",
+                source,
+                str(LOCAL_BACKUP_DIR),
+                "--progress",
+            ],
+            check=True,
+        )
 
         # Find the downloaded file
-        local_path = max(LOCAL_BACKUP_DIR.glob("namaskah_backup_*.sql.gz"), key=lambda p: p.stat().st_mtime)
+        local_path = max(
+            LOCAL_BACKUP_DIR.glob("namaskah_backup_*.sql.gz"),
+            key=lambda p: p.stat().st_mtime,
+        )
     else:
         local_path = Path(source)
 
@@ -260,11 +301,14 @@ def restore_database(source: str):
         logger.error(f"Backup file not found: {local_path}")
         sys.exit(1)
 
-    logger.warning(f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!")
+    logger.warning(
+        f"⚠️  Restoring from {local_path} - this will OVERWRITE the database!"
+    )
     input("Press Enter to continue or Ctrl+C to cancel...")
 
     # Parse DATABASE_URL
     import urllib.parse
+
     p = urllib.parse.urlparse(DATABASE_URL)
     env = {
         **os.environ,
@@ -300,7 +344,11 @@ def restore_database(source: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Free tier backup for Namaskah")
-    parser.add_argument("--restore", metavar="SOURCE", help="Restore from backup (e.g., gdrive:Namaskah-Backups/database/file.sql.gz)")
+    parser.add_argument(
+        "--restore",
+        metavar="SOURCE",
+        help="Restore from backup (e.g., gdrive:Namaskah-Backups/database/file.sql.gz)",
+    )
     parser.add_argument("--list", action="store_true", help="List available backups")
     args = parser.parse_args()
 

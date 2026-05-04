@@ -208,5 +208,3 @@ if (typeof window !== 'undefined') {
     // Log initialization
     FrontendLogger.info('Frontend logger initialized');
 }
-
-

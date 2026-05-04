@@ -1,12 +1,15 @@
-import pytest
 from datetime import date, datetime, timezone
-from sqlalchemy import select, func
-from app.services.target_tracking_service import TargetTrackingService
-from app.services.audit_service import AuditService
-from app.models.monthly_target import MonthlyTarget
-from app.models.daily_user_snapshot import DailyUserSnapshot
+
+import pytest
+from sqlalchemy import func, select
+
 from app.models.audit_log import AuditLog
+from app.models.daily_user_snapshot import DailyUserSnapshot
+from app.models.monthly_target import MonthlyTarget
 from app.models.user import User
+from app.services.audit_service import AuditService
+from app.services.target_tracking_service import TargetTrackingService
+
 
 @pytest.mark.asyncio
 async def test_target_tracking_persistence(db):
@@ -21,10 +24,11 @@ async def test_target_tracking_persistence(db):
     # 2. Test manual target creation
     custom_target = MonthlyTarget(month="2025-12", target_count=500, is_active=True)
     db.add(custom_target)
-    db.commit() # Sync commit
+    db.commit()  # Sync commit
 
     fetched = await service.get_active_target("2025-12")
     assert fetched.target_count == 500
+
 
 @pytest.mark.asyncio
 async def test_daily_snapshot_recording(db):
@@ -34,7 +38,7 @@ async def test_daily_snapshot_recording(db):
     # Ensure some users exist
     user = User(email="test@namaskah.com", subscription_tier="pro", email_verified=True)
     db.add(user)
-    db.commit() # Sync commit
+    db.commit()  # Sync commit
 
     snapshot = await service.record_daily_snapshot()
     assert snapshot is not None
@@ -45,6 +49,7 @@ async def test_daily_snapshot_recording(db):
     # Verify duplicates are handled
     double_snapshot = await service.record_daily_snapshot()
     assert double_snapshot is None
+
 
 @pytest.mark.asyncio
 async def test_audit_log_persistence(db):
@@ -58,7 +63,7 @@ async def test_audit_log_persistence(db):
         action=action,
         resource_type=resource,
         resource_id="user_456",
-        details={"old_tier": "free", "new_tier": "pro"}
+        details={"old_tier": "free", "new_tier": "pro"},
     )
 
     assert log.id is not None

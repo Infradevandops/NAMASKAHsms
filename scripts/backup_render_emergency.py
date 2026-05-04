@@ -16,35 +16,49 @@ RENDER_DB_URL = "postgresql://namaskahdb:mT7K2xu1EZyrb6r8ER5pbpWGEffMyPW5@dpg-d7
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 BACKUP_DIR = Path(f"render_backup_{TIMESTAMP}")
 
+
 # Colors
 class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    NC = '\033[0m'
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    NC = "\033[0m"
+
 
 def print_header():
-    print(f"{Colors.BLUE}╔════════════════════════════════════════════════════════════╗{Colors.NC}")
-    print(f"{Colors.BLUE}║     Render PostgreSQL Emergency Backup Script             ║{Colors.NC}")
-    print(f"{Colors.BLUE}║     Namaskah SMS Platform - Data Extraction               ║{Colors.NC}")
-    print(f"{Colors.BLUE}╚════════════════════════════════════════════════════════════╝{Colors.NC}")
+    print(
+        f"{Colors.BLUE}╔════════════════════════════════════════════════════════════╗{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}║     Render PostgreSQL Emergency Backup Script             ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}║     Namaskah SMS Platform - Data Extraction               ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.BLUE}╚════════════════════════════════════════════════════════════╝{Colors.NC}"
+    )
     print()
-    print(f"{Colors.YELLOW}⚠️  This will backup ALL data from Render PostgreSQL{Colors.NC}")
+    print(
+        f"{Colors.YELLOW}⚠️  This will backup ALL data from Render PostgreSQL{Colors.NC}"
+    )
     print(f"{Colors.YELLOW}⚠️  Backup directory: {BACKUP_DIR}{Colors.NC}")
     print()
+
 
 def run_psql(query, output_file=None):
     """Run psql command and return output."""
     cmd = ["psql", RENDER_DB_URL, "-t", "-c", query]
 
     if output_file:
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             result = subprocess.run(cmd, stdout=f, stderr=subprocess.PIPE, text=True)
     else:
         result = subprocess.run(cmd, capture_output=True, text=True)
 
     return result
+
 
 def test_connection():
     """Test database connection."""
@@ -53,7 +67,7 @@ def test_connection():
     result = subprocess.run(
         ["psql", RENDER_DB_URL, "-c", "SELECT version();"],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
@@ -61,7 +75,9 @@ def test_connection():
         return True
     else:
         print(f"{Colors.RED}❌ Cannot connect to Render database!{Colors.NC}")
-        print(f"{Colors.RED}   Database may already be deleted or inaccessible.{Colors.NC}")
+        print(
+            f"{Colors.RED}   Database may already be deleted or inaccessible.{Colors.NC}"
+        )
         print()
         print(f"{Colors.YELLOW}Checking for existing backups...{Colors.NC}")
 
@@ -80,9 +96,12 @@ def test_connection():
             print(f"{Colors.YELLOW}Use one of these backups for migration.{Colors.NC}")
         else:
             print(f"{Colors.RED}No existing backups found!{Colors.NC}")
-            print(f"{Colors.RED}If you have backups elsewhere, copy them to the project directory.{Colors.NC}")
+            print(
+                f"{Colors.RED}If you have backups elsewhere, copy them to the project directory.{Colors.NC}"
+            )
 
         return False
+
 
 def get_statistics():
     """Get database statistics."""
@@ -91,14 +110,17 @@ def get_statistics():
 
     # Table statistics
     stats_file = BACKUP_DIR / "table_statistics.txt"
-    run_psql("""
+    run_psql(
+        """
         SELECT
             schemaname,
             tablename,
             n_live_tup as row_count
         FROM pg_stat_user_tables
         ORDER BY n_live_tup DESC;
-    """, stats_file)
+    """,
+        stats_file,
+    )
 
     print(f"{Colors.BLUE}Database Statistics:{Colors.NC}")
     with open(stats_file) as f:
@@ -109,10 +131,11 @@ def get_statistics():
     db_size = result.stdout.strip()
     print(f"{Colors.BLUE}Total Database Size: {db_size}{Colors.NC}")
 
-    with open(BACKUP_DIR / "database_size.txt", 'w') as f:
+    with open(BACKUP_DIR / "database_size.txt", "w") as f:
         f.write(db_size)
 
     return db_size
+
 
 def backup_schema():
     """Backup database schema only."""
@@ -123,9 +146,9 @@ def backup_schema():
 
     result = subprocess.run(
         ["pg_dump", RENDER_DB_URL, "--schema-only", "--no-owner", "--no-acl"],
-        stdout=open(schema_file, 'w'),
+        stdout=open(schema_file, "w"),
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
@@ -133,6 +156,7 @@ def backup_schema():
         print(f"{Colors.GREEN}✅ Schema backup complete: {size:.1f} KB{Colors.NC}")
     else:
         print(f"{Colors.RED}❌ Schema backup failed: {result.stderr}{Colors.NC}")
+
 
 def backup_full():
     """Backup full database."""
@@ -143,9 +167,9 @@ def backup_full():
 
     result = subprocess.run(
         ["pg_dump", RENDER_DB_URL, "--no-owner", "--no-acl", "--format=plain"],
-        stdout=open(full_file, 'w'),
+        stdout=open(full_file, "w"),
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
     if result.returncode == 0:
@@ -156,6 +180,7 @@ def backup_full():
         print(f"{Colors.RED}❌ Full backup failed: {result.stderr}{Colors.NC}")
         return None
 
+
 def compress_backup(full_file):
     """Compress the full backup."""
     print()
@@ -165,8 +190,8 @@ def compress_backup(full_file):
 
     result = subprocess.run(
         ["gzip", "-c", str(full_file)],
-        stdout=open(compressed_file, 'wb'),
-        stderr=subprocess.PIPE
+        stdout=open(compressed_file, "wb"),
+        stderr=subprocess.PIPE,
     )
 
     if result.returncode == 0:
@@ -175,17 +200,20 @@ def compress_backup(full_file):
     else:
         print(f"{Colors.RED}❌ Compression failed{Colors.NC}")
 
+
 def backup_csv():
     """Backup individual tables as CSV."""
     print()
-    print(f"{Colors.GREEN}[6/8] Backing up individual tables (CSV format)...{Colors.NC}")
+    print(
+        f"{Colors.GREEN}[6/8] Backing up individual tables (CSV format)...{Colors.NC}"
+    )
 
     csv_dir = BACKUP_DIR / "csv_exports"
     csv_dir.mkdir(exist_ok=True)
 
     # Get list of tables
     result = run_psql("SELECT tablename FROM pg_tables WHERE schemaname = 'public';")
-    tables = [t.strip() for t in result.stdout.strip().split('\n') if t.strip()]
+    tables = [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
 
     for table in tables:
         print(f"  {Colors.BLUE}→{Colors.NC} Exporting table: {table}")
@@ -193,12 +221,17 @@ def backup_csv():
         csv_file = csv_dir / f"{table}.csv"
 
         subprocess.run(
-            ["psql", RENDER_DB_URL, "-c",
-             f"\\COPY (SELECT * FROM {table}) TO '{csv_file}' WITH CSV HEADER;"],
-            capture_output=True
+            [
+                "psql",
+                RENDER_DB_URL,
+                "-c",
+                f"\\COPY (SELECT * FROM {table}) TO '{csv_file}' WITH CSV HEADER;",
+            ],
+            capture_output=True,
         )
 
     print(f"{Colors.GREEN}✅ CSV exports complete{Colors.NC}")
+
 
 def backup_json():
     """Backup critical data as JSON."""
@@ -213,19 +246,22 @@ def backup_json():
     for table in critical_tables:
         print(f"  {Colors.BLUE}→{Colors.NC} Exporting {table}...")
 
-        result = run_psql(f"""
+        result = run_psql(
+            f"""
             SELECT json_agg(row_to_json({table}.*))
             FROM {table};
-        """)
+        """
+        )
 
         if result.returncode == 0 and result.stdout.strip():
             json_file = json_dir / f"{table}.json"
-            with open(json_file, 'w') as f:
+            with open(json_file, "w") as f:
                 f.write(result.stdout)
         else:
             print(f"  ⚠️  {table} table not found or empty")
 
     print(f"{Colors.GREEN}✅ JSON exports complete{Colors.NC}")
+
 
 def create_manifest(db_size):
     """Create backup manifest."""
@@ -301,21 +337,28 @@ To restore to new database:
    4. Proceed with migration to new provider
 """
 
-    with open(BACKUP_DIR / "BACKUP_MANIFEST.txt", 'w') as f:
+    with open(BACKUP_DIR / "BACKUP_MANIFEST.txt", "w") as f:
         f.write(manifest)
 
     print(f"{Colors.GREEN}✅ Backup manifest created{Colors.NC}")
 
+
 def print_summary(db_size):
     """Print backup summary."""
     # Calculate backup size
-    total_size = sum(f.stat().st_size for f in BACKUP_DIR.rglob('*') if f.is_file())
+    total_size = sum(f.stat().st_size for f in BACKUP_DIR.rglob("*") if f.is_file())
     total_size_mb = total_size / (1024 * 1024)
 
     print()
-    print(f"{Colors.GREEN}╔════════════════════════════════════════════════════════════╗{Colors.NC}")
-    print(f"{Colors.GREEN}║                  BACKUP COMPLETE! ✅                       ║{Colors.NC}")
-    print(f"{Colors.GREEN}╚════════════════════════════════════════════════════════════╝{Colors.NC}")
+    print(
+        f"{Colors.GREEN}╔════════════════════════════════════════════════════════════╗{Colors.NC}"
+    )
+    print(
+        f"{Colors.GREEN}║                  BACKUP COMPLETE! ✅                       ║{Colors.NC}"
+    )
+    print(
+        f"{Colors.GREEN}╚════════════════════════════════════════════════════════════╝{Colors.NC}"
+    )
     print()
     print(f"{Colors.BLUE}Backup Location:{Colors.NC} {BACKUP_DIR}")
     print(f"{Colors.BLUE}Total Size:{Colors.NC} {total_size_mb:.2f} MB")
@@ -333,13 +376,22 @@ def print_summary(db_size):
     print("   ⚠️  Store securely and encrypt if uploading to cloud")
     print()
     print(f"{Colors.GREEN}📤 Next Steps:{Colors.NC}")
-    print(f"   1. Verify backup: {Colors.BLUE}cat {BACKUP_DIR}/BACKUP_MANIFEST.txt{Colors.NC}")
-    print(f"   2. Upload to cloud: {Colors.BLUE}rclone copy {BACKUP_DIR} gdrive:Namaskah-Backups/{Colors.NC}")
-    print(f"   3. Test restore locally: {Colors.BLUE}psql LOCAL_DB < {BACKUP_DIR}/full_backup.sql{Colors.NC}")
-    print(f"   4. Migrate to Supabase: {Colors.BLUE}./scripts/migrate_database.sh supabase \"NEW_URL\"{Colors.NC}")
+    print(
+        f"   1. Verify backup: {Colors.BLUE}cat {BACKUP_DIR}/BACKUP_MANIFEST.txt{Colors.NC}"
+    )
+    print(
+        f"   2. Upload to cloud: {Colors.BLUE}rclone copy {BACKUP_DIR} gdrive:Namaskah-Backups/{Colors.NC}"
+    )
+    print(
+        f"   3. Test restore locally: {Colors.BLUE}psql LOCAL_DB < {BACKUP_DIR}/full_backup.sql{Colors.NC}"
+    )
+    print(
+        f'   4. Migrate to Supabase: {Colors.BLUE}./scripts/migrate_database.sh supabase "NEW_URL"{Colors.NC}'
+    )
     print()
     print(f"{Colors.GREEN}✅ Your data is safe! Proceed with migration.{Colors.NC}")
     print()
+
 
 def main():
     """Main backup workflow."""
@@ -379,6 +431,7 @@ def main():
     else:
         print(f"{Colors.RED}❌ Backup failed!{Colors.NC}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

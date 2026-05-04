@@ -6,10 +6,11 @@ User charged $10.00 for failed SMS verifications due to tier pricing bug
 
 import asyncio
 import sys
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
+
 
 async def issue_refund():
     """Issue $10.00 refund to affected user."""
@@ -19,10 +20,11 @@ async def issue_refund():
     print("=" * 80)
     print()
 
+    from sqlalchemy import select, update
+
     from app.core.database import get_db
     from app.models.user import User
     from app.models.verification import SMSVerification
-    from sqlalchemy import select, update
 
     user_id = "2986207f-4e45-4249-91c3-e5e13bae6622"
     refund_amount = Decimal("10.00")
@@ -101,7 +103,7 @@ async def issue_refund():
 
         confirm = input("Proceed with refund? Type 'YES' to confirm: ")
 
-        if confirm != 'YES':
+        if confirm != "YES":
             print()
             print("❌ Refund cancelled by user")
             return
@@ -137,6 +139,7 @@ async def issue_refund():
         # Try to send notification
         try:
             from app.services.notification_service import NotificationService
+
             notification_service = NotificationService(db)
 
             await notification_service.create_notification(
@@ -150,8 +153,8 @@ async def issue_refund():
                     "reason": "tier_pricing_bug",
                     "sms_count": len(verifications),
                     "old_balance": float(old_balance),
-                    "new_balance": float(new_balance)
-                }
+                    "new_balance": float(new_balance),
+                },
             )
 
             await db.commit()
@@ -178,8 +181,8 @@ async def issue_refund():
                     "old_balance": float(old_balance),
                     "new_balance": float(new_balance),
                     "issued_by": "admin",
-                    "issue_date": datetime.utcnow().isoformat()
-                }
+                    "issue_date": datetime.utcnow().isoformat(),
+                },
             )
 
             db.add(transaction)

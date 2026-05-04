@@ -5,31 +5,52 @@ successes, delays, and timeouts without crashing or task leakage.
 """
 
 import asyncio
-import sys
 import os
-from datetime import datetime, timezone, timedelta
-from unittest.mock import MagicMock, AsyncMock
+import sys
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.sms_polling_service import SMSPollingService
 from app.services.providers.base_provider import MessageResult
+from app.services.sms_polling_service import SMSPollingService
+
 
 class MockDB:
-    def query(self, *args): return self
-    def filter(self, *args): return self
-    def order_by(self, *args): return self
-    def first(self): return self.verification
-    def all(self): return [self.verification]
-    def expire(self, *args): pass
-    def add(self, *args): pass
-    def commit(self): pass
-    def rollback(self): pass
-    def close(self): pass
+    def query(self, *args):
+        return self
+
+    def filter(self, *args):
+        return self
+
+    def order_by(self, *args):
+        return self
+
+    def first(self):
+        return self.verification
+
+    def all(self):
+        return [self.verification]
+
+    def expire(self, *args):
+        pass
+
+    def add(self, *args):
+        pass
+
+    def commit(self):
+        pass
+
+    def rollback(self):
+        pass
+
+    def close(self):
+        pass
 
     def __init__(self, verification):
         self.verification = verification
+
 
 async def test_adaptive_polling_success():
     print("[1/3] Testing Adaptive Polling Success Logic...")
@@ -55,11 +76,16 @@ async def test_adaptive_polling_success():
     # Note: The service imports FiveSimAdapter inside _poll_fivesim
     # We will patch it by modifying the instance's method or mocking the import
 
-    mock_msg = MessageResult(text="Your code is 123456", code="123456", received_at=datetime.now(timezone.utc).isoformat())
+    mock_msg = MessageResult(
+        text="Your code is 123456",
+        code="123456",
+        received_at=datetime.now(timezone.utc).isoformat(),
+    )
 
     # Logic to inject mock adapter
     # In a real test we'd use patch, but here we'll do a quick runtime override
     from app.services.providers.fivesim_adapter import FiveSimAdapter
+
     original_check = FiveSimAdapter.check_messages
     FiveSimAdapter.check_messages = AsyncMock(side_effect=[[], [mock_msg]])
 
@@ -79,6 +105,7 @@ async def test_adaptive_polling_success():
 
     return True
 
+
 async def test_csv_export_logic():
     print("[2/3] Checking Financial CSV Export Syntax...")
     from app.services.financial_statements_service import FinancialStatementsService
@@ -93,7 +120,9 @@ async def test_csv_export_logic():
     tx.description = "Test SMS"
 
     db = MagicMock()
-    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [tx]
+    db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [
+        tx
+    ]
 
     service = FinancialStatementsService(db)
     csv_content = await service.export_user_transactions_csv("user-123")
@@ -105,15 +134,13 @@ async def test_csv_export_logic():
         print("  [!] CSV export failed validation.")
         return False
 
+
 async def main():
     print("=" * 60)
     print("NAMASKAH SMS ENGINE STABILITY ROLLOUT (V6.0.0)")
     print("=" * 60)
 
-    tests = [
-        await test_adaptive_polling_success(),
-        await test_csv_export_logic()
-    ]
+    tests = [await test_adaptive_polling_success(), await test_csv_export_logic()]
 
     print("-" * 60)
     if all(tests):
@@ -122,6 +149,7 @@ async def main():
     else:
         print("RESULT: REGRESSIONS DETECTED")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

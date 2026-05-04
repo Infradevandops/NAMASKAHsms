@@ -209,7 +209,7 @@
     <form id="login-form">
         <div class="form-group">
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-input" id="email" required placeholder="admin@namaskah.app" autocomplete="email">
+            <input type="email" class="form-input" id="email" required placeholder="you@example.com" autocomplete="email">
         </div>
 
         <div class="form-group">
@@ -251,10 +251,21 @@
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const googleAuth = urlParams.get('google_auth');
+    const verified = urlParams.get('verified');
+
+    if (verified === 'true') {
+        showError('');
+        const el = document.getElementById('error-message');
+        el.textContent = 'Email verified successfully! Please log in.';
+        el.style.display = 'block';
+        el.style.background = '#d1fae5';
+        el.style.color = '#065f46';
+    }
 
     if (token && googleAuth === 'success') {
         localStorage.setItem('access_token', token);
-        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`;
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         window.location.href = '/dashboard';
     }
 
@@ -319,8 +330,8 @@
         if (res.ok) {
             const data = await res.json();
             localStorage.setItem('access_token', data.access_token);
-            // Set cookie for server-side auth
-            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
+            const isSecure = window.location.protocol === 'https:';
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
             window.location.href = '/dashboard';
         } else {
             const data = await res.json();

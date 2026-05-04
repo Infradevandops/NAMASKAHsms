@@ -4,10 +4,11 @@ Test script for financial tracking implementation.
 Verifies all new endpoints and features work correctly.
 """
 
-import requests
 import json
 import sys
 from datetime import datetime
+
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:8000"
@@ -21,7 +22,7 @@ def test_transaction_history():
 
     response = requests.get(
         f"{BASE_URL}/api/wallet/transactions",
-        headers={"Authorization": f"Bearer {TOKEN}"}
+        headers={"Authorization": f"Bearer {TOKEN}"},
     )
 
     if response.status_code == 200:
@@ -34,8 +35,12 @@ def test_transaction_history():
             has_verification_id = "verification_id" in first_tx
 
             print(f"  ✅ Status: {response.status_code}")
-            print(f"  {'✅' if has_balance_tx_id else '❌'} balance_transaction_id field present")
-            print(f"  {'✅' if has_verification_id else '❌'} verification_id field present")
+            print(
+                f"  {'✅' if has_balance_tx_id else '❌'} balance_transaction_id field present"
+            )
+            print(
+                f"  {'✅' if has_verification_id else '❌'} verification_id field present"
+            )
             print(f"  📊 Sample transaction: {json.dumps(first_tx, indent=2)}")
 
             return has_balance_tx_id and has_verification_id
@@ -54,7 +59,7 @@ def test_financial_history():
 
     response = requests.get(
         f"{BASE_URL}/api/wallet/financial-history?limit=10",
-        headers={"Authorization": f"Bearer {TOKEN}"}
+        headers={"Authorization": f"Bearer {TOKEN}"},
     )
 
     if response.status_code == 200:
@@ -90,7 +95,7 @@ def test_refund_analytics():
 
     response = requests.get(
         f"{BASE_URL}/api/admin/analytics/refunds?days=30",
-        headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
+        headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
     )
 
     if response.status_code == 200:
@@ -105,10 +110,12 @@ def test_refund_analytics():
         print(f"     Net Revenue: ${data.get('net_revenue', 0):.2f}")
         print(f"     Total Verifications: {data.get('total_verifications', 0)}")
 
-        if data.get('refund_by_reason'):
+        if data.get("refund_by_reason"):
             print(f"  📊 Refund Breakdown:")
-            for reason in data['refund_by_reason']:
-                print(f"     {reason['reason']}: {reason['count']} (${reason['amount']:.2f})")
+            for reason in data["refund_by_reason"]:
+                print(
+                    f"     {reason['reason']}: {reason['count']} (${reason['amount']:.2f})"
+                )
 
         return True
     elif response.status_code == 403:
@@ -127,7 +134,7 @@ def test_verification_detail():
     # First get a verification ID
     response = requests.get(
         f"{BASE_URL}/api/wallet/transactions?limit=1",
-        headers={"Authorization": f"Bearer {TOKEN}"}
+        headers={"Authorization": f"Bearer {TOKEN}"},
     )
 
     if response.status_code != 200:

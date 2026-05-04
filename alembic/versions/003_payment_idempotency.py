@@ -7,12 +7,15 @@ Create Date: 2026-01-26
 """
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision = "003_payment_idempotency"
 down_revision = "002_add_idempotency_key"
 branch_labels = None
 depends_on = None
+
+
 def _column_exists(table, column):
     bind = op.get_bind()
     inspector = sa.inspect(bind)
@@ -41,11 +44,23 @@ def upgrade():
         if not _column_exists("transactions", col):
             op.add_column("transactions", sa.Column(col, sa.String(), nullable=True))
     if not _index_exists("transactions", "ix_transactions_reference"):
-        op.create_index("ix_transactions_reference", "transactions", ["reference"], unique=True)
+        op.create_index(
+            "ix_transactions_reference", "transactions", ["reference"], unique=True
+        )
     if not _index_exists("transactions", "ix_transactions_idempotency_key"):
-        op.create_index("ix_transactions_idempotency_key", "transactions", ["idempotency_key"], unique=True)
+        op.create_index(
+            "ix_transactions_idempotency_key",
+            "transactions",
+            ["idempotency_key"],
+            unique=True,
+        )
     if not _index_exists("transactions", "ix_transactions_payment_log_id"):
-        op.create_index("ix_transactions_payment_log_id", "transactions", ["payment_log_id"], unique=False)
+        op.create_index(
+            "ix_transactions_payment_log_id",
+            "transactions",
+            ["payment_log_id"],
+            unique=False,
+        )
 
     pl_cols = [
         ("idempotency_key", sa.String(), True),
@@ -63,9 +78,18 @@ def upgrade():
                 kw["server_default"] = defaults[col_name]
             op.add_column("payment_logs", sa.Column(col_name, col_type, **kw))
     if not _index_exists("payment_logs", "ix_payment_logs_idempotency_key"):
-        op.create_index("ix_payment_logs_idempotency_key", "payment_logs", ["idempotency_key"], unique=True)
+        op.create_index(
+            "ix_payment_logs_idempotency_key",
+            "payment_logs",
+            ["idempotency_key"],
+            unique=True,
+        )
     if not _index_exists("payment_logs", "ix_payment_logs_state"):
-        op.create_index("ix_payment_logs_state", "payment_logs", ["state"], unique=False)
+        op.create_index(
+            "ix_payment_logs_state", "payment_logs", ["state"], unique=False
+        )
+
+
 def downgrade():
     """Remove idempotency and state tracking."""
     # Remove from payment_logs

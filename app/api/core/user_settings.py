@@ -180,23 +180,100 @@ class ForgotPasswordRequest(BaseModel):
     email: str
 
 
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
 @auth_router.post("/forgot-password")
 async def forgot_password(
     request: ForgotPasswordRequest, db: Session = Depends(get_db)
 ):
     """Send password reset email."""
+    from datetime import datetime, timedelta, timezone
+
     user = db.query(User).filter(User.email == request.email).first()
-    # Always return success to prevent email enumeration
     if user:
         import secrets
 
         token = secrets.token_urlsafe(32)
-        user.reset_token = token if hasattr(user, "reset_token") else None
+        user.reset_token = token
+        user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
         try:
             db.commit()
+            # Send reset email
+            try:
+                from app.core.config import get_settings
+                from app.services.email_service import email_service
+
+                settings = get_settings()
+                base_url = settings.base_url or "https://vrenum.onrender.com"
+                reset_link = f"{base_url}/password-reset?token={token}"
+                import asyncio
+
+                asyncio.create_task(
+                    email_service.send_email(
+                        to_email=user.email,
+                        subject="Password Reset - Namaskah",
+                        html_content=f"""
+                        <h2>Password Reset</h2>
+                        <p>Click the link below to reset your password:</p>
+                        <a href="{reset_link}">{reset_link}</a>
+                        <p>This link expires in 1 hour.</p>
+                        <p>If you didn't request this, ignore this email.</p>
+                        """,
+                    )
+                )
+            except Exception:
+                pass
         except Exception:
             db.rollback()
     return {
         "status": "success",
         "message": "If that email exists, a reset link has been sent",
     }
+
+
+@auth_router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Reset password using token."""
+    from datetime import datetime, timezone
+
+    user = db.query(User).filter(User.reset_token == request.token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    if user.reset_token_expires:
+        expires = user.reset_token_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if expires < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Reset token has expired")
+
+    if len(request.new_password) < 8:
+        raise HTTPException(
+            status_code=400, detail="Password must be at least 8 characters"
+        )
+
+    user.password_hash = hash_password(request.new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.commit()
+
+    return {"status": "success", "message": "Password has been reset successfully"}
+
+
+@auth_router.get("/verify-email")
+async def verify_email(token: str, db: Session = Depends(get_db)):
+    """Verify user email via token link."""
+    user = db.query(User).filter(User.verification_token == token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid verification token")
+
+    user.email_verified = True
+    user.verification_token = None
+    db.commit()
+
+    from fastapi.responses import RedirectResponse
+
+    return RedirectResponse(url="/login?verified=true", status_code=302)
