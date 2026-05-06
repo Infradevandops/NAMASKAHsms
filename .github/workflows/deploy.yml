@@ -3,7 +3,7 @@ name: Deploy to Production
 on:
   # Task 2.3 — Gate on CI passing (not raw push)
   workflow_run:
-    workflows: ["CI - Balanced Pipeline"]
+    workflows: ["CI - Minimal & Reliable"]
     types: [completed]
     branches: [main]
   workflow_dispatch:

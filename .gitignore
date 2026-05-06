@@ -67,8 +67,20 @@ render_backup_final/
 *.sql
 !scripts/sql/*.sql
 
+# Build artifacts
+static/dist/
+*.map
+
 # Archive (historical docs, kept locally only)
 archive/
+docs/archives/
+
+# Obsolete backup scripts (DB migrated to Neon)
+scripts/backup_render_emergency.*
+scripts/backup_rclone.py
+scripts/backup_free_tier.py
+scripts/backup_render_interactive.py
+scripts/deployment/backup_rclone.sh
 
 # One-off docs (not for repo)
 .render-deploy
