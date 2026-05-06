@@ -81,7 +81,10 @@ class UnifiedRateLimiter:
         self.endpoint_limits = {
             "/auth/login": RateLimitConfig(10, 60),
             "/auth/register": RateLimitConfig(5, 3600),
-            "/auth/forgot-password": RateLimitConfig(5, 3600),
+            "/auth/forgot-password": RateLimitConfig(3, 3600),
+            "/auth/reset-password": RateLimitConfig(5, 3600),
+            "/auth/verify-email": RateLimitConfig(10, 3600),
+            "/contact/send": RateLimitConfig(5, 3600),
             "/verify/create": RateLimitConfig(200, 3600),
             "/wallet/paystack/initialize": RateLimitConfig(50, 3600),
             "/support/submit": RateLimitConfig(10, 3600),
