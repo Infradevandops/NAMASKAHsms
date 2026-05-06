@@ -2,7 +2,8 @@
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -11,6 +12,12 @@ from app.models.user import User
 from app.services.operational_intelligence_service import OperationalIntelligenceService
 
 router = APIRouter()
+
+
+class TargetSetRequest(BaseModel):
+    target_count: int
+    revenue_target: float = 4000.00
+    notes: str = ""
 
 
 async def require_admin(
@@ -100,6 +107,33 @@ async def get_growth_targets(
 
     service = TargetTrackingService(db)
     return await service.get_growth_projections()
+
+
+@router.post("/intelligence/targets/set")
+async def set_growth_target(
+    payload: TargetSetRequest,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update the active monthly growth target."""
+    from decimal import Decimal
+
+    from app.models.monthly_target import MonthlyTarget
+    from app.services.target_tracking_service import TargetTrackingService
+
+    service = TargetTrackingService(db)
+    target = await service.get_active_target()
+    target.target_count = payload.target_count
+    target.revenue_target = Decimal(str(payload.revenue_target))
+    if payload.notes:
+        target.notes = payload.notes
+    db.commit()
+    db.refresh(target)
+    return {
+        "month": target.month,
+        "target_count": target.target_count,
+        "revenue_target": float(target.revenue_target),
+    }
 
 
 @router.get("/intelligence/compliance/report")

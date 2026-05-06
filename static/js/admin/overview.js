@@ -1,6 +1,6 @@
 /**
  * Institutional Overview Manager
- * Focuses on Growth Targets (350 Users) and High-Level Velocity
+ * Focuses on Growth Targets and High-Level Velocity
  */
 
 const OverviewManager = {
@@ -25,6 +25,7 @@ const OverviewManager = {
             const data = await res.json();
 
             document.getElementById('target-count').textContent = `${data.current} / ${data.target}`;
+            document.getElementById('target-label').textContent = data.target;
             document.getElementById('target-progress').style.width = `${data.percentage}%`;
 
             document.getElementById('stat-velocity').textContent = `${data.velocity} / day`;
@@ -107,5 +108,23 @@ const OverviewManager = {
         } catch (e) { console.error(e); }
     }
 };
+
+async function setGrowthTarget() {
+    const input = document.getElementById('target-input');
+    const val = parseInt(input.value);
+    if (!val || val < 1) return;
+    const token = OverviewManager.getToken();
+    try {
+        const res = await fetch('/api/admin/intelligence/targets/set', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target_count: val })
+        });
+        if (res.ok) {
+            input.value = '';
+            await OverviewManager.loadGrowthTarget();
+        }
+    } catch (e) { console.error('[Overview] Set target failed:', e); }
+}
 
 document.addEventListener('DOMContentLoaded', () => OverviewManager.init());
