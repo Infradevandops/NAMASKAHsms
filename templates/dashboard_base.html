@@ -169,35 +169,17 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         background: rgba(102, 126, 234, 0.1);
     }
 
-    /* Tier badge styles for header */
-    .tier-badge {
-        display: inline-block;
-        padding: 4px 12px;
+    /* Tier badge styles for header - uses design-system.css gradient styles */
+    #header-tier-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 16px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-    }
-
-    .tier-badge-freemium {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10B981;
-    }
-
-    .tier-badge-payg {
-        background: rgba(255, 120, 84, 0.15);
-        color: #FF7854;
-    }
-
-    .tier-badge-pro {
-        background: rgba(245, 158, 11, 0.15);
-        color: #F59E0B;
-    }
-
-    .tier-badge-custom {
-        background: rgba(139, 92, 246, 0.15);
-        color: #8B5CF6;
+        color: white !important;
     }
 
     @media (max-width: 768px) {
@@ -320,7 +302,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 
             if (response.ok) {
                 const data = await response.json();
-                const tier = data.current_tier || 'freemium';
+                const tier = (data.current_tier || 'freemium').toLowerCase();
                 const tierNames = {
                     'freemium': 'Freemium',
                     'payg': 'Pay-As-You-Go',
@@ -335,8 +317,8 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                 };
 
                 badge.textContent = tierNames[tier] || tier;
-                badge.className = `tier-badge ${tierClasses[tier] || ''}`;
-                badge.style.display = 'inline-block';
+                badge.className = `tier-badge ${tierClasses[tier] || 'tier-badge-freemium'}`;
+                badge.style.display = 'inline-flex';
             }
         } catch (e) {
             console.error('[Header] Failed to load tier badge:', e);

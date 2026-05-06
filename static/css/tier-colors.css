@@ -42,29 +42,29 @@
     letter-spacing: 0.5px;
 }
 
-/* Tier Badge Variants */
-.tier-badge-freemium,
+/* Tier Badge Variants (excludes header badge which uses design-system.css gradients) */
+.tier-badge-freemium:not(#header-tier-badge),
 .tier-badge[data-tier="freemium"] {
     background: var(--tier-freemium-light);
     color: var(--tier-freemium);
     border: 1px solid var(--tier-freemium);
 }
 
-.tier-badge-payg,
+.tier-badge-payg:not(#header-tier-badge),
 .tier-badge[data-tier="payg"] {
     background: var(--tier-payg-light);
     color: var(--tier-payg);
     border: 1px solid var(--tier-payg);
 }
 
-.tier-badge-pro,
+.tier-badge-pro:not(#header-tier-badge),
 .tier-badge[data-tier="pro"] {
     background: var(--tier-pro-light);
     color: var(--tier-pro);
     border: 1px solid var(--tier-pro);
 }
 
-.tier-badge-custom,
+.tier-badge-custom:not(#header-tier-badge),
 .tier-badge[data-tier="custom"] {
     background: var(--tier-custom-light);
     color: var(--tier-custom);
