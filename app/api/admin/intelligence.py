@@ -109,6 +109,58 @@ async def get_growth_targets(
     return await service.get_growth_projections()
 
 
+@router.get("/intelligence/revenue")
+async def get_revenue_metrics(
+    days: int = Query(30),
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get real revenue metrics from transactions."""
+    from datetime import datetime, timedelta, timezone
+
+    from sqlalchemy import func
+
+    from app.models.transaction import Transaction
+
+    start = datetime.now(timezone.utc) - timedelta(days=days)
+    row = (
+        db.query(
+            func.coalesce(func.sum(Transaction.amount), 0).label("total"),
+            func.count(Transaction.id).label("count"),
+        )
+        .filter(Transaction.status == "success", Transaction.created_at >= start)
+        .first()
+    )
+    return {
+        "period_days": days,
+        "total_revenue": float(row.total),
+        "transaction_count": row.count,
+    }
+
+
+@router.get("/intelligence/fraud/metrics")
+async def get_fraud_metrics(
+    admin_id: str = Depends(require_admin),
+):
+    """Get fraud detection model metrics."""
+    from app.services.fraud_detection_service import FraudDetectionService
+
+    service = FraudDetectionService()
+    return await service.get_model_metrics()
+
+
+@router.get("/intelligence/refunds/failed")
+async def get_failed_refunds(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get failed refunds pending retry."""
+    from app.services.failed_refund_service import FailedRefundService
+
+    service = FailedRefundService(db)
+    return await service.get_failed_refunds_pending_retry()
+
+
 @router.post("/intelligence/targets/set")
 async def set_growth_target(
     payload: TargetSetRequest,

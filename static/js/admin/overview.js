@@ -9,6 +9,7 @@ const OverviewManager = {
     async init() {
         console.log('Overview Manager initialized');
         await this.loadGrowthTarget();
+        await this.loadFraudMetrics();
         await this.loadSignupVelocity();
         await this.loadHeatmap();
     },
@@ -45,10 +46,26 @@ const OverviewManager = {
             });
             const vitData = await vitRes.json();
             document.getElementById('stat-dau').textContent = vitData.dau;
-            document.getElementById('stat-net-revenue').textContent = `$${vitData.monthly_revenue.toFixed(2)}`;
+
+            const revRes = await fetch('/api/admin/intelligence/revenue', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const revData = await revRes.json();
+            document.getElementById('stat-net-revenue').textContent = `$${revData.total_revenue.toFixed(2)}`;
         } catch (e) {
             console.error('[Overview] Target fetch failed:', e);
         }
+    },
+
+    async loadFraudMetrics() {
+        try {
+            const res = await fetch('/api/admin/intelligence/fraud/metrics', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const data = await res.json();
+            document.getElementById('stat-fraud-f1').textContent = `${(data.f1_score * 100).toFixed(1)}%`;
+            document.getElementById('stat-fraud-precision').textContent = `Precision: ${(data.precision * 100).toFixed(1)}%`;
+        } catch (e) { console.error('[Overview] Fraud metrics failed:', e); }
     },
 
     async loadSignupVelocity() {

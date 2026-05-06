@@ -69,6 +69,11 @@
                     <div class="stat-label">DAU (Institutional)</div>
                     <div class="stat-value" id="stat-dau">--</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-label">🛡️ Fraud Model F1</div>
+                    <div class="stat-value" id="stat-fraud-f1">--</div>
+                    <div style="font-size: 11px; color: var(--admin-text-muted);" id="stat-fraud-precision">Precision: --</div>
+                </div>
             </div>
 
             <div class="content-grid">
@@ -195,6 +200,15 @@
         <!-- Tab 5: Control & Audit -->
         <div id="page-audit" class="tab-page">
             <div class="dashboard-grid">
+                <div class="glass-card" style="grid-column: span 3;">
+                    <h3 class="card-title">Failed Refund Queue</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Refund ID</th><th>User</th><th>Amount</th><th>Attempts</th><th>Last Error</th><th>Next Retry</th></tr>
+                        </thead>
+                        <tbody id="failed-refunds-table"><tr><td colspan="6" style="text-align:center; color:var(--admin-text-muted);">Loading...</td></tr></tbody>
+                    </table>
+                </div>
                 <div class="glass-card" style="grid-column: span 3;">
                     <h3 class="card-title">Global Governance Trail</h3>
                     <table class="admin-table">

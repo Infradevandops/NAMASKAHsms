@@ -16,6 +16,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
 
+from app.api.admin.alerts import router as alerts_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
@@ -198,6 +199,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(textverified_balance_router)
     fastapi_app.include_router(admin_router, prefix="/api")
+    fastapi_app.include_router(alerts_router)
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")
 

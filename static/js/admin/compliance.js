@@ -6,12 +6,40 @@
 const ComplianceManager = {
     async init() {
         console.log('Compliance Manager initialized');
+        await this.loadFailedRefunds();
         await this.loadComplianceReport();
         await this.loadAuditLogs();
     },
 
     getToken() {
         return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+    },
+
+    async loadFailedRefunds() {
+        try {
+            const res = await fetch('/api/admin/intelligence/refunds/failed', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const refunds = await res.json();
+            const tbody = document.getElementById('failed-refunds-table');
+            if (!refunds.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--admin-success);">✓ No failed refunds pending</td></tr>';
+                return;
+            }
+            tbody.innerHTML = refunds.map(r => `
+                <tr>
+                    <td style="font-size:11px;">${r.refund_id.substring(0, 8)}...</td>
+                    <td style="font-size:11px;">${r.user_id.substring(0, 8)}...</td>
+                    <td>$${r.amount.toFixed(2)}</td>
+                    <td>${r.attempts} / 3</td>
+                    <td style="font-size:10px; color:var(--admin-danger);">${r.last_error || '--'}</td>
+                    <td style="font-size:11px;">${r.next_retry_at ? new Date(r.next_retry_at).toLocaleString() : '--'}</td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error('[Compliance] Failed refunds load error:', e);
+            document.getElementById('failed-refunds-table').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--admin-danger);">Failed to load</td></tr>';
+        }
     },
 
     async loadComplianceReport() {
