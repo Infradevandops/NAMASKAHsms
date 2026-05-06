@@ -61,6 +61,25 @@ certs/
 .cache_ggshield
 .kiro/
 
+# Database backups & exports (may contain sensitive data)
+render_backup_final/
+*.csv
+*.sql
+!scripts/sql/*.sql
+
+# Archive (historical docs, kept locally only)
+archive/
+
+# One-off docs (not for repo)
+.render-deploy
+DEPLOYMENT_SUMMARY.md
+FIXES_APPLIED.md
+GET_RENDER_CONNECTION.md
+SENTRY_COMMIT_MESSAGE.txt
+SENTRY_COMPLETE.md
+SUPABASE_MIGRATION_STEPS.md
+URGENT_BACKUP_ACTION.md
+
 # Docs — empty/stale folders
 docs/design/
 docs/roadmaps/
