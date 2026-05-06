@@ -8,7 +8,7 @@ pip-audit==2.6.1
 semgrep==1.45.0
 
 # Rate limiting
-slowapi==0.1.9
+# (handled by app.core.unified_rate_limiting)
 
 # Input validation (already in main requirements)
 pydantic==2.5.0
