@@ -103,9 +103,13 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid MFA token",
                 )
+        import uuid
+
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
+            "iat": datetime.now(timezone.utc),
+            "jti": str(uuid.uuid4()),
             "exp": datetime.now(timezone.utc)
             + timedelta(hours=settings.jwt_expiration_hours),
         }

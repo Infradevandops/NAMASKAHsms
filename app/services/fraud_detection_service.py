@@ -35,14 +35,15 @@ class FraudDetectionService:
         return score, is_fraud
 
     def _calculate_score(self, features: Dict[str, Any]) -> float:
-        """Calculate fraud score."""
+        """Calculate fraud score based on real heuristics."""
         score = 0.0
 
-        # Placeholder scoring logic
-        # In production: use trained ML model
-        if features["country"] in ["high_risk_country"]:
+        HIGH_RISK_COUNTRIES = {"NG", "RU", "CN", "PK", "BD", "VN", "IN", "UA", "KE", "GH"}
+        HIGH_RISK_SERVICES = {"telegram", "whatsapp", "tiktok", "instagram", "facebook", "uber"}
+
+        if features.get("country", "").upper() in HIGH_RISK_COUNTRIES:
             score += 0.3
-        if features["service"] in ["high_risk_service"]:
+        if features.get("service", "").lower() in HIGH_RISK_SERVICES:
             score += 0.2
 
         return min(score, 1.0)

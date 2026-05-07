@@ -338,6 +338,20 @@ async def admin_page(
     )
 
 
+@router.get("/admin/rentals", response_class=HTMLResponse)
+async def admin_rentals_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/rentals.html", {"request": request, "user": user}
+    )
+
+
 @router.get("/admin/tier-management", response_class=HTMLResponse)
 async def admin_tier_management_page(
     request: Request,

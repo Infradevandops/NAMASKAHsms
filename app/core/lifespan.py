@@ -163,6 +163,77 @@ async def lifespan(app):
 
             asyncio.create_task(start_daily_snapshot_loop())
             startup_logger.info("✅ Daily growth snapshotting active (24h loop)")
+
+            # Rental expiry monitor (15-min loop)
+            async def start_rental_expiry_loop():
+                while True:
+                    try:
+                        from datetime import datetime, timezone
+
+                        from app.core.database import SessionLocal
+                        from app.models.verification import NumberRental
+
+                        with SessionLocal() as db:
+                            now = datetime.now(timezone.utc)
+                            # Mark expired rentals
+                            expired = (
+                                db.query(NumberRental)
+                                .filter(
+                                    NumberRental.status == "active",
+                                    NumberRental.expires_at <= now,
+                                )
+                                .all()
+                            )
+                            for r in expired:
+                                r.status = "expired"
+                                r.released_at = now
+                            if expired:
+                                db.commit()
+                                startup_logger.info(
+                                    f"Marked {len(expired)} rental(s) as expired"
+                                )
+
+                            # Send expiry warnings (1hr window)
+                            from datetime import timedelta
+
+                            warning_window = now + timedelta(hours=1)
+                            expiring_soon = (
+                                db.query(NumberRental)
+                                .filter(
+                                    NumberRental.status == "active",
+                                    NumberRental.expires_at <= warning_window,
+                                    NumberRental.expires_at > now,
+                                    NumberRental.warning_sent == False,
+                                )
+                                .all()
+                            )
+                            for r in expiring_soon:
+                                try:
+                                    from app.services.notification_dispatcher import (
+                                        NotificationDispatcher,
+                                    )
+
+                                    dispatcher = NotificationDispatcher(db)
+                                    await dispatcher.send_notification(
+                                        user_id=r.user_id,
+                                        notification_type="rental_expiring_soon",
+                                        data={
+                                            "phone_number": r.phone_number,
+                                            "service": r.service_name,
+                                            "expires_at": r.expires_at.isoformat(),
+                                        },
+                                    )
+                                    r.warning_sent = True
+                                except Exception:
+                                    pass
+                            if expiring_soon:
+                                db.commit()
+                    except Exception as e:
+                        startup_logger.error(f"Rental expiry monitor error: {e}")
+                    await asyncio.sleep(900)  # 15 minutes
+
+            asyncio.create_task(start_rental_expiry_loop())
+            startup_logger.info("✅ Rental expiry monitor started (15-min loop)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

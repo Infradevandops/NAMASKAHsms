@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaskah | Rental Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin_premium.css">
+</head>
+<body class="premium-admin">
+    <div class="admin-v2-container">
+        {% include 'admin/header.html' %}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <h2 style="font-size:24px; font-weight:700;">Number Rentals</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button onclick="loadRentals()" class="btn-secondary" style="padding:8px 16px; border-radius:8px;">🔄 Refresh</button>
+                <a href="/admin" class="btn-secondary" style="text-decoration:none; padding:8px 16px; border-radius:8px;">← Back to Admin</a>
+            </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="dashboard-grid" style="margin-bottom:32px;">
+            <div class="stat-card">
+                <div class="stat-label">Total Active</div>
+                <div class="stat-value" id="stat-total-active">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Expiring &lt; 1hr</div>
+                <div class="stat-value" id="stat-expiring-soon" style="color:var(--admin-danger);">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Healthy</div>
+                <div class="stat-value" id="stat-healthy" style="color:var(--admin-success);">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Revenue (Active)</div>
+                <div class="stat-value" id="stat-revenue">--</div>
+            </div>
+        </div>
+
+        <!-- Active rentals table -->
+        <div class="glass-card">
+            <h3 class="card-title">Active Rentals</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Phone Number</th>
+                        <th>Service</th>
+                        <th>User</th>
+                        <th>Cost</th>
+                        <th>Expires At</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="rentals-table">
+                    <tr><td colspan="7" style="text-align:center; color:var(--admin-text-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script nonce="{{ request.state.csp_nonce }}">
+        function getToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+        }
+
+        async function loadRentals() {
+            try {
+                const res = await fetch('/api/admin/dashboard/v2/rentals', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await res.json();
+
+                document.getElementById('stat-total-active').textContent = data.total_active ?? '--';
+                document.getElementById('stat-expiring-soon').textContent = data.expiring_soon ?? '--';
+                document.getElementById('stat-healthy').textContent = data.healthy_rentals ?? '--';
+
+                const totalRevenue = (data.rentals || []).reduce((s, r) => s + (r.cost || 0), 0);
+                document.getElementById('stat-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+
+                const tbody = document.getElementById('rentals-table');
+                if (!data.rentals || !data.rentals.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--admin-success);">✓ No active rentals</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.rentals.map(r => {
+                    const expires = new Date(r.expires_at);
+                    const now = new Date();
+                    const minsLeft = Math.max(0, Math.floor((expires - now) / 60000));
+                    const isCritical = minsLeft < 60;
+                    return `<tr>
+                        <td style="font-family:monospace;">${r.phone_number}</td>
+                        <td><span class="badge badge-info">${r.service_name || '--'}</span></td>
+                        <td style="font-size:11px;">${(r.user_id || '').substring(0, 8)}...</td>
+                        <td>$${(r.cost || 0).toFixed(2)}</td>
+                        <td style="font-size:11px;">${expires.toLocaleString()}</td>
+                        <td style="color:${isCritical ? 'var(--admin-danger)' : 'var(--admin-success)'}; font-weight:600;">
+                            ${minsLeft < 60 ? `${minsLeft}m` : `${Math.floor(minsLeft/60)}h ${minsLeft%60}m`}
+                        </td>
+                        <td><span class="badge ${r.status === 'active' ? 'badge-success' : 'badge-secondary'}">${r.status}</span></td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                console.error('[Rentals] Load failed:', e);
+                document.getElementById('rentals-table').innerHTML =
+                    '<tr><td colspan="7" style="text-align:center; color:var(--admin-danger);">Failed to load rentals</td></tr>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRentals);
+    </script>
+</body>
+</html>
