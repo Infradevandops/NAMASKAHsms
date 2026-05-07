@@ -236,6 +236,17 @@
         <button type="submit" class="btn-auth" id="login-btn">Sign In</button>
     </form>
 
+    <!-- MFA Step (hidden until needed) -->
+    <div id="mfa-step" style="display:none;">
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px; text-align:center;">Enter the 6-digit code from your authenticator app.</p>
+        <div class="form-group">
+            <label class="form-label">Authentication Code</label>
+            <input type="text" class="form-input" id="mfa-code" maxlength="6" placeholder="000000" autocomplete="one-time-code" style="letter-spacing:6px; font-size:20px; text-align:center;">
+        </div>
+        <button class="btn-auth" id="mfa-submit-btn" onclick="submitMFACode()">Verify</button>
+        <button style="width:100%; margin-top:8px; background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer;" onclick="cancelMFAStep()">← Back to login</button>
+    </div>
+
     <div class="divider"><span>or continue with</span></div>
 
     <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
@@ -326,13 +337,27 @@
         }
     }
 
+    // MFA state
+    let pendingMFAEmail = null;
+    let pendingMFAPassword = null;
+
     async function processLoginResponse(res) {
         const btn = document.getElementById('login-btn');
         if (res.ok) {
             const data = await res.json();
-            localStorage.setItem('access_token', data.access_token);
-            const isSecure = window.location.protocol === 'https:';
-            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+            if (data.mfa_required) {
+                // Store credentials for MFA re-submission
+                pendingMFAEmail = document.getElementById('email').value;
+                pendingMFAPassword = document.getElementById('password').value;
+                // Show MFA step
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('mfa-step').style.display = 'block';
+                document.getElementById('mfa-code').focus();
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+                return;
+            }
+            storeToken(data.access_token);
             window.location.href = '/dashboard';
         } else {
             const data = await res.json();
@@ -341,6 +366,58 @@
             btn.textContent = "Sign In";
         }
     }
+
+    function storeToken(token) {
+        localStorage.setItem('access_token', token);
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+    }
+
+    async function submitMFACode() {
+        const code = document.getElementById('mfa-code').value.trim();
+        if (!code || code.length < 6) { showError('Enter the 6-digit code'); return; }
+        const btn = document.getElementById('mfa-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: pendingMFAEmail, password: pendingMFAPassword, mfa_token: code })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                storeToken(data.access_token);
+                window.location.href = '/dashboard';
+            } else {
+                const data = await res.json();
+                showError(data.detail || 'Invalid code');
+                btn.disabled = false;
+                btn.textContent = 'Verify';
+            }
+        } catch (err) {
+            showError('Connection error. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Verify';
+        }
+    }
+
+    function cancelMFAStep() {
+        pendingMFAEmail = null;
+        pendingMFAPassword = null;
+        document.getElementById('mfa-step').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('login-btn').disabled = false;
+        document.getElementById('login-btn').textContent = 'Sign In';
+    }
+
+    // Allow Enter key on MFA input
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('mfa-code')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitMFACode();
+        });
+    });
 
     function showError(msg) {
         const el = document.getElementById('error-message');

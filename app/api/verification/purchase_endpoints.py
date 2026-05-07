@@ -145,6 +145,24 @@ async def request_verification(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
+        # Fraud scoring (non-blocking — never rejects, only logs)
+        try:
+            from app.services.fraud_detection_service import FraudDetectionService
+
+            _fraud_score, _is_fraud = await FraudDetectionService().score_verification(
+                user_id=user_id,
+                country=request.country,
+                service=request.service,
+                ip="",
+            )
+            if _is_fraud:
+                logger.warning(
+                    f"High fraud score {_fraud_score:.2f} for user {user_id} "
+                    f"service={request.service} country={request.country}"
+                )
+        except Exception:
+            pass
+
         # Provider Router Initialization
         from app.services.providers.provider_router import ProviderRouter
 

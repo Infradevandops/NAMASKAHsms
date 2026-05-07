@@ -60,7 +60,14 @@ async function loadBalance(silent = false) {
         if (res.ok) {
             const data = await res.json();
             const balance = data.balance || data.credits || 0;
-            display.textContent = formatMoney(parseFloat(balance));
+            const usd = parseFloat(balance);
+            display.dataset.usdAmount = usd;
+            // Use currency selector if available, else fallback to formatMoney
+            if (window.currencySelector) {
+                display.textContent = window.currencySelector.formatAmount(usd);
+            } else {
+                display.textContent = formatMoney(usd);
+            }
         } else {
             display.textContent = formatMoney(0);
         }
