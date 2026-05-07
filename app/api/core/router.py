@@ -8,9 +8,7 @@ from app.api.core.balance_sync import router as balance_sync_router
 from app.api.core.blacklist import router as blacklist_router
 from app.api.core.countries import router as countries_router
 from app.api.core.dashboard_activity import router as dashboard_activity_router
-
-# Temporarily disabled - has syntax errors
-# from app.api.core.forwarding import router as forwarding_router
+from app.api.core.forwarding import router as forwarding_router
 from app.api.core.gdpr import router as gdpr_router
 from app.api.core.notification_endpoints import router as notification_router
 from app.api.core.preferences import router as preferences_router
@@ -48,7 +46,6 @@ router.include_router(user_insights_router)
 router.include_router(balance_sync_router)
 router.include_router(wallet_router)
 router.include_router(blacklist_router)
-# Temporarily disabled - has syntax errors
-# router.include_router(forwarding_router, prefix="/api")
+router.include_router(forwarding_router, prefix="/api")
 router.include_router(webhooks_router, prefix="/api")
 router.include_router(referrals_router, prefix="/api")

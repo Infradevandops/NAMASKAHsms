@@ -140,6 +140,13 @@
         opacity: 1;
     }
 
+    .good .strength-segment:nth-child(1),
+    .good .strength-segment:nth-child(2),
+    .good .strength-segment:nth-child(3) {
+        background: #2ed573;
+        opacity: 1;
+    }
+
     .strong .strength-segment {
         background: #2ecc71;
         opacity: 1;
@@ -165,6 +172,11 @@
 
     <form id="register-form">
         <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input type="text" class="form-input" id="display-name" placeholder="How should we call you?" autocomplete="name">
+        </div>
+
+        <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" class="form-input" id="email" required placeholder="name@example.com" autocomplete="email">
         </div>
@@ -176,8 +188,14 @@
                 <div class="strength-segment"></div>
                 <div class="strength-segment"></div>
                 <div class="strength-segment"></div>
+                <div class="strength-segment"></div>
             </div>
             <div class="strength-text" id="strength-text"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" class="form-input" id="confirm-password" required placeholder="Repeat your password" autocomplete="new-password">
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">
@@ -226,10 +244,14 @@
             meter.classList.add('weak');
             text.textContent = 'Weak';
             text.style.color = '#ff4757';
-        } else if (score < 4) {
+        } else if (score < 3) {
             meter.classList.add('medium');
             text.textContent = 'Medium';
             text.style.color = '#ffa502';
+        } else if (score < 4) {
+            meter.classList.add('good');
+            text.textContent = 'Good';
+            text.style.color = '#2ed573';
         } else {
             meter.classList.add('strong');
             text.textContent = 'Strong';
@@ -248,11 +270,19 @@
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const displayName = document.getElementById('display-name').value.trim();
         const termsAccepted = document.getElementById('terms').checked;
 
-        // Validate terms acceptance
         if (!termsAccepted) {
             showError("You must accept the Terms of Service and Privacy Policy");
+            btn.disabled = false;
+            btn.textContent = "Create Account";
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showError("Passwords do not match");
             btn.disabled = false;
             btn.textContent = "Create Account";
             return;
@@ -265,13 +295,18 @@
                 body: JSON.stringify({
                     email,
                     password,
+                    display_name: displayName || undefined,
                     terms_accepted: termsAccepted
                 })
             });
 
             if (res.ok) {
-                alert("Account created successfully! Please log in.");
-                window.location.href = '/auth/login';
+                const successEl = document.getElementById('error-message');
+                successEl.textContent = 'Account created successfully! Please log in.';
+                successEl.style.display = 'block';
+                successEl.style.background = '#d1fae5';
+                successEl.style.color = '#065f46';
+                setTimeout(() => { window.location.href = '/auth/login'; }, 1500);
             } else {
                 const data = await res.json();
                 showError(data.detail || "Registration failed");

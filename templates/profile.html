@@ -398,13 +398,12 @@
 
         // Validate file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('Image size must be less than 2MB');
+            window.errorHandler?.showToast('Image size must be less than 2MB', 'error');
             return;
         }
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
+            window.errorHandler?.showToast('Please select an image file', 'error');
             return;
         }
 
@@ -468,23 +467,19 @@
             });
 
             if (res.ok) {
-                // Update localStorage for language
                 localStorage.setItem('language', lang);
                 localStorage.setItem('currency', curr);
                 if (window.pushPreferencesToBackend) pushPreferencesToBackend();
-
-                // Update display name in header
                 if (displayName) {
                     document.getElementById('display-name').textContent = displayName;
                 }
-
-                alert("Profile saved successfully!");
+                window.errorHandler?.showToast('Profile saved successfully!', 'success');
             } else {
-                alert("Failed to save profile. Please try again.");
+                window.errorHandler?.showToast('Failed to save profile. Please try again.', 'error');
             }
         } catch (e) {
             console.error("Save profile error:", e);
-            alert("Error saving profile.");
+            window.errorHandler?.showToast('Error saving profile.', 'error');
         } finally {
             btn.textContent = originalText;
             btn.disabled = false;

@@ -394,6 +394,21 @@ async def admin_logging_page(
     )
 
 
+@router.get("/profile", response_class=HTMLResponse)
+async def profile_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """User profile page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "profile.html", {"request": request, "user": user}
+    )
+
+
 @router.get("/privacy-settings", response_class=HTMLResponse)
 async def privacy_settings_page(request: Request):
     return templates.TemplateResponse("gdpr_settings.html", {"request": request})

@@ -273,6 +273,21 @@
                     </label>
                 </div>
             </div>
+            <div class="card" style="margin-top: 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h2 style="margin:0;">Notifications <span id="notif-unread-count" style="font-size:13px; font-weight:400; color:var(--text-muted);"></span></h2>
+                    <button id="mark-all-btn" onclick="markAllRead()" class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" disabled>Mark all read</button>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                    <button class="btn filter-btn active" data-filter="all" onclick="setNotifFilter('all')">All <span id="notif-count-all">0</span></button>
+                    <button class="btn filter-btn" data-filter="unread" onclick="setNotifFilter('unread')">Unread <span id="notif-count-unread">0</span></button>
+                    <button class="btn filter-btn" data-filter="system" onclick="setNotifFilter('system')">System <span id="notif-count-system">0</span></button>
+                    <button class="btn filter-btn" data-filter="payment" onclick="setNotifFilter('payment')">Payment <span id="notif-count-payment">0</span></button>
+                    <button class="btn filter-btn" data-filter="verification" onclick="setNotifFilter('verification')">Verification <span id="notif-count-verification">0</span></button>
+                </div>
+                <div id="notif-list" role="list"></div>
+                <div id="notif-empty-state" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">No notifications</div>
+            </div>
         </div>
 
         <!-- API Keys Tab -->
@@ -622,7 +637,7 @@
                 <p style="color: var(--text-muted); margin-bottom: 16px;">Integrate Namaskah SMS verification into your application.</p>
                 <div style="background: var(--bg-body); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                     <strong>Base URL</strong>
-                    <code style="display: block; margin-top: 8px; font-size: 13px;">https://namaskah.app/api</code>
+                    <code style="display: block; margin-top: 8px; font-size: 13px;">https://vrenum.onrender.com/api</code>
                 </div>
                 <a href="/api-docs" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Open Full API Docs ↗</a>
             </div>
@@ -1479,7 +1494,7 @@
         async function submitRefundRequest() {
             const reason = document.getElementById('refund-reason').value;
             if (!reason) {
-                alert('Please select a reason for the refund');
+                showToast('Please select a reason for the refund', 'error');
                 return;
             }
 
@@ -1514,7 +1529,7 @@
                 }
             } catch (error) {
                 console.error('[Settings] Refund request failed:', error);
-                alert('Failed to submit refund request. Please try again.');
+                showToast('Failed to submit refund request. Please try again.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Submit Request';
@@ -1628,11 +1643,11 @@
 
             // Validation
             if (config.email_enabled && !config.email_address) {
-                alert('Please enter an email address');
+                showToast('Please enter an email address', 'error');
                 return;
             }
             if (config.webhook_enabled && !config.webhook_url) {
-                alert('Please enter a webhook URL');
+                showToast('Please enter a webhook URL', 'error');
                 return;
             }
 
@@ -1644,14 +1659,14 @@
                 });
 
                 if (response.ok) {
-                    alert('Forwarding configuration saved successfully');
+                    showToast('Forwarding configuration saved successfully', 'success');
                 } else {
                     const error = await response.json();
-                    alert(error.detail || 'Failed to save configuration');
+                    showToast(error.detail || 'Failed to save configuration', 'error');
                 }
             } catch (error) {
                 console.error('[Settings] Failed to save forwarding config:', error);
-                alert('Failed to save configuration');
+                showToast('Failed to save configuration', 'error');
             }
         }
 
@@ -1671,14 +1686,14 @@
                     for (const result of data.results || []) {
                         message += `\n${result.type}: ${result.success ? '✓' : '✗'} ${result.message}`;
                     }
-                    alert(message);
+                    showToast(message, 'info');
                 } else {
                     const error = await response.json();
-                    alert(error.detail || 'Forwarding test failed');
+                    showToast(error.detail || 'Forwarding test failed', 'error');
                 }
             } catch (error) {
                 console.error('[Settings] Forwarding test failed:', error);
-                alert('Forwarding test failed');
+                showToast('Forwarding test failed', 'error');
             }
         }
 
@@ -2137,7 +2152,7 @@
             if (!oldPwd || !newPwd) { showToast('Please fill in both password fields', 'error'); return; }
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/user/change-password', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) });
+                const res = await fetch('/api/user/change-password', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) });
                 if (res.ok) { showToast('Password updated successfully', 'success'); document.getElementById('old-password').value = ''; document.getElementById('new-password').value = ''; }
                 else { const e = await res.json(); showToast(e.detail || 'Failed to update password', 'error'); }
             } catch(e) { showToast('Failed to update password', 'error'); }
@@ -2147,7 +2162,7 @@
             if (!confirm('Sign out from all devices?')) return;
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/user/logout-all', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/api/user/logout-all', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
             } catch(e) { showToast('Failed to logout all devices', 'error'); }
         }
@@ -2157,7 +2172,7 @@
             if (!pwd) return;
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/user/delete-account', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
+                const res = await fetch('/api/user/delete-account', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
                 if (res.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
                 else { const e = await res.json(); showToast(e.detail || 'Failed to delete account', 'error'); }
             } catch(e) { showToast('Failed to delete account', 'error'); }

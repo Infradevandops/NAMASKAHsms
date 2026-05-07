@@ -146,7 +146,7 @@
         <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); flex-wrap:wrap; gap:8px;"></div>
 
         <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
-            <button class="btn btn-secondary" onclick="history.back()" aria-label="Go back">Back</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/dashboard'" aria-label="Go back to dashboard">Back</button>
             <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled aria-label="Continue to pricing">Continue →</button>
         </div>
     </div>
@@ -258,6 +258,7 @@
                         </div>
                     </label>
                 </div>
+                <button class="btn btn-primary" onclick="resetFlow()" style="width:100%; margin-top:16px;">Start New Verification</button>
             </div>
 
             <div id="verification-receipt-details" style="margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; text-align: left; font-size: 13px;">
@@ -764,6 +765,7 @@ function confirmService() {
     if (!VerificationFlow.selectedService) return;
     const item = (_modalItems['service'] || []).find(i => i.value === VerificationFlow.selectedService);
     document.getElementById('pricing-service').textContent = item?.label || VerificationFlow.selectedService;
+    document.getElementById('pricing-time').textContent = item?.estimated_seconds ? `~${item.estimated_seconds}s` : '~30s';
 
     // Show area code if selected
     if (VerificationFlow.selectedAreaCode) {
@@ -1001,6 +1003,8 @@ async function createVerification() {
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
         document.getElementById('display-verification-id').textContent = data.verification_id || '-';
+        const _svcLabel = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
+        document.getElementById('scanning-service-name').textContent = _svcLabel;
 
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
         updateProgress(3);
