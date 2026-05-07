@@ -29,6 +29,7 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     password: str
+    mfa_token: Optional[str] = None
 
 
 class RegisterRequest(BaseModel):
@@ -86,7 +87,22 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
                 status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled"
             )
 
-        # Generate JWT token
+        # MFA check
+        if getattr(user, "mfa_enabled", False):
+            if not login_data.mfa_token:
+                return {
+                    "access_token": "",
+                    "token_type": "bearer",
+                    "mfa_required": True,
+                    "user": {"email": user.email},
+                }
+            from app.services.mfa_service import MFAService
+
+            if not MFAService.verify_token(user.mfa_secret, login_data.mfa_token):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid MFA token",
+                )
         token_data = {
             "user_id": str(user.id),
             "email": user.email,

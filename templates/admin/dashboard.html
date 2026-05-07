@@ -176,9 +176,21 @@
                     <div class="glass-card">
                         <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                             <h3 class="card-title">Pricing Templates</h3>
-                            <button class="btn-secondary" style="font-size:11px;" onclick="PricingManager.openCreateModal()">+ Create</button>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn-secondary" style="font-size:11px;" onclick="PricingManager.openCreateModal()">+ Standard</button>
+                                <button class="btn-primary" style="font-size:11px;" onclick="PricingManager.openPromoModal()">🏷 Promo</button>
+                            </div>
                         </div>
                         <div id="template-grid" style="display:grid; grid-template-columns:1fr; gap:12px;"></div>
+                    </div>
+
+                    <!-- Commissions -->
+                    <div class="glass-card">
+                        <h3 class="card-title">Pending Commissions</h3>
+                        <div style="display:flex; gap:12px; margin-bottom:10px;">
+                            <div class="stat-card" style="flex:1;"><div class="stat-label">Pending Count</div><div class="stat-value" id="commission-count">--</div></div>
+                            <div class="stat-card" style="flex:1;"><div class="stat-label">Total Pending</div><div class="stat-value" id="commission-total">--</div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -200,6 +212,27 @@
         <!-- Tab 5: Control & Audit -->
         <div id="page-audit" class="tab-page">
             <div class="dashboard-grid">
+                <div class="glass-card" style="grid-column: span 3;">
+                    <h3 class="card-title">Open Disputes</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Dispute ID</th><th>User</th><th>Amount</th><th>Reason</th><th>Days Open</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="disputes-table"><tr><td colspan="6" style="text-align:center; color:var(--admin-text-muted);">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="glass-card" style="grid-column: span 3;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 class="card-title">Revenue Recognition</h3>
+                        <span id="rev-rec-period" style="font-size:11px; color:var(--admin-text-muted);"></span>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-top:12px;">
+                        <div class="stat-card"><div class="stat-label">Gross Revenue</div><div class="stat-value" id="rev-gross">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Net Revenue</div><div class="stat-value" id="rev-net">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Provider Costs</div><div class="stat-value" id="rev-costs">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Margin</div><div class="stat-value" id="rev-margin">--</div></div>
+                    </div>
+                </div>
                 <div class="glass-card" style="grid-column: span 3;">
                     <h3 class="card-title">Failed Refund Queue</h3>
                     <table class="admin-table">

@@ -12,6 +12,7 @@ const PricingManager = {
         await this.loadTemplates();
         await this.loadLivePrices();
         await this.loadProviderBalance();
+        await this.loadCommissions();
         this.setupAutoRefresh();
     },
 
@@ -43,6 +44,35 @@ const PricingManager = {
         } catch (e) {
             console.error('Balance check failed:', e);
         }
+    },
+
+    async loadCommissions() {
+        try {
+            const res = await fetch('/api/admin/intelligence/commissions/pending', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const data = await res.json();
+            const countEl = document.getElementById('commission-count');
+            const totalEl = document.getElementById('commission-total');
+            if (countEl) countEl.textContent = data.pending_count;
+            if (totalEl) totalEl.textContent = `$${data.total_pending.toFixed(2)}`;
+        } catch(e) { console.error('[Pricing] Commissions load error:', e); }
+    },
+
+    openPromoModal() {
+        const name = prompt('Promo template name:');
+        if (!name) return;
+        const discount = parseFloat(prompt('Discount percentage (e.g. 10 for 10%):') || '0');
+        const expires = prompt('Expires at (YYYY-MM-DD, or leave blank):');
+        const payload = { name, discount_percentage: discount, expires_at: expires || null };
+        fetch('/api/admin/pricing/templates/promo', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${this.getToken()}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(data => {
+            if (data.status === 'success') { showToast('Promo template created', 'success'); this.loadTemplates(); }
+            else showToast(data.detail || 'Failed', 'error');
+        }).catch(() => showToast('Failed to create promo', 'error'));
     },
 
     async loadTemplates() {

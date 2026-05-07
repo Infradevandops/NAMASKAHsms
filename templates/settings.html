@@ -241,6 +241,33 @@
                 </div>
 
                 <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                    <h3 style="margin-bottom: 8px;">Two-Factor Authentication (2FA)</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Add an extra layer of security using an authenticator app (Google Authenticator, Authy, etc.).</p>
+                    <div id="mfa-status-section">
+                        <div id="mfa-disabled-view">
+                            <button class="btn btn-primary" onclick="setupMFA()">Enable 2FA</button>
+                        </div>
+                        <div id="mfa-setup-view" style="display:none;">
+                            <p style="font-size:13px; margin-bottom:12px;">Scan this QR code with your authenticator app, then enter the 6-digit code to confirm.</p>
+                            <img id="mfa-qr-img" src="" alt="MFA QR Code" style="width:180px; height:180px; border-radius:8px; margin-bottom:12px; display:block;">
+                            <input type="text" id="mfa-verify-input" class="form-input" placeholder="Enter 6-digit code" maxlength="6" style="width:160px; margin-bottom:12px; letter-spacing:4px; font-size:18px;">
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-primary" onclick="verifyMFA()">Confirm & Enable</button>
+                                <button class="btn btn-secondary" onclick="cancelMFASetup()">Cancel</button>
+                            </div>
+                        </div>
+                        <div id="mfa-enabled-view" style="display:none;">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                                <span style="color:#22c55e; font-size:18px;">&#10003;</span>
+                                <span style="font-weight:600;">2FA is enabled on your account</span>
+                            </div>
+                            <input type="text" id="mfa-disable-input" class="form-input" placeholder="Enter code to disable" maxlength="6" style="width:160px; margin-bottom:12px; letter-spacing:4px; font-size:18px;">
+                            <button class="btn" style="background:#ef4444; color:white;" onclick="disableMFA()">Disable 2FA</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
                     <h3 style="margin-bottom: 8px;">Sessions</h3>
                     <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Sign out from all other devices and sessions.</p>
                     <button class="btn btn-secondary" onclick="logoutAll()">Logout All Devices</button>
@@ -1578,7 +1605,10 @@
         }
 
         // Init
-        document.addEventListener('DOMContentLoaded', loadUserData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+            loadMFAStatus();
+        });
 
         // Close refund modal on outside click
         document.getElementById('refund-modal')?.addEventListener('click', function (e) {
@@ -2146,6 +2176,62 @@
         window.applyFilters = applyFilters;
         window.clearFilters = clearFilters;
         window.exportHistory = exportHistory;
+        async function loadMFAStatus() {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            if (!token) return;
+            try {
+                const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const enabled = data.mfa_enabled || false;
+                document.getElementById('mfa-disabled-view').style.display = enabled ? 'none' : 'block';
+                document.getElementById('mfa-enabled-view').style.display = enabled ? 'block' : 'none';
+            } catch(e) { /* silent */ }
+        }
+
+        async function setupMFA() {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/user/mfa/setup', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('mfa-qr-img').src = `data:image/png;base64,${data.qr_code}`;
+                document.getElementById('mfa-disabled-view').style.display = 'none';
+                document.getElementById('mfa-setup-view').style.display = 'block';
+            } catch(e) { showToast('Failed to start MFA setup', 'error'); }
+        }
+
+        async function verifyMFA() {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            const code = document.getElementById('mfa-verify-input').value.trim();
+            if (!code) { showToast('Enter the 6-digit code', 'error'); return; }
+            try {
+                const res = await fetch('/api/user/mfa/verify', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: code }) });
+                if (res.ok) {
+                    document.getElementById('mfa-setup-view').style.display = 'none';
+                    document.getElementById('mfa-enabled-view').style.display = 'block';
+                    showToast('2FA enabled successfully', 'success');
+                } else { const e = await res.json(); showToast(e.detail || 'Invalid code', 'error'); }
+            } catch(e) { showToast('Verification failed', 'error'); }
+        }
+
+        function cancelMFASetup() {
+            document.getElementById('mfa-setup-view').style.display = 'none';
+            document.getElementById('mfa-disabled-view').style.display = 'block';
+        }
+
+        async function disableMFA() {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            const code = document.getElementById('mfa-disable-input').value.trim();
+            if (!code) { showToast('Enter your authenticator code to disable 2FA', 'error'); return; }
+            try {
+                const res = await fetch('/api/user/mfa/disable', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: code }) });
+                if (res.ok) {
+                    document.getElementById('mfa-enabled-view').style.display = 'none';
+                    document.getElementById('mfa-disabled-view').style.display = 'block';
+                    showToast('2FA disabled', 'success');
+                } else { const e = await res.json(); showToast(e.detail || 'Invalid code', 'error'); }
+            } catch(e) { showToast('Failed to disable 2FA', 'error'); }
+        }
+
         async function changePassword() {
             const oldPwd = document.getElementById('old-password').value;
             const newPwd = document.getElementById('new-password').value;

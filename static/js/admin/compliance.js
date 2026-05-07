@@ -7,12 +7,56 @@ const ComplianceManager = {
     async init() {
         console.log('Compliance Manager initialized');
         await this.loadFailedRefunds();
+        await this.loadDisputes();
+        await this.loadRevenueRecognition();
         await this.loadComplianceReport();
         await this.loadAuditLogs();
     },
 
     getToken() {
         return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+    },
+
+    async loadDisputes() {
+        try {
+            const res = await fetch('/api/admin/intelligence/disputes', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const disputes = await res.json();
+            const tbody = document.getElementById('disputes-table');
+            if (!disputes.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--admin-success);">\u2713 No open disputes</td></tr>';
+                return;
+            }
+            tbody.innerHTML = disputes.map(d => `
+                <tr>
+                    <td style="font-size:11px;">${d.dispute_id.substring(0,8)}...</td>
+                    <td style="font-size:11px;">${d.user_id.substring(0,8)}...</td>
+                    <td>$${d.amount.toFixed(2)}</td>
+                    <td style="font-size:11px;">${d.reason_code}</td>
+                    <td>${d.days_open}d</td>
+                    <td>
+                        <button onclick="resolveDispute('${d.dispute_id}','won')" style="font-size:10px; padding:2px 6px; background:var(--admin-success); border:none; border-radius:4px; color:white; cursor:pointer; margin-right:4px;">Won</button>
+                        <button onclick="resolveDispute('${d.dispute_id}','lost')" style="font-size:10px; padding:2px 6px; background:var(--admin-danger); border:none; border-radius:4px; color:white; cursor:pointer;">Lost</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error('[Compliance] Disputes load error:', e); }
+    },
+
+    async loadRevenueRecognition() {
+        try {
+            const res = await fetch('/api/admin/intelligence/revenue/recognition', {
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            const data = await res.json();
+            const r = data.recognized;
+            document.getElementById('rev-rec-period').textContent = data.period;
+            document.getElementById('rev-gross').textContent = `$${r.gross_revenue.toFixed(2)}`;
+            document.getElementById('rev-net').textContent = `$${r.net_revenue.toFixed(2)}`;
+            document.getElementById('rev-costs').textContent = `$${r.provider_costs.toFixed(2)}`;
+            document.getElementById('rev-margin').textContent = `${r.margin_percent.toFixed(1)}%`;
+        } catch(e) { console.error('[Compliance] Revenue recognition load error:', e); }
     },
 
     async loadFailedRefunds() {
@@ -111,3 +155,15 @@ const ComplianceManager = {
 
 // Global for tab switching
 window.ComplianceManager = ComplianceManager;
+
+async function resolveDispute(disputeId, resolution) {
+    const token = ComplianceManager.getToken();
+    try {
+        const res = await fetch(`/api/admin/intelligence/disputes/${disputeId}/resolve`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resolution, notes: `Admin resolved: ${resolution}` })
+        });
+        if (res.ok) await ComplianceManager.loadDisputes();
+    } catch(e) { console.error('[Compliance] Resolve dispute failed:', e); }
+}
