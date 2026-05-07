@@ -1,8 +1,8 @@
 # Namaskah SMS Verification Platform
 
-**Version**: 4.4.2 - Code Quality & CI Improvements 🔧
+**Version**: 4.6.0 - Platform Hardening & Feature Completion 🚀
 **Status**: Production Ready
-**Updated**: March 20, 2026
+**Updated**: May 7, 2026
 
 ![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/namaskah-sms/ci.yml?branch=main)
 ![Coverage](https://img.shields.io/codecov/c/github/yourusername/namaskah-sms)
@@ -640,23 +640,40 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
   - ✅ CI pipeline restored (1,542 tests running)
   - ✅ Platform status documented
   - ✅ 18-month roadmap created
+- **v4.5.0** (May 6, 2026): Admin Intelligence & Growth Services
+  - ✅ 19 pre-built services wired to admin panel
+  - ✅ Admin panel shows real DB data (revenue, DAU, targets)
+  - ✅ MFA (setup/verify/disable/login enforcement)
+  - ✅ Disputes, failed refunds, revenue recognition
+  - ✅ Commission engine, affiliate program
+  - ✅ Promo pricing templates (discount applied to calculations)
+  - ✅ WebSocket events (payment + SMS completion)
+  - ✅ Currency selector with live rates
+  - ✅ Audit logging on all admin actions
+- **v4.6.0** (May 7, 2026): Platform Hardening, Rentals & Voice
+  - ✅ Number rentals fully implemented (5 endpoints, expiry monitor)
+  - ✅ Voice verification stable (audio player, timeout fix)
+  - ✅ Session invalidation via Redis JTI blacklist
+  - ✅ Affiliate approval/revoke admin flow
+  - ✅ v1 API restored to 231 routes
+  - ✅ Fraud scoring with real heuristics
+  - ✅ Admin rentals page
+  - ✅ 2,338 tests collecting cleanly (0 errors)
+  - ✅ Crypto placeholder addresses disabled
 
 ### Current & Upcoming
 
-### Q2 2026 - Carrier Enhancement 📋
-- 📋 **Enhanced analytics** (carrier success rates, user preferences)
-- 📋 **SDK libraries** (Python, JavaScript, Go)
-- 📋 **API rate limiting improvements**
+### Q2 2026 - Growth Features 📋
+- 📋 **Whitelabel** (template exists, backend pending)
+- 📋 **Telegram SMS forwarding** (needs bot token)
+- 📋 **Push notifications** (needs Firebase)
+- 📋 **SDK libraries** (Python, JavaScript)
 
-### Q3 2026 - Carrier Guarantee 📋
-- 📋 **Premium tier** (Carrier Guarantee feature)
+### Q3 2026 - Scale 📋
 - 📋 **Multi-region deployment**
-- 📋 **Advanced carrier analytics dashboard**
-
-### Q4 2026 - Excellence 📋
-- 📋 **Commercial APIs** (if volume justifies)
-- 📋 **Enterprise tier**
-- 📋 **Advanced reporting**
+- 📋 **Enterprise tier + KYC**
+- 📋 **Tax collection** (>100 users)
+- 📋 **Reseller program**
 
 ---
 
