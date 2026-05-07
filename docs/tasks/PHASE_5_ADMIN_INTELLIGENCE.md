@@ -1,8 +1,9 @@
 # Phase 5.0 — Admin Intelligence & Growth Services Integration
 
 **Version**: v4.5.0
-**Status**: Complete
+**Status**: Complete — Post-Audit Gaps Identified
 **Created**: May 6, 2026
+**Last Audited**: May 7, 2026
 **Scope**: Wire up pre-built services to admin panel, feed real data from DB
 
 ---
@@ -223,7 +224,68 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 
 ---
 
-## Priority Order
+## Post-Implementation Audit (May 7, 2026)
+
+Full review of every admin panel feature against actual code revealed 4 gaps where UI exists and endpoints exist but data will always be empty or metrics are fake.
+
+### What is fully working
+- Growth target card (DB-backed, configurable)
+- DAU, signup velocity chart, peak load heatmap
+- 30d Net Revenue (real `Transaction` queries)
+- User table + tier/credit management modal
+- 90-day retention chart
+- Verification forensics table + CSV export + pagination
+- Live provider inventory + balance + price history chart
+- Pricing templates (list, activate, clone, delete, rollback)
+- Failed refund queue
+- Open disputes table + Won/Lost resolve buttons
+- Revenue recognition cards (reads DB correctly)
+- SOC 2 compliance HUD + governance trail
+- Pending commissions count + total
+
+### Gap 1 — Fraud metrics are hardcoded constants ⚠️
+`FraudDetectionService.get_model_metrics()` returns `{accuracy: 0.95, precision: 0.92, recall: 0.88, f1: 0.90}` as static values. `score_verification()` is never called during the verification flow. The stat card shows numbers but they are meaningless.
+- **Fix**: Call `score_verification()` in the verification creation flow, log the score to a new `fraud_scores` column or table, compute real rolling averages for the metrics endpoint.
+- **Effort**: ~2 hours
+- **Files**: `app/services/fraud_detection_service.py`, verification creation endpoint
+
+### Gap 2 — Revenue recognition cards always show $0 ⚠️
+`RevenueRecognitionService.recognize_revenue()` is never called anywhere. The `revenue_recognition` table is empty. The admin cards will always show zeros until recognition is triggered on each successful payment.
+- **Fix**: Call `recognize_revenue(transaction_id, gross_amount, provider_cost, jurisdiction)` in `payment_service.py` after the credit block (same pattern as EventBroadcaster).
+- **Effort**: ~30 minutes
+- **Files**: `app/services/payment_service.py`, `app/services/revenue_recognition_service.py`
+
+### Gap 3 — Promo discount has no effect on pricing ⚠️
+`PricingTemplate.discount_percentage` is stored and displayed (🏷️ badge) but `PricingTemplateService` never applies it to price calculations. The active template's `markup_multiplier` is used directly — `discount_percentage` is ignored entirely.
+- **Fix**: In `PricingTemplateService.get_active_template()` or wherever `markup_multiplier` is read, apply: `effective_markup = markup * (1 - discount_percentage / 100)` when `is_promotional` is true and template is not expired.
+- **Effort**: ~1 hour
+- **Files**: `app/services/pricing_template_service.py`, `app/services/verification_pricing_service.py`
+
+### Gap 4 — Governance trail (audit logs) likely empty ⚠️
+`AuditService.get_system_audit_logs()` reads from the `audit_logs` table. It is unknown whether anything writes to this table in the current codebase. If nothing writes audit events, the governance trail will always be empty.
+- **Fix**: Audit whether `audit_service.py` has a `log_event()` method and whether it is called from tier changes, credit adjustments, admin actions, or login events. Add calls where missing.
+- **Effort**: ~1 hour to audit + ~2 hours to add writes
+- **Files**: `app/services/audit_service.py`, admin action endpoints
+
+### Gap 5 — Commissions always show 0 pending ⚠️
+`CommissionEngine.calculate_commission()` is never called during any transaction. `RevenueShare` table is empty. The pending count will always be 0 until commission calculation is triggered on affiliate transactions.
+- **Fix**: Call `calculate_commission()` in the payment flow when `user.is_affiliate` is true, or on a scheduled basis.
+- **Effort**: ~1 hour
+- **Files**: `app/services/commission_engine.py`, `app/services/payment_service.py`
+
+---
+
+## Gap Fix Priority
+
+| Priority | Gap | Effort | Impact |
+|----------|-----|--------|--------|
+| P0 | Gap 2 — Revenue recognition (30 min, high value) | 30 min | Cards show real data immediately |
+| P0 | Gap 3 — Promo discount applied to pricing | 1 hour | Promos actually work |
+| P1 | Gap 4 — Audit log writes | 2 hours | Governance trail populated |
+| P1 | Gap 5 — Commission calculation on payment | 1 hour | Affiliate program functional |
+| P2 | Gap 1 — Real fraud scoring | 2 hours | Fraud metrics meaningful |
+
+---
 
 | Priority | Tasks | Effort | Impact |
 |----------|-------|--------|--------|
