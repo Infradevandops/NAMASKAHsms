@@ -34,6 +34,10 @@
       <div id="codeDisplay" style="display: none;">
         <div class="code-display" id="code">------</div>
         <p style="color: var(--text-secondary); font-size: 12px;">Voice verification code received</p>
+        <div id="audioPlayerContainer" style="display:none; margin-top:16px;">
+          <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">Listen to your verification call:</p>
+          <audio id="voiceAudioPlayer" controls style="width:100%; border-radius:8px;"></audio>
+        </div>
       </div>
 
       <div style="margin-top: 20px;">
@@ -57,8 +61,13 @@ async function checkStatus() {
       document.getElementById('statusIcon').innerHTML = '<i class="ph ph-check-circle" style="color: var(--success);"></i>';
       document.getElementById('statusText').textContent = 'Code Received!';
       document.getElementById('statusDesc').textContent = 'Voice verification complete';
-      document.getElementById('code').textContent = data.sms_code;
+      const displayCode = data.sms_code === 'VOICE_RECV' ? '\ud83d\udd0a Audio Ready' : data.sms_code;
+      document.getElementById('code').textContent = displayCode;
       document.getElementById('codeDisplay').style.display = 'block';
+      if (data.audio_url) {
+        document.getElementById('voiceAudioPlayer').src = data.audio_url;
+        document.getElementById('audioPlayerContainer').style.display = 'block';
+      }
       clearInterval(pollInterval);
     } else if (data.status === 'failed') {
       document.getElementById('statusIcon').innerHTML = '<i class="ph ph-x-circle" style="color: #e74c3c;"></i>';

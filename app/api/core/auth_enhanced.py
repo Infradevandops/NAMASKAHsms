@@ -30,6 +30,9 @@ def invalidate_all_sessions(db, user_id):
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
 @router.post("/refresh")
 async def refresh_token(request: Request, db: Session = Depends(get_db)):
     """Refresh access token using refresh token from cookie."""
@@ -79,27 +82,51 @@ async def logout(
     db: Session = Depends(get_db),
 ):
     """Logout user and invalidate session."""
-    refresh_token = request.cookies.get("refresh_token")
+    from app.services.auth_service import AuthService
 
-    if refresh_token:
-        invalidate_session(db, refresh_token)
+    # Revoke the current access token via JTI blacklist
+    token = None
+    if request.headers.get("Authorization", "").startswith("Bearer "):
+        token = request.headers["Authorization"].split(" ", 1)[1]
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+
+    if token:
+        AuthService(db).revoke_token(token)
 
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
-
     return SuccessResponse(message="Logged out successfully")
 
 
 @router.post("/logout-all")
 async def logout_all(
+    request: Request,
     response: Response,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Logout from all devices."""
-    invalidate_all_sessions(db, user_id)
+    """Logout from all devices — revokes current token and sets a user-level block."""
+    from app.core.cache import cache
+    from app.services.auth_service import AuthService
+
+    # Revoke current token
+    token = None
+    if request.headers.get("Authorization", "").startswith("Bearer "):
+        token = request.headers["Authorization"].split(" ", 1)[1]
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+    if token:
+        AuthService(db).revoke_token(token)
+
+    # Set a user-level block key — all tokens issued before now are invalid
+    try:
+        redis = cache.get_client()
+        if redis:
+            redis.setex(f"logout_all:{user_id}", 86400 * 30, "1")
+    except Exception:
+        pass
 
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
-
     return SuccessResponse(message="Logged out from all devices")

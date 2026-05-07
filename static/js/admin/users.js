@@ -101,10 +101,36 @@ const UsersManager = {
                 <label style="display:block; margin-bottom:4px; font-size:12px;">Credit Adjustment</label>
                 <input type="number" id="credit-adj" step="0.01" value="0.00" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px; border-radius:4px;">
             </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label style="display:block; margin-bottom:4px; font-size:12px;">Affiliate Status</label>
+                <button onclick="UsersManager.toggleAffiliate('${u.id}', ${u.is_affiliate || false})" style="padding:6px 12px; font-size:11px; background:${u.is_affiliate ? 'var(--admin-danger)' : 'var(--admin-success)'}; border:none; border-radius:4px; color:white; cursor:pointer;">
+                    ${u.is_affiliate ? 'Revoke Affiliate' : 'Approve Affiliate'}
+                </button>
+            </div>
         `;
 
         document.getElementById('save-tier-btn').onclick = () => this.saveUserChanges(userId);
         modal.style.display = 'flex';
+    },
+
+    async toggleAffiliate(userId, isAffiliate) {
+        const action = isAffiliate ? 'revoke-affiliate' : 'approve-affiliate';
+        const label = isAffiliate ? 'Revoke' : 'Approve';
+        if (!confirm(`${label} affiliate status for this user?`)) return;
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/${action}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${this.getToken()}` }
+            });
+            if (res.ok) {
+                showToast(`Affiliate ${isAffiliate ? 'revoked' : 'approved'}`, 'success');
+                document.getElementById('tier-modal').style.display = 'none';
+                this.loadUserList();
+            } else {
+                const e = await res.json();
+                showToast(e.detail || 'Failed', 'error');
+            }
+        } catch (e) { showToast('Network error', 'error'); }
     },
 
     async saveUserChanges(userId) {

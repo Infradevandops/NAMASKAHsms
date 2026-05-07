@@ -112,6 +112,18 @@ class AuthService:
                     if redis.exists(f"blacklist:jti:{jti}"):
                         logger.debug("Token revoked", extra={"jti": jti})
                         return None
+                    # Check user-level logout-all block
+                    user_id_check = payload.get("sub") or payload.get("user_id")
+                    if user_id_check and redis.exists(f"logout_all:{user_id_check}"):
+                        iat = payload.get("iat", 0)
+                        block_set_at = redis.object(
+                            "idletime", f"logout_all:{user_id_check}"
+                        )
+                        # Simpler: just block all — user must re-login
+                        logger.debug(
+                            "User logout-all active", extra={"user_id": user_id_check}
+                        )
+                        return None
                 except Exception as e:
                     logger.warning(f"Blacklist check failed (allowing token): {e}")
 

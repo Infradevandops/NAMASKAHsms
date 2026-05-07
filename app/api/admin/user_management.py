@@ -62,3 +62,76 @@ async def get_users(
 ):
     """Alias for list_users."""
     return await list_users(admin_id, db, limit, offset)
+
+
+@router.post("/users/{user_id}/approve-affiliate")
+async def approve_affiliate(
+    user_id: str,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Approve a user as an affiliate partner."""
+    from app.services.audit_service import AuditService
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.is_affiliate:
+        return {"status": "already_affiliate", "user_id": user_id}
+
+    user.is_affiliate = True
+    user.partner_type = "affiliate"
+    user.commission_tier = "starter"
+    db.commit()
+
+    try:
+        import asyncio
+
+        asyncio.create_task(
+            AuditService(db).log_action(
+                user_id=admin_id,
+                action="affiliate_approved",
+                resource_type="user",
+                resource_id=user_id,
+                details={"commission_tier": "starter"},
+            )
+        )
+    except Exception:
+        pass
+
+    return {"status": "approved", "user_id": user_id, "commission_tier": "starter"}
+
+
+@router.post("/users/{user_id}/revoke-affiliate")
+async def revoke_affiliate(
+    user_id: str,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Revoke affiliate status from a user."""
+    from app.services.audit_service import AuditService
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.is_affiliate = False
+    user.partner_type = None
+    user.commission_tier = None
+    db.commit()
+
+    try:
+        import asyncio
+
+        asyncio.create_task(
+            AuditService(db).log_action(
+                user_id=admin_id,
+                action="affiliate_revoked",
+                resource_type="user",
+                resource_id=user_id,
+            )
+        )
+    except Exception:
+        pass
+
+    return {"status": "revoked", "user_id": user_id}

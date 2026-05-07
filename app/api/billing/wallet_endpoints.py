@@ -39,12 +39,10 @@ class CryptoConfirmRequest(BaseModel):
 
 @router.get("/crypto/addresses")
 async def get_crypto_addresses(user_id: str = Depends(get_current_user_id)):
-    """Returns the secure institutional addresses for crypto settlement."""
+    """Crypto payments not yet available."""
     return {
-        "btc_address": settings.btc_address,
-        "eth_address": settings.eth_address,
-        "sol_address": settings.sol_address,
-        "ltc_address": settings.ltc_address,
+        "available": False,
+        "message": "Crypto payments coming soon. Use Paystack for now.",
     }
 
 
