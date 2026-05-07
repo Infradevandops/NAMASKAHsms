@@ -229,6 +229,22 @@ class PaymentService:
             except Exception as e:
                 logger.error(f"Failed to send payment notification: {e}")
 
+            # Broadcast real-time payment event via WebSocket
+            try:
+                from app.services.event_broadcaster import event_broadcaster
+
+                asyncio.create_task(
+                    event_broadcaster.broadcast_payment_event(
+                        user_id=user_id,
+                        event_type="completed",
+                        amount=float(amount),
+                        reference=reference,
+                        status="success",
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Failed to broadcast payment event: {e}")
+
             return True
 
         except IntegrityError:

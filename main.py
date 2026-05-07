@@ -24,9 +24,11 @@ from app.api.compatibility_routes import router as compatibility_router
 from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.blacklist import router as blacklist_router
 from app.api.core.contact import router as contact_router
+from app.api.core.currencies import router as currencies_router
 from app.api.core.forwarding import router as forwarding_router
 from app.api.core.gdpr import router as gdpr_router
 from app.api.core.google_oauth import router as google_oauth_router
+from app.api.core.mfa import router as mfa_router
 from app.api.core.notification_endpoints import router as notification_router
 from app.api.core.referrals import router as referrals_router
 from app.api.core.user_settings import auth_router as user_auth_router
@@ -200,6 +202,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(textverified_balance_router)
     fastapi_app.include_router(admin_router, prefix="/api")
     fastapi_app.include_router(alerts_router)
+    fastapi_app.include_router(mfa_router)
+    fastapi_app.include_router(currencies_router)
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")
 

@@ -46,6 +46,10 @@ class User(BaseModel):
     terms_accepted = Column(Boolean, default=False, nullable=False)
     terms_accepted_at = Column(DateTime, nullable=True)
 
+    # MFA
+    mfa_secret = Column(String(64), nullable=True)
+    mfa_enabled = Column(Boolean, default=False, nullable=False)
+
     # Google OAuth fields
     google_id = Column(String(255), nullable=True, index=True)
     provider = Column(String(50), default="email", nullable=False)

@@ -109,6 +109,38 @@ async def get_growth_targets(
     return await service.get_growth_projections()
 
 
+@router.get("/intelligence/commissions/pending")
+async def get_pending_commissions(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get pending commission payouts for affiliates."""
+    from app.models.commission import RevenueShare
+
+    shares = (
+        db.query(RevenueShare)
+        .filter(RevenueShare.status == "pending")
+        .order_by(RevenueShare.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    total = sum(float(s.commission_amount) for s in shares)
+    return {
+        "pending_count": len(shares),
+        "total_pending": round(total, 2),
+        "items": [
+            {
+                "id": s.id,
+                "partner_id": s.partner_id,
+                "commission_amount": float(s.commission_amount),
+                "tier_name": s.tier_name,
+                "created_at": s.created_at,
+            }
+            for s in shares
+        ],
+    }
+
+
 @router.get("/intelligence/revenue")
 async def get_revenue_metrics(
     days: int = Query(30),
