@@ -56,6 +56,11 @@ class PricingCalculator:
             active_template = pt_service.get_active_template()
             if active_template and hasattr(active_template, "markup_multiplier"):
                 markup = active_template.markup_multiplier
+                if getattr(active_template, "is_promotional", False) and getattr(
+                    active_template, "discount_percentage", 0
+                ):
+                    discount = Decimal(str(active_template.discount_percentage))
+                    markup = markup * (1 - discount / 100)
         except Exception as e:
             from app.core.logging import get_logger
 
@@ -110,6 +115,11 @@ class PricingCalculator:
             active_template = pt_service.get_active_template()
             if active_template and hasattr(active_template, "markup_multiplier"):
                 markup = active_template.markup_multiplier
+                if getattr(active_template, "is_promotional", False) and getattr(
+                    active_template, "discount_percentage", 0
+                ):
+                    discount = Decimal(str(active_template.discount_percentage))
+                    markup = markup * (1 - discount / 100)
         except Exception as e:
             from app.core.logging import get_logger
 

@@ -170,6 +170,23 @@ def manage_user_credits(
     db.add(balance_tx)
     db.commit()
 
+    try:
+        import asyncio
+
+        from app.services.audit_service import AuditService
+
+        asyncio.create_task(
+            AuditService(db).log_action(
+                user_id=admin_id,
+                action=f"credit_{operation}",
+                resource_type="user",
+                resource_id=user_id,
+                details={"amount": amount, "new_balance": float(user.credits)},
+            )
+        )
+    except Exception:
+        pass
+
     return SuccessResponse(
         message=f"Successfully {operation}ed {amount} credits",
         data={"new_balance": user.credits},

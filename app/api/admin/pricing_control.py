@@ -107,6 +107,22 @@ async def activate_pricing_template(
         template = service.activate_template(
             template_id, admin_id, notes=notes
         )  # noqa: E501
+        try:
+            import asyncio
+
+            from app.services.audit_service import AuditService
+
+            asyncio.create_task(
+                AuditService(db).log_action(
+                    user_id=admin_id,
+                    action="pricing_template_activated",
+                    resource_type="pricing_template",
+                    resource_id=str(template_id),
+                    details={"template_name": template.name, "notes": notes},
+                )
+            )
+        except Exception:
+            pass
         return {"status": "success", "template": template.to_dict()}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

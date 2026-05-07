@@ -245,6 +245,38 @@ class PaymentService:
             except Exception as e:
                 logger.error(f"Failed to broadcast payment event: {e}")
 
+            # Revenue recognition (GAAP)
+            try:
+                from app.services.revenue_recognition_service import (
+                    RevenueRecognitionService,
+                )
+
+                asyncio.create_task(
+                    RevenueRecognitionService(self.db).recognize_revenue(
+                        transaction_id=transaction.id,
+                        gross_amount=float(amount),
+                        provider_cost=0.0,
+                        tax_jurisdiction="US",
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Failed to recognize revenue: {e}")
+
+            # Commission calculation for affiliates
+            try:
+                if getattr(user, "is_affiliate", False):
+                    from app.services.commission_engine import get_commission_engine
+
+                    asyncio.create_task(
+                        get_commission_engine(self.db).calculate_commission(
+                            partner_id=user_id,
+                            transaction_amount=float(amount),
+                            transaction_id=transaction.id,
+                        )
+                    )
+            except Exception as e:
+                logger.error(f"Failed to calculate commission: {e}")
+
             return True
 
         except IntegrityError:

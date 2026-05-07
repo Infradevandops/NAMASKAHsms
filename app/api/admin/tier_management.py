@@ -136,6 +136,24 @@ async def update_user_tier(
         )
     user.subscription_tier = body.tier
     db.commit()
+
+    try:
+        import asyncio
+
+        from app.services.audit_service import AuditService
+
+        asyncio.create_task(
+            AuditService(db).log_action(
+                user_id=admin_id,
+                action="tier_change",
+                resource_type="user",
+                resource_id=user_id,
+                details={"new_tier": body.tier},
+            )
+        )
+    except Exception:
+        pass
+
     return {"success": True, "user_id": user_id, "new_tier": body.tier}
 
 
