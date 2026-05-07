@@ -1,9 +1,8 @@
-"""Admin pricing control endpoints for managing provider prices and templates."""
+"""Admin pricing control endpoints for managing provider prices and templates."""  # noqa: E501
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -105,7 +104,9 @@ async def activate_pricing_template(
     """Activate a pricing template."""
     service = PricingTemplateService(db)
     try:
-        template = service.activate_template(template_id, admin_id, notes=notes)
+        template = service.activate_template(
+            template_id, admin_id, notes=notes
+        )  # noqa: E501
         return {"status": "success", "template": template.to_dict()}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -148,6 +149,65 @@ async def get_provider_balance(
     return await tv.get_balance()
 
 
+@router.post("/pricing/templates/promo")
+async def create_promo_template(
+    data: Dict[str, Any],
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a promotional pricing template with discount and expiry."""
+    from datetime import datetime
+
+    service = PricingTemplateService(db)
+    try:
+        tiers = data.pop("tiers", [])
+        name = data.pop("name")
+        expires_at_str = data.pop("expires_at", None)
+        discount_percentage = float(data.pop("discount_percentage", 0))
+        expires_at = (
+            datetime.fromisoformat(expires_at_str) if expires_at_str else None
+        )  # noqa: E501
+        template = service.create_template(
+            name=name,
+            description=data.pop("description", ""),
+            region=data.pop("region", "US"),
+            currency=data.pop("currency", "USD"),
+            tiers=tiers,
+            admin_user_id=admin_id,
+            is_promotional=True,
+            discount_percentage=discount_percentage,
+            expires_at=expires_at,
+            **data,
+        )
+        return {"status": "success", "template": template.to_dict()}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/pricing/templates/active-promo")
+async def get_active_promo_templates(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """List all currently active promotional templates."""
+    from datetime import datetime, timezone
+
+    from app.models.pricing_template import PricingTemplate
+
+    now = datetime.now(timezone.utc)
+    promos = (
+        db.query(PricingTemplate)
+        .filter(
+            PricingTemplate.is_promotional.is_(True),
+            PricingTemplate.is_active.is_(True),
+            (PricingTemplate.expires_at.is_(None))
+            | (PricingTemplate.expires_at >= now),
+        )
+        .all()
+    )
+    return {"active_promos": [t.to_dict() for t in promos]}
+
+
 @router.delete("/pricing/templates/{template_id}")
 async def delete_pricing_template(
     template_id: int,
@@ -158,7 +218,10 @@ async def delete_pricing_template(
     service = PricingTemplateService(db)
     try:
         service.delete_template(template_id, admin_id)
-        return {"status": "success", "message": f"Template {template_id} deleted"}
+        return {
+            "status": "success",
+            "message": f"Template {template_id} deleted",
+        }  # noqa: E501
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

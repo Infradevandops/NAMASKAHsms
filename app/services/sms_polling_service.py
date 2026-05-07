@@ -339,6 +339,22 @@ class SMSPollingService:
         except Exception:
             pass
 
+        try:
+            from app.services.event_broadcaster import event_broadcaster
+
+            asyncio.create_task(
+                event_broadcaster.broadcast_verification_event(
+                    user_id=v.user_id,
+                    event_type="completed",
+                    service_name=v.service_name or "",
+                    verification_id=v.id,
+                    status="sms_received",
+                    metadata={"sms_code": v.sms_code or ""},
+                )
+            )
+        except Exception:
+            pass
+
         logger.info(
             f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
         )

@@ -1,6 +1,6 @@
 """Admin Operational Intelligence endpoints."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional  # noqa: F401
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
-from app.services.operational_intelligence_service import OperationalIntelligenceService
+from app.services.operational_intelligence_service import (  # noqa: E501
+    OperationalIntelligenceService,
+)
 
 router = APIRouter()
 
@@ -109,6 +111,59 @@ async def get_growth_targets(
     return await service.get_growth_projections()
 
 
+@router.get("/intelligence/revenue/recognition")
+async def get_revenue_recognition(
+    period: str = Query(
+        None, description="YYYY-MM, defaults to current month"
+    ),  # noqa: E501
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get recognized vs deferred revenue summary for a period."""
+    from datetime import datetime, timezone
+
+    from app.services.revenue_recognition_service import (  # noqa: E501
+        RevenueRecognitionService,
+    )
+
+    if not period:
+        period = datetime.now(timezone.utc).strftime("%Y-%m")
+    service = RevenueRecognitionService(db)
+    recognized = await service.get_revenue_by_period(period)
+    deferred = await service.get_deferred_revenue_summary()
+    return {"period": period, "recognized": recognized, "deferred": deferred}
+
+
+@router.get("/intelligence/disputes")
+async def get_open_disputes(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get all open payment disputes."""
+    from app.services.dispute_service import DisputeService
+
+    service = DisputeService(db)
+    return await service.get_open_disputes()
+
+
+@router.post("/intelligence/disputes/{dispute_id}/resolve")
+async def resolve_dispute(
+    dispute_id: str,
+    resolution: str = Body(...),
+    notes: str = Body(""),
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Resolve a dispute (won/lost/appealed)."""
+    from app.services.dispute_service import DisputeService
+
+    service = DisputeService(db)
+    try:
+        return await service.process_chargeback(dispute_id, resolution, notes)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.get("/intelligence/commissions/pending")
 async def get_pending_commissions(
     admin_id: str = Depends(require_admin),
@@ -160,7 +215,9 @@ async def get_revenue_metrics(
             func.coalesce(func.sum(Transaction.amount), 0).label("total"),
             func.count(Transaction.id).label("count"),
         )
-        .filter(Transaction.status == "success", Transaction.created_at >= start)
+        .filter(
+            Transaction.status == "success", Transaction.created_at >= start
+        )  # noqa: E501
         .first()
     )
     return {
@@ -202,7 +259,6 @@ async def set_growth_target(
     """Update the active monthly growth target."""
     from decimal import Decimal
 
-    from app.models.monthly_target import MonthlyTarget
     from app.services.target_tracking_service import TargetTrackingService
 
     service = TargetTrackingService(db)

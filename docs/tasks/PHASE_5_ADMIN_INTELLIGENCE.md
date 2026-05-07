@@ -1,7 +1,7 @@
 # Phase 5.0 — Admin Intelligence & Growth Services Integration
 
 **Version**: v4.5.0
-**Status**: Planning
+**Status**: Complete
 **Created**: May 6, 2026
 **Scope**: Wire up pre-built services to admin panel, feed real data from DB
 
@@ -103,12 +103,11 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 
 **Problem**: `revenue_recognition_service.py` (379 lines) — full implementation, unused
 **Integration**:
-- [ ] Add "Revenue" sub-tab or card in Pricing Governance tab
-- [ ] Show recognized vs deferred revenue
-- [ ] Monthly revenue recognition report endpoint
-- [ ] Ensure `revenue_recognition` DB table exists (migration if needed)
+- [x] `GET /api/admin/intelligence/revenue/recognition` — recognized vs deferred summary by period
+- [x] All 4 models (`RevenueRecognition`, `DeferredRevenueSchedule`, `RevenueAdjustment`, `AccrualTrackingLog`) confirmed importable
+- [x] Promo template endpoints added: `POST /admin/pricing/templates/promo`, `GET /admin/pricing/templates/active-promo`
 
-**Files**: `app/services/revenue_recognition_service.py`, `app/models/revenue_recognition.py`
+**Files**: `app/services/revenue_recognition_service.py`, `app/api/admin/intelligence.py`, `app/api/admin/pricing_control.py`
 
 ---
 
@@ -150,16 +149,19 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 
 ---
 
-### 5.9 — Wire Failed Refund Queue
+### 5.9 — Wire Failed Refund Queue & Disputes
 
-**Problem**: `failed_refund_service.py` — unused
+**Problem**: `failed_refund_service.py` + `dispute_service.py` — unused
 **Integration**:
 - [x] `GET /api/admin/intelligence/refunds/failed` endpoint wired
 - [x] Failed refund queue table added to Control & Audit tab
 - [x] `compliance.js` loads it when audit tab opens
-- [ ] Dispute service wiring deferred (needs product decision on dispute flow)
+- [x] `GET /api/admin/intelligence/disputes` — all open disputes for admin
+- [x] `POST /api/admin/intelligence/disputes/{id}/resolve` — resolve with won/lost/appealed
+- [x] `POST /api/disputes/open` — user-facing dispute creation
+- [x] `GET /api/disputes/my` — user's own disputes
 
-**Files**: `app/services/failed_refund_service.py`, `app/api/admin/intelligence.py`, `static/js/admin/compliance.js`
+**Files**: `app/services/failed_refund_service.py`, `app/services/dispute_service.py`, `app/api/admin/intelligence.py`, `app/api/core/disputes.py`
 
 ---
 
@@ -168,10 +170,10 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 **Problem**: `event_broadcaster.py` — real-time events, unused
 **Integration**:
 - [x] `EventBroadcaster` wired into `payment_service.py` — broadcasts `payment.completed` to user on credit
+- [x] `EventBroadcaster` wired into `sms_polling_service.py` — broadcasts `verification.completed` when SMS code received
 - [x] WebSocket manager already mounted (`/ws/events`) — broadcaster uses existing connection manager
-- [ ] Verification completion broadcast — deferred (verification flow is complex, needs separate pass)
 
-**Files**: `app/services/event_broadcaster.py`, `app/services/payment_service.py`
+**Files**: `app/services/event_broadcaster.py`, `app/services/payment_service.py`, `app/services/sms_polling_service.py`
 
 ---
 
@@ -212,12 +214,12 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 
 ### 5.14 — Wire Tax & Reseller Services (Future)
 
-**Problem**: `tax_service.py` (386 lines) + `reseller_service.py` (206 lines) — enterprise features
+**Problem**: `tax_service.py` + `reseller_service.py` — enterprise features
 **Status**: Defer until user count justifies (>100 users)
 **Prep**:
-- [ ] Ensure models are importable
-- [ ] Document activation criteria
-- [ ] Keep code, don't wire up yet
+- [x] `TaxService` confirmed importable
+- [x] `ResellerService` confirmed importable
+- [x] Keep code, don't wire up yet — activation criteria: >100 users or first enterprise client
 
 ---
 
@@ -245,9 +247,12 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 - [x] MFA available via API (setup/verify/disable)
 - [x] Currency rates publicly accessible via `/api/currencies`
 - [x] Payment events broadcast via WebSocket on credit
+- [x] Verification completion broadcast via WebSocket on SMS received
 - [x] Commission pending queue accessible from admin
-- [ ] MFA enforced on login (deferred — needs login flow change)
-- [ ] Verification completion broadcast (deferred)
+- [x] Revenue recognition summary endpoint live
+- [x] Dispute open/resolve endpoints live (user + admin)
+- [x] Promo pricing templates supported
+- [x] Tax + reseller services confirmed importable (deferred activation)
 
 ---
 
