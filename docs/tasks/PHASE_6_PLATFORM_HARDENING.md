@@ -1,9 +1,9 @@
-# Phase 6.0 — Platform Hardening & Feature Completion
+# Phase 6.0 — Platform Hardening, Rentals & Voice Verification
 
 **Version**: v4.6.0
 **Status**: Planning
 **Created**: May 7, 2026
-**Scope**: Close security gaps, fix broken infrastructure, complete half-built features
+**Scope**: Close security gaps, fix broken infrastructure, complete half-built features, implement number rentals, verify voice stability
 
 ---
 
@@ -18,7 +18,113 @@ Full codebase assessment conducted May 7, 2026.
 
 ---
 
-## P0 — Security & Liability (do immediately)
+## Number Rentals — Full Implementation
+
+### Current State
+The rental feature is partially scaffolded:
+- `NumberRental` model exists in `app/models/verification.py` with all fields (`phone_number`, `service_name`, `duration_hours`, `cost`, `mode`, `status`, `started_at`, `expires_at`, `auto_extend`, `warning_sent`)
+- `TextVerifiedService.create_reservation()` is implemented — calls the TextVerified reservations API
+- `TextVerifiedService.get_reservation_messages()` is implemented
+- `PricingCalculator.calculate_rental_cost()` is implemented with markup support
+- `templates/rentals_modern.html` is a complete UI calling 5 API endpoints
+- Admin rental overview endpoint exists at `GET /api/admin/dashboard/v2/rentals`
+- **None of the 5 user-facing rental API endpoints exist** — the template calls them but they 404
+
+### Missing endpoints (all 404 currently)
+```
+POST /api/rentals/request          → create rental, deduct credits, save NumberRental
+GET  /api/rentals/active           → list user's active rentals
+GET  /api/rentals/{id}/messages    → fetch messages for a rental
+POST /api/rentals/{id}/extend      → extend rental duration
+POST /api/rentals/{id}/cancel      → cancel and release number
+```
+
+### 6.16 — Implement rental API endpoints
+**Fix**:
+- [ ] Create `app/api/verification/rental_endpoints.py` with all 5 endpoints
+- [ ] `POST /api/rentals/request` — validate tier (Pro+), check balance, call `create_reservation()`, save `NumberRental`, deduct credits, write transaction record
+- [ ] `GET /api/rentals/active` — query `NumberRental` by `user_id` where `status=active`
+- [ ] `GET /api/rentals/{id}/messages` — call `get_reservation_messages()`, return list
+- [ ] `POST /api/rentals/{id}/extend` — call TextVerified extend API, update `expires_at`, charge for extension
+- [ ] `POST /api/rentals/{id}/cancel` — call TextVerified cancel API, update `status=cancelled`, set `released_at`, partial refund if applicable
+- [ ] Mount router in `app/api/verification/router.py`
+**Files**: `app/api/verification/rental_endpoints.py`, `app/api/verification/router.py`
+**Effort**: 4 hours
+
+### 6.17 — Rental expiry background task
+**Problem**: Rentals expire at `expires_at` but nothing marks them expired or sends warnings.
+**Fix**:
+- [ ] Add a scheduled task (or startup background task) that runs every 15 minutes
+- [ ] Marks `NumberRental` records as `expired` when `expires_at < now` and `status=active`
+- [ ] Sends expiry warning notification when `expires_at < now + 1hr` and `warning_sent=False`
+- [ ] Sets `warning_sent=True` after sending
+**Files**: `app/services/sms_polling_service.py` or new `app/services/rental_monitor_service.py`
+**Effort**: 2 hours
+
+### 6.18 — Admin rentals page wiring
+**Problem**: Top nav "Rentals" link (`/admin/rentals`) goes to a page but the admin rental overview endpoint (`GET /api/admin/dashboard/v2/rentals`) is not called from any admin JS.
+**Fix**:
+- [ ] Verify `templates/admin/rentals.html` (or equivalent) exists and loads
+- [ ] Wire JS to call `/api/admin/dashboard/v2/rentals` and render active/expiring rentals
+**Files**: `templates/admin/rentals.html`, admin JS
+**Effort**: 1 hour
+
+---
+
+## Voice Verification — Stability Assessment
+
+### Current State
+Voice verification is more complete than rentals but has specific gaps:
+
+**What works:**
+- `capability="voice"` accepted in `POST /api/verification/request` — tier-gated to PAYG+
+- `TextVerifiedService.create_verification()` passes `ReservationCapability.VOICE` to the SDK
+- `sms_polling_service.py` handles voice results: extracts `audio_url`, `transcription`, `code`
+- Fallback: if no code but transcription exists, uses transcription as code (`VOICE_RECV`)
+- `mark_verification_transcribing()` exists — sets status to `"transcribing"` when audio received but not yet transcribed
+- `audio_url` and `transcription` stored on `Verification` model
+- `voice_verify_modern.html` template exists and calls `POST /api/verification/request` with `capability: "voice"`
+- `voice_status.html` template exists and polls `GET /api/verification/{id}`
+
+**Gaps / stability risks:**
+
+### 6.19 — Voice transcription is never triggered
+**Problem**: When `audio_url` is received but no transcription, status is set to `"transcribing"` and polling re-runs. But there is no actual transcription service called — no Whisper, no Google Speech-to-Text, no Twilio. The `transcription` field stays null. The verification stays in `"transcribing"` status indefinitely until timeout.
+**Fix options**:
+- [ ] Option A: Call TextVerified's own transcription endpoint if it exists in the SDK
+- [ ] Option B: Integrate OpenAI Whisper API (`audio_url` → transcription)
+- [ ] Option C: Accept `audio_url` as the result — display audio player to user instead of text code
+- [ ] Recommended: Option C first (no external dependency), Option B later for UX
+**Files**: `app/services/sms_polling_service.py`, `app/services/verification_status_service.py`
+**Effort**: 1 hour (Option C) or 3 hours (Option B)
+
+### 6.20 — Voice status page doesn't display audio
+**Problem**: `voice_status.html` polls `GET /api/verification/{id}` which returns `audio_url`. But the template doesn't render an audio player — it only shows text code. If a voice verification completes with `audio_url` but no text code, the user sees nothing useful.
+**Fix**:
+- [ ] Add `<audio controls>` element to `voice_status.html` that shows when `audio_url` is present
+- [ ] Show transcription text if available, audio player as fallback
+**Files**: `templates/voice_status.html`
+**Effort**: 30 min
+
+### 6.21 — Voice verification cost not differentiated from SMS
+**Problem**: `PricingCalculator.calculate_sms_cost()` is called for both SMS and voice verifications. Voice calls typically cost more at the provider level. No voice-specific pricing tier or markup exists.
+**Fix**:
+- [ ] Check if TextVerified charges differently for voice vs SMS
+- [ ] If yes: add `capability` parameter to `calculate_sms_cost()` and apply voice markup
+- [ ] If no: document that pricing is identical and close this item
+**Files**: `app/services/pricing_calculator.py`, `app/api/verification/purchase_endpoints.py`
+**Effort**: 30 min to investigate, 1 hour to implement if needed
+
+### 6.22 — Voice polling timeout handling
+**Problem**: When voice polling re-runs after `"transcribing"` status, it subtracts 30 seconds from `timeout_seconds`. If the audio takes longer than the remaining timeout, the verification times out and is marked failed — even though the audio was received. User paid but got no result.
+**Fix**:
+- [ ] When `audio_url` is received, mark verification as `"completed"` with `sms_code="VOICE_RECV"` and `audio_url` set — don't re-poll
+- [ ] Let the user retrieve the audio from the status endpoint
+**Files**: `app/services/sms_polling_service.py`
+**Effort**: 30 min
+
+---
+
 
 ### 6.1 — Remove crypto placeholder addresses
 **Problem**: `config.py` has hardcoded placeholder BTC/ETH addresses (`bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh`, `0x742d35Cc...`). These are displayed to users via `GET /api/wallet/crypto/addresses`. If a user sends real crypto to these addresses, funds are lost — the addresses belong to unknown parties.
@@ -196,10 +302,17 @@ When user count grows, replace heuristic with a lightweight ML model (scikit-lea
 | Affiliate program | No approval flow — fix in 6.4 |
 | Crypto payments | Placeholder addresses, no on-chain verification |
 | v1 API | Most core routes disabled |
+| Voice verification | Works for SMS-style codes; transcription never triggered; audio not displayed; timeout risk |
+| Number rentals | Model + TextVerified SDK wired; all 5 user API endpoints missing (404) |
 
 ### Not yet implemented
 | Feature | Task |
 |---------|------|
+| Rental API endpoints | 6.16 |
+| Rental expiry monitor | 6.17 |
+| Admin rentals page | 6.18 |
+| Voice transcription | 6.19 |
+| Voice audio player UI | 6.20 |
 | Telegram forwarding | 6.8 |
 | Push notifications | 6.10 |
 | Whitelabel | 6.9 |
@@ -217,9 +330,16 @@ When user count grows, replace heuristic with a lightweight ML model (scikit-lea
 | P0 | 6.2 — Fix broken test files | 15 min | CI noise, 778 tests unreachable |
 | P1 | 6.3 — Session invalidation | 2 hrs | Stolen tokens stay valid forever |
 | P1 | 6.4 — Affiliate approval flow | 1 hr | Commission engine fires but no affiliates exist |
+| P1 | 6.16 — Rental API endpoints | 4 hrs | Rentals page is completely broken (all 404) |
+| P1 | 6.22 — Voice timeout fix | 30 min | Users pay for voice, get timeout instead of audio |
+| P1 | 6.20 — Voice audio player UI | 30 min | Audio received but user sees nothing |
+| P2 | 6.19 — Voice transcription (Option C) | 1 hr | Transcribing status hangs indefinitely |
+| P2 | 6.17 — Rental expiry monitor | 2 hrs | Rentals never expire in DB, no warnings sent |
 | P2 | 6.5 — Re-enable v1 core routes | 1 hr | External API clients get incomplete coverage |
 | P2 | 6.6 — Fraud scoring heuristics | 2 hrs | Metric always 0, useless |
 | P2 | 6.7 — Notification import error swallowing | 15 min | Silent failures hard to debug |
+| P2 | 6.18 — Admin rentals page wiring | 1 hr | Admin can’t see rental activity |
+| P2 | 6.21 — Voice pricing differentiation | 1 hr | Voice may be underpriced vs provider cost |
 | P3 | 6.8 — Telegram forwarding | 3 hrs | Feature gap |
 | P3 | 6.9 — Whitelabel | 4 hrs | Template exists, no backend |
 | P3 | 6.10 — Push notifications | 4 hrs | Nice to have |
@@ -236,3 +356,8 @@ When user count grows, replace heuristic with a lightweight ML model (scikit-lea
 - [ ] v1 API router includes all core routes
 - [ ] Fraud scoring returns non-zero scores for real requests
 - [ ] Notification import failures are logged not silently swallowed
+- [ ] Rentals page fully functional (request, view, extend, cancel)
+- [ ] Rental expiry warnings sent, expired rentals marked in DB
+- [ ] Voice verification completes without hanging in "transcribing" status
+- [ ] Voice audio player shown when audio_url is present
+- [ ] Voice pricing verified against provider cost
