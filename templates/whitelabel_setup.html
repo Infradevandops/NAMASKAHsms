@@ -202,22 +202,22 @@
 
       <div class="config-item">
         <label>Company Name</label>
-        <input type="text" placeholder="Your Company Name">
+        <input type="text" id="wl-company-name" placeholder="Your Company Name">
       </div>
 
       <div class="config-item">
         <label>Primary Color</label>
-        <input type="color" value="#2563eb">
+        <input type="color" id="wl-primary-color" value="#2563eb">
       </div>
 
       <div class="config-item">
         <label>Secondary Color</label>
-        <input type="color" value="#7c3aed">
+        <input type="color" id="wl-secondary-color" value="#7c3aed">
       </div>
 
       <div class="config-item">
         <label>Logo URL</label>
-        <input type="text" placeholder="https://example.com/logo.png">
+        <input type="text" id="wl-logo-url" placeholder="https://example.com/logo.png">
       </div>
     </div>
 
@@ -230,7 +230,7 @@
 
       <div class="config-item">
         <label>Your Domain</label>
-        <input type="text" placeholder="app.yourcompany.com">
+        <input type="text" id="wl-domain" placeholder="app.yourcompany.com">
       </div>
 
       <p style="color: var(--neutral); margin: var(--space-lg) 0;">Add these DNS records to your domain:</p>
@@ -250,27 +250,27 @@
 
       <div style="display: flex; flex-direction: column; gap: var(--space-md);">
         <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
-          <input type="checkbox" checked>
+          <input type="checkbox" id="feat-sms" checked>
           <span>SMS Verification</span>
         </label>
 
         <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
-          <input type="checkbox" checked>
+          <input type="checkbox" id="feat-email" checked>
           <span>Email Verification</span>
         </label>
 
         <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
-          <input type="checkbox" checked>
+          <input type="checkbox" id="feat-rentals" checked>
           <span>Phone Rental</span>
         </label>
 
         <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
-          <input type="checkbox">
+          <input type="checkbox" id="feat-analytics">
           <span>Analytics Dashboard</span>
         </label>
 
         <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
-          <input type="checkbox">
+          <input type="checkbox" id="feat-api">
           <span>API Access</span>
         </label>
       </div>
@@ -282,7 +282,7 @@
         <i class="ph ph-arrow-left"></i>
         Back
       </a>
-      <button class="btn btn-primary">
+      <button class="btn btn-primary" onclick="saveWhitelabel()">
         <i class="ph ph-save"></i>
         Save Configuration
       </button>
@@ -295,5 +295,72 @@
 
 
   <script src="{{ url_for('static', path='js/design-system.js') }}"></script>
+  <script>
+    const _wlToken = () => localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+
+    async function loadWhitelabel() {
+      try {
+        const res = await fetch('/api/whitelabel', { headers: { 'Authorization': `Bearer ${_wlToken()}` } });
+        if (!res.ok) return;
+        const d = await res.json();
+        if (!d.configured) return;
+        document.getElementById('wl-company-name').value = d.company_name || '';
+        document.getElementById('wl-domain').value = d.domain || '';
+        document.getElementById('wl-logo-url').value = d.logo_url || '';
+        document.getElementById('wl-primary-color').value = d.primary_color || '#2563eb';
+        document.getElementById('wl-secondary-color').value = d.secondary_color || '#7c3aed';
+        const f = d.features || {};
+        document.getElementById('feat-sms').checked = f.sms !== false;
+        document.getElementById('feat-rentals').checked = f.rentals !== false;
+        document.getElementById('feat-analytics').checked = !!f.analytics;
+        document.getElementById('feat-api').checked = !!f.api;
+      } catch(e) { console.error('[Whitelabel] Load failed:', e); }
+    }
+
+    async function saveWhitelabel() {
+      const btn = document.querySelector('.btn-primary');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        const payload = {
+          company_name: document.getElementById('wl-company-name').value.trim(),
+          domain: document.getElementById('wl-domain').value.trim(),
+          logo_url: document.getElementById('wl-logo-url').value.trim() || null,
+          primary_color: document.getElementById('wl-primary-color').value,
+          secondary_color: document.getElementById('wl-secondary-color').value,
+          features: {
+            sms: document.getElementById('feat-sms').checked,
+            rentals: document.getElementById('feat-rentals').checked,
+            analytics: document.getElementById('feat-analytics').checked,
+            api: document.getElementById('feat-api').checked,
+          }
+        };
+        if (!payload.company_name || !payload.domain) {
+          alert('Company name and domain are required.');
+          return;
+        }
+        const res = await fetch('/api/whitelabel', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${_wlToken()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          btn.textContent = '\u2713 Saved';
+          setTimeout(() => { btn.textContent = 'Save Configuration'; btn.disabled = false; }, 2000);
+        } else {
+          alert(data.detail || 'Save failed');
+          btn.disabled = false;
+          btn.textContent = 'Save Configuration';
+        }
+      } catch(e) {
+        alert('Network error');
+        btn.disabled = false;
+        btn.textContent = 'Save Configuration';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadWhitelabel);
+  </script>
 </body>
 </html>

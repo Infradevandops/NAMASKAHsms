@@ -316,6 +316,21 @@ async def rentals_page(
     )
 
 
+@router.get("/whitelabel", response_class=HTMLResponse)
+async def whitelabel_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Whitelabel setup page (Pro+ only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "whitelabel_setup.html", {"request": request, "user": user}
+    )
+
+
 # ============================================
 # ADDITIONAL PAGES
 # ============================================
