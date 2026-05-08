@@ -329,7 +329,7 @@ endblock %}
         <div class="chart-header">
             <h3 class="chart-title">Carrier Match Rate</h3>
         </div>
-        <div id="carrier-chart" class="chart-canvas" aria-label="Carrier match rate chart">
+        <div id="carrier-chart" class="chart-canvas" aria-label="Carrier match rate chart" style="display:none;">
             <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No carrier data yet</div>
         </div>
     </div>
@@ -337,7 +337,7 @@ endblock %}
         <div class="chart-header">
             <h3 class="chart-title">Outcome Categories</h3>
         </div>
-        <div id="outcome-chart" class="chart-canvas" aria-label="Outcome category chart">
+        <div id="outcome-chart" class="chart-canvas" aria-label="Outcome category chart" style="display:none;">
             <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No outcome data yet</div>
         </div>
     </div>
@@ -783,6 +783,7 @@ endblock %}
 
                     if (data.top_carriers.length > 0) {
                         const container = document.getElementById('carrier-chart');
+                        container.style.display = 'block';
                         const options = {
                             series: data.top_carriers.slice(0, 5).map(c => c.count),
                             chart: { type: 'donut', height: 300, foreColor: '#94a3b8' },
@@ -812,6 +813,7 @@ endblock %}
                     const cats = Object.entries(data.outcome_categories);
                     if (cats.length > 0) {
                         const container = document.getElementById('outcome-chart');
+                        container.style.display = 'block';
                         const options = {
                             series: cats.map(([, v]) => v),
                             chart: { type: 'donut', height: 300, foreColor: '#94a3b8' },
@@ -908,9 +910,14 @@ endblock %}
         document.querySelectorAll('.chart-btn').forEach(btn => {
             btn.classList.toggle('active', parseInt(btn.dataset.range) === days);
         });
-        if (analyticsData) {
-            renderVerificationsChart(analyticsData);
-        }
+        // Sync date pickers with selected range
+        const to = new Date();
+        const from = new Date();
+        from.setDate(from.getDate() - days);
+        document.getElementById('date-to').value = to.toISOString().split('T')[0];
+        document.getElementById('date-from').value = from.toISOString().split('T')[0];
+        // Re-fetch with new range
+        loadAnalytics();
     }
 
     // Export data

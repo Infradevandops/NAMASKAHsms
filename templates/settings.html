@@ -1851,13 +1851,13 @@
             const reason = document.getElementById('blacklist-reason').value.trim();
 
             if (!phone) {
-                alert('Please enter a phone number');
+                window.errorHandler?.showToast('Please enter a phone number', 'error');
                 return;
             }
 
             // Basic phone validation
             if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/[\s-]/g, ''))) {
-                alert('Please enter a valid phone number');
+                window.errorHandler?.showToast('Please enter a valid phone number', 'error');
                 return;
             }
 
@@ -1885,11 +1885,11 @@
                     loadBlacklist();
                 } else {
                     const error = await response.json();
-                    alert(error.detail || 'Failed to add number to blacklist');
+                    window.errorHandler?.showToast(error.detail || 'Failed to add number to blacklist', 'error');
                 }
             } catch (error) {
                 console.error('[Settings] Failed to add to blacklist:', error);
-                alert('Failed to add number to blacklist');
+                window.errorHandler?.showToast('Failed to add number to blacklist', 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Add to Blacklist';
@@ -1911,11 +1911,11 @@
                     loadBlacklist();
                 } else {
                     const error = await response.json();
-                    alert(error.detail || 'Failed to remove number');
+                    window.errorHandler?.showToast(error.detail || 'Failed to remove number', 'error');
                 }
             } catch (error) {
                 console.error('[Settings] Failed to remove from blacklist:', error);
-                alert('Failed to remove number');
+                window.errorHandler?.showToast('Failed to remove number', 'error');
             }
         }
 
@@ -1999,7 +1999,7 @@
             }
 
             hideBulkImportModal();
-            alert(`Import complete: ${successCount} added, ${failCount} failed`);
+            window.errorHandler?.showToast(`Import complete: ${successCount} added, ${failCount} failed`, 'success');
             loadBlacklist();
         }
 
