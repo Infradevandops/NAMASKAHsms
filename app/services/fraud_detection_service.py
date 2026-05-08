@@ -38,8 +38,26 @@ class FraudDetectionService:
         """Calculate fraud score based on real heuristics."""
         score = 0.0
 
-        HIGH_RISK_COUNTRIES = {"NG", "RU", "CN", "PK", "BD", "VN", "IN", "UA", "KE", "GH"}
-        HIGH_RISK_SERVICES = {"telegram", "whatsapp", "tiktok", "instagram", "facebook", "uber"}
+        HIGH_RISK_COUNTRIES = {
+            "NG",
+            "RU",
+            "CN",
+            "PK",
+            "BD",
+            "VN",
+            "IN",
+            "UA",
+            "KE",
+            "GH",
+        }
+        HIGH_RISK_SERVICES = {
+            "telegram",
+            "whatsapp",
+            "tiktok",
+            "instagram",
+            "facebook",
+            "uber",
+        }
 
         if features.get("country", "").upper() in HIGH_RISK_COUNTRIES:
             score += 0.3

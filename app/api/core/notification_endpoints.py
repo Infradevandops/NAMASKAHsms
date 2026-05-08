@@ -17,6 +17,7 @@ try:
     router.include_router(notification_center_router)
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).error(f"Failed to load notification_center router: {e}")
 
 try:
@@ -25,6 +26,7 @@ try:
     router.include_router(preferences_router)
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).error(f"Failed to load preferences router: {e}")
 
 try:
@@ -33,6 +35,7 @@ try:
     router.include_router(email_router)
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).error(f"Failed to load email_endpoints router: {e}")
 
 try:
@@ -41,6 +44,7 @@ try:
     router.include_router(analytics_router)
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).error(f"Failed to load analytics_endpoints router: {e}")
 
 try:
@@ -49,6 +53,7 @@ try:
     router.include_router(push_router)
 except Exception as e:
     import logging
+
     logging.getLogger(__name__).error(f"Failed to load push_endpoints router: {e}")
 
 

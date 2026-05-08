@@ -218,17 +218,6 @@ Production URL is `https://vrenum.onrender.com`. This shows the wrong base URL t
 
 ---
 
----
-
-## ✅ Verified Non-Issues (investigated and confirmed working)
-- **Crypto endpoints** (`/api/v1/wallet/crypto/addresses|intent|confirm`) — endpoints exist in `wallet_endpoints.py`, mounted via `billing_router` → `v1_router` (prefix `/api/v1`), matching exactly what `wallet.html` calls. Working.
-- **`usage-btn`** — wired in `dashboard-ultra-stable.js` line 193, navigates to analytics page. Working.
-- **`/docs` route** — registered in `main_routes.py` line 101, serves `api_docs.html`. Working.
-- **`/rentals` and `/voice-verify`** — both registered in `main_routes.py` lines 289–315. Working.
-- **Backup files in templates** — none found.
-
----
-
 ## Summary
 
 | Priority | Count |
