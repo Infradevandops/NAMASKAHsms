@@ -63,6 +63,10 @@ certs/
 
 # Database backups & exports (may contain sensitive data)
 render_backup_final/
+render_backup_*/
+data/
+uploads/
+scratch/
 *.csv
 *.sql
 !scripts/sql/*.sql
