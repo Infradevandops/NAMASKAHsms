@@ -1,7 +1,7 @@
 # Namaskah Security & Compliance Documentation
 
-**Version**: 2.5.0
-**Last Updated**: December 3, 2025
+**Version**: 4.6.0
+**Last Updated**: May 7, 2026
 **Status**: Production Ready ✅
 **Security Rating**: ⭐⭐⭐⭐⭐ (5/5)
 

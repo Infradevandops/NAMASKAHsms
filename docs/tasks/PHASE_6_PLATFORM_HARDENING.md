@@ -1,7 +1,7 @@
 # Phase 6.0 — Platform Hardening, Rentals & Voice Verification
 
 **Version**: v4.6.0
-**Status**: P0–P2 Complete — P3 Deferred
+**Status**: P0–P2 Complete, Whitelabel Done, TASKS.md Complete
 **Created**: May 7, 2026
 **Last Updated**: May 7, 2026
 **Scope**: Close security gaps, fix broken infrastructure, complete half-built features, implement number rentals, verify voice stability
@@ -118,10 +118,10 @@ Full codebase assessment conducted May 7, 2026.
 **Activate when**: Telegram bot token is available
 
 ### 6.9 — Whitelabel feature
-- [ ] Create `app/api/core/whitelabel.py` with CRUD endpoints
-- [ ] Wire form JS in `templates/whitelabel_setup.html`
-- [ ] Mount router in `main.py`
-**Activate when**: First whitelabel customer
+- [x] `app/api/core/whitelabel.py` created — `GET/POST/DELETE /api/whitelabel`, Pro+ tier gated
+- [x] `/whitelabel` page route added to `main_routes.py`
+- [x] `whitelabel_setup.html` form wired — loads existing config on page load, saves on button click
+- [x] Upserts `WhiteLabelConfig` by `partner_id`
 
 ### 6.10 — Push notifications
 - [ ] Requires `FCM_SERVER_KEY` env var (Firebase)
@@ -183,6 +183,7 @@ Needs blockchain explorer webhook. Activate if crypto volume justifies it.
 | Affiliate approval/revoke | ✅ |
 | Admin rentals page | ✅ |
 | Rental expiry monitor | ✅ |
+| Whitelabel | ✅ |
 | v1 API (231 routes) | ✅ |
 | CI test collection (2,338 tests, 0 errors) | ✅ |
 
@@ -198,7 +199,7 @@ Needs blockchain explorer webhook. Activate if crypto volume justifies it.
 |---------|------|-----------|
 | Telegram forwarding | 6.8 | Bot token |
 | Push notifications | 6.10 | Firebase key |
-| Whitelabel | 6.9 | None |
+| Whitelabel | 6.9 | None — ✅ Done |
 | KYC document storage | 6.14 | S3 bucket |
 | Tax collection | 6.12 | Product decision |
 | Reseller program | 6.13 | Partner agreements |

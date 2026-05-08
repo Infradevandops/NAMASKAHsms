@@ -2,7 +2,7 @@
 
 **Date**: April 18, 2026
 **Migration**: Add Credit Hold & Reconciliation Fields to Users Table
-**Status**: ⚠️ REQUIRED - Login is currently broken without this migration
+**Status**: ✅ Applied — migration completed April 2026
 
 ---
 

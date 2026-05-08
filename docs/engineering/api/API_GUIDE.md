@@ -1,7 +1,7 @@
 # Namaskah SMS API Guide
 
-**Version**: 2.5.0
-**Last Updated**: 2026-01-18
+**Version**: 4.6.0
+**Last Updated**: May 7, 2026
 
 ---
 

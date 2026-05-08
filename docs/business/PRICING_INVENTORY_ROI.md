@@ -1,8 +1,8 @@
 # NAMASKAH SMS PLATFORM - PRICING INVENTORY AND ROI ANALYSIS
 
-Generated: March 2026
-Version: 4.4.1
-Analysis Period: Q1 2026
+Generated: May 2026
+Version: 4.6.0
+Analysis Period: Q1-Q2 2026
 
 ---
 
