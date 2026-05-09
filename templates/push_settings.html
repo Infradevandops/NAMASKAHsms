@@ -1,0 +1,536 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Push Notifications - Namaskah{% endblock %}
+
+{% block extra_css %}
+<style>
+    .push-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .push-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .push-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .push-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+    }
+
+    .permission-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-granted {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-denied {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-default {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .device-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .device-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .device-icon {
+        font-size: 2rem;
+    }
+
+    .device-info {
+        flex: 1;
+    }
+
+    .device-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+    }
+
+    .device-info p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .device-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-push {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .btn-push:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-push:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .notification-preferences {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .preference-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .preference-info {
+        flex: 1;
+    }
+
+    .preference-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+    }
+
+    .preference-info p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #667eea;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    .browser-support-warning {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .browser-support-warning h4 {
+        margin: 0 0 0.5rem 0;
+        color: #856404;
+    }
+
+    .browser-support-warning p {
+        margin: 0;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="push-container">
+    <div class="push-card">
+        <div class="push-header">
+            <div class="push-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div>
+                <h2 style="margin: 0;">Push Notifications</h2>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d;">Get instant alerts on your device</p>
+            </div>
+        </div>
+
+        <div id="browser-support-warning" class="browser-support-warning" style="display: none;">
+            <h4>⚠️ Browser Not Supported</h4>
+            <p>Push notifications are not supported in your current browser. Please use Chrome, Firefox, Edge, or Safari.</p>
+        </div>
+
+        <div id="permission-status-container">
+            <!-- Status will be loaded here -->
+        </div>
+
+        <div id="enable-section" style="display: none; margin-top: 1rem;">
+            <p>Enable push notifications to receive instant alerts for:</p>
+            <ul>
+                <li>📱 SMS verification codes</li>
+                <li>💳 Payment confirmations</li>
+                <li>⚠️ Low balance alerts</li>
+                <li>🔔 Important account updates</li>
+            </ul>
+            <button id="btn-enable-push" class="btn-push">
+                <i class="fas fa-bell"></i> Enable Push Notifications
+            </button>
+        </div>
+
+        <div id="enabled-section" style="display: none; margin-top: 1rem;">
+            <button id="btn-test-push" class="btn btn-outline-primary">
+                <i class="fas fa-paper-plane"></i> Send Test Notification
+            </button>
+            <button id="btn-disable-push" class="btn btn-outline-danger" style="margin-left: 0.5rem;">
+                <i class="fas fa-bell-slash"></i> Disable Notifications
+            </button>
+        </div>
+    </div>
+
+    <div class="push-card" id="preferences-card" style="display: none;">
+        <h3>Notification Preferences</h3>
+        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+            Choose which events trigger push notifications
+        </p>
+
+        <div class="notification-preferences">
+            <div class="preference-item">
+                <div class="preference-info">
+                    <h4>SMS Codes</h4>
+                    <p>Get notified when verification codes arrive</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pref-sms" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="preference-item">
+                <div class="preference-info">
+                    <h4>Payments</h4>
+                    <p>Get notified when payments are processed</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pref-payments" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="preference-item">
+                <div class="preference-info">
+                    <h4>Low Balance</h4>
+                    <p>Get alerted when your balance is running low</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pref-balance" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="preference-item">
+                <div class="preference-info">
+                    <h4>Account Updates</h4>
+                    <p>Get notified about important account changes</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pref-account" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <button id="btn-save-preferences" class="btn-push" style="margin-top: 1.5rem;">
+            <i class="fas fa-save"></i> Save Preferences
+        </button>
+    </div>
+
+    <div class="push-card" id="devices-card" style="display: none;">
+        <h3>Registered Devices</h3>
+        <p style="color: #6c757d; margin-bottom: 1rem;">
+            Manage devices that receive push notifications
+        </p>
+
+        <div id="device-list" class="device-list">
+            <!-- Devices will be loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/push-manager.js"></script>
+<script>
+// Check browser support
+if (!window.pushManager.isSupported) {
+    document.getElementById('browser-support-warning').style.display = 'block';
+}
+
+// Update UI based on permission status
+async function updateUI() {
+    const permission = window.pushManager.getPermissionStatus();
+    const statusContainer = document.getElementById('permission-status-container');
+    const enableSection = document.getElementById('enable-section');
+    const enabledSection = document.getElementById('enabled-section');
+    const preferencesCard = document.getElementById('preferences-card');
+    const devicesCard = document.getElementById('devices-card');
+
+    let statusClass = 'status-default';
+    let statusText = 'Not Enabled';
+    let statusIcon = '⚠️';
+
+    if (permission === 'granted') {
+        statusClass = 'status-granted';
+        statusText = 'Enabled';
+        statusIcon = '✅';
+        enableSection.style.display = 'none';
+        enabledSection.style.display = 'block';
+        preferencesCard.style.display = 'block';
+        devicesCard.style.display = 'block';
+        await loadDevices();
+    } else if (permission === 'denied') {
+        statusClass = 'status-denied';
+        statusText = 'Blocked';
+        statusIcon = '🚫';
+        enableSection.style.display = 'none';
+        enabledSection.style.display = 'none';
+        preferencesCard.style.display = 'none';
+        devicesCard.style.display = 'none';
+    } else {
+        enableSection.style.display = 'block';
+        enabledSection.style.display = 'none';
+        preferencesCard.style.display = 'none';
+        devicesCard.style.display = 'none';
+    }
+
+    statusContainer.innerHTML = `
+        <div class="permission-status ${statusClass}">
+            <span>${statusIcon}</span>
+            ${statusText}
+        </div>
+    `;
+}
+
+// Enable push notifications
+document.getElementById('btn-enable-push').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-enable-push');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enabling...';
+
+    try {
+        await window.pushManager.subscribe();
+        window.errorHandler?.showToast('Push notifications enabled!', 'success');
+        await updateUI();
+    } catch (error) {
+        console.error('Failed to enable push:', error);
+        window.errorHandler?.showToast(error.message || 'Failed to enable push notifications', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-bell"></i> Enable Push Notifications';
+    }
+});
+
+// Disable push notifications
+document.getElementById('btn-disable-push').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to disable push notifications?')) return;
+
+    try {
+        await window.pushManager.unsubscribe();
+        window.errorHandler?.showToast('Push notifications disabled', 'success');
+        await updateUI();
+    } catch (error) {
+        console.error('Failed to disable push:', error);
+        window.errorHandler?.showToast('Failed to disable push notifications', 'error');
+    }
+});
+
+// Send test notification
+document.getElementById('btn-test-push').addEventListener('click', async () => {
+    try {
+        const result = await window.pushManager.sendTestNotification();
+        window.errorHandler?.showToast(`Test notification sent to ${result.sent} device(s)`, 'success');
+    } catch (error) {
+        console.error('Failed to send test:', error);
+        window.errorHandler?.showToast('Failed to send test notification', 'error');
+    }
+});
+
+// Load devices
+async function loadDevices() {
+    try {
+        const response = await fetch('/api/push/devices', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load devices');
+
+        const data = await response.json();
+        renderDevices(data.devices);
+    } catch (error) {
+        console.error('Failed to load devices:', error);
+    }
+}
+
+// Render devices
+function renderDevices(devices) {
+    const container = document.getElementById('device-list');
+
+    if (devices.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6c757d;">No devices registered</p>';
+        return;
+    }
+
+    container.innerHTML = devices.map(device => `
+        <div class="device-item">
+            <div class="device-icon">
+                ${device.platform === 'web' ? '🌐' : device.platform === 'ios' ? '📱' : '🤖'}
+            </div>
+            <div class="device-info">
+                <h4>${device.device_name || device.device_type || 'Unknown Device'}</h4>
+                <p>
+                    ${device.platform} •
+                    ${device.active ? 'Active' : 'Inactive'} •
+                    Added ${new Date(device.created_at).toLocaleDateString()}
+                </p>
+            </div>
+            <div class="device-actions">
+                <button class="btn btn-sm btn-outline-danger" onclick="removeDevice(${device.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Remove device
+async function removeDevice(deviceId) {
+    if (!confirm('Remove this device?')) return;
+
+    try {
+        const response = await fetch(`/api/push/devices/${deviceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to remove device');
+
+        window.errorHandler?.showToast('Device removed', 'success');
+        await loadDevices();
+    } catch (error) {
+        console.error('Failed to remove device:', error);
+        window.errorHandler?.showToast('Failed to remove device', 'error');
+    }
+}
+
+// Save preferences
+document.getElementById('btn-save-preferences').addEventListener('click', () => {
+    const preferences = {
+        sms: document.getElementById('pref-sms').checked,
+        payments: document.getElementById('pref-payments').checked,
+        balance: document.getElementById('pref-balance').checked,
+        account: document.getElementById('pref-account').checked
+    };
+
+    // Save to localStorage for now (could be saved to server)
+    localStorage.setItem('push_preferences', JSON.stringify(preferences));
+    window.errorHandler?.showToast('Preferences saved', 'success');
+});
+
+// Load preferences
+function loadPreferences() {
+    const saved = localStorage.getItem('push_preferences');
+    if (saved) {
+        const preferences = JSON.parse(saved);
+        document.getElementById('pref-sms').checked = preferences.sms !== false;
+        document.getElementById('pref-payments').checked = preferences.payments !== false;
+        document.getElementById('pref-balance').checked = preferences.balance !== false;
+        document.getElementById('pref-account').checked = preferences.account !== false;
+    }
+}
+
+// Initialize
+updateUI();
+loadPreferences();
+</script>
+{% endblock %}

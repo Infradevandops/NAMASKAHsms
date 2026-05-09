@@ -332,6 +332,16 @@ class SMSPollingService:
         except Exception:
             pass
 
+        # Telegram forwarding
+        try:
+            from app.services.telegram_service import telegram_service
+
+            asyncio.create_task(
+                telegram_service.send_verification_code(db, v.user_id, v)
+            )
+        except Exception as e:
+            logger.warning(f"Telegram forwarding failed: {e}")
+
         try:
             dispatcher = NotificationDispatcher(db)
             dispatcher.on_sms_received(v)

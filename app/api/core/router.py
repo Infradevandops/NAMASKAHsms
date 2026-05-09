@@ -12,9 +12,11 @@ from app.api.core.forwarding import router as forwarding_router
 from app.api.core.gdpr import router as gdpr_router
 from app.api.core.notification_endpoints import router as notification_router
 from app.api.core.preferences import router as preferences_router
+from app.api.core.push_notifications import router as push_router
 from app.api.core.referrals import router as referrals_router
 from app.api.core.services import router as services_router
 from app.api.core.system import router as system_router
+from app.api.core.telegram import router as telegram_router
 from app.api.core.textverified_balance import router as textverified_balance_router
 from app.api.core.user_insights import router as user_insights_router
 from app.api.core.user_profile import router as user_profile_router
@@ -24,6 +26,7 @@ from app.api.core.user_settings_endpoints import (
 )
 from app.api.core.wallet import router as wallet_router
 from app.api.core.webhooks import router as webhooks_router
+from app.api.core.whitelabel_endpoints import router as whitelabel_router
 
 router = APIRouter()
 
@@ -49,3 +52,6 @@ router.include_router(blacklist_router)
 router.include_router(forwarding_router, prefix="/api")
 router.include_router(webhooks_router, prefix="/api")
 router.include_router(referrals_router, prefix="/api")
+router.include_router(telegram_router)
+router.include_router(push_router)
+router.include_router(whitelabel_router)

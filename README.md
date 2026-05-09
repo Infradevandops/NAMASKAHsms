@@ -663,10 +663,10 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
 
 ### Current & Upcoming
 
-### Q2 2026 - Growth Features 📋
-- 📋 **Whitelabel** (template exists, backend pending)
-- 📋 **Telegram SMS forwarding** (needs bot token)
-- 📋 **Push notifications** (needs Firebase)
+### Q2 2026 - Growth Features ✅
+- ✅ **Telegram SMS forwarding** (6/6 tasks, 100%)
+- ✅ **Whitelabel system** (6/8 tasks, 75% - email templates deferred)
+- 📋 **Push notifications** (deferred - WebSocket alternative active)
 - 📋 **SDK libraries** (Python, JavaScript)
 
 ### Q3 2026 - Scale 📋

@@ -300,61 +300,103 @@
 
     async function loadWhitelabel() {
       try {
-        const res = await fetch('/api/whitelabel', { headers: { 'Authorization': `Bearer ${_wlToken()}` } });
+        const res = await fetch('/api/whitelabel/config', {
+          headers: { 'Authorization': `Bearer ${_wlToken()}` }
+        });
         if (!res.ok) return;
-        const d = await res.json();
-        if (!d.configured) return;
-        document.getElementById('wl-company-name').value = d.company_name || '';
-        document.getElementById('wl-domain').value = d.domain || '';
-        document.getElementById('wl-logo-url').value = d.logo_url || '';
-        document.getElementById('wl-primary-color').value = d.primary_color || '#2563eb';
-        document.getElementById('wl-secondary-color').value = d.secondary_color || '#7c3aed';
-        const f = d.features || {};
-        document.getElementById('feat-sms').checked = f.sms !== false;
-        document.getElementById('feat-rentals').checked = f.rentals !== false;
-        document.getElementById('feat-analytics').checked = !!f.analytics;
-        document.getElementById('feat-api').checked = !!f.api;
-      } catch(e) { console.error('[Whitelabel] Load failed:', e); }
+        const data = await res.json();
+
+        // Load branding
+        if (data.branding) {
+          const b = data.branding;
+          document.getElementById('wl-company-name').value = b.company_name || '';
+          document.getElementById('wl-logo-url').value = b.logo_url || '';
+          document.getElementById('wl-primary-color').value = b.primary_color || '#2563eb';
+          document.getElementById('wl-secondary-color').value = b.secondary_color || '#7c3aed';
+        }
+
+        // Load domain
+        if (data.domains && data.domains.length > 0) {
+          document.getElementById('wl-domain').value = data.domains[0].domain || '';
+        }
+      } catch(e) {
+        console.error('[Whitelabel] Load failed:', e);
+      }
     }
 
     async function saveWhitelabel() {
       const btn = document.querySelector('.btn-primary');
       btn.disabled = true;
       btn.textContent = 'Saving...';
+
       try {
-        const payload = {
-          company_name: document.getElementById('wl-company-name').value.trim(),
-          domain: document.getElementById('wl-domain').value.trim(),
-          logo_url: document.getElementById('wl-logo-url').value.trim() || null,
-          primary_color: document.getElementById('wl-primary-color').value,
-          secondary_color: document.getElementById('wl-secondary-color').value,
-          features: {
-            sms: document.getElementById('feat-sms').checked,
-            rentals: document.getElementById('feat-rentals').checked,
-            analytics: document.getElementById('feat-analytics').checked,
-            api: document.getElementById('feat-api').checked,
-          }
-        };
-        if (!payload.company_name || !payload.domain) {
+        const companyName = document.getElementById('wl-company-name').value.trim();
+        const domain = document.getElementById('wl-domain').value.trim();
+        const logoUrl = document.getElementById('wl-logo-url').value.trim();
+        const primaryColor = document.getElementById('wl-primary-color').value;
+        const secondaryColor = document.getElementById('wl-secondary-color').value;
+
+        if (!companyName || !domain) {
           alert('Company name and domain are required.');
-          return;
-        }
-        const res = await fetch('/api/whitelabel', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${_wlToken()}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (res.ok) {
-          btn.textContent = '\u2713 Saved';
-          setTimeout(() => { btn.textContent = 'Save Configuration'; btn.disabled = false; }, 2000);
-        } else {
-          alert(data.detail || 'Save failed');
           btn.disabled = false;
           btn.textContent = 'Save Configuration';
+          return;
         }
+
+        // Save branding
+        const brandingRes = await fetch('/api/whitelabel/branding', {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${_wlToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            company_name: companyName,
+            logo_url: logoUrl || null,
+            primary_color: primaryColor,
+            secondary_color: secondaryColor
+          })
+        });
+
+        if (!brandingRes.ok) {
+          const error = await brandingRes.json();
+          throw new Error(error.detail || 'Failed to save branding');
+        }
+
+        // Setup domain if not exists
+        const configRes = await fetch('/api/whitelabel/config', {
+          headers: { 'Authorization': `Bearer ${_wlToken()}` }
+        });
+        const config = await configRes.json();
+
+        if (!config.domains || config.domains.length === 0) {
+          const domainRes = await fetch('/api/whitelabel/setup', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${_wlToken()}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              domain: domain,
+              verification_method: 'txt_record'
+            })
+          });
+
+          if (!domainRes.ok) {
+            const error = await domainRes.json();
+            throw new Error(error.detail || 'Failed to setup domain');
+          }
+        }
+
+        btn.textContent = '\u2713 Saved';
+        setTimeout(() => {
+          btn.textContent = 'Save Configuration';
+          btn.disabled = false;
+          window.location.reload();
+        }, 1500);
+
       } catch(e) {
-        alert('Network error');
+        alert(e.message || 'Save failed');
         btn.disabled = false;
         btn.textContent = 'Save Configuration';
       }

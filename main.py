@@ -60,6 +60,7 @@ from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.tier_verification import tier_verification_middleware
+from app.middleware.whitelabel_middleware import WhitelabelMiddleware
 from app.middleware.xss_protection import XSSProtectionMiddleware
 from app.models.base import Base
 
@@ -149,6 +150,9 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(SecurityHeadersMiddleware)
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
+
+    # Whitelabel middleware for custom domain detection
+    fastapi_app.add_middleware(WhitelabelMiddleware, base_domain=settings.base_url)
 
     # Tier verification middleware (must be after auth middleware)
     @fastapi_app.middleware("http")

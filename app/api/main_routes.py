@@ -331,6 +331,36 @@ async def whitelabel_page(
     )
 
 
+@router.get("/telegram", response_class=HTMLResponse)
+async def telegram_settings_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Telegram integration settings page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "telegram_settings.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/push-settings", response_class=HTMLResponse)
+async def push_settings_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Push notification settings page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "push_settings.html", {"request": request, "user": user}
+    )
+
+
 # ============================================
 # ADDITIONAL PAGES
 # ============================================

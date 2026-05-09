@@ -1,7 +1,7 @@
 # Phase 5.0 — Admin Intelligence & Growth Services Integration
 
 **Version**: v4.5.0
-**Status**: Complete — Post-Audit Gaps Identified
+**Status**: Complete (1 optimization remaining)
 **Created**: May 6, 2026
 **Last Audited**: May 7, 2026
 **Scope**: Wire up pre-built services to admin panel, feed real data from DB
@@ -43,9 +43,6 @@ Admin Panel (templates/admin/dashboard.html)
 ---
 
 ## Task Breakdown
-
-
-INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e.t.c
 
 ### 5.1 — Fix Growth Targets (make configurable)
 
@@ -216,11 +213,23 @@ INCCLUDE PRICE TEMPLATE THAT WILL LET ADMIN VIEW/CHANGE PRICE FROM PROMO PRICE e
 ### 5.14 — Wire Tax & Reseller Services (Future)
 
 **Problem**: `tax_service.py` + `reseller_service.py` — enterprise features
-**Status**: Defer until user count justifies (>100 users)
+**Status**: Defer until user count justifies
 **Prep**:
 - [x] `TaxService` confirmed importable
 - [x] `ResellerService` confirmed importable
-- [x] Keep code, don't wire up yet — activation criteria: >100 users or first enterprise client
+- [x] Keep code, don't wire up yet
+
+**Activation Triggers**:
+- **Tax Service**: Activate when user count >100 OR monthly revenue >$5,000 (regulatory compliance threshold)
+- **Reseller Service**: Activate when first reseller partner agreement signed OR >10 affiliate users request reseller features
+
+**Activation Checklist**:
+- [ ] Create `tax_reports` table migration
+- [ ] Create `reseller_accounts` table migration
+- [ ] Mount endpoints in admin router
+- [ ] Add admin UI tabs for tax/reseller management
+- [ ] Configure Stripe Tax or TaxJar API integration
+- [ ] Document reseller onboarding process
 
 ---
 
@@ -243,10 +252,12 @@ Full review of every admin panel feature against actual code revealed 4 gaps whe
 - SOC 2 compliance HUD + governance trail
 - Pending commissions count + total
 
-### Gap 1 — Fraud metrics are hardcoded constants
-`FraudDetectionService.get_model_metrics()` returns static values. `score_verification()` was never called during the verification flow.
+### Gap 1 — Fraud metrics need rolling averages (OPTIMIZATION)
+`FraudDetectionService.get_model_metrics()` returns static values. `score_verification()` is now called on every verification.
 - **Status**: [x] `score_verification()` now called on every verification request (non-blocking, logs high scores to server/Sentry)
-- **Remaining**: Scoring heuristic always returns 0.0 for real requests — `high_risk_country`/`high_risk_service` strings never match. Metrics card shows static constants. Real rolling averages not yet computed.
+- **Status**: [x] Real heuristics implemented (Phase 6.6) — high-risk countries/services now match correctly
+- **Remaining**: [ ] Metrics card shows static constants. Real rolling averages not yet computed.
+- **Activation Criteria**: Implement rolling averages when >500 verifications logged (enables meaningful F1/precision/recall)
 - **Files**: `app/services/fraud_detection_service.py`, `app/api/verification/purchase_endpoints.py`
 
 ### Gap 2 — Revenue recognition cards always show $0
@@ -275,7 +286,7 @@ Full review of every admin panel feature against actual code revealed 4 gaps whe
 | P0 | Gap 3 — Promo discount applied to pricing | 1 hour | [x] Done |
 | P1 | Gap 4 — Audit log writes | 2 hours | [x] Done |
 | P1 | Gap 5 — Commission calculation on payment | 1 hour | [x] Done |
-| P2 | Gap 1 — Real fraud scoring (heuristic still returns 0) | 2 hours | [ ] Partial — call wired, scoring meaningless |
+| P2 | Gap 1 — Fraud rolling averages | 3 hours | [ ] Deferred until >500 verifications |
 
 ---
 

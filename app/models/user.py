@@ -109,6 +109,19 @@ class User(BaseModel):
         "ResellerAccount", back_populates="user", uselist=False
     )
     partner_features = relationship("PartnerFeature", back_populates="partner")
+    telegram_connection = relationship(
+        "TelegramConnection", back_populates="user", uselist=False
+    )
+    telegram_forwarding_rule = relationship(
+        "TelegramForwardingRule", back_populates="user", uselist=False
+    )
+    whitelabel_domains = relationship("WhitelabelDomain", back_populates="user")
+    whitelabel_branding = relationship(
+        "WhitelabelBranding", back_populates="user", uselist=False
+    )
+    whitelabel_email_templates = relationship(
+        "WhitelabelEmailTemplate", back_populates="user"
+    )
 
 
 # APIKey is defined in app/models/api_key.py to avoid duplication

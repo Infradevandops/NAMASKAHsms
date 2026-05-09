@@ -46,7 +46,10 @@ Full codebase assessment conducted May 7, 2026.
 
 ### 6.19 — Voice transcription
 - [x] Option C implemented: `audio_url` received → mark complete with `sms_code="VOICE_RECV"` immediately, no re-poll
-- [ ] Option B (OpenAI Whisper) — deferred, requires `OPENAI_API_KEY`
+- [ ] Option B (OpenAI Whisper) — deferred
+  - **Activation Trigger**: When >50 voice verifications/month OR user requests transcription feature
+  - **Prerequisites**: `OPENAI_API_KEY` env var, Whisper API integration
+  - **Estimated Cost**: $0.006/minute (~$0.01 per voice verification)
 
 ### 6.20 — Voice audio player UI
 - [x] `<audio controls>` added to `voice_status.html`
@@ -101,7 +104,10 @@ Full codebase assessment conducted May 7, 2026.
 - [x] Replaced placeholder strings with real risk lists
 - [x] High-risk countries: `NG, RU, CN, PK, BD, VN, IN, UA, KE, GH`
 - [x] High-risk services: `telegram, whatsapp, tiktok, instagram, facebook, uber`
-- [ ] Rolling averages for `get_model_metrics()` — deferred (needs data accumulation)
+- [ ] Rolling averages for `get_model_metrics()` — deferred
+  - **Activation Trigger**: When >500 verifications logged (enables meaningful statistical analysis)
+  - **Implementation**: Calculate 30-day rolling F1/precision/recall from verification outcomes
+  - **Estimated Effort**: 3 hours
 
 ### 6.7 — Notification import error swallowing
 - [x] All 5 `except SyntaxError: pass` replaced with `except Exception as e: logger.error(...)`
@@ -109,13 +115,21 @@ Full codebase assessment conducted May 7, 2026.
 
 ---
 
-## P3 — Deferred (external dependency or growth feature)
+## P3 — Growth Features (external dependency)
 
 ### 6.8 — Telegram SMS forwarding
 - [ ] Requires `TELEGRAM_BOT_TOKEN` env var
 - [ ] Implement `_send_forwarding_telegram()` in `app/api/core/forwarding.py`
 - [ ] Add Telegram config to settings UI
-**Activate when**: Telegram bot token is available
+
+**Activation Checklist**:
+1. Create Telegram bot via @BotFather
+2. Store bot token in Render secrets
+3. Configure webhook URL: `https://vrenum.onrender.com/api/telegram/webhook`
+4. Test message delivery
+5. Deploy to production
+
+**Estimated Effort**: 4-6 hours (see TASKS_Q2_2026.md for detailed breakdown)
 
 ### 6.9 — Whitelabel feature
 - [x] `app/api/core/whitelabel.py` created — `GET/POST/DELETE /api/whitelabel`, Pro+ tier gated
@@ -123,87 +137,136 @@ Full codebase assessment conducted May 7, 2026.
 - [x] `whitelabel_setup.html` form wired — loads existing config on page load, saves on button click
 - [x] Upserts `WhiteLabelConfig` by `partner_id`
 
+**Status**: ✅ Complete
+
 ### 6.10 — Push notifications
 - [ ] Requires `FCM_SERVER_KEY` env var (Firebase)
 - [ ] Implement `push_endpoints.py` device registration + send
 - [ ] Wire into `NotificationDispatcher`
-**Activate when**: Firebase project configured
+
+**Activation Checklist**:
+1. Create Firebase project at console.firebase.google.com
+2. Generate FCM server key
+3. Store key in Render secrets
+4. Configure web push certificates
+5. Test notification delivery
+6. Deploy to production
+
+**Estimated Effort**: 6-8 hours (see TASKS_Q2_2026.md for detailed breakdown)
+**Estimated Cost**: $20-50/month for 1,000 users
 
 ### 6.11 — Real fraud ML model
 - [ ] Replace heuristic with scikit-learn logistic regression on verification history
 - [ ] Requires labeled training data (fraud vs. legitimate)
-**Activate when**: >1,000 verifications logged
+
+**Activation Trigger**: When >1,000 verifications logged with labeled outcomes
+**Prerequisites**:
+- Manual fraud labeling of 200+ historical verifications
+- Feature engineering (user behavior, service patterns, timing)
+- Model training pipeline
+
+**Estimated Effort**: 2-3 weeks
 
 ---
 
-## P4 — Enterprise / Future
+## P4 — Enterprise Features
 
 ### 6.12 — Tax service
-`tax_service.py` importable. Activate at >100 users or first enterprise client.
+`tax_service.py` importable.
+
+**Activation Triggers**:
+- User count >100 OR
+- Monthly revenue >$5,000 OR
+- First enterprise client requiring tax compliance
+
+**Prerequisites**:
+- Stripe Tax or TaxJar API integration
+- `tax_reports` table migration
+- Admin tax management UI
 
 ### 6.13 — Reseller service
-`reseller_service.py` importable. Activate when first reseller partner signed.
+`reseller_service.py` importable.
+
+**Activation Triggers**:
+- First reseller partner agreement signed OR
+- >10 affiliate users request reseller features
+
+**Prerequisites**:
+- `reseller_accounts` table migration
+- Reseller onboarding documentation
+- Commission calculation rules
 
 ### 6.14 — KYC document storage
-Endpoints mounted, `document_service` importable. Needs S3 bucket (`AWS_S3_BUCKET`).
+Endpoints mounted, `document_service` importable.
+
+**Activation Trigger**: First Pro/Custom user requests KYC verification
+
+**Prerequisites**:
+- AWS S3 bucket configuration (`AWS_S3_BUCKET`)
+- Document encryption at rest
+- Retention policy (7 years for compliance)
 
 ### 6.15 — Crypto on-chain verification
-Needs blockchain explorer webhook. Activate if crypto volume justifies it.
+**Activation Trigger**: Crypto payment volume >$1,000/month
+
+**Prerequisites**:
+- Blockchain explorer webhook (Etherscan, Blockchair)
+- On-chain transaction monitoring
+- Automated credit application on confirmation
 
 ---
 
 ## Platform Feature Status (as of May 7, 2026 — post Phase 6)
 
 ### Fully working end-to-end
-| Feature | Status |
-|---------|--------|
-| SMS verification purchase | ✅ |
-| Voice verification | ✅ |
-| Number rentals | ✅ |
-| Carrier/area code enforcement | ✅ |
-| VOIP rejection | ✅ |
-| Paystack payments + webhook | ✅ |
-| Revenue recognition on payment | ✅ |
-| WebSocket real-time events (payment + SMS) | ✅ |
-| MFA (setup/verify/disable/login enforcement) | ✅ |
-| Session invalidation (logout revokes JWT) | ✅ |
-| Currency selector + conversion | ✅ |
-| SMS forwarding (email + webhook) | ✅ |
-| API key management | ✅ |
-| Referral tracking | ✅ |
-| Blacklist management | ✅ |
-| GDPR export + account deletion | ✅ |
-| Admin panel (all 5 tabs, real data) | ✅ |
-| Pricing templates + promo (discount applied) | ✅ |
-| Audit logging (tier/credit/pricing/affiliate) | ✅ |
-| Disputes (open/resolve) | ✅ |
-| Failed refund queue | ✅ |
-| Commission calculation on payment | ✅ |
-| Fraud scoring (real heuristics) | ✅ |
-| Affiliate approval/revoke | ✅ |
-| Admin rentals page | ✅ |
-| Rental expiry monitor | ✅ |
-| Whitelabel | ✅ |
-| v1 API (231 routes) | ✅ |
-| CI test collection (2,338 tests, 0 errors) | ✅ |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| SMS verification purchase | ✅ | |
+| Voice verification | ✅ | Audio player functional |
+| Number rentals | ✅ | All 5 endpoints + expiry monitor |
+| Carrier/area code enforcement | ✅ | |
+| VOIP rejection | ✅ | |
+| Paystack payments + webhook | ✅ | |
+| Revenue recognition on payment | ✅ | |
+| WebSocket real-time events | ✅ | Payment + SMS completion |
+| MFA | ✅ | Setup/verify/disable/login enforcement |
+| Session invalidation | ✅ | Logout revokes JWT via Redis |
+| Currency selector + conversion | ✅ | |
+| SMS forwarding | ✅ | Email + webhook (Telegram pending) |
+| API key management | ✅ | |
+| Referral tracking | ✅ | |
+| Blacklist management | ✅ | |
+| GDPR export + deletion | ✅ | |
+| Admin panel | ✅ | All 5 tabs, real data |
+| Pricing templates + promo | ✅ | Discount applied to calculations |
+| Audit logging | ✅ | Tier/credit/pricing/affiliate |
+| Disputes | ✅ | Open/resolve |
+| Failed refund queue | ✅ | |
+| Commission calculation | ✅ | On payment |
+| Fraud scoring | ✅ | Real heuristics (rolling avg pending) |
+| Affiliate approval/revoke | ✅ | |
+| Admin rentals page | ✅ | |
+| Rental expiry monitor | ✅ | |
+| Whitelabel | ✅ | |
+| v1 API | ✅ | 231 routes |
+| CI test collection | ✅ | 2,338 tests, 0 errors |
 
-### Partially working
-| Feature | Gap |
-|---------|-----|
-| Fraud scoring | Heuristics work; rolling averages for metrics card deferred |
-| Crypto payments | UI disabled; endpoint returns unavailable; no on-chain verification |
-| Voice transcription | Audio player works; Whisper transcription deferred |
+### Optimizations pending
+| Feature | Gap | Activation Trigger |
+|---------|-----|--------------------|
+| Fraud metrics | Static constants | >500 verifications |
+| Voice transcription | No Whisper | >50 voice verifications/month |
 
 ### Not yet implemented (P3/P4)
-| Feature | Task | Dependency |
-|---------|------|-----------|
-| Telegram forwarding | 6.8 | Bot token |
-| Push notifications | 6.10 | Firebase key |
-| Whitelabel | 6.9 | None — ✅ Done |
-| KYC document storage | 6.14 | S3 bucket |
-| Tax collection | 6.12 | Product decision |
-| Reseller program | 6.13 | Partner agreements |
-| Crypto on-chain | 6.15 | Blockchain webhook |
+| Feature | Task | Dependency | Effort |
+|---------|------|------------|--------|
+| Telegram forwarding | 6.8 | Bot token | 4-6 hours |
+| Push notifications | 6.10 | Firebase key | 6-8 hours |
+| KYC document storage | 6.14 | S3 bucket | 8-12 hours |
+| Tax collection | 6.12 | >100 users OR >$5k/mo | 2-3 weeks |
+| Reseller program | 6.13 | Partner agreement | 2-3 weeks |
+| Crypto on-chain | 6.15 | >$1k crypto/mo | 1-2 weeks |
+| Fraud ML model | 6.11 | >1,000 verifications | 2-3 weeks |
 
 ---
 

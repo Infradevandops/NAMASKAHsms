@@ -75,6 +75,15 @@ class Settings(BaseSettings):
     google_client_id: Optional[str] = None
     google_client_secret: Optional[str] = None
 
+    # Telegram Bot settings
+    telegram_bot_token: Optional[str] = None
+    telegram_webhook_secret: Optional[str] = None
+
+    # Firebase Cloud Messaging settings
+    fcm_server_key: Optional[str] = None
+    fcm_vapid_key: Optional[str] = None
+    firebase_service_account_json: Optional[str] = None
+
     # Multi-provider SMS settings
     telnyx_api_key: Optional[str] = None
     telnyx_enabled: bool = False

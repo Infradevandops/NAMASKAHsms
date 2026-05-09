@@ -1,0 +1,545 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Telegram Settings - Namaskah{% endblock %}
+
+{% block extra_css %}
+<style>
+    .telegram-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .telegram-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .telegram-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .telegram-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+    }
+
+    .connection-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-connected {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-disconnected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .connection-instructions {
+        background: #f8f9fa;
+        border-left: 4px solid #2AABEE;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 1rem 0;
+    }
+
+    .connection-instructions ol {
+        margin: 0.5rem 0 0 1.5rem;
+        padding: 0;
+    }
+
+    .connection-instructions li {
+        margin: 0.5rem 0;
+    }
+
+    .token-display {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+        word-break: break-all;
+        margin: 1rem 0;
+    }
+
+    .filter-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #e9ecef;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .chip-remove {
+        cursor: pointer;
+        color: #6c757d;
+        font-weight: bold;
+    }
+
+    .chip-remove:hover {
+        color: #dc3545;
+    }
+
+    .btn-telegram {
+        background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .btn-telegram:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(42, 171, 238, 0.3);
+    }
+
+    .btn-telegram:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .connection-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .connection-info-icon {
+        font-size: 2rem;
+    }
+
+    .connection-info-text {
+        flex: 1;
+    }
+
+    .connection-info-text h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+    }
+
+    .connection-info-text p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="telegram-container">
+    <div class="telegram-card">
+        <div class="telegram-header">
+            <div class="telegram-icon">
+                <i class="fas fa-paper-plane"></i>
+            </div>
+            <div>
+                <h2 style="margin: 0;">Telegram Integration</h2>
+                <p style="margin: 0.25rem 0 0 0; color: #6c757d;">Receive SMS codes instantly in Telegram</p>
+            </div>
+        </div>
+
+        <div id="connection-status-container">
+            <!-- Status will be loaded here -->
+        </div>
+
+        <div id="connection-setup" style="display: none;">
+            <div class="connection-instructions">
+                <h4>📱 How to Connect</h4>
+                <ol>
+                    <li>Click "Generate Connection Token" below</li>
+                    <li>Open Telegram and search for <strong id="bot-username">@namaskah_sms_bot</strong></li>
+                    <li>Send the token to the bot</li>
+                    <li>Your account will be connected automatically</li>
+                </ol>
+            </div>
+
+            <button id="btn-generate-token" class="btn-telegram">
+                <i class="fas fa-key"></i> Generate Connection Token
+            </button>
+
+            <div id="token-container" style="display: none; margin-top: 1rem;">
+                <p><strong>Your Connection Token:</strong></p>
+                <div class="token-display" id="connection-token"></div>
+                <p style="font-size: 0.875rem; color: #6c757d;">
+                    <i class="fas fa-info-circle"></i> This token expires in 10 minutes
+                </p>
+            </div>
+        </div>
+
+        <div id="connection-active" style="display: none;">
+            <div class="connection-info">
+                <div class="connection-info-icon">✅</div>
+                <div class="connection-info-text">
+                    <h4>Connected to Telegram</h4>
+                    <p id="connection-details">Connected as @username</p>
+                </div>
+                <button id="btn-disconnect" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-unlink"></i> Disconnect
+                </button>
+            </div>
+
+            <button id="btn-test-message" class="btn btn-outline-primary">
+                <i class="fas fa-paper-plane"></i> Send Test Message
+            </button>
+        </div>
+    </div>
+
+    <div class="telegram-card" id="settings-card" style="display: none;">
+        <h3>Forwarding Settings</h3>
+        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+            Configure which SMS codes should be forwarded to Telegram
+        </p>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="forward-all" checked>
+                <strong>Forward all SMS codes</strong>
+            </label>
+            <p style="font-size: 0.875rem; color: #6c757d; margin: 0.5rem 0 0 1.5rem;">
+                When enabled, all verification codes will be sent to Telegram
+            </p>
+        </div>
+
+        <div class="filter-section" id="filter-section" style="display: none;">
+            <h4>Service Filter</h4>
+            <p style="font-size: 0.875rem; color: #6c757d;">
+                Only forward codes from these services (leave empty for all)
+            </p>
+            <div class="filter-chips" id="service-chips"></div>
+            <div class="input-group" style="margin-top: 0.5rem;">
+                <input type="text" id="service-input" class="form-control" placeholder="e.g., WhatsApp, Telegram">
+                <button id="btn-add-service" class="btn btn-outline-secondary">Add</button>
+            </div>
+
+            <h4 style="margin-top: 1.5rem;">Country Filter</h4>
+            <p style="font-size: 0.875rem; color: #6c757d;">
+                Only forward codes from these countries (leave empty for all)
+            </p>
+            <div class="filter-chips" id="country-chips"></div>
+            <div class="input-group" style="margin-top: 0.5rem;">
+                <input type="text" id="country-input" class="form-control" placeholder="e.g., US, GB, CA">
+                <button id="btn-add-country" class="btn btn-outline-secondary">Add</button>
+            </div>
+        </div>
+
+        <button id="btn-save-settings" class="btn-telegram" style="margin-top: 1.5rem;">
+            <i class="fas fa-save"></i> Save Settings
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let connectionStatus = null;
+let currentSettings = null;
+
+// Load connection status
+async function loadConnectionStatus() {
+    try {
+        const response = await fetch('/api/telegram/status', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load status');
+
+        connectionStatus = await response.json();
+        updateUI();
+    } catch (error) {
+        console.error('Error loading status:', error);
+        window.errorHandler?.showToast('Failed to load Telegram status', 'error');
+    }
+}
+
+// Update UI based on connection status
+function updateUI() {
+    const statusContainer = document.getElementById('connection-status-container');
+    const setupSection = document.getElementById('connection-setup');
+    const activeSection = document.getElementById('connection-active');
+    const settingsCard = document.getElementById('settings-card');
+
+    if (connectionStatus.connected) {
+        // Show connected state
+        statusContainer.innerHTML = `
+            <div class="connection-status status-connected">
+                <span class="status-dot"></span>
+                Connected
+            </div>
+        `;
+        setupSection.style.display = 'none';
+        activeSection.style.display = 'block';
+        settingsCard.style.display = 'block';
+
+        // Update connection details
+        const details = document.getElementById('connection-details');
+        if (connectionStatus.username) {
+            details.textContent = `Connected as @${connectionStatus.username}`;
+        } else {
+            details.textContent = `Connected as ${connectionStatus.first_name || 'User'}`;
+        }
+
+        // Load settings
+        loadSettings();
+    } else {
+        // Show disconnected state
+        statusContainer.innerHTML = `
+            <div class="connection-status status-disconnected">
+                <span class="status-dot"></span>
+                Not Connected
+            </div>
+        `;
+        setupSection.style.display = 'block';
+        activeSection.style.display = 'none';
+        settingsCard.style.display = 'none';
+    }
+}
+
+// Generate connection token
+document.getElementById('btn-generate-token').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/telegram/connect', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate token');
+        }
+
+        const data = await response.json();
+
+        // Update bot username
+        document.getElementById('bot-username').textContent = `@${data.bot_username}`;
+
+        // Show token
+        document.getElementById('connection-token').textContent = `/start ${data.token}`;
+        document.getElementById('token-container').style.display = 'block';
+
+        window.errorHandler?.showToast('Token generated! Send it to the bot in Telegram', 'success');
+    } catch (error) {
+        console.error('Error generating token:', error);
+        window.errorHandler?.showToast(error.message, 'error');
+    }
+});
+
+// Disconnect
+document.getElementById('btn-disconnect').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to disconnect Telegram?')) return;
+
+    try {
+        const response = await fetch('/api/telegram/disconnect', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to disconnect');
+
+        window.errorHandler?.showToast('Telegram disconnected successfully', 'success');
+        await loadConnectionStatus();
+    } catch (error) {
+        console.error('Error disconnecting:', error);
+        window.errorHandler?.showToast('Failed to disconnect Telegram', 'error');
+    }
+});
+
+// Send test message
+document.getElementById('btn-test-message').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/telegram/test', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to send test message');
+
+        window.errorHandler?.showToast('Test message sent! Check your Telegram', 'success');
+    } catch (error) {
+        console.error('Error sending test:', error);
+        window.errorHandler?.showToast('Failed to send test message', 'error');
+    }
+});
+
+// Load settings
+async function loadSettings() {
+    try {
+        const response = await fetch('/api/telegram/settings', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('Failed to load settings');
+
+        currentSettings = await response.json();
+        updateSettingsUI();
+    } catch (error) {
+        console.error('Error loading settings:', error);
+    }
+}
+
+// Update settings UI
+function updateSettingsUI() {
+    const forwardAll = document.getElementById('forward-all');
+    const filterSection = document.getElementById('filter-section');
+
+    forwardAll.checked = currentSettings.forward_all;
+    filterSection.style.display = currentSettings.forward_all ? 'none' : 'block';
+
+    // Render service chips
+    renderChips('service-chips', currentSettings.service_filter || []);
+
+    // Render country chips
+    renderChips('country-chips', currentSettings.country_filter || []);
+}
+
+// Render filter chips
+function renderChips(containerId, items) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = items.map(item => `
+        <div class="chip">
+            ${item}
+            <span class="chip-remove" onclick="removeChip('${containerId}', '${item}')">&times;</span>
+        </div>
+    `).join('');
+}
+
+// Remove chip
+function removeChip(containerId, item) {
+    if (containerId === 'service-chips') {
+        currentSettings.service_filter = currentSettings.service_filter.filter(s => s !== item);
+    } else {
+        currentSettings.country_filter = currentSettings.country_filter.filter(c => c !== item);
+    }
+    updateSettingsUI();
+}
+
+// Add service
+document.getElementById('btn-add-service').addEventListener('click', () => {
+    const input = document.getElementById('service-input');
+    const value = input.value.trim();
+
+    if (value) {
+        if (!currentSettings.service_filter) currentSettings.service_filter = [];
+        if (!currentSettings.service_filter.includes(value)) {
+            currentSettings.service_filter.push(value);
+            updateSettingsUI();
+        }
+        input.value = '';
+    }
+});
+
+// Add country
+document.getElementById('btn-add-country').addEventListener('click', () => {
+    const input = document.getElementById('country-input');
+    const value = input.value.trim().toUpperCase();
+
+    if (value) {
+        if (!currentSettings.country_filter) currentSettings.country_filter = [];
+        if (!currentSettings.country_filter.includes(value)) {
+            currentSettings.country_filter.push(value);
+            updateSettingsUI();
+        }
+        input.value = '';
+    }
+});
+
+// Toggle forward all
+document.getElementById('forward-all').addEventListener('change', (e) => {
+    const filterSection = document.getElementById('filter-section');
+    filterSection.style.display = e.target.checked ? 'none' : 'block';
+});
+
+// Save settings
+document.getElementById('btn-save-settings').addEventListener('click', async () => {
+    try {
+        const forwardAll = document.getElementById('forward-all').checked;
+
+        const response = await fetch('/api/telegram/settings', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                forward_all: forwardAll,
+                service_filter: forwardAll ? null : currentSettings.service_filter,
+                country_filter: forwardAll ? null : currentSettings.country_filter
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to save settings');
+
+        window.errorHandler?.showToast('Settings saved successfully', 'success');
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        window.errorHandler?.showToast('Failed to save settings', 'error');
+    }
+});
+
+// Initialize
+loadConnectionStatus();
+</script>
+{% endblock %}
