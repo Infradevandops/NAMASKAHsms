@@ -14,7 +14,7 @@ class DeviceToken(BaseModel):
     __tablename__ = "device_tokens"
 
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     token = Column(String(500), nullable=False, unique=True, index=True)
     platform = Column(String(20), nullable=False)  # ios, android, or web
