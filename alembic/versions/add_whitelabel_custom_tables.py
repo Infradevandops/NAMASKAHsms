@@ -23,7 +23,7 @@ def upgrade():
     op.create_table(
         "whitelabel_custom_domains",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("domain", sa.String(length=255), nullable=False),
         sa.Column("verified", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("verification_token", sa.String(length=255), nullable=True),
@@ -59,7 +59,7 @@ def upgrade():
     op.create_table(
         "whitelabel_custom_branding",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("logo_url", sa.String(length=500), nullable=True),
         sa.Column("favicon_url", sa.String(length=500), nullable=True),
         sa.Column(
@@ -110,7 +110,7 @@ def upgrade():
     op.create_table(
         "whitelabel_custom_email_templates",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("template_name", sa.String(length=100), nullable=False),
         sa.Column("subject", sa.String(length=255), nullable=True),
         sa.Column("html_content", sa.Text(), nullable=True),

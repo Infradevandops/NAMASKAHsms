@@ -23,7 +23,7 @@ def upgrade():
     op.create_table(
         "telegram_connections",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("chat_id", sa.BigInteger(), nullable=False),
         sa.Column("username", sa.String(255), nullable=True),
         sa.Column("first_name", sa.String(255), nullable=True),
@@ -54,7 +54,7 @@ def upgrade():
     op.create_table(
         "telegram_forwarding_rules",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("forward_all", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column("service_filter", postgresql.ARRAY(sa.String()), nullable=True),
         sa.Column("country_filter", postgresql.ARRAY(sa.String()), nullable=True),
