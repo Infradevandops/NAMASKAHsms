@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Templates - Namaskah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Email Templates</h1>
+            <p class="text-gray-600 mt-2">Customize email templates with your branding</p>
+        </div>
+
+        <!-- Template List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div id="template-list"></div>
+        </div>
+
+        <!-- Template Editor Modal -->
+        <div id="editor-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold" id="editor-title">Edit Template</h2>
+                        <button onclick="closeEditor()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Available Variables -->
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h3 class="font-semibold text-blue-900 mb-2">Available Variables</h3>
+                        <div id="available-variables" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <input type="text" id="template-subject" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Email subject with {{ variables }}">
+                    </div>
+
+                    <!-- HTML Content -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">HTML Content</label>
+                        <textarea id="template-html" rows="12" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm" placeholder="HTML content with {{ variables }}"></textarea>
+                    </div>
+
+                    <!-- Text Content (Optional) -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Plain Text (Optional)</label>
+                        <textarea id="template-text" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm" placeholder="Auto-generated if left empty"></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-between">
+                        <button onclick="deleteTemplate()" id="delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            Delete (Revert to Default)
+                        </button>
+                        <div class="space-x-2">
+                            <button onclick="closeEditor()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                Cancel
+                            </button>
+                            <button onclick="saveTemplate()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                                Save Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTemplate = null;
+        let templates = [];
+
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/whitelabel/email-templates', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load templates');
+
+                templates = await response.json();
+                renderTemplateList();
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                alert('Failed to load templates');
+            }
+        }
+
+        function renderTemplateList() {
+            const container = document.getElementById('template-list');
+            container.innerHTML = templates.map(template => `
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer" onclick="editTemplate('${template.template_name}')">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-semibold capitalize">${template.template_name.replace(/_/g, ' ')}</h3>
+                        ${template.has_custom ? '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Custom</span>' : '<span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Default</span>'}
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">${template.default_subject}</p>
+                    <div class="text-xs text-gray-500">
+                        ${template.available_variables.length} variables available
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function editTemplate(templateName) {
+            try {
+                const response = await fetch(`/api/whitelabel/email-template/${templateName}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load template');
+
+                currentTemplate = await response.json();
+
+                document.getElementById('editor-title').textContent = `Edit ${templateName.replace(/_/g, ' ')}`;
+                document.getElementById('template-subject').value = currentTemplate.subject;
+                document.getElementById('template-html').value = currentTemplate.html_content;
+                document.getElementById('template-text').value = currentTemplate.text_content;
+
+                // Show available variables
+                const varsContainer = document.getElementById('available-variables');
+                varsContainer.innerHTML = currentTemplate.available_variables.map(v =>
+                    `<span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded cursor-pointer hover:bg-blue-200" onclick="insertVariable('${v}')">{{ ${v} }}</span>`
+                ).join('');
+
+                // Show/hide delete button
+                document.getElementById('delete-btn').style.display = currentTemplate.active ? 'block' : 'none';
+
+                document.getElementById('editor-modal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading template:', error);
+                alert('Failed to load template');
+            }
+        }
+
+        function insertVariable(varName) {
+            const textarea = document.getElementById('template-html');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+            textarea.value = textBefore + `{{ ${varName} }}` + textAfter;
+            textarea.focus();
+            textarea.setSelectionRange(cursorPos + varName.length + 6, cursorPos + varName.length + 6);
+        }
+
+        async function saveTemplate() {
+            try {
+                const response = await fetch('/api/whitelabel/email-template', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        template_name: currentTemplate.template_name,
+                        subject: document.getElementById('template-subject').value,
+                        html_content: document.getElementById('template-html').value,
+                        text_content: document.getElementById('template-text').value || null
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to save template');
+                }
+
+                alert('Template saved successfully!');
+                closeEditor();
+                loadTemplates();
+            } catch (error) {
+                console.error('Error saving template:', error);
+                alert(error.message);
+            }
+        }
+
+        async function deleteTemplate() {
+            if (!confirm('Delete custom template and revert to default?')) return;
+
+            try {
+                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to delete template');
+
+                alert('Template deleted, reverted to default');
+                closeEditor();
+                loadTemplates();
+            } catch (error) {
+                console.error('Error deleting template:', error);
+                alert('Failed to delete template');
+            }
+        }
+
+        function closeEditor() {
+            document.getElementById('editor-modal').classList.add('hidden');
+            currentTemplate = null;
+        }
+
+        // Load templates on page load
+        loadTemplates();
+    </script>
+</body>
+</html>

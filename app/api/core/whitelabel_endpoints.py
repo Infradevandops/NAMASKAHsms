@@ -9,7 +9,12 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.models.whitelabel_models import WhitelabelBranding, WhitelabelDomain
+from app.models.whitelabel_models import (
+    WhitelabelBranding,
+    WhitelabelDomain,
+    WhitelabelEmailTemplate,
+)
+from app.services.email_template_service import email_template_service
 from app.services.whitelabel_service import whitelabel_service
 
 logger = logging.getLogger(__name__)
@@ -84,6 +89,40 @@ class VerificationInstructionsResponse(BaseModel):
     method: str
     instructions: str
     verification_token: str
+
+
+class EmailTemplateRequest(BaseModel):
+    """Email template create/update request"""
+
+    template_name: str = Field(
+        ..., description="Template type (welcome, verification_code, etc.)"
+    )
+    subject: str = Field(..., description="Email subject with variables")
+    html_content: str = Field(..., description="HTML content with variables")
+    text_content: Optional[str] = Field(
+        None, description="Plain text content (auto-generated if not provided)"
+    )
+
+
+class EmailTemplateResponse(BaseModel):
+    """Email template response"""
+
+    id: int
+    template_name: str
+    subject: str
+    html_content: str
+    text_content: str
+    active: bool
+    available_variables: List[str]
+
+
+class EmailTemplateListResponse(BaseModel):
+    """Email template list item"""
+
+    template_name: str
+    has_custom: bool
+    available_variables: List[str]
+    default_subject: str
 
 
 # Endpoints
@@ -354,3 +393,147 @@ Then click "Verify Domain".
         instructions=instructions,
         verification_token=domain.verification_token,
     )
+
+
+@router.get("/email-templates", response_model=List[EmailTemplateListResponse])
+async def list_email_templates(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List all available email template types"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    templates = []
+    for template_name in email_template_service.TEMPLATE_TYPES:
+        custom_template = email_template_service.get_template(
+            db, current_user.id, template_name
+        )
+        default = email_template_service.get_default_template(template_name)
+
+        templates.append(
+            EmailTemplateListResponse(
+                template_name=template_name,
+                has_custom=custom_template is not None,
+                available_variables=email_template_service.TEMPLATE_VARIABLES.get(
+                    template_name, []
+                ),
+                default_subject=default.get("subject", ""),
+            )
+        )
+
+    return templates
+
+
+@router.get("/email-template/{template_name}", response_model=EmailTemplateResponse)
+async def get_email_template(
+    template_name: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get email template by name"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    template = email_template_service.get_template(db, current_user.id, template_name)
+
+    if not template:
+        # Return default template
+        default = email_template_service.get_default_template(template_name)
+        if not default:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Template not found",
+            )
+
+        return EmailTemplateResponse(
+            id=0,
+            template_name=template_name,
+            subject=default["subject"],
+            html_content=default["html"],
+            text_content=email_template_service._html_to_text(default["html"]),
+            active=False,
+            available_variables=email_template_service.TEMPLATE_VARIABLES.get(
+                template_name, []
+            ),
+        )
+
+    return EmailTemplateResponse(
+        id=template.id,
+        template_name=template.template_name,
+        subject=template.subject,
+        html_content=template.html_content,
+        text_content=template.text_content,
+        active=template.active,
+        available_variables=email_template_service.TEMPLATE_VARIABLES.get(
+            template_name, []
+        ),
+    )
+
+
+@router.post("/email-template", response_model=EmailTemplateResponse)
+async def create_or_update_email_template(
+    request: EmailTemplateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Create or update email template"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    try:
+        template = email_template_service.create_or_update_template(
+            db=db,
+            user_id=current_user.id,
+            template_name=request.template_name,
+            subject=request.subject,
+            html_content=request.html_content,
+            text_content=request.text_content,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return EmailTemplateResponse(
+        id=template.id,
+        template_name=template.template_name,
+        subject=template.subject,
+        html_content=template.html_content,
+        text_content=template.text_content,
+        active=template.active,
+        available_variables=email_template_service.TEMPLATE_VARIABLES.get(
+            template.template_name, []
+        ),
+    )
+
+
+@router.delete("/email-template/{template_name}")
+async def delete_email_template(
+    template_name: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete custom email template (reverts to default)"""
+    template = email_template_service.get_template(db, current_user.id, template_name)
+
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    db.delete(template)
+    db.commit()
+
+    return {"message": "Template deleted, reverted to default"}
