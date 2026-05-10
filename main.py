@@ -36,7 +36,9 @@ from app.api.core.user_settings import auth_router as user_auth_router
 from app.api.core.user_settings_endpoints import (
     router as user_settings_endpoints_router,
 )
-from app.api.core.whitelabel import router as whitelabel_router
+
+# OLD whitelabel router removed - using whitelabel_endpoints.py via core router
+# from app.api.core.whitelabel import router as whitelabel_router
 from app.api.dashboard_router import router as dashboard_router
 from app.api.health import router as health_router
 from app.api.main_routes import router as routes_router
@@ -210,7 +212,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(alerts_router)
     fastapi_app.include_router(mfa_router)
     fastapi_app.include_router(currencies_router)
-    fastapi_app.include_router(whitelabel_router)
+    # OLD whitelabel router removed - now included via core router
+    # fastapi_app.include_router(whitelabel_router)
     fastapi_app.include_router(disputes_router)
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")

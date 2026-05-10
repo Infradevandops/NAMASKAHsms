@@ -79,13 +79,15 @@ from .user import NotificationSettings, Referral, Subscription, User, Webhook
 from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
-from .whitelabel import WhiteLabelConfig
-from .whitelabel_enhanced import (
-    PartnerFeature,
-    WhiteLabelAsset,
-    WhiteLabelDomain,
-    WhiteLabelTheme,
-)
+
+# OLD whitelabel models removed - using whitelabel_models.py
+# from .whitelabel import WhiteLabelConfig
+# from .whitelabel_enhanced import (
+#     PartnerFeature,
+#     WhiteLabelAsset,
+#     WhiteLabelDomain,
+#     WhiteLabelTheme,
+# )
 
 __all__ = [
     # Base
@@ -127,12 +129,12 @@ __all__ = [
     "ActivityLog",
     "BannedNumber",
     "InAppNotification",
-    # White-label models
-    "WhiteLabelConfig",
-    "PartnerFeature",
-    "WhiteLabelAsset",
-    "WhiteLabelDomain",
-    "WhiteLabelTheme",
+    # OLD White-label models removed
+    # "WhiteLabelConfig",
+    # "PartnerFeature",
+    # "WhiteLabelAsset",
+    # "WhiteLabelDomain",
+    # "WhiteLabelTheme",
     # Enterprise models
     "EnterpriseAccount",
     "EnterpriseTier",

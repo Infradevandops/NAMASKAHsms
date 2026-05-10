@@ -48,12 +48,14 @@ from app.models.user_quota import MonthlyQuotaUsage, UserQuota
 from app.models.verification import Verification
 from app.models.verification_preset import VerificationPreset
 from app.models.waitlist import Waitlist
-from app.models.whitelabel import WhiteLabelConfig
-from app.models.whitelabel_enhanced import (
-    WhiteLabelAsset,
-    WhiteLabelDomain,
-    WhiteLabelTheme,
-)
+
+# OLD whitelabel models removed
+# from app.models.whitelabel import WhiteLabelConfig
+# from app.models.whitelabel_enhanced import (
+#     WhiteLabelAsset,
+#     WhiteLabelDomain,
+#     WhiteLabelTheme,
+# )
 from app.utils.security import create_access_token
 from main import app
 

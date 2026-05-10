@@ -108,7 +108,8 @@ class User(BaseModel):
     reseller_account = relationship(
         "ResellerAccount", back_populates="user", uselist=False
     )
-    partner_features = relationship("PartnerFeature", back_populates="partner")
+    # OLD whitelabel relationship removed
+    # partner_features = relationship("PartnerFeature", back_populates="partner")
     telegram_connection = relationship(
         "TelegramConnection", back_populates="user", uselist=False
     )
