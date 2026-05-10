@@ -108,8 +108,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install pytest pytest-playwright pytest-html
-          playwright install chromium
+          pip install pytest pytest-playwright pytest-html requests
 
       - name: Wait for Render to stabilise after cold start
         # Render free tier: health endpoint can return 200 while background tasks
