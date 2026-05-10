@@ -11,6 +11,7 @@ from app.api.core.dashboard_activity import router as dashboard_activity_router
 from app.api.core.forwarding import router as forwarding_router
 from app.api.core.gdpr import router as gdpr_router
 from app.api.core.notification_endpoints import router as notification_router
+from app.api.core.onesignal import router as onesignal_router
 from app.api.core.preferences import router as preferences_router
 from app.api.core.push_notifications import router as push_router
 from app.api.core.referrals import router as referrals_router
@@ -53,5 +54,6 @@ router.include_router(forwarding_router, prefix="/api")
 router.include_router(webhooks_router, prefix="/api")
 router.include_router(referrals_router, prefix="/api")
 router.include_router(telegram_router)
+router.include_router(onesignal_router)
 router.include_router(push_router)
 router.include_router(whitelabel_router)

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push Notifications - Namaskah</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Push Notifications</h1>
+        <p class="subtitle">Get instant notifications when SMS codes arrive</p>
+
+        <!-- Status Card -->
+        <div class="card" id="statusCard">
+            <h3>Status</h3>
+            <div id="statusIndicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking...</span>
+            </div>
+        </div>
+
+        <!-- Enable/Disable Card -->
+        <div class="card">
+            <h3>Notification Settings</h3>
+            <p>Receive push notifications even when your browser is closed</p>
+
+            <div id="enableSection" style="display: none;">
+                <button class="btn btn-primary" id="enableBtn">
+                    Enable Push Notifications
+                </button>
+            </div>
+
+            <div id="disableSection" style="display: none;">
+                <button class="btn btn-secondary" id="disableBtn">
+                    Disable Push Notifications
+                </button>
+                <button class="btn btn-outline" id="testBtn">
+                    Send Test Notification
+                </button>
+            </div>
+
+            <div id="unsupportedSection" style="display: none;">
+                <p class="error">⚠️ Push notifications are not supported in your browser</p>
+            </div>
+        </div>
+
+        <!-- Features Card -->
+        <div class="card">
+            <h3>What You'll Receive</h3>
+            <ul class="feature-list">
+                <li>✅ SMS verification codes (instant)</li>
+                <li>✅ Payment confirmations</li>
+                <li>✅ Low balance alerts</li>
+                <li>✅ Account notifications</li>
+            </ul>
+        </div>
+
+        <!-- Devices Card -->
+        <div class="card" id="devicesCard" style="display: none;">
+            <h3>Registered Devices</h3>
+            <div id="devicesList"></div>
+        </div>
+
+        <a href="/dashboard" class="btn btn-outline">← Back to Dashboard</a>
+    </div>
+
+    <script src="/static/js/onesignal-manager.js"></script>
+    <script>
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const enableSection = document.getElementById('enableSection');
+        const disableSection = document.getElementById('disableSection');
+        const unsupportedSection = document.getElementById('unsupportedSection');
+        const devicesCard = document.getElementById('devicesCard');
+        const devicesList = document.getElementById('devicesList');
+
+        async function updateStatus() {
+            const manager = window.oneSignalManager;
+
+            if (!manager.isSupported()) {
+                statusDot.className = 'status-dot status-error';
+                statusText.textContent = 'Not Supported';
+                unsupportedSection.style.display = 'block';
+                return;
+            }
+
+            const permission = manager.getPermissionStatus();
+
+            if (permission === 'granted' && manager.subscribed) {
+                statusDot.className = 'status-dot status-success';
+                statusText.textContent = 'Enabled';
+                disableSection.style.display = 'block';
+                await loadDevices();
+            } else if (permission === 'denied') {
+                statusDot.className = 'status-dot status-error';
+                statusText.textContent = 'Blocked';
+                unsupportedSection.style.display = 'block';
+            } else {
+                statusDot.className = 'status-dot status-warning';
+                statusText.textContent = 'Disabled';
+                enableSection.style.display = 'block';
+            }
+        }
+
+        async function loadDevices() {
+            try {
+                const response = await fetch('/api/onesignal/devices', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                if (data.devices && data.devices.length > 0) {
+                    devicesCard.style.display = 'block';
+                    devicesList.innerHTML = data.devices.map(device => `
+                        <div class="device-item">
+                            <span>${device.device_type}</span>
+                            <span class="device-date">Registered: ${new Date(device.registered_at).toLocaleDateString()}</span>
+                            <button class="btn-small btn-danger" onclick="removeDevice(${device.id})">Remove</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load devices:', error);
+            }
+        }
+
+        document.getElementById('enableBtn').addEventListener('click', async () => {
+            try {
+                const btn = document.getElementById('enableBtn');
+                btn.disabled = true;
+                btn.textContent = 'Enabling...';
+
+                await window.oneSignalManager.requestPermission();
+
+                alert('✅ Push notifications enabled!');
+                location.reload();
+            } catch (error) {
+                alert('❌ Failed to enable notifications: ' + error.message);
+                location.reload();
+            }
+        });
+
+        document.getElementById('disableBtn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to disable push notifications?')) {
+                return;
+            }
+
+            try {
+                await window.oneSignalManager.unsubscribe();
+                alert('✅ Push notifications disabled');
+                location.reload();
+            } catch (error) {
+                alert('❌ Failed to disable notifications: ' + error.message);
+            }
+        });
+
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                const btn = document.getElementById('testBtn');
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+
+                await window.oneSignalManager.sendTestNotification();
+
+                alert('✅ Test notification sent! Check your notifications.');
+                btn.disabled = false;
+                btn.textContent = 'Send Test Notification';
+            } catch (error) {
+                alert('❌ Failed to send test notification: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Send Test Notification';
+            }
+        });
+
+        async function removeDevice(deviceId) {
+            if (!confirm('Remove this device?')) return;
+
+            try {
+                const response = await fetch(`/api/onesignal/devices/${deviceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('✅ Device removed');
+                    location.reload();
+                } else {
+                    alert('❌ Failed to remove device');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Initialize
+        setTimeout(updateStatus, 1000);
+    </script>
+
+    <style>
+        .status-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #4CAF50; }
+        .status-warning { background-color: #FF9800; }
+        .status-error { background-color: #F44336; }
+
+        #statusIndicator {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .device-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 0.9em;
+        }
+    </style>
+</body>
+</html>

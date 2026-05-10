@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     fcm_vapid_key: Optional[str] = None
     firebase_service_account_json: Optional[str] = None
 
+    # OneSignal Push Notification settings
+    onesignal_app_id: Optional[str] = None
+    onesignal_api_key: Optional[str] = None
+
     # Multi-provider SMS settings
     telnyx_api_key: Optional[str] = None
     telnyx_enabled: bool = False

@@ -342,6 +342,18 @@ class SMSPollingService:
         except Exception as e:
             logger.warning(f"Telegram forwarding failed: {e}")
 
+        # OneSignal push notification
+        try:
+            from app.services.onesignal_service import onesignal_service
+
+            asyncio.create_task(
+                onesignal_service.send_sms_notification(
+                    db, v.user_id, v.id, v.sms_code or ""
+                )
+            )
+        except Exception as e:
+            logger.warning(f"OneSignal notification failed: {e}")
+
         try:
             dispatcher = NotificationDispatcher(db)
             dispatcher.on_sms_received(v)
