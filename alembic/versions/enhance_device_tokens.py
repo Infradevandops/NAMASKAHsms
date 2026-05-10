@@ -18,43 +18,50 @@ depends_on = None
 
 
 def upgrade():
-    # Add new columns for web push support
-    op.add_column(
-        "device_tokens", sa.Column("device_type", sa.String(50), nullable=True)
-    )
-    op.add_column(
-        "device_tokens", sa.Column("last_used_at", sa.DateTime(), nullable=True)
-    )
-    op.add_column(
-        "device_tokens", sa.Column("expires_at", sa.DateTime(), nullable=True)
-    )
-    op.add_column(
-        "device_tokens",
-        sa.Column("active", sa.Boolean(), nullable=False, server_default="true"),
-    )
+    # Check if columns already exist (idempotent migration)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [col["name"] for col in inspector.get_columns("device_tokens")]
 
-    # Rename device_token to token for consistency
-    op.alter_column(
-        "device_tokens",
-        "device_token",
-        new_column_name="token",
-        existing_type=sa.String(500),
-    )
+    # Add new columns for web push support if they don't exist
+    if "device_type" not in columns:
+        op.add_column(
+            "device_tokens", sa.Column("device_type", sa.String(50), nullable=True)
+        )
+    if "last_used_at" not in columns:
+        op.add_column(
+            "device_tokens", sa.Column("last_used_at", sa.DateTime(), nullable=True)
+        )
+    if "expires_at" not in columns:
+        op.add_column(
+            "device_tokens", sa.Column("expires_at", sa.DateTime(), nullable=True)
+        )
+    if "active" not in columns:
+        op.add_column(
+            "device_tokens",
+            sa.Column("active", sa.Boolean(), nullable=False, server_default="true"),
+        )
 
-    # Update platform column to support 'web'
-    # Existing values: 'ios', 'android'
-    # New value: 'web'
+    # Rename device_token to token for consistency if needed
+    if "device_token" in columns and "token" not in columns:
+        op.alter_column(
+            "device_tokens",
+            "device_token",
+            new_column_name="token",
+            existing_type=sa.String(500),
+        )
 
-    # Add index on active column
-    op.create_index("ix_device_tokens_active", "device_tokens", ["active"])
+    # Add index on active column if it doesn't exist
+    indexes = [idx["name"] for idx in inspector.get_indexes("device_tokens")]
+    if "ix_device_tokens_active" not in indexes:
+        op.create_index("ix_device_tokens_active", "device_tokens", ["active"])
 
-    # Migrate existing is_active to active
-    op.execute(
-        "UPDATE device_tokens SET active = is_active WHERE is_active IS NOT NULL"
-    )
-
-    # Drop old is_active column
-    op.drop_column("device_tokens", "is_active")
+    # Migrate existing is_active to active if column exists
+    if "is_active" in columns:
+        op.execute(
+            "UPDATE device_tokens SET active = is_active WHERE is_active IS NOT NULL"
+        )
+        op.drop_column("device_tokens", "is_active")
 
 
 def downgrade():
