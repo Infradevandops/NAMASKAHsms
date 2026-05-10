@@ -43,6 +43,7 @@ Thumbs.db
 *.pid
 *.tmp
 *.bak
+*_OLD_DEPRECATED*
 
 # Test
 .pytest_cache/
