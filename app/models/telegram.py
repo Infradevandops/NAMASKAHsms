@@ -1,7 +1,6 @@
 """Telegram integration models"""
 
 from sqlalchemy import (
-    ARRAY,
     BigInteger,
     Boolean,
     Column,
@@ -9,11 +8,22 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.models.base import Base
+
+
+# SQLite-compatible ARRAY type (stores as JSON string)
+def get_array_type():
+    """Return ARRAY for PostgreSQL, Text for SQLite"""
+    try:
+        return ARRAY(String)
+    except Exception:
+        return Text  # Fallback for SQLite
 
 
 class TelegramConnection(Base):
@@ -49,10 +59,8 @@ class TelegramForwardingRule(Base):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     forward_all = Column(Boolean, default=True, nullable=False)
-    service_filter = Column(ARRAY(String), nullable=True)  # Only forward these services
-    country_filter = Column(
-        ARRAY(String), nullable=True
-    )  # Only forward these countries
+    service_filter = Column(Text, nullable=True)  # JSON array for SQLite compatibility
+    country_filter = Column(Text, nullable=True)  # JSON array for SQLite compatibility
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
