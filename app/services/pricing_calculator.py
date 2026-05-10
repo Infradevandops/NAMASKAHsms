@@ -88,27 +88,36 @@ class PricingCalculator:
         }
 
     @staticmethod
-    def calculate_rental_cost(
+    def calculate_voice_cost(
         db: Session,
         user_id: str,
-        duration_hours: float,
-        provider_cost: Optional[float] = None,
+        provider_price: Optional[float] = None,
+        area_code: Optional[str] = None,
     ) -> dict:
-        """Calculate total cost for number rental.
+        """Calculate voice verification cost with area code tier gating."""
+        if provider_price is None or provider_price <= 0:
+            raise ValueError("Provider price required")
 
-        Args:
-            provider_cost: Actual cost returned by the provider for this
-                           reservation. Required for purchase.
-        """
-        if provider_cost is None or provider_cost <= 0:
-            raise ValueError(
-                "Cannot calculate rental price: provider cost unavailable. "
-                "Please try again or contact support."
-            )
+        user = db.query(User).filter(User.id == user_id).first()
+        tier_name = user.subscription_tier
+
+        from app.models.subscription_tier import SubscriptionTier
+
+        tier_config = (
+            db.query(SubscriptionTier)
+            .filter(SubscriptionTier.tier == tier_name)
+            .first()
+        )
+
+        if area_code:
+            if tier_name == "freemium":
+                raise ValueError("Area code selection not available for Freemium tier")
+            if tier_name == "payg" and (
+                not tier_config or not tier_config.has_area_code_selection
+            ):
+                raise ValueError("Area code selection requires Pro tier or higher")
 
         settings = get_settings()
-
-        # Try to get markup from active pricing template
         markup = Decimal(str(settings.price_markup))
         try:
             pt_service = PricingTemplateService(db)
@@ -120,17 +129,88 @@ class PricingCalculator:
                 ):
                     discount = Decimal(str(active_template.discount_percentage))
                     markup = markup * (1 - discount / 100)
-        except Exception as e:
-            from app.core.logging import get_logger
+        except Exception:
+            pass
 
-            get_logger(__name__).warning(
-                f"Failed to get active template markup for rental: {e}"
-            )
+        base_cost = round(float(Decimal(str(provider_price)) * markup), 2)
+        area_code_fee = 0.0
 
-        total_cost = round(float(Decimal(str(provider_cost)) * markup), 2)
+        if area_code and tier_name == "payg":
+            area_code_fee = 0.25
+
+        overage_charge = QuotaService.calculate_overage(
+            db, user_id, base_cost, tier=tier_name
+        )
+        total_cost = round(base_cost + area_code_fee + overage_charge, 2)
+
+        return {
+            "base_cost": base_cost,
+            "area_code_fee": area_code_fee,
+            "overage_charge": overage_charge,
+            "total_cost": total_cost,
+            "tier": tier_name,
+            "provider_cost": provider_price,
+            "markup": float(markup),
+        }
+
+    @staticmethod
+    def calculate_rental_cost(
+        db: Session,
+        user_id: str,
+        duration_hours: float,
+        provider_cost: Optional[float] = None,
+        area_code: Optional[str] = None,
+    ) -> dict:
+        """Calculate rental cost with area code tier gating."""
+        if provider_cost is None or provider_cost <= 0:
+            raise ValueError("Provider cost required")
+
+        user = db.query(User).filter(User.id == user_id).first()
+        tier_name = user.subscription_tier
+
+        from app.models.subscription_tier import SubscriptionTier
+
+        tier_config = (
+            db.query(SubscriptionTier)
+            .filter(SubscriptionTier.tier == tier_name)
+            .first()
+        )
+
+        if area_code:
+            if tier_name == "freemium":
+                raise ValueError("Area code selection not available for Freemium tier")
+            if tier_name == "payg" and (
+                not tier_config or not tier_config.has_area_code_selection
+            ):
+                raise ValueError("Area code selection requires Pro tier or higher")
+
+        settings = get_settings()
+        markup = Decimal(str(settings.price_markup))
+        try:
+            pt_service = PricingTemplateService(db)
+            active_template = pt_service.get_active_template()
+            if active_template and hasattr(active_template, "markup_multiplier"):
+                markup = active_template.markup_multiplier
+                if getattr(active_template, "is_promotional", False) and getattr(
+                    active_template, "discount_percentage", 0
+                ):
+                    discount = Decimal(str(active_template.discount_percentage))
+                    markup = markup * (1 - discount / 100)
+        except Exception:
+            pass
+
+        base_cost = round(float(Decimal(str(provider_cost)) * markup), 2)
+        area_code_fee = 0.0
+
+        if area_code and tier_name == "payg":
+            area_code_fee = 0.50
+
+        total_cost = round(base_cost + area_code_fee, 2)
 
         return {
             "total_cost": total_cost,
+            "base_cost": base_cost,
+            "area_code_fee": area_code_fee,
             "duration_hours": duration_hours,
             "provider_cost": provider_cost,
             "markup": float(markup),

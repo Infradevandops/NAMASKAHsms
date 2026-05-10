@@ -212,11 +212,18 @@ async def request_verification(
         # Fetch real provider price for this specific service
         provider_price = await _get_provider_price(request.service)
 
-        # Calculate SMS cost using real provider price
-        filters = {"area_code": area_code, "city": city} if area_code or city else None
-        pricing_info = PricingCalculator.calculate_sms_cost(
-            db, user_id, filters, provider_price=provider_price
-        )
+        # Calculate cost based on capability type
+        if request.capability == "voice":
+            pricing_info = PricingCalculator.calculate_voice_cost(
+                db, user_id, provider_price=provider_price, area_code=area_code
+            )
+        else:
+            filters = (
+                {"area_code": area_code, "city": city} if area_code or city else None
+            )
+            pricing_info = PricingCalculator.calculate_sms_cost(
+                db, user_id, filters, provider_price=provider_price
+            )
         sms_cost = pricing_info["total_cost"]
 
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
@@ -522,6 +529,8 @@ async def request_verification(
             "service": request.service,
             "country": request.country,
             "cost": actual_cost,
+            "base_cost": pricing_info.get("base_cost", actual_cost),
+            "area_code_fee": pricing_info.get("area_code_fee", 0.0),
             "status": "pending",
             "activation_id": purchase_result.order_id,
             "demo_mode": False,

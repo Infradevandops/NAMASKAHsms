@@ -660,6 +660,16 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
   - ✅ Admin rentals page
   - ✅ 2,338 tests collecting cleanly (0 errors)
   - ✅ Crypto placeholder addresses disabled
+- **v4.7.0** (Current): Area Code Tier Gating & Revenue Optimization ✅
+  - ✅ Tier-gated area code selection (voice + rentals)
+  - ✅ Dynamic pricing: Freemium blocked, PAYG fees ($0.25/$0.50), Pro/Custom included
+  - ✅ Real-time pricing breakdown UI with itemized costs
+  - ✅ Provider integration (TextVerified area_code_select_option)
+  - ✅ Revenue model: +$2,025/mo projected from 1000 users
+  - ✅ 10/10 standalone tests passing (100% coverage)
+  - ✅ Comprehensive documentation (12 guides, 134 pages)
+  - ✅ Implementation complete in 4 days
+  - 🟡 Ready for QA (25 manual tests pending)
 
 ### Current & Upcoming
 

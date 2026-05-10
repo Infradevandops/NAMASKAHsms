@@ -7,6 +7,90 @@
 {{ super() }}
 <link rel="stylesheet" href="/static/css/verification-design-system.css">
 <script src="/static/js/service-store.js"></script>
+<style nonce="{{ request.state.csp_nonce }}">
+.premium-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: #FE3C72;
+    background: #fff0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timer-ring-wrapper {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.code-arrival-wrapper {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.code-arrival-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.code-arrival-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--success);
+    margin-bottom: 16px;
+}
+
+.sms-code-display {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--text-main);
+    background: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin: 16px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.copy-code-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-code-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -60,12 +144,29 @@
         <!-- Voice Service Modal -->
         <div id="voice-modal-container"></div>
 
-        <!-- Preferences -->
-        <div class="form-group">
-            <label class="form-label">Area Code <span class="required" style="color: #ef4444;">*</span></label>
-            <select class="form-select" id="area-code-select" onchange="updatePricing()" aria-label="Select area code">
-                <option value="">Loading area codes...</option>
-            </select>
+        <!-- Advanced Options (matching SMS verification) -->
+        <div id="voice-advanced-options" style="margin-top: var(--spacing-md);">
+            <div style="cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; margin-bottom: 12px;" onclick="toggleVoiceAdvanced()">
+                <span id="voice-advanced-icon" style="transition: transform 0.2s;">▶</span>
+                <span style="font-weight: 600; font-size: 14px;">Advanced Options</span>
+                <span class="premium-badge" style="margin-left: auto;">PREMIUM</span>
+            </div>
+            <div id="voice-advanced-body" style="display: none;">
+                <!-- Area Code with Availability Check -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Area Code
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 4px;">(Optional)</span>
+                        <span id="voice-area-code-badge" class="badge" style="margin-left: 8px; display: none;"></span>
+                    </label>
+                    <select class="form-select" id="area-code-select" onchange="checkVoiceAreaCode(this.value)" aria-label="Select area code">
+                        <option value="">Any Area Code (Fastest)</option>
+                    </select>
+                    <div id="voice-area-code-help" style="margin-top: 8px; font-size: 13px; display: none;"></div>
+                    <div id="voice-ac-status" style="margin-top: 8px; font-size: 13px;"></div>
+                    <div id="voice-ac-alternatives" style="margin-top: 8px;"></div>
+                </div>
+            </div>
         </div>
 
         <button id="voice-continue-btn" class="btn btn-primary btn-block" onclick="confirmService()" style="display:none; margin-top: var(--spacing-md);">Continue →</button>
@@ -97,7 +198,12 @@
         </div>
 
         <div class="pricing-row">
-            <span class="pricing-label">Cost</span>
+            <span class="pricing-label">Area Code Filter</span>
+            <span class="pricing-value" id="pricing-area-filter">$0.00</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Total Cost</span>
             <span class="pricing-value" id="pricing-cost">$3.50</span>
         </div>
 
@@ -138,14 +244,19 @@
             </div>
         </div>
 
-        <!-- Waiting Animation -->
+        <!-- Waiting Animation with Timer Ring (matching SMS) -->
         <div class="scanning-container">
-            <div class="scanning-text">Waiting for incoming call...</div>
-            <div class="scanning-time">
-                <span id="elapsed-time">0</span>s elapsed
-            </div>
-            <div class="scanning-progress">
-                <div class="scanning-progress-bar"></div>
+            <div class="timer-ring-wrapper" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px;">
+                <svg class="timer-ring-svg" width="48" height="48" viewBox="0 0 48 48" style="transform: rotate(-90deg);">
+                    <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(102, 126, 234, 0.2)" stroke-width="4"/>
+                    <circle id="voice-timer-ring" cx="24" cy="24" r="20" fill="none" stroke="#667eea" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear;"/>
+                </svg>
+                <div style="flex: 1;">
+                    <div class="scanning-text" style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">Waiting for incoming call...</div>
+                    <div class="scanning-time" style="font-size: 13px; color: var(--text-secondary);">
+                        <strong><span id="elapsed-time">0</span>s</strong> elapsed · <span id="voice-remaining">~300s remaining</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -293,6 +404,68 @@ function toggleVoicePin(id) {
     renderVoiceModalList(searchVal);
 }
 
+function toggleVoiceAdvanced() {
+    const body = document.getElementById('voice-advanced-body');
+    const icon = document.getElementById('voice-advanced-icon');
+    const isOpen = body.style.display === 'block';
+    body.style.display = isOpen ? 'none' : 'block';
+    icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+async function checkVoiceAreaCode(areaCode) {
+    const statusDiv = document.getElementById('voice-ac-status');
+    const altDiv = document.getElementById('voice-ac-alternatives');
+
+    if (!areaCode) {
+        statusDiv.innerHTML = '';
+        altDiv.innerHTML = '';
+        updatePricing();
+        return;
+    }
+
+    if (!selectedService) {
+        statusDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Select a service first</span>';
+        return;
+    }
+
+    statusDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Checking availability...</span>';
+    altDiv.innerHTML = '';
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch(`/api/area-codes/check?area_code=${areaCode}&service=${selectedService}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Check failed');
+
+        const data = await res.json();
+
+        if (data.available) {
+            statusDiv.innerHTML = '<span style="color: var(--success);">✅ Available</span>';
+        } else {
+            statusDiv.innerHTML = '<span style="color: var(--error);">❌ Unavailable</span>';
+
+            if (data.alternatives && data.alternatives.length > 0) {
+                const alts = data.alternatives.slice(0, 5).map(a =>
+                    `<button onclick="document.getElementById('area-code-select').value='${a.area_code}';checkVoiceAreaCode('${a.area_code}')"
+                             style="padding: 6px 12px; margin: 4px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        ${a.area_code}${a.state ? ' (' + a.state + ')' : ''}
+                    </button>`
+                ).join('');
+                altDiv.innerHTML = `<div style="margin-top: 8px; padding: 12px; background: rgba(239, 68, 68, 0.05); border-radius: 8px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Try these alternatives:</div>
+                    ${alts}
+                </div>`;
+            }
+        }
+    } catch (e) {
+        statusDiv.innerHTML = '<span style="color: var(--text-muted);">Unable to check availability</span>';
+    }
+
+    updatePricing();
+}
+
 function updateProgress(step) {
     currentStep = step;
 
@@ -319,17 +492,19 @@ function updateProgress(step) {
 
 
 function confirmService() {
-    // Validate area code is selected
-    const areaCode = document.getElementById('area-code-select').value;
-    if (!areaCode) {
-        window.toast?.error('Please select an area code for voice verification');
+    if (!selectedService) {
+        window.toast?.error('Please select a service');
         return;
     }
 
+    const areaCode = document.getElementById('area-code-select').value;
     document.getElementById('pricing-service').textContent = selectedService;
-    document.getElementById('pricing-area-code').textContent = areaCode;
-    const price = selectedServicePrice ? formatMoney(selectedServicePrice) : '';
-    document.getElementById('pricing-cost').textContent = price;
+    document.getElementById('pricing-area-code').textContent = areaCode || 'Any (Fastest)';
+
+    let price = selectedServicePrice || 0;
+    if (areaCode) price += 0.25; // Area code filter fee
+
+    document.getElementById('pricing-cost').textContent = formatMoney(price);
     updateProgress(2);
     setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
 }
@@ -370,10 +545,6 @@ async function createVerification() {
     }
 
     const areaCode = document.getElementById('area-code-select').value;
-    if (!areaCode) {
-        window.toast?.error('Please select an area code');
-        return;
-    }
 
     const btn = event.target;
     btn.disabled = true;
@@ -420,10 +591,24 @@ function startWaiting() {
     elapsedSeconds = 0;
     clearTimeout(scanInterval);
 
+    // Initialize timer ring
+    const timerRing = document.getElementById('voice-timer-ring');
+    const maxSeconds = 300;
+
     function poll() {
         scanInterval = setTimeout(async () => {
             elapsedSeconds += 5;
             document.getElementById('elapsed-time').textContent = elapsedSeconds;
+
+            // Update timer ring
+            const progress = elapsedSeconds / maxSeconds;
+            const circumference = 125.6;
+            const offset = circumference * (1 - progress);
+            if (timerRing) timerRing.style.strokeDashoffset = offset;
+
+            // Update remaining time
+            const remaining = Math.max(0, maxSeconds - elapsedSeconds);
+            document.getElementById('voice-remaining').textContent = `~${remaining}s remaining`;
 
             if (verificationId) {
                 try {
@@ -530,11 +715,57 @@ function showError(title, message) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadUserTierForVoice();
     loadServices();
     loadAreaCodes();
     loadBalance();
     updateProgress(1);
 });
+
+// Load user tier and update UI
+async function loadUserTierForVoice() {
+    try {
+        const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            const tier = data.subscription_tier || 'freemium';
+            updateVoiceAreaCodeBadge(tier);
+        }
+    } catch (e) {
+        console.error('Failed to load user tier:', e);
+    }
+}
+
+// Update area code badge based on tier
+function updateVoiceAreaCodeBadge(tier) {
+    const badge = document.getElementById('voice-area-code-badge');
+    const help = document.getElementById('voice-area-code-help');
+
+    if (tier === 'freemium') {
+        badge.style.display = 'none';
+        help.style.display = 'none';
+        return;
+    }
+
+    badge.style.display = 'inline-block';
+    help.style.display = 'block';
+
+    if (tier === 'payg') {
+        badge.textContent = '+$0.25';
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#92400e';
+        help.innerHTML = '💡 <strong>$0.25 fee</strong> applies when area code is selected. <a href="/billing/tiers" style="color: #FE3C72;">Upgrade to Pro</a> to get area codes included.';
+        help.style.color = '#92400e';
+    } else if (tier === 'pro' || tier === 'custom') {
+        badge.textContent = 'Included';
+        badge.style.background = '#d1fae5';
+        badge.style.color = '#065f46';
+        help.innerHTML = '✅ Area code selection is <strong>included</strong> in your plan at no extra cost.';
+        help.style.color = '#065f46';
+    }
+}
 
 async function loadAreaCodes() {
     const sel = document.getElementById('area-code-select');
@@ -547,10 +778,10 @@ async function loadAreaCodes() {
         const data = await res.json();
         const codes = data.area_codes || [];
         if (!codes.length) throw new Error('Empty');
-        sel.innerHTML = '<option value="">Any Area Code</option>' +
+        sel.innerHTML = '<option value="">Any Area Code (Fastest)</option>' +
             codes.map(c => `<option value="${c.area_code}">${c.area_code}${c.state ? ' — ' + c.state : ''}</option>`).join('');
     } catch (e) {
-        sel.innerHTML = '<option value="">Any Area Code</option>';
+        sel.innerHTML = '<option value="">Any Area Code (Fastest)</option>';
     }
 }
 
@@ -567,9 +798,21 @@ async function loadBalance() {
 
 function updatePricing() {
     const areaCode = document.getElementById('area-code-select').value;
-    let price = selectedServicePrice || 0;
-    if (areaCode) price += 0.25;
-    if (price > 0) document.getElementById('pricing-cost').textContent = formatMoney(price);
+    let basePrice = selectedServicePrice || 0;
+    let filterFee = 0;
+
+    if (areaCode) {
+        filterFee = 0.25;
+    }
+
+    const totalPrice = basePrice + filterFee;
+
+    if (document.getElementById('pricing-area-filter')) {
+        document.getElementById('pricing-area-filter').textContent = formatMoney(filterFee);
+    }
+    if (totalPrice > 0) {
+        document.getElementById('pricing-cost').textContent = formatMoney(totalPrice);
+    }
 }
 </script>
 {% endblock %}

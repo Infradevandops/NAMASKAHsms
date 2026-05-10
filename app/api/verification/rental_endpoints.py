@@ -26,6 +26,7 @@ class RentalRequest(BaseModel):
     service: str
     duration_hours: float = Field(default=24.0, ge=1.0, le=720.0)
     auto_extend: bool = False
+    area_code: Optional[str] = None
 
 
 class ExtendRequest(BaseModel):
@@ -75,7 +76,7 @@ async def request_rental(
         user_id=user_id,
         provider_cost=provider_price,
         duration_hours=request.duration_hours,
-        tier_name=user_tier,
+        area_code=request.area_code,
     )
     total_cost = pricing["total_cost"]
 
@@ -90,6 +91,7 @@ async def request_rental(
         service=request.service,
         country="US",
         duration_hours=request.duration_hours,
+        area_code=request.area_code,
     )
 
     # Deduct credits
@@ -132,6 +134,9 @@ async def request_rental(
         "service": rental.service_name,
         "duration_hours": rental.duration_hours,
         "cost": total_cost,
+        "base_cost": pricing.get("base_cost", total_cost),
+        "area_code_fee": pricing.get("area_code_fee", 0.0),
+        "requested_area_code": request.area_code,
         "expires_at": rental.expires_at.isoformat(),
         "status": rental.status,
         "reservation_id": reservation["id"],

@@ -124,6 +124,21 @@
     font-size: 12px;
     color: #6b7280;
 }
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.form-help {
+    font-size: 13px;
+    line-height: 1.5;
+}
+.form-help a {
+    text-decoration: underline;
+}
 </style>
 {% endblock %}
 
@@ -180,6 +195,28 @@
             </select>
         </div>
 
+        <!-- Area Code Selection (Tier-Gated) -->
+        <div class="form-group" id="area-code-section" style="display: none;">
+            <label class="form-label">
+                Area Code (Optional)
+                <span id="area-code-badge" class="badge" style="margin-left: 8px;"></span>
+            </label>
+            <select class="form-select" id="area-code-select">
+                <option value="">Any Area Code</option>
+                <option value="212">212 - New York, NY</option>
+                <option value="213">213 - Los Angeles, CA</option>
+                <option value="305">305 - Miami, FL</option>
+                <option value="312">312 - Chicago, IL</option>
+                <option value="415">415 - San Francisco, CA</option>
+                <option value="617">617 - Boston, MA</option>
+                <option value="702">702 - Las Vegas, NV</option>
+                <option value="713">713 - Houston, TX</option>
+                <option value="786">786 - Miami, FL</option>
+                <option value="917">917 - New York, NY</option>
+            </select>
+            <div id="area-code-help" class="form-help" style="margin-top: 8px;"></div>
+        </div>
+
         <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px; margin: 16px 0;">
             <div style="font-size: 14px; color: #374151; line-height: 1.6;">
                 <strong>How Rentals Work:</strong><br>
@@ -198,6 +235,27 @@
             </button>
             <div style="font-size: 14px; color: #6b7280;">
                 Balance: <span id="user-balance" data-usd="0">$0.00</span>
+            </div>
+        </div>
+
+        <!-- Pricing Breakdown -->
+        <div id="pricing-breakdown" style="display: none; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 12px;">Cost Breakdown</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #6b7280;">Base Cost:</span>
+                <span id="breakdown-base" style="font-weight: 600;">$0.00</span>
+            </div>
+            <div id="breakdown-area-code-row" style="display: none; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #6b7280;">Area Code Fee:</span>
+                    <span id="breakdown-area-code" style="font-weight: 600; color: #FE3C72;">$0.50</span>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: 600; color: #111827;">Total:</span>
+                    <span id="breakdown-total" style="font-weight: 700; color: #FE3C72; font-size: 16px;">$0.00</span>
+                </div>
             </div>
         </div>
     </div>
@@ -236,17 +294,71 @@
 let selectedDuration = null;
 let selectedDurationCost = null;
 let selectedService = null;
+let selectedAreaCode = null;
+let userTier = 'freemium';
 let rentals = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    loadUserTier();
     loadServices();
     loadBalance();
     loadRentals();
 
+    // Area code change handler
+    document.getElementById('area-code-select')?.addEventListener('change', (e) => {
+        selectedAreaCode = e.target.value || null;
+        updatePricingBreakdown();
+    });
+
     // Auto-refresh rentals every 30 seconds
     setInterval(loadRentals, 30000);
 });
+
+// Load user tier
+async function loadUserTier() {
+    try {
+        const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            userTier = data.subscription_tier || 'freemium';
+            updateAreaCodeSection();
+        }
+    } catch (e) {
+        console.error('Failed to load user tier:', e);
+    }
+}
+
+// Update area code section based on tier
+function updateAreaCodeSection() {
+    const section = document.getElementById('area-code-section');
+    const badge = document.getElementById('area-code-badge');
+    const help = document.getElementById('area-code-help');
+    const select = document.getElementById('area-code-select');
+
+    if (userTier === 'freemium') {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+
+    if (userTier === 'payg') {
+        badge.textContent = '+$0.50';
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#92400e';
+        help.innerHTML = '💡 <strong>$0.50 fee</strong> applies when area code is selected. <a href="/billing/tiers" style="color: #FE3C72;">Upgrade to Pro</a> to get area codes included.';
+        help.style.color = '#92400e';
+    } else if (userTier === 'pro' || userTier === 'custom') {
+        badge.textContent = 'Included';
+        badge.style.background = '#d1fae5';
+        badge.style.color = '#065f46';
+        help.innerHTML = '✅ Area code selection is <strong>included</strong> in your plan at no extra cost.';
+        help.style.color = '#065f46';
+    }
+}
 
 // Load services
 async function loadServices() {
@@ -281,8 +393,43 @@ function selectDuration(hours, cost) {
     document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
     event.target.closest('.duration-option').classList.add('selected');
 
-    document.getElementById('rental-cost').textContent = formatMoney(cost);
+    updatePricingBreakdown();
     updateCreateButton();
+}
+
+// Update pricing breakdown
+function updatePricingBreakdown() {
+    if (!selectedDurationCost) {
+        document.getElementById('pricing-breakdown').style.display = 'none';
+        document.getElementById('rental-cost').textContent = formatMoney(0);
+        return;
+    }
+
+    const baseCost = selectedDurationCost;
+    let areaCodeFee = 0;
+
+    // Calculate area code fee based on tier
+    if (selectedAreaCode && userTier === 'payg') {
+        areaCodeFee = 0.50;
+    }
+
+    const totalCost = baseCost + areaCodeFee;
+
+    // Update breakdown display
+    document.getElementById('breakdown-base').textContent = formatMoney(baseCost);
+    document.getElementById('breakdown-total').textContent = formatMoney(totalCost);
+    document.getElementById('rental-cost').textContent = formatMoney(totalCost);
+
+    // Show/hide area code fee row
+    const areaCodeRow = document.getElementById('breakdown-area-code-row');
+    if (areaCodeFee > 0) {
+        areaCodeRow.style.display = 'block';
+        document.getElementById('breakdown-area-code').textContent = formatMoney(areaCodeFee);
+    } else {
+        areaCodeRow.style.display = 'none';
+    }
+
+    document.getElementById('pricing-breakdown').style.display = 'block';
 }
 
 // Update create button state
@@ -320,17 +467,23 @@ async function createRental() {
     btn.innerHTML = '<span>Creating rental...</span>';
 
     try {
-        const response = await fetch('/api/rentals/request', {
+        const payload = {
+            service: selectedService,
+            duration_hours: selectedDuration
+        };
+
+        // Add area code if selected
+        if (selectedAreaCode) {
+            payload.area_code = selectedAreaCode;
+        }
+
+        const response = await fetch('/api/verification/rentals/request', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                service: selectedService,
-                country: document.getElementById('country-select').value,
-                duration_hours: selectedDuration
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
@@ -339,15 +492,24 @@ async function createRental() {
         }
 
         const data = await response.json();
-        window.toast?.success(`Rental created! Number: ${data.phone_number}`);
+
+        // Show success with cost breakdown
+        let message = `Rental created! Number: ${data.phone_number}`;
+        if (data.area_code_fee && data.area_code_fee > 0) {
+            message += ` (Base: ${formatMoney(data.base_cost)}, Area Code Fee: ${formatMoney(data.area_code_fee)})`;
+        }
+        window.toast?.success(message);
 
         // Reset form
         selectedService = null;
         selectedDuration = null;
         selectedDurationCost = null;
+        selectedAreaCode = null;
         document.getElementById('service-select').value = '';
+        document.getElementById('area-code-select').value = '';
         document.querySelectorAll('.duration-option').forEach(el => el.classList.remove('selected'));
         document.getElementById('rental-cost').textContent = formatMoney(0);
+        document.getElementById('pricing-breakdown').style.display = 'none';
 
         // Reload data
         loadBalance();

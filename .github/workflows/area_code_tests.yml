@@ -1,0 +1,84 @@
+name: Area Code Feature - Automated Tests
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [staging, production]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run smoke tests
+        env:
+          TEST_ENV: ${{ matrix.environment }}
+        run: |
+          python3 tests/smoke/test_area_code_smoke.py --env $TEST_ENV
+        continue-on-error: ${{ matrix.environment == 'production' }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: smoke-test-results-${{ matrix.environment }}
+          path: smoke_test_results_*.json
+
+      - name: Notify on failure
+        if: failure() && matrix.environment == 'production'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Area Code smoke tests failed on production!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run standalone tests
+        run: |
+          python3 tests/standalone_area_code_test.py
+
+      - name: Check test results
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ All unit tests passed"
+          else
+            echo "❌ Unit tests failed"
+            exit 1
+          fi

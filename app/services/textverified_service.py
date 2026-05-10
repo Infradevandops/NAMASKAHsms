@@ -988,7 +988,11 @@ class TextVerifiedService:
     # --- RESERVATIONS (RENTALS) ---
 
     async def create_reservation(
-        self, service: str, country: str = "US", duration_hours: float = 24.0
+        self,
+        service: str,
+        country: str = "US",
+        duration_hours: float = 24.0,
+        area_code: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Create a long-term reservation (rental) for a service."""
         if not self.enabled:
@@ -998,11 +1002,17 @@ class TextVerifiedService:
             # Map hours to minutes for the API
             duration_minutes = int(duration_hours * 60)
 
+            # Build reservation parameters
+            params = {
+                "service_name": service,
+                "duration": duration_minutes,
+            }
+            if area_code:
+                params["area_code_select_option"] = area_code
+
             # TextVerified reservations are US-only in standard API
             reservation = await asyncio.to_thread(
-                self.client.reservations.create,
-                service_name=service,
-                duration=duration_minutes,
+                self.client.reservations.create, **params
             )
 
             # Costs are marked up in the platform level (RentalService)

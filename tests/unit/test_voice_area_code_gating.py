@@ -1,0 +1,91 @@
+"""Test voice verification area code tier gating."""
+
+from decimal import Decimal
+
+import pytest
+from sqlalchemy.orm import Session
+
+from app.models.subscription_tier import SubscriptionTier
+from app.models.user import User
+from app.services.pricing_calculator import PricingCalculator
+
+
+@pytest.fixture
+def setup_tiers(db: Session):
+    """Setup tier configurations."""
+    tiers = [
+        SubscriptionTier(
+            tier="freemium", name="Freemium", has_area_code_selection=False
+        ),
+        SubscriptionTier(
+            tier="payg", name="Pay-As-You-Go", has_area_code_selection=True
+        ),
+        SubscriptionTier(tier="pro", name="Pro", has_area_code_selection=True),
+        SubscriptionTier(tier="custom", name="Custom", has_area_code_selection=True),
+    ]
+    for tier in tiers:
+        db.add(tier)
+    db.commit()
+
+
+def test_freemium_blocked_from_area_code(db: Session, setup_tiers):
+    """Freemium users cannot use area code selection."""
+    user = User(id="user1", subscription_tier="freemium", credits=10.0)
+    db.add(user)
+    db.commit()
+
+    with pytest.raises(
+        ValueError, match="Area code selection not available for Freemium tier"
+    ):
+        PricingCalculator.calculate_voice_cost(
+            db, "user1", provider_price=1.0, area_code="212"
+        )
+
+
+def test_payg_charges_area_code_fee(db: Session, setup_tiers):
+    """PAYG users pay $0.25 for area code selection."""
+    user = User(id="user2", subscription_tier="payg", credits=10.0)
+    db.add(user)
+    db.commit()
+
+    result = PricingCalculator.calculate_voice_cost(
+        db, "user2", provider_price=1.0, area_code="212"
+    )
+    assert result["area_code_fee"] == 0.25
+    assert result["total_cost"] > result["base_cost"]
+
+
+def test_pro_area_code_included(db: Session, setup_tiers):
+    """Pro users get area code selection included."""
+    user = User(id="user3", subscription_tier="pro", credits=10.0)
+    db.add(user)
+    db.commit()
+
+    result = PricingCalculator.calculate_voice_cost(
+        db, "user3", provider_price=1.0, area_code="212"
+    )
+    assert result["area_code_fee"] == 0.0
+
+
+def test_custom_area_code_included(db: Session, setup_tiers):
+    """Custom users get area code selection included."""
+    user = User(id="user4", subscription_tier="custom", credits=10.0)
+    db.add(user)
+    db.commit()
+
+    result = PricingCalculator.calculate_voice_cost(
+        db, "user4", provider_price=1.0, area_code="212"
+    )
+    assert result["area_code_fee"] == 0.0
+
+
+def test_voice_without_area_code_no_fee(db: Session, setup_tiers):
+    """No area code fee when area code not requested."""
+    user = User(id="user5", subscription_tier="payg", credits=10.0)
+    db.add(user)
+    db.commit()
+
+    result = PricingCalculator.calculate_voice_cost(
+        db, "user5", provider_price=1.0, area_code=None
+    )
+    assert result["area_code_fee"] == 0.0
