@@ -33,7 +33,7 @@ class TelegramConnection(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     chat_id = Column(BigInteger, nullable=False, unique=True, index=True)
     username = Column(String(255), nullable=True)
@@ -56,7 +56,7 @@ class TelegramForwardingRule(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     forward_all = Column(Boolean, default=True, nullable=False)
     service_filter = Column(Text, nullable=True)  # JSON array for SQLite compatibility
