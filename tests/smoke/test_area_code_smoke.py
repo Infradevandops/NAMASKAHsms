@@ -293,8 +293,8 @@ def main():
 
     # Environment URLs
     env_urls = {
-        "production": "https://namaskah.app",
-        "staging": "https://staging.namaskah.app",
+        "production": "https://vrenum.onrender.com",
+        "staging": "https://vrenum.onrender.com",  # Use production for staging
         "local": "http://localhost:8000",
     }
 
