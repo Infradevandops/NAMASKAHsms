@@ -1,324 +1,253 @@
 /**
  * Push Notification Manager
- * Handles Firebase Cloud Messaging integration on the client side
+ * Handles OneSignal integration and push notification management
  */
 
-class PushNotificationManager {
-  constructor() {
-    this.vapidKey = null;
-    this.registration = null;
-    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
-    this.isInitialized = false;
-  }
-
-  /**
-   * Initialize push notifications
-   */
-  async initialize() {
-    if (!this.isSupported) {
-      console.warn('Push notifications not supported in this browser');
-      return false;
+class PushManager {
+    constructor() {
+        this.isSupported = this.checkSupport();
+        this.initialized = false;
     }
 
-    try {
-      // Get VAPID key from server
-      const config = await this.getConfig();
-      if (!config.enabled) {
-        console.warn('Push notifications not configured on server');
-        return false;
-      }
-
-      this.vapidKey = config.vapid_key;
-
-      // Register service worker
-      this.registration = await navigator.serviceWorker.register(
-        '/static/js/push-service-worker.js',
-        { scope: '/' }
-      );
-
-      console.log('Service Worker registered:', this.registration);
-
-      // Wait for service worker to be ready
-      await navigator.serviceWorker.ready;
-
-      this.isInitialized = true;
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize push notifications:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Get push notification config from server
-   */
-  async getConfig() {
-    try {
-      const response = await fetch('/api/push/config');
-      if (!response.ok) {
-        throw new Error('Failed to get push config');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to get push config:', error);
-      return { enabled: false };
-    }
-  }
-
-  /**
-   * Request notification permission
-   */
-  async requestPermission() {
-    if (!this.isSupported) {
-      return 'denied';
+    /**
+     * Check if push notifications are supported
+     */
+    checkSupport() {
+        return 'Notification' in window &&
+               'serviceWorker' in navigator &&
+               'PushManager' in window;
     }
 
-    const permission = await Notification.requestPermission();
-    console.log('Notification permission:', permission);
-    return permission;
-  }
-
-  /**
-   * Check current permission status
-   */
-  getPermissionStatus() {
-    if (!this.isSupported) {
-      return 'denied';
-    }
-    return Notification.permission;
-  }
-
-  /**
-   * Subscribe to push notifications
-   */
-  async subscribe() {
-    if (!this.isInitialized) {
-      const initialized = await this.initialize();
-      if (!initialized) {
-        throw new Error('Failed to initialize push notifications');
-      }
+    /**
+     * Get current permission status
+     */
+    getPermissionStatus() {
+        if (!this.isSupported) return 'unsupported';
+        return Notification.permission;
     }
 
-    // Check permission
-    const permission = await this.requestPermission();
-    if (permission !== 'granted') {
-      throw new Error('Notification permission denied');
+    /**
+     * Initialize OneSignal
+     */
+    async initialize() {
+        if (this.initialized) return;
+        if (!this.isSupported) {
+            console.warn('[PushManager] Push notifications not supported');
+            return;
+        }
+
+        try {
+            // Check if OneSignal is loaded
+            if (typeof OneSignal === 'undefined') {
+                console.warn('[PushManager] OneSignal SDK not loaded');
+                return;
+            }
+
+            await OneSignal.init({
+                appId: window.ONESIGNAL_APP_ID || '',
+                allowLocalhostAsSecureOrigin: true,
+                notifyButton: {
+                    enable: false // We use custom UI
+                }
+            });
+
+            this.initialized = true;
+            console.log('[PushManager] Initialized successfully');
+        } catch (error) {
+            console.error('[PushManager] Initialization failed:', error);
+        }
     }
 
-    try {
-      // Subscribe to push
-      const subscription = await this.registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.vapidKey)
-      });
+    /**
+     * Subscribe to push notifications
+     */
+    async subscribe() {
+        if (!this.isSupported) {
+            throw new Error('Push notifications are not supported in your browser');
+        }
 
-      console.log('Push subscription:', subscription);
+        await this.initialize();
 
-      // Get device info
-      const deviceInfo = this.getDeviceInfo();
+        try {
+            // Request permission
+            const permission = await Notification.requestPermission();
 
-      // Register with server
-      const token = JSON.stringify(subscription);
-      await this.registerDevice(token, deviceInfo);
+            if (permission !== 'granted') {
+                throw new Error('Permission denied. Please enable notifications in your browser settings.');
+            }
 
-      return subscription;
-    } catch (error) {
-      console.error('Failed to subscribe to push:', error);
-      throw error;
-    }
-  }
+            // Subscribe with OneSignal
+            if (typeof OneSignal !== 'undefined') {
+                await OneSignal.setSubscription(true);
+                const userId = await OneSignal.getUserId();
+                console.log('[PushManager] Subscribed with ID:', userId);
 
-  /**
-   * Unsubscribe from push notifications
-   */
-  async unsubscribe() {
-    if (!this.registration) {
-      return false;
-    }
+                // Register device with backend
+                await this.registerDevice(userId);
+            }
 
-    try {
-      const subscription = await this.registration.pushManager.getSubscription();
-      if (subscription) {
-        const token = JSON.stringify(subscription);
-
-        // Unregister from server
-        await this.unregisterDevice(token);
-
-        // Unsubscribe from push
-        await subscription.unsubscribe();
-        console.log('Unsubscribed from push notifications');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Failed to unsubscribe:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Get current subscription
-   */
-  async getSubscription() {
-    if (!this.registration) {
-      return null;
+            return { success: true, permission };
+        } catch (error) {
+            console.error('[PushManager] Subscription failed:', error);
+            throw error;
+        }
     }
 
-    try {
-      return await this.registration.pushManager.getSubscription();
-    } catch (error) {
-      console.error('Failed to get subscription:', error);
-      return null;
-    }
-  }
+    /**
+     * Unsubscribe from push notifications
+     */
+    async unsubscribe() {
+        try {
+            if (typeof OneSignal !== 'undefined') {
+                await OneSignal.setSubscription(false);
+                console.log('[PushManager] Unsubscribed successfully');
+            }
 
-  /**
-   * Register device with server
-   */
-  async registerDevice(token, deviceInfo) {
-    const response = await fetch('/api/push/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-      },
-      body: JSON.stringify({
-        token: token,
-        platform: 'web',
-        device_type: deviceInfo.browser,
-        device_name: deviceInfo.name
-      })
-    });
+            // Unregister device from backend
+            await this.unregisterDevice();
 
-    if (!response.ok) {
-      throw new Error('Failed to register device');
+            return { success: true };
+        } catch (error) {
+            console.error('[PushManager] Unsubscription failed:', error);
+            throw error;
+        }
     }
 
-    return await response.json();
-  }
+    /**
+     * Register device with backend
+     */
+    async registerDevice(playerId) {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
 
-  /**
-   * Unregister device from server
-   */
-  async unregisterDevice(token) {
-    const response = await fetch(`/api/push/unregister?token=${encodeURIComponent(token)}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-      }
-    });
+            const response = await fetch('/api/push/devices', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    player_id: playerId,
+                    platform: 'web',
+                    device_type: this.getDeviceType(),
+                    device_name: this.getDeviceName()
+                })
+            });
 
-    if (!response.ok) {
-      throw new Error('Failed to unregister device');
+            if (!response.ok) {
+                console.warn('[PushManager] Failed to register device with backend');
+            }
+        } catch (error) {
+            console.error('[PushManager] Device registration failed:', error);
+        }
     }
 
-    return await response.json();
-  }
+    /**
+     * Unregister device from backend
+     */
+    async unregisterDevice() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
 
-  /**
-   * Send test notification
-   */
-  async sendTestNotification() {
-    const response = await fetch('/api/push/test', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to send test notification');
+            if (typeof OneSignal !== 'undefined') {
+                const userId = await OneSignal.getUserId();
+                if (userId) {
+                    await fetch(`/api/push/devices/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('[PushManager] Device unregistration failed:', error);
+        }
     }
 
-    return await response.json();
-  }
+    /**
+     * Send test notification
+     */
+    async sendTestNotification() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) throw new Error('Not authenticated');
 
-  /**
-   * Get device info
-   */
-  getDeviceInfo() {
-    const ua = navigator.userAgent;
-    let browser = 'Unknown';
+            const response = await fetch('/api/push/test', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-    if (ua.includes('Firefox')) {
-      browser = 'Firefox';
-    } else if (ua.includes('Chrome')) {
-      browser = 'Chrome';
-    } else if (ua.includes('Safari')) {
-      browser = 'Safari';
-    } else if (ua.includes('Edge')) {
-      browser = 'Edge';
+            if (!response.ok) {
+                throw new Error('Failed to send test notification');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('[PushManager] Test notification failed:', error);
+            throw error;
+        }
     }
 
-    return {
-      browser: browser,
-      name: `${browser} on ${navigator.platform}`,
-      userAgent: ua
-    };
-  }
-
-  /**
-   * Convert VAPID key to Uint8Array
-   */
-  urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-
-  /**
-   * Handle messages from service worker
-   */
-  setupMessageListener() {
-    if (!navigator.serviceWorker) {
-      return;
+    /**
+     * Get device type
+     */
+    getDeviceType() {
+        const ua = navigator.userAgent;
+        if (/mobile/i.test(ua)) return 'Mobile';
+        if (/tablet/i.test(ua)) return 'Tablet';
+        return 'Desktop';
     }
 
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      console.log('Message from service worker:', event.data);
+    /**
+     * Get device name
+     */
+    getDeviceName() {
+        const ua = navigator.userAgent;
+        let browser = 'Unknown';
 
-      if (event.data.type === 'COPY_TO_CLIPBOARD') {
-        this.copyToClipboard(event.data.text);
-      }
-    });
-  }
+        if (ua.includes('Chrome')) browser = 'Chrome';
+        else if (ua.includes('Firefox')) browser = 'Firefox';
+        else if (ua.includes('Safari')) browser = 'Safari';
+        else if (ua.includes('Edge')) browser = 'Edge';
 
-  /**
-   * Copy text to clipboard
-   */
-  async copyToClipboard(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      console.log('Copied to clipboard:', text);
-
-      // Show toast notification
-      if (window.errorHandler) {
-        window.errorHandler.showToast('Code copied to clipboard!', 'success');
-      }
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+        return `${browser} on ${this.getDeviceType()}`;
     }
-  }
+
+    /**
+     * Check if user is subscribed
+     */
+    async isSubscribed() {
+        if (!this.isSupported) return false;
+
+        try {
+            if (typeof OneSignal !== 'undefined') {
+                await this.initialize();
+                return await OneSignal.isPushNotificationsEnabled();
+            }
+            return false;
+        } catch (error) {
+            console.error('[PushManager] Subscription check failed:', error);
+            return false;
+        }
+    }
 }
 
 // Create global instance
-window.pushManager = new PushNotificationManager();
+window.pushManager = new PushManager();
 
-// Setup message listener
-window.pushManager.setupMessageListener();
-
-// Auto-initialize on page load if user is logged in
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('access_token')) {
+// Auto-initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.pushManager.initialize().catch(console.error);
+    });
+} else {
     window.pushManager.initialize().catch(console.error);
-  }
-});
+}
+
+console.log('[PushManager] Module loaded');
