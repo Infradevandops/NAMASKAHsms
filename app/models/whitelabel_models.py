@@ -17,7 +17,7 @@ class WhitelabelDomain(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     domain = Column(String(255), nullable=False, unique=True, index=True)
     verified = Column(Boolean, default=False, nullable=False)
@@ -50,7 +50,7 @@ class WhitelabelBranding(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
-        Integer,
+        String,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
@@ -103,7 +103,7 @@ class WhitelabelEmailTemplate(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     template_name = Column(
         String(100), nullable=False
