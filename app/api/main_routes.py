@@ -1,5 +1,6 @@
 """Consolidated routing - all pages and redirects."""
 
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -30,26 +31,30 @@ async def favicon():
 @router.head("/")
 async def home_page(request: Request):
     """Home page - landing page for visitors."""
-    # Get services list
-    services = [
-        {"name": "Google", "id": "google"},
-        {"name": "Facebook", "id": "facebook"},
-        {"name": "WhatsApp", "id": "whatsapp"},
-        {"name": "Instagram", "id": "instagram"},
-        {"name": "Twitter", "id": "twitter"},
-        {"name": "Telegram", "id": "telegram"},
-        {"name": "Discord", "id": "discord"},
-        {"name": "TikTok", "id": "tiktok"},
-    ]
+    try:
+        # Get services list
+        services = [
+            {"name": "Google", "id": "google"},
+            {"name": "Facebook", "id": "facebook"},
+            {"name": "WhatsApp", "id": "whatsapp"},
+            {"name": "Instagram", "id": "instagram"},
+            {"name": "Twitter", "id": "twitter"},
+            {"name": "Telegram", "id": "telegram"},
+            {"name": "Discord", "id": "discord"},
+            {"name": "TikTok", "id": "tiktok"},
+        ]
 
-    return templates.TemplateResponse(
-        "landing.html",
-        {
-            "request": request,
-            "services": services,
-            "user_count": 10000,  # Static count for now
-        },
-    )
+        return templates.TemplateResponse(
+            "landing.html",
+            {
+                "request": request,
+                "services": services,
+                "user_count": 10000,  # Static count for now
+            },
+        )
+    except Exception as e:
+        logger.error(f"Error rendering home page: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load home page")
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -59,49 +64,73 @@ async def dashboard_page(
     db: Session = Depends(get_db),
 ):
     """Dashboard page."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    # Get user's preferred language (default to English)
-    user_locale = getattr(user, "language", "en") or "en"
+        # Get user's preferred language (default to English)
+        user_locale = getattr(user, "language", "en") or "en"
 
-    # Load translations for embedding
-    translations_json = get_translations_for_template(user_locale)
+        # Load translations for embedding
+        translations_json = get_translations_for_template(user_locale)
 
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
-            "user": user,
-            "translations": translations_json,
-            "locale": user_locale,
-        },
-    )
+        return templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "user": user,
+                "translations": translations_json,
+                "locale": user_locale,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error rendering dashboard for user {user_id}: {e}", exc_info=True
+        )
+        raise HTTPException(status_code=500, detail="Failed to load dashboard")
 
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Login page."""
-    return templates.TemplateResponse("login.html", {"request": request})
+    try:
+        return templates.TemplateResponse("login.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Error rendering login page: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load login page")
 
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     """Register page."""
-    return templates.TemplateResponse("register.html", {"request": request})
+    try:
+        return templates.TemplateResponse("register.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Error rendering register page: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load register page")
 
 
 @router.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
     """Pricing page."""
-    return templates.TemplateResponse("pricing.html", {"request": request})
+    try:
+        return templates.TemplateResponse("pricing.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Error rendering pricing page: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load pricing page")
 
 
 @router.get("/docs", response_class=HTMLResponse)
 async def docs_page(request: Request):
     """Documentation page."""
-    return templates.TemplateResponse("docs.html", {"request": request})
+    try:
+        return templates.TemplateResponse("docs.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Error rendering docs page: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load documentation")
 
 
 @router.get("/health")
@@ -450,6 +479,171 @@ async def admin_logging_page(
         raise HTTPException(status_code=403, detail="Admin access required")
     return templates.TemplateResponse(
         "admin/logging_dashboard.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/user-management", response_class=HTMLResponse)
+async def admin_user_management_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin User Management page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/user_management.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/support-tickets", response_class=HTMLResponse)
+async def admin_support_tickets_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Support Tickets page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/support_tickets.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/kyc-management", response_class=HTMLResponse)
+async def admin_kyc_management_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin KYC Management page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/kyc_management.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/compliance", response_class=HTMLResponse)
+async def admin_compliance_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Compliance Dashboard page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/compliance.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/refund-monitoring", response_class=HTMLResponse)
+async def admin_refund_monitoring_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Refund Monitoring page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/refund_monitoring.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/verification-actions", response_class=HTMLResponse)
+async def admin_verification_actions_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Verification Actions page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/verification_actions.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/actions", response_class=HTMLResponse)
+async def admin_actions_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Actions page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/admin_actions.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/disputes", response_class=HTMLResponse)
+async def disputes_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """User Disputes page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse(
+        "disputes.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/analytics-advanced", response_class=HTMLResponse)
+async def admin_analytics_advanced_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Advanced Analytics page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/analytics_advanced.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/area-code-analytics", response_class=HTMLResponse)
+async def admin_area_code_analytics_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Area Code Analytics page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/area_code_analytics.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/admin/export", response_class=HTMLResponse)
+async def admin_export_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Admin Export page."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        "admin/export.html", {"request": request, "user": user}
     )
 
 

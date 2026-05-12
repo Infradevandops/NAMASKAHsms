@@ -1,5 +1,6 @@
 """Admin export endpoints."""
 
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -38,9 +40,9 @@ async def export_users(
             "download_url": f"/api/admin/download/users_export_{int(datetime.now().timestamp())}.{format}",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
-
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to export users: {str(e)}")
+        logger.error(f"Failed to export users: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to export users")
 
 
 @router.get("/export/verifications")
@@ -60,8 +62,6 @@ async def export_verifications(
             "download_url": f"/api/admin/download/verifications_export_{int(datetime.now().timestamp())}.{format}",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to export verifications: {str(e)}"
-        )
+        logger.error(f"Failed to export verifications: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to export verifications")

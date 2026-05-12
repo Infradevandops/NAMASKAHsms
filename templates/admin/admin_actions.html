@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Actions - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2>Admin Actions</h2>
+                <p class="text-muted">System maintenance and administrative operations</p>
+            </div>
+        </div>
+
+        <!-- Cache Management -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-database"></i> Cache Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Clear Redis cache to force fresh data loading</p>
+                        <button class="btn btn-warning w-100 mb-2" onclick="clearCache('all')">
+                            <i class="bi bi-trash"></i> Clear All Cache
+                        </button>
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="clearCache('services')">
+                            Clear Services Cache
+                        </button>
+                        <button class="btn btn-outline-warning w-100" onclick="clearCache('users')">
+                            Clear Users Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-gear"></i> Database Operations</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Optimize database performance and integrity</p>
+                        <button class="btn btn-primary w-100 mb-2" onclick="optimizeDatabase()">
+                            <i class="bi bi-speedometer"></i> Optimize Database
+                        </button>
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="vacuumDatabase()">
+                            Vacuum Database
+                        </button>
+                        <button class="btn btn-outline-primary w-100" onclick="analyzeDatabase()">
+                            Analyze Tables
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Jobs -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-clock-history"></i> Background Jobs</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Manually trigger background processes</p>
+                        <button class="btn btn-success w-100 mb-2" onclick="triggerJob('refund_enforcer')">
+                            <i class="bi bi-arrow-repeat"></i> Run Refund Enforcer
+                        </button>
+                        <button class="btn btn-outline-success w-100 mb-2" onclick="triggerJob('sms_polling')">
+                            Trigger SMS Polling
+                        </button>
+                        <button class="btn btn-outline-success w-100" onclick="triggerJob('health_audit')">
+                            Run Health Audit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-shield-check"></i> System Maintenance</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>System-wide maintenance operations</p>
+                        <button class="btn btn-danger w-100 mb-2" onclick="toggleMaintenanceMode()">
+                            <i class="bi bi-exclamation-triangle"></i> Toggle Maintenance Mode
+                        </button>
+                        <button class="btn btn-outline-danger w-100 mb-2" onclick="flushLogs()">
+                            Flush Old Logs
+                        </button>
+                        <button class="btn btn-outline-danger w-100" onclick="cleanupSessions()">
+                            Cleanup Expired Sessions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-activity"></i> System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h6>Cache Status</h6>
+                        <p id="cacheStatus" class="text-success">Connected</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Database Status</h6>
+                        <p id="dbStatus" class="text-success">Healthy</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Background Jobs</h6>
+                        <p id="jobsStatus" class="text-success">Running</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Maintenance Mode</h6>
+                        <p id="maintenanceStatus" class="text-secondary">Off</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function clearCache(type) {
+            if (!confirm(`Clear ${type} cache?`)) return;
+
+            try {
+                const response = await fetch(`/api/admin/cache/clear?type=${type}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    alert(`${type} cache cleared successfully`);
+                } else {
+                    alert('Failed to clear cache');
+                }
+            } catch (error) {
+                console.error('Failed to clear cache:', error);
+                alert('Failed to clear cache');
+            }
+        }
+
+        async function optimizeDatabase() {
+            if (!confirm('Optimize database? This may take a few minutes.')) return;
+
+            try {
+                const response = await fetch('/api/admin/database/optimize', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    alert('Database optimized successfully');
+                } else {
+                    alert('Failed to optimize database');
+                }
+            } catch (error) {
+                console.error('Failed to optimize database:', error);
+                alert('Failed to optimize database');
+            }
+        }
+
+        async function vacuumDatabase() {
+            if (!confirm('Vacuum database? This may take several minutes.')) return;
+
+            try {
+                const response = await fetch('/api/admin/database/vacuum', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    alert('Database vacuumed successfully');
+                } else {
+                    alert('Failed to vacuum database');
+                }
+            } catch (error) {
+                console.error('Failed to vacuum database:', error);
+                alert('Failed to vacuum database');
+            }
+        }
+
+        async function analyzeDatabase() {
+            if (!confirm('Analyze database tables?')) return;
+
+            try {
+                const response = await fetch('/api/admin/database/analyze', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    alert('Database analyzed successfully');
+                } else {
+                    alert('Failed to analyze database');
+                }
+            } catch (error) {
+                console.error('Failed to analyze database:', error);
+                alert('Failed to analyze database');
+            }
+        }
+
+        async function triggerJob(jobName) {
+            if (!confirm(`Trigger ${jobName} job?`)) return;
+
+            try {
+                const response = await fetch(`/api/admin/jobs/trigger/${jobName}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    alert(`${jobName} triggered successfully`);
+                } else {
+                    alert('Failed to trigger job');
+                }
+            } catch (error) {
+                console.error('Failed to trigger job:', error);
+                alert('Failed to trigger job');
+            }
+        }
+
+        async function toggleMaintenanceMode() {
+            if (!confirm('Toggle maintenance mode?')) return;
+
+            try {
+                const response = await fetch('/api/admin/maintenance/toggle', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Maintenance mode: ${data.enabled ? 'ON' : 'OFF'}`);
+                    document.getElementById('maintenanceStatus').textContent = data.enabled ? 'On' : 'Off';
+                    document.getElementById('maintenanceStatus').className = data.enabled ? 'text-danger' : 'text-secondary';
+                } else {
+                    alert('Failed to toggle maintenance mode');
+                }
+            } catch (error) {
+                console.error('Failed to toggle maintenance mode:', error);
+                alert('Failed to toggle maintenance mode');
+            }
+        }
+
+        async function flushLogs() {
+            if (!confirm('Flush logs older than 90 days?')) return;
+
+            try {
+                const response = await fetch('/api/admin/logs/flush', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Flushed ${data.deleted || 0} log entries`);
+                } else {
+                    alert('Failed to flush logs');
+                }
+            } catch (error) {
+                console.error('Failed to flush logs:', error);
+                alert('Failed to flush logs');
+            }
+        }
+
+        async function cleanupSessions() {
+            if (!confirm('Cleanup expired sessions?')) return;
+
+            try {
+                const response = await fetch('/api/admin/sessions/cleanup', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Cleaned up ${data.deleted || 0} expired sessions`);
+                } else {
+                    alert('Failed to cleanup sessions');
+                }
+            } catch (error) {
+                console.error('Failed to cleanup sessions:', error);
+                alert('Failed to cleanup sessions');
+            }
+        }
+
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/admin/system/status', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('cacheStatus').textContent = data.cache_connected ? 'Connected' : 'Disconnected';
+                document.getElementById('cacheStatus').className = data.cache_connected ? 'text-success' : 'text-danger';
+
+                document.getElementById('dbStatus').textContent = data.db_healthy ? 'Healthy' : 'Unhealthy';
+                document.getElementById('dbStatus').className = data.db_healthy ? 'text-success' : 'text-danger';
+
+                document.getElementById('jobsStatus').textContent = data.jobs_running ? 'Running' : 'Stopped';
+                document.getElementById('jobsStatus').className = data.jobs_running ? 'text-success' : 'text-warning';
+
+                document.getElementById('maintenanceStatus').textContent = data.maintenance_mode ? 'On' : 'Off';
+                document.getElementById('maintenanceStatus').className = data.maintenance_mode ? 'text-danger' : 'text-secondary';
+            } catch (error) {
+                console.error('Failed to load system status:', error);
+            }
+        }
+
+        loadSystemStatus();
+        setInterval(loadSystemStatus, 30000);
+    </script>
+</body>
+</html>

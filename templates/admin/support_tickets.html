@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Tickets - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2>Support Tickets</h2>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Tickets</h6>
+                        <h3 id="totalTickets">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Open Tickets</h6>
+                        <h3 id="openTickets" class="text-warning">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Resolved</h6>
+                        <h3 id="resolvedTickets" class="text-success">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Avg Response Time</h6>
+                        <h3 id="avgResponseTime">-</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="priorityFilter">
+                            <option value="">All Priority</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="technical">Technical</option>
+                            <option value="billing">Billing</option>
+                            <option value="verification">Verification</option>
+                            <option value="account">Account</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100" onclick="loadTickets()">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTable">
+                            <tr>
+                                <td colspan="8" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Detail Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ticket Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>Ticket ID:</strong> <span id="modalTicketId"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>User Email:</strong> <span id="modalUserEmail"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Category:</strong> <span id="modalCategory"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Priority:</strong> <span id="modalPriority"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Subject:</strong> <span id="modalSubject"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Message:</strong>
+                        <p id="modalMessage" class="mt-2"></p>
+                    </div>
+                    <div class="mb-3" id="adminResponseSection" style="display:none;">
+                        <strong>Admin Response:</strong>
+                        <p id="modalAdminResponse" class="mt-2 text-success"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Your Response:</strong></label>
+                        <textarea class="form-control" id="responseText" rows="4" placeholder="Type your response..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="sendResponse()">Send Response</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentTicketId = null;
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/support/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('totalTickets').textContent = data.total_tickets;
+                document.getElementById('openTickets').textContent = data.open_tickets;
+                document.getElementById('resolvedTickets').textContent = data.resolved_tickets;
+                document.getElementById('avgResponseTime').textContent = data.avg_response_time;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadTickets() {
+            const status = document.getElementById('statusFilter').value;
+            const priority = document.getElementById('priorityFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+
+            const params = new URLSearchParams();
+            if (status) params.append('status', status);
+            if (priority) params.append('priority', priority);
+            if (category) params.append('category', category);
+
+            try {
+                const response = await fetch(`/api/support/admin/tickets?${params}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const tickets = await response.json();
+
+                const tbody = document.getElementById('ticketsTable');
+                if (tickets.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center">No tickets found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = tickets.map(ticket => `
+                    <tr>
+                        <td>${ticket.id.substring(0, 8)}</td>
+                        <td>${ticket.email || 'N/A'}</td>
+                        <td><span class="badge bg-info">${ticket.category}</span></td>
+                        <td><span class="badge bg-${getPriorityColor(ticket.priority)}">${ticket.priority}</span></td>
+                        <td>${ticket.subject}</td>
+                        <td><span class="badge bg-${getStatusColor(ticket.status)}">${ticket.status}</span></td>
+                        <td>${new Date(ticket.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewTicket('${ticket.id}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load tickets:', error);
+                document.getElementById('ticketsTable').innerHTML =
+                    '<tr><td colspan="8" class="text-center text-danger">Failed to load tickets</td></tr>';
+            }
+        }
+
+        async function viewTicket(ticketId) {
+            currentTicketId = ticketId;
+
+            try {
+                const response = await fetch(`/api/support/admin/tickets?limit=200`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const tickets = await response.json();
+                const ticket = tickets.find(t => t.id === ticketId);
+
+                if (!ticket) {
+                    alert('Ticket not found');
+                    return;
+                }
+
+                document.getElementById('modalTicketId').textContent = ticket.id;
+                document.getElementById('modalUserEmail').textContent = ticket.email || 'N/A';
+                document.getElementById('modalCategory').textContent = ticket.category;
+                document.getElementById('modalPriority').textContent = ticket.priority;
+                document.getElementById('modalSubject').textContent = ticket.subject;
+                document.getElementById('modalMessage').textContent = ticket.message;
+
+                if (ticket.admin_response) {
+                    document.getElementById('adminResponseSection').style.display = 'block';
+                    document.getElementById('modalAdminResponse').textContent = ticket.admin_response;
+                } else {
+                    document.getElementById('adminResponseSection').style.display = 'none';
+                }
+
+                document.getElementById('responseText').value = '';
+                new bootstrap.Modal(document.getElementById('ticketModal')).show();
+            } catch (error) {
+                console.error('Failed to load ticket:', error);
+                alert('Failed to load ticket details');
+            }
+        }
+
+        async function sendResponse() {
+            const response = document.getElementById('responseText').value.trim();
+            if (!response) {
+                alert('Please enter a response');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/support/admin/tickets/${currentTicketId}/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ response })
+                });
+
+                if (res.ok) {
+                    alert('Response sent successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('ticketModal')).hide();
+                    loadTickets();
+                    loadStats();
+                } else {
+                    alert('Failed to send response');
+                }
+            } catch (error) {
+                console.error('Failed to send response:', error);
+                alert('Failed to send response');
+            }
+        }
+
+        function getPriorityColor(priority) {
+            const colors = { low: 'secondary', medium: 'primary', high: 'warning', urgent: 'danger' };
+            return colors[priority] || 'secondary';
+        }
+
+        function getStatusColor(status) {
+            const colors = { open: 'warning', resolved: 'success', closed: 'secondary' };
+            return colors[status] || 'secondary';
+        }
+
+        // Load data on page load
+        loadStats();
+        loadTickets();
+    </script>
+</body>
+</html>

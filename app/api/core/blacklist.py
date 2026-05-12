@@ -22,25 +22,29 @@ async def get_blacklist(
     db: Session = Depends(get_db),
 ):
     """Get user's blacklisted numbers."""
-    blacklisted_numbers = (
-        db.query(NumberBlacklist)
-        .filter(NumberBlacklist.user_id == user_id)
-        .order_by(NumberBlacklist.created_at.desc())
-        .all()
-    )
-
-    return [
-        BlacklistResponse(
-            id=entry.id,
-            phone_number=entry.phone_number,
-            service_name=entry.service_name,
-            reason=entry.reason,
-            created_at=entry.created_at,
-            expires_at=entry.expires_at,
-            is_expired=entry.is_expired,
+    try:
+        blacklisted_numbers = (
+            db.query(NumberBlacklist)
+            .filter(NumberBlacklist.user_id == user_id)
+            .order_by(NumberBlacklist.created_at.desc())
+            .all()
         )
-        for entry in blacklisted_numbers
-    ]
+
+        return [
+            BlacklistResponse(
+                id=entry.id,
+                phone_number=entry.phone_number,
+                service_name=entry.service_name,
+                reason=entry.reason,
+                created_at=entry.created_at,
+                expires_at=entry.expires_at,
+                is_expired=entry.is_expired,
+            )
+            for entry in blacklisted_numbers
+        ]
+    except Exception as e:
+        logger.error(f"Error fetching blacklist for user {user_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch blacklist")
 
 
 @router.post("")
@@ -51,53 +55,60 @@ async def add_to_blacklist(
     db: Session = Depends(get_db),
 ):
     """Manually add number to blacklist."""
-    phone_number = request.phone_number
-    service_name = request.service_name
+    try:
+        phone_number = request.phone_number
+        service_name = request.service_name
 
-    # Check if already blacklisted
-    existing = (
-        db.query(NumberBlacklist)
-        .filter(
-            NumberBlacklist.user_id == user_id,
-            NumberBlacklist.phone_number == phone_number,
-            NumberBlacklist.service_name == service_name,
+        # Check if already blacklisted
+        existing = (
+            db.query(NumberBlacklist)
+            .filter(
+                NumberBlacklist.user_id == user_id,
+                NumberBlacklist.phone_number == phone_number,
+                NumberBlacklist.service_name == service_name,
+            )
+            .first()
         )
-        .first()
-    )
 
-    if existing and not existing.is_expired:
+        if existing and not existing.is_expired:
+            return {
+                "success": False,
+                "message": "Number already blacklisted",
+                "expires_at": existing.expires_at.isoformat(),
+            }
+
+        # Create blacklist entry
+        blacklist_entry = NumberBlacklist(
+            user_id=user_id,
+            phone_number=phone_number,
+            service_name=service_name,
+            reason=request.reason or "Manual blacklist",
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc).replace(
+                year=datetime.now(timezone.utc).year + 1
+            ),  # 1 year
+        )
+
+        db.add(blacklist_entry)
+        db.commit()
+        db.refresh(blacklist_entry)
+
+        logger.info(
+            f"Number {phone_number} blacklisted by user {user_id} for service {service_name}"
+        )
+
         return {
-            "success": False,
-            "message": "Number already blacklisted",
-            "expires_at": existing.expires_at.isoformat(),
+            "success": True,
+            "message": "Number added to blacklist",
+            "id": blacklist_entry.id,
+            "expires_at": blacklist_entry.expires_at.isoformat(),
         }
-
-    # Create blacklist entry
-    blacklist_entry = NumberBlacklist(
-        user_id=user_id,
-        phone_number=phone_number,
-        service_name=service_name,
-        reason=request.reason or "Manual blacklist",
-        created_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc).replace(
-            year=datetime.now(timezone.utc).year + 1
-        ),  # 1 year
-    )
-
-    db.add(blacklist_entry)
-    db.commit()
-    db.refresh(blacklist_entry)
-
-    logger.info(
-        f"Number {phone_number} blacklisted by user {user_id} for service {service_name}"
-    )
-
-    return {
-        "success": True,
-        "message": "Number added to blacklist",
-        "id": blacklist_entry.id,
-        "expires_at": blacklist_entry.expires_at.isoformat(),
-    }
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Error adding to blacklist for user {user_id}: {e}", exc_info=True
+        )
+        raise HTTPException(status_code=500, detail="Failed to add number to blacklist")
 
 
 @router.delete("/{blacklist_id}")
@@ -107,24 +118,31 @@ async def remove_from_blacklist(
     db: Session = Depends(get_db),
 ):
     """Remove number from blacklist."""
-    blacklist_entry = (
-        db.query(NumberBlacklist)
-        .filter(
-            NumberBlacklist.id == blacklist_id,
-            NumberBlacklist.user_id == user_id,
+    try:
+        blacklist_entry = (
+            db.query(NumberBlacklist)
+            .filter(
+                NumberBlacklist.id == blacklist_id,
+                NumberBlacklist.user_id == user_id,
+            )
+            .first()
         )
-        .first()
-    )
 
-    if not blacklist_entry:
-        raise HTTPException(status_code=404, detail="Blacklist entry not found")
+        if not blacklist_entry:
+            raise HTTPException(status_code=404, detail="Blacklist entry not found")
 
-    db.delete(blacklist_entry)
-    db.commit()
+        db.delete(blacklist_entry)
+        db.commit()
 
-    logger.info(f"Blacklist entry {blacklist_id} removed by user {user_id}")
+        logger.info(f"Blacklist entry {blacklist_id} removed by user {user_id}")
 
-    return {"success": True, "message": "Number removed from blacklist"}
+        return {"success": True, "message": "Number removed from blacklist"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error removing from blacklist: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to remove from blacklist")
 
 
 @router.post("/check")
@@ -135,27 +153,31 @@ async def check_blacklist(
     db: Session = Depends(get_db),
 ):
     """Check if a number is blacklisted."""
-    blacklist_entry = (
-        db.query(NumberBlacklist)
-        .filter(
-            NumberBlacklist.user_id == user_id,
-            NumberBlacklist.phone_number == phone_number,
-            NumberBlacklist.service_name == service_name,
+    try:
+        blacklist_entry = (
+            db.query(NumberBlacklist)
+            .filter(
+                NumberBlacklist.user_id == user_id,
+                NumberBlacklist.phone_number == phone_number,
+                NumberBlacklist.service_name == service_name,
+            )
+            .first()
         )
-        .first()
-    )
 
-    is_blacklisted = blacklist_entry is not None and not blacklist_entry.is_expired
+        is_blacklisted = blacklist_entry is not None and not blacklist_entry.is_expired
 
-    return {
-        "phone_number": phone_number,
-        "service_name": service_name,
-        "is_blacklisted": is_blacklisted,
-        "reason": blacklist_entry.reason if blacklist_entry else None,
-        "expires_at": (
-            blacklist_entry.expires_at.isoformat() if blacklist_entry else None
-        ),
-    }
+        return {
+            "phone_number": phone_number,
+            "service_name": service_name,
+            "is_blacklisted": is_blacklisted,
+            "reason": blacklist_entry.reason if blacklist_entry else None,
+            "expires_at": (
+                blacklist_entry.expires_at.isoformat() if blacklist_entry else None
+            ),
+        }
+    except Exception as e:
+        logger.error(f"Error checking blacklist: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to check blacklist")
 
 
 @router.post("/cleanup")
@@ -164,21 +186,26 @@ async def cleanup_expired(
     db: Session = Depends(get_db),
 ):
     """Remove expired blacklist entries."""
-    expired_entries = (
-        db.query(NumberBlacklist)
-        .filter(
-            NumberBlacklist.user_id == user_id,
-            NumberBlacklist.expires_at < datetime.now(timezone.utc),
+    try:
+        expired_entries = (
+            db.query(NumberBlacklist)
+            .filter(
+                NumberBlacklist.user_id == user_id,
+                NumberBlacklist.expires_at < datetime.now(timezone.utc),
+            )
+            .all()
         )
-        .all()
-    )
 
-    count = len(expired_entries)
-    for entry in expired_entries:
-        db.delete(entry)
+        count = len(expired_entries)
+        for entry in expired_entries:
+            db.delete(entry)
 
-    db.commit()
+        db.commit()
 
-    logger.info(f"Cleaned up {count} expired blacklist entries for user {user_id}")
+        logger.info(f"Cleaned up {count} expired blacklist entries for user {user_id}")
 
-    return {"success": True, "message": f"Removed {count} expired entries"}
+        return {"success": True, "message": f"Removed {count} expired entries"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error cleaning up blacklist: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to cleanup expired entries")

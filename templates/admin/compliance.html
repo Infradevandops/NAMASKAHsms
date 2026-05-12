@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Dashboard - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2>Compliance Dashboard</h2>
+            </div>
+        </div>
+
+        <!-- SOC2 Status -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">SOC2 Status</h6>
+                        <h3 id="soc2Status" class="text-success">Compliant</h3>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="generateSOC2Report()">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Financial Integrity</h6>
+                        <h3 id="integrityStatus">-</h3>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="checkIntegrity()">Run Check</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Audit Logs</h6>
+                        <h3 id="auditLogCount">0</h3>
+                        <small class="text-muted">Last 30 days</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Audit Log Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Action Type</label>
+                        <select class="form-select" id="actionFilter">
+                            <option value="">All Actions</option>
+                            <option value="user_created">User Created</option>
+                            <option value="user_suspended">User Suspended</option>
+                            <option value="tier_changed">Tier Changed</option>
+                            <option value="credits_adjusted">Credits Adjusted</option>
+                            <option value="kyc_approved">KYC Approved</option>
+                            <option value="kyc_rejected">KYC Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Time Range</label>
+                        <select class="form-select" id="daysFilter">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Admin</label>
+                        <input type="text" class="form-control" id="adminFilter" placeholder="Admin ID">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="loadAuditLogs()">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Logs Table -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between">
+                <h5>Audit Logs</h5>
+                <button class="btn btn-sm btn-success" onclick="exportLogs()">
+                    <i class="bi bi-download"></i> Export CSV
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Admin</th>
+                                <th>Target</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogsTable">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Integrity Results -->
+        <div class="card" id="integrityCard" style="display:none;">
+            <div class="card-header">
+                <h5>Financial Integrity Check Results</h5>
+            </div>
+            <div class="card-body">
+                <div id="integrityResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function loadSOC2Status() {
+            try {
+                const response = await fetch('/api/admin/compliance/soc2/status', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const status = data.compliant ? 'Compliant' : 'Non-Compliant';
+                const color = data.compliant ? 'text-success' : 'text-danger';
+                document.getElementById('soc2Status').textContent = status;
+                document.getElementById('soc2Status').className = color;
+            } catch (error) {
+                console.error('Failed to load SOC2 status:', error);
+                document.getElementById('soc2Status').textContent = 'Unknown';
+                document.getElementById('soc2Status').className = 'text-warning';
+            }
+        }
+
+        async function loadAuditLogs() {
+            const action = document.getElementById('actionFilter').value;
+            const days = document.getElementById('daysFilter').value;
+            const adminId = document.getElementById('adminFilter').value;
+
+            const params = new URLSearchParams();
+            if (action) params.append('action', action);
+            if (days) params.append('days', days);
+            if (adminId) params.append('admin_id_filter', adminId);
+
+            try {
+                const response = await fetch(`/api/admin/audit-logs?${params}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('auditLogCount').textContent = data.total;
+
+                const tbody = document.getElementById('auditLogsTable');
+                if (data.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">No audit logs found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.logs.map(log => `
+                    <tr>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td><span class="badge bg-info">${log.action}</span></td>
+                        <td>${log.admin_id ? log.admin_id.substring(0, 8) : 'System'}</td>
+                        <td>${log.target_id ? log.target_id.substring(0, 8) : 'N/A'}</td>
+                        <td>${log.details || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load audit logs:', error);
+                document.getElementById('auditLogsTable').innerHTML =
+                    '<tr><td colspan="5" class="text-center text-danger">Failed to load audit logs</td></tr>';
+            }
+        }
+
+        async function checkIntegrity() {
+            try {
+                const response = await fetch('/api/admin/integrity/check', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const status = data.status === 'healthy' ? 'Healthy' : 'Drift Detected';
+                const color = data.status === 'healthy' ? 'text-success' : 'text-warning';
+
+                document.getElementById('integrityStatus').textContent = status;
+                document.getElementById('integrityStatus').className = color;
+
+                if (data.discrepancies && data.discrepancies.length > 0) {
+                    const card = document.getElementById('integrityCard');
+                    card.style.display = 'block';
+
+                    const results = document.getElementById('integrityResults');
+                    results.innerHTML = `
+                        <div class="alert alert-warning">
+                            <strong>Found ${data.total_discrepancy_count} discrepancies</strong>
+                            <p>Users checked: ${data.users_checked}</p>
+                        </div>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Cached Balance</th>
+                                    <th>Ledger Sum</th>
+                                    <th>Drift</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.discrepancies.map(d => `
+                                    <tr>
+                                        <td>${d.email}</td>
+                                        <td>$${d.cached_balance.toFixed(2)}</td>
+                                        <td>$${d.ledger_sum.toFixed(2)}</td>
+                                        <td class="text-danger">$${d.drift.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    document.getElementById('integrityCard').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to check integrity:', error);
+                alert('Failed to check financial integrity');
+            }
+        }
+
+        async function generateSOC2Report() {
+            try {
+                const response = await fetch('/api/admin/compliance/soc2/report', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                alert('SOC2 report generated successfully');
+                console.log('Report:', data);
+            } catch (error) {
+                console.error('Failed to generate report:', error);
+                alert('Failed to generate SOC2 report');
+            }
+        }
+
+        function exportLogs() {
+            alert('Export functionality not yet implemented');
+        }
+
+        // Load data on page load
+        loadSOC2Status();
+        loadAuditLogs();
+    </script>
+</body>
+</html>

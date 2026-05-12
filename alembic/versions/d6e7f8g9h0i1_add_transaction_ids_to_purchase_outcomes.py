@@ -18,51 +18,41 @@ depends_on = None
 
 
 def upgrade():
-    # Add debit_transaction_id column (String to match balance_transactions.id)
-    op.add_column(
-        "purchase_outcomes",
-        sa.Column("debit_transaction_id", sa.String(), nullable=True),
-    )
+    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+        batch_op.add_column(
+            sa.Column("debit_transaction_id", sa.String(), nullable=True)
+        )
+        batch_op.add_column(
+            sa.Column("refund_transaction_id", sa.String(), nullable=True)
+        )
 
-    # Add refund_transaction_id column (String to match balance_transactions.id)
-    op.add_column(
-        "purchase_outcomes",
-        sa.Column("refund_transaction_id", sa.String(), nullable=True),
-    )
+    # Add foreign keys in separate batch operations
+    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+        batch_op.create_foreign_key(
+            "fk_purchase_outcomes_debit_transaction",
+            "balance_transactions",
+            ["debit_transaction_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
 
-    # Add foreign key constraints
-    op.create_foreign_key(
-        "fk_purchase_outcomes_debit_transaction",
-        "purchase_outcomes",
-        "balance_transactions",
-        ["debit_transaction_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-
-    op.create_foreign_key(
-        "fk_purchase_outcomes_refund_transaction",
-        "purchase_outcomes",
-        "balance_transactions",
-        ["refund_transaction_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+        batch_op.create_foreign_key(
+            "fk_purchase_outcomes_refund_transaction",
+            "balance_transactions",
+            ["refund_transaction_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
 
 
 def downgrade():
-    # Drop foreign key constraints
-    op.drop_constraint(
-        "fk_purchase_outcomes_refund_transaction",
-        "purchase_outcomes",
-        type_="foreignkey",
-    )
-    op.drop_constraint(
-        "fk_purchase_outcomes_debit_transaction",
-        "purchase_outcomes",
-        type_="foreignkey",
-    )
-
-    # Drop columns
-    op.drop_column("purchase_outcomes", "refund_transaction_id")
-    op.drop_column("purchase_outcomes", "debit_transaction_id")
+    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+        batch_op.drop_constraint(
+            "fk_purchase_outcomes_refund_transaction", type_="foreignkey"
+        )
+        batch_op.drop_constraint(
+            "fk_purchase_outcomes_debit_transaction", type_="foreignkey"
+        )
+        batch_op.drop_column("refund_transaction_id")
+        batch_op.drop_column("debit_transaction_id")

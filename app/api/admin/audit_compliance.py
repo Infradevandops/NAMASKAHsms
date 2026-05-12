@@ -1,5 +1,6 @@
 """Admin audit and compliance endpoints."""
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -45,11 +47,9 @@ async def get_audit_logs(
             "pages": 0,
             "filters": {"action": action, "admin_id": admin_id_filter, "days": days},
         }
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve audit logs: {str(e)}"
-        )
+        logger.error(f"Failed to retrieve audit logs: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve audit logs")
 
 
 @router.get("/integrity/check")
@@ -60,41 +60,47 @@ async def check_financial_integrity(
     offset: int = 0,
 ):
     """Deep audit: Verify that User.credits matches Sum(BalanceTransaction)."""
-    from sqlalchemy import func
+    try:
+        from sqlalchemy import func
 
-    from app.models.balance_transaction import BalanceTransaction
-    from app.models.user import User
+        from app.models.balance_transaction import BalanceTransaction
+        from app.models.user import User
 
-    users = db.query(User).offset(offset).limit(limit).all()
-    discrepancies = []
+        users = db.query(User).offset(offset).limit(limit).all()
+        discrepancies = []
 
-    for user in users:
-        # Sum all transactions for this user
-        tx_sum = (
-            db.query(func.sum(BalanceTransaction.amount))
-            .filter(BalanceTransaction.user_id == user.id)
-            .scalar()
-            or 0.0
-        )
-
-        balance = float(user.credits or 0.0)
-        diff = abs(balance - float(tx_sum))
-
-        if diff > 0.01:  # Small epsilon for float precision
-            discrepancies.append(
-                {
-                    "user_id": user.id,
-                    "email": user.email,
-                    "cached_balance": balance,
-                    "ledger_sum": float(tx_sum),
-                    "drift": balance - float(tx_sum),
-                }
+        for user in users:
+            # Sum all transactions for this user
+            tx_sum = (
+                db.query(func.sum(BalanceTransaction.amount))
+                .filter(BalanceTransaction.user_id == user.id)
+                .scalar()
+                or 0.0
             )
 
-    return {
-        "status": "healthy" if not discrepancies else "drift_detected",
-        "check_timestamp": datetime.now(timezone.utc).isoformat(),
-        "users_checked": len(users),
-        "discrepancies": discrepancies,
-        "total_discrepancy_count": len(discrepancies),
-    }
+            balance = float(user.credits or 0.0)
+            diff = abs(balance - float(tx_sum))
+
+            if diff > 0.01:  # Small epsilon for float precision
+                discrepancies.append(
+                    {
+                        "user_id": user.id,
+                        "email": user.email,
+                        "cached_balance": balance,
+                        "ledger_sum": float(tx_sum),
+                        "drift": balance - float(tx_sum),
+                    }
+                )
+
+        return {
+            "status": "healthy" if not discrepancies else "drift_detected",
+            "check_timestamp": datetime.now(timezone.utc).isoformat(),
+            "users_checked": len(users),
+            "discrepancies": discrepancies,
+            "total_discrepancy_count": len(discrepancies),
+        }
+    except Exception as e:
+        logger.error(f"Failed to check financial integrity: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Failed to check financial integrity"
+        )

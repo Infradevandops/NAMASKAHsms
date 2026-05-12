@@ -1,5 +1,6 @@
 """Admin dashboard V2 - High-density institutional metrics."""
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
@@ -14,6 +15,7 @@ from app.models.user import User
 from app.models.verification import Verification
 from app.services.analytics_service import AnalyticsService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -102,9 +104,7 @@ async def get_dashboard_v2_stats(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).error(f"Dashboard V2 stats failed: {e}")
+        logger.error(f"Dashboard V2 stats failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=500, detail="Failed to aggregate institutional stats"
         )
@@ -167,9 +167,7 @@ async def get_rental_overview(
             "timestamp": now.isoformat(),
         }
     except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).error(f"Rental overview failed: {e}")
+        logger.error(f"Rental overview failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to get rental overview")
 
 
@@ -211,7 +209,5 @@ async def get_liquidity_alarms(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).error(f"Liquidity alarms fetch failed: {e}")
+        logger.error(f"Liquidity alarms fetch failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch liquidity alarms")

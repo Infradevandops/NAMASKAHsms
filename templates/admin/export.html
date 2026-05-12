@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Data - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2>Export Data</h2>
+                <p class="text-muted">Export platform data in various formats</p>
+            </div>
+        </div>
+
+        <!-- Export Form -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Create New Export</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Data Type</label>
+                                <select class="form-select" id="dataType">
+                                    <option value="users">Users</option>
+                                    <option value="verifications">Verifications</option>
+                                    <option value="transactions">Transactions</option>
+                                    <option value="refunds">Refunds</option>
+                                    <option value="audit_logs">Audit Logs</option>
+                                    <option value="support_tickets">Support Tickets</option>
+                                    <option value="kyc_profiles">KYC Profiles</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Format</label>
+                                <select class="form-select" id="format">
+                                    <option value="csv">CSV</option>
+                                    <option value="json">JSON</option>
+                                    <option value="excel">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Filters (Optional)</label>
+                            <textarea class="form-control" id="filters" rows="2" placeholder='{"status": "completed", "tier": "pro"}'></textarea>
+                            <small class="text-muted">JSON format for additional filters</small>
+                        </div>
+                        <button class="btn btn-primary w-100" onclick="createExport()">
+                            <i class="bi bi-download"></i> Generate Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Export Guidelines</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Data Types:</h6>
+                        <ul class="small">
+                            <li><strong>Users:</strong> All user accounts and profiles</li>
+                            <li><strong>Verifications:</strong> SMS/Voice verification records</li>
+                            <li><strong>Transactions:</strong> Payment and credit transactions</li>
+                            <li><strong>Refunds:</strong> Refund history</li>
+                            <li><strong>Audit Logs:</strong> Admin action logs</li>
+                            <li><strong>Support Tickets:</strong> Customer support records</li>
+                            <li><strong>KYC Profiles:</strong> KYC verification data</li>
+                        </ul>
+                        <h6>Formats:</h6>
+                        <ul class="small">
+                            <li><strong>CSV:</strong> Best for spreadsheets</li>
+                            <li><strong>JSON:</strong> Best for APIs/integrations</li>
+                            <li><strong>Excel:</strong> Best for analysis</li>
+                        </ul>
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-exclamation-triangle"></i> Large exports may take several minutes
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export History -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Export History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data Type</th>
+                                <th>Format</th>
+                                <th>Date Range</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exportsTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function createExport() {
+            const dataType = document.getElementById('dataType').value;
+            const format = document.getElementById('format').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const filtersText = document.getElementById('filters').value;
+
+            let filters = {};
+            if (filtersText) {
+                try {
+                    filters = JSON.parse(filtersText);
+                } catch (e) {
+                    alert('Invalid JSON in filters field');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('/api/admin/export/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data_type: dataType,
+                        format: format,
+                        start_date: startDate,
+                        end_date: endDate,
+                        filters: filters
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Export created successfully. ID: ${data.export_id}`);
+                    loadExports();
+                } else {
+                    alert('Failed to create export');
+                }
+            } catch (error) {
+                console.error('Failed to create export:', error);
+                alert('Failed to create export');
+            }
+        }
+
+        async function loadExports() {
+            try {
+                const response = await fetch('/api/admin/export/history', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const tbody = document.getElementById('exportsTable');
+                if (!data.exports || data.exports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No exports found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.exports.map(exp => `
+                    <tr>
+                        <td>${exp.id.substring(0, 8)}</td>
+                        <td>${exp.data_type}</td>
+                        <td><span class="badge bg-info">${exp.format.toUpperCase()}</span></td>
+                        <td>${exp.start_date || 'N/A'} - ${exp.end_date || 'N/A'}</td>
+                        <td><span class="badge bg-${getStatusColor(exp.status)}">${exp.status}</span></td>
+                        <td>${new Date(exp.created_at).toLocaleString()}</td>
+                        <td>
+                            ${exp.status === 'completed' ? `
+                                <a href="${exp.download_url}" class="btn btn-sm btn-success" download>
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            ` : exp.status === 'processing' ? `
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="bi bi-hourglass"></i> Processing
+                                </button>
+                            ` : `
+                                <button class="btn btn-sm btn-danger" disabled>
+                                    <i class="bi bi-x-circle"></i> Failed
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load exports:', error);
+                document.getElementById('exportsTable').innerHTML =
+                    '<tr><td colspan="7" class="text-center text-danger">Failed to load exports</td></tr>';
+            }
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                pending: 'warning',
+                processing: 'info',
+                completed: 'success',
+                failed: 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        // Set default dates (last 30 days)
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        document.getElementById('endDate').valueAsDate = today;
+        document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+
+        loadExports();
+        setInterval(loadExports, 30000);
+    </script>
+</body>
+</html>

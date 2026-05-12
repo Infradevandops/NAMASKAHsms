@@ -20,29 +20,35 @@ class ContactRequest(BaseModel):
 @router.post("/send")
 async def send_contact_message(data: ContactRequest):
     """Receive contact form submission."""
-    logger.info(f"Contact form: {data.category} from {data.email} - {data.subject}")
-
-    # In production, integrate with email service or ticketing system
-    # For now, log and acknowledge
     try:
-        from app.services.email_service import email_service
+        logger.info(f"Contact form: {data.category} from {data.email} - {data.subject}")
 
-        await email_service.send_email(
-            to_email="support@namaskah.app",
-            subject=f"[Contact Form] {data.category}: {data.subject}",
-            html_content=f"""
-            <h3>New Contact Form Submission</h3>
-            <p><strong>From:</strong> {data.name} ({data.email})</p>
-            <p><strong>Category:</strong> {data.category}</p>
-            <p><strong>Subject:</strong> {data.subject}</p>
-            <hr>
-            <p>{data.message}</p>
-            """,
-        )
+        # In production, integrate with email service or ticketing system
+        # For now, log and acknowledge
+        try:
+            from app.services.email_service import email_service
+
+            await email_service.send_email(
+                to_email="support@namaskah.app",
+                subject=f"[Contact Form] {data.category}: {data.subject}",
+                html_content=f"""
+                <h3>New Contact Form Submission</h3>
+                <p><strong>From:</strong> {data.name} ({data.email})</p>
+                <p><strong>Category:</strong> {data.category}</p>
+                <p><strong>Subject:</strong> {data.subject}</p>
+                <hr>
+                <p>{data.message}</p>
+                """,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to forward contact email: {e}")
+
+        return {
+            "status": "success",
+            "message": "Message received. We'll respond within 24 hours.",
+        }
     except Exception as e:
-        logger.warning(f"Failed to forward contact email: {e}")
+        logger.error(f"Error processing contact form: {e}", exc_info=True)
+        from fastapi import HTTPException
 
-    return {
-        "status": "success",
-        "message": "Message received. We'll respond within 24 hours.",
-    }
+        raise HTTPException(status_code=500, detail="Failed to send message")

@@ -1,5 +1,6 @@
 """Admin tier management endpoints."""
 
+import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -24,14 +26,18 @@ async def require_admin(
 
 @router.get("/tiers/list")
 async def list_tiers(admin_id: str = Depends(require_admin)):
-    return {
-        "tiers": [
-            {"name": "freemium", "price": 0},
-            {"name": "payg", "price": 0},
-            {"name": "pro", "price": 25},
-            {"name": "custom", "price": 35},
-        ]
-    }
+    try:
+        return {
+            "tiers": [
+                {"name": "freemium", "price": 0},
+                {"name": "payg", "price": 0},
+                {"name": "pro", "price": 25},
+                {"name": "custom", "price": 35},
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Failed to list tiers: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to list tiers")
 
 
 @router.get("/tiers/stats")
@@ -39,19 +45,23 @@ async def get_tier_stats(
     admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
 ):
     """Tier distribution stats for admin dashboard."""
-    users = db.query(User).filter(User.is_active == True).all()
-    counts = {}
-    for u in users:
-        tier = u.subscription_tier or "freemium"
-        counts[tier] = counts.get(tier, 0) + 1
-    return {
-        "total_users": len(users),
-        "by_tier": counts,
-        "freemium": counts.get("freemium", 0),
-        "payg": counts.get("payg", 0),
-        "pro": counts.get("pro", 0),
-        "custom": counts.get("custom", 0),
-    }
+    try:
+        users = db.query(User).filter(User.is_active == True).all()
+        counts = {}
+        for u in users:
+            tier = u.subscription_tier or "freemium"
+            counts[tier] = counts.get(tier, 0) + 1
+        return {
+            "total_users": len(users),
+            "by_tier": counts,
+            "freemium": counts.get("freemium", 0),
+            "payg": counts.get("payg", 0),
+            "pro": counts.get("pro", 0),
+            "custom": counts.get("custom", 0),
+        }
+    except Exception as e:
+        logger.error(f"Failed to get tier stats: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get tier stats")
 
 
 @router.get("/tiers/users")
@@ -126,35 +136,42 @@ async def update_user_tier(
     db: Session = Depends(get_db),
 ):
     """Update a user's subscription tier."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    valid_tiers = {"freemium", "payg", "pro", "custom"}
-    if body.tier not in valid_tiers:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}"
-        )
-    user.subscription_tier = body.tier
-    db.commit()
-
     try:
-        import asyncio
-
-        from app.services.audit_service import AuditService
-
-        asyncio.create_task(
-            AuditService(db).log_action(
-                user_id=admin_id,
-                action="tier_change",
-                resource_type="user",
-                resource_id=user_id,
-                details={"new_tier": body.tier},
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        valid_tiers = {"freemium", "payg", "pro", "custom"}
+        if body.tier not in valid_tiers:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}"
             )
-        )
-    except Exception:
-        pass
+        user.subscription_tier = body.tier
+        db.commit()
 
-    return {"success": True, "user_id": user_id, "new_tier": body.tier}
+        try:
+            import asyncio
+
+            from app.services.audit_service import AuditService
+
+            asyncio.create_task(
+                AuditService(db).log_action(
+                    user_id=admin_id,
+                    action="tier_change",
+                    resource_type="user",
+                    resource_id=user_id,
+                    details={"new_tier": body.tier},
+                )
+            )
+        except Exception:
+            pass
+
+        return {"success": True, "user_id": user_id, "new_tier": body.tier}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update user tier: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to update user tier")
 
 
 class BulkTierRequest(BaseModel):

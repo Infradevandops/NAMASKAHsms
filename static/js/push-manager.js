@@ -121,7 +121,7 @@ class PushManager {
             const token = localStorage.getItem('access_token');
             if (!token) return;
 
-            const response = await fetch('/api/push/devices', {
+            const response = await fetch('/api/notifications/push/register-device?device_token=' + playerId + '&platform=web', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -154,7 +154,7 @@ class PushManager {
             if (typeof OneSignal !== 'undefined') {
                 const userId = await OneSignal.getUserId();
                 if (userId) {
-                    await fetch(`/api/push/devices/${userId}`, {
+                    await fetch(`/api/notifications/push/unregister-device?device_token=${userId}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -175,7 +175,7 @@ class PushManager {
             const token = localStorage.getItem('access_token');
             if (!token) throw new Error('Not authenticated');
 
-            const response = await fetch('/api/push/test', {
+            const response = await fetch('/api/notifications/push/test', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

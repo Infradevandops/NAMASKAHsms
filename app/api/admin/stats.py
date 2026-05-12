@@ -1,5 +1,6 @@
 """Admin stats endpoints."""
 
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -57,6 +59,7 @@ async def get_stats_summary(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
+        logger.error(f"Failed to get stats summary: {e}", exc_info=True)
         # Fallback if tables don't exist
         return {
             "summary": {
@@ -66,7 +69,6 @@ async def get_stats_summary(
                 "revenue": 0.0,
             },
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "error": str(e),
         }
 
 

@@ -1,5 +1,6 @@
 """Admin pricing control endpoints for managing provider prices and templates."""  # noqa: E501
 
+import logging
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -12,6 +13,7 @@ from app.services.price_history_service import PriceHistoryService
 from app.services.pricing_template_service import PricingTemplateService
 from app.services.provider_price_service import ProviderPriceService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -32,8 +34,14 @@ async def get_live_provider_prices(
     db: Session = Depends(get_db),
 ):
     """Fetch live prices from providers with platform markup."""
-    service = ProviderPriceService(db)
-    return await service.get_live_prices(force_refresh=force_refresh)
+    try:
+        service = ProviderPriceService(db)
+        return await service.get_live_prices(force_refresh=force_refresh)
+    except Exception as e:
+        logger.error(f"Failed to get live provider prices: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Failed to get live provider prices"
+        )
 
 
 @router.get("/pricing/templates")
@@ -43,9 +51,13 @@ async def list_pricing_templates(
     db: Session = Depends(get_db),
 ):
     """List all pricing templates."""
-    service = PricingTemplateService(db)
-    templates = service.list_templates(region=region)
-    return {"templates": [t.to_dict() for t in templates]}
+    try:
+        service = PricingTemplateService(db)
+        templates = service.list_templates(region=region)
+        return {"templates": [t.to_dict() for t in templates]}
+    except Exception as e:
+        logger.error(f"Failed to list pricing templates: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to list pricing templates")
 
 
 @router.post("/pricing/templates")

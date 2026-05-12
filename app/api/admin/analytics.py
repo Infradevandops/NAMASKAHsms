@@ -1,5 +1,6 @@
 """Admin analytics endpoints."""
 
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -28,9 +30,9 @@ async def get_analytics_overview(
     db: Session = Depends(get_db),
 ):
     """Get analytics overview using the hardened AnalyticsService."""
-    from app.services.analytics_service import AnalyticsService
-
     try:
+        from app.services.analytics_service import AnalyticsService
+
         service = AnalyticsService(db)
         overview = await service.get_overview()
         refund_stats = await service.get_refund_stats()
@@ -41,9 +43,8 @@ async def get_analytics_overview(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get analytics: {str(e)}"
-        )
+        logger.error(f"Failed to get analytics overview: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get analytics")
 
 
 @router.get("/analytics/timeseries")
@@ -53,15 +54,14 @@ async def get_analytics_timeseries(
     db: Session = Depends(get_db),
 ):
     """Get timeseries data for charts."""
-    from app.services.analytics_service import AnalyticsService
-
     try:
+        from app.services.analytics_service import AnalyticsService
+
         service = AnalyticsService(db)
         return await service.get_timeseries(days=days)
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get timeseries: {str(e)}"
-        )
+        logger.error(f"Failed to get timeseries data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get timeseries")
 
 
 @router.get("/analytics/services")
@@ -70,12 +70,11 @@ async def get_analytics_services(
     db: Session = Depends(get_db),
 ):
     """Get per-service statistics."""
-    from app.services.analytics_service import AnalyticsService
-
     try:
+        from app.services.analytics_service import AnalyticsService
+
         service = AnalyticsService(db)
         return await service.get_services_stats()
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get service stats: {str(e)}"
-        )
+        logger.error(f"Failed to get service stats: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get service stats")

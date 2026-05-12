@@ -1,5 +1,6 @@
 """Admin dashboard endpoints."""
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -29,9 +31,9 @@ async def get_dashboard_stats(
     db: Session = Depends(get_db),
 ):
     """Get dashboard statistics using real service data."""
-    from app.services.analytics_service import AnalyticsService
-
     try:
+        from app.services.analytics_service import AnalyticsService
+
         total_users = db.query(User).count()
         admin_users = db.query(User).filter(User.is_admin == True).count()
 
@@ -53,11 +55,9 @@ async def get_dashboard_stats(
             "net_revenue": refund_stats["net_revenue"],
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get dashboard stats: {str(e)}"
-        )
+        logger.error(f"Failed to get dashboard stats: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get dashboard stats")
 
 
 @router.get("/dashboard/recent-activity")
@@ -75,11 +75,9 @@ async def get_recent_activity(
             "limit": limit,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get recent activity: {str(e)}"
-        )
+        logger.error(f"Failed to get recent activity: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get recent activity")
 
 
 @router.get("/dashboard/system-health")
@@ -99,8 +97,6 @@ async def get_system_health(
             },
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get system health: {str(e)}"
-        )
+        logger.error(f"Failed to get system health: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get system health")

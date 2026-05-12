@@ -1,5 +1,6 @@
 """Admin Operational Intelligence endpoints."""
 
+import logging
 from typing import Any, Dict, List, Optional  # noqa: F401
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
@@ -13,6 +14,7 @@ from app.services.operational_intelligence_service import (  # noqa: E501
     OperationalIntelligenceService,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -39,8 +41,12 @@ async def get_user_vitality(
     db: Session = Depends(get_db),
 ):
     """Get DAU, Signup Velocity, and Power User data."""
-    service = OperationalIntelligenceService(db)
-    return await service.get_user_vitality(days=days)
+    try:
+        service = OperationalIntelligenceService(db)
+        return await service.get_user_vitality(days=days)
+    except Exception as e:
+        logger.error(f"Failed to get user vitality: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get user vitality")
 
 
 @router.get("/intelligence/audit/margin")
@@ -50,8 +56,12 @@ async def get_margin_audit(
     db: Session = Depends(get_db),
 ):
     """Detect platform price leakage (Margin Drift)."""
-    service = OperationalIntelligenceService(db)
-    return await service.get_margin_audit(limit=limit)
+    try:
+        service = OperationalIntelligenceService(db)
+        return await service.get_margin_audit(limit=limit)
+    except Exception as e:
+        logger.error(f"Failed to get margin audit: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get margin audit")
 
 
 @router.get("/intelligence/load-heatmap")

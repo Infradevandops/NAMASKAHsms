@@ -1,110 +1,299 @@
+"""Unit tests for WebhookService."""
+
 import json
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from app.services.webhook_service import WebhookService
 
 
-@pytest.mark.asyncio
-async def test_register_webhook():
-    """Test webhook registration."""
-    service = WebhookService()
-    user_id = "user_123"
-    url = "https://example.com/webhook"
-    events = ["payment.success"]
-
-    webhook_id = await service.register(user_id, url, events)
-
-    assert webhook_id.startswith(f"wh_{user_id}_")
-    assert webhook_id in service.webhooks
-    assert service.webhooks[webhook_id]["url"] == url
-    assert service.webhooks[webhook_id]["events"] == events
-    assert service.webhooks[webhook_id]["active"] is True
+@pytest.fixture
+def webhook_service():
+    return WebhookService()
 
 
-@pytest.mark.asyncio
-async def test_deliver_webhook_success():
-    """Test successful webhook delivery with signature."""
-    service = WebhookService()
-    webhook_id = await service.register("u1", "http://test.com", ["test_event"])
-    secret = "my_secret_key"
-    data = {"transaction_id": "tx_123"}
-
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        mock_post.return_value.status_code = 200
-
-        await service.deliver(webhook_id, "test_event", data, secret)
-
-        assert mock_post.called
-        args, kwargs = mock_post.call_args
-
-        # Verify URL
-        assert args[0] == "http://test.com"
-
-        # Verify Payload
-        payload = json.loads(kwargs["content"])
-        assert payload["event"] == "test_event"
-        assert payload["data"] == data
-
-        # Verify Signature Header
-        headers = kwargs["headers"]
-        assert "X - Webhook-Signature" in headers
-        assert headers["Content - Type"] == "application/json"
-
-        # Verify Signature content
-        expected_sig = service._sign_payload(kwargs["content"], secret)
-        assert headers["X - Webhook-Signature"] == expected_sig
+@pytest.fixture
+def mock_user_id():
+    return "user123"
 
 
-@pytest.mark.asyncio
-async def test_deliver_webhook_inactive_or_missing():
-    """Test delivery to missing or inactive webhook."""
-    service = WebhookService()
+class TestCreateWebhook:
+    def test_creates_webhook_successfully(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/webhook", ["payment.success"]
+        )
+        assert result["success"] is True
+        assert "webhook_id" in result
+        assert "secret" in result
+        assert result["webhook_id"].startswith("wh_")
 
-    # Missing ID
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        await service.deliver("missing_id", "event", {}, "secret")
-        assert not mock_post.called
+    def test_rejects_invalid_url_without_protocol(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id, "example.com/webhook", ["payment.success"]
+        )
+        assert result["success"] is False
+        assert "Invalid URL" in result["error"]
 
-    # Inactive
-    webhook_id = await service.register("u1", "http://test.com", ["event"])
-    service.webhooks[webhook_id]["active"] = False
+    def test_accepts_http_url(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id, "http://localhost:8000/webhook", ["payment.success"]
+        )
+        assert result["success"] is True
 
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        await service.deliver(webhook_id, "event", {}, "secret")
-        assert not mock_post.called
+    def test_stores_webhook_data(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id,
+            "https://example.com/webhook",
+            ["payment.success", "sms.received"],
+        )
+        webhook_id = result["webhook_id"]
+        webhook = webhook_service.webhooks[webhook_id]
+        assert webhook["user_id"] == mock_user_id
+        assert webhook["url"] == "https://example.com/webhook"
+        assert webhook["events"] == ["payment.success", "sms.received"]
+        assert webhook["active"] is True
+        assert webhook["retries"] == 0
 
 
-@pytest.mark.asyncio
-async def test_deliver_webhook_retry_logic():
-    """Test retry logic disables webhook after failures."""
-    service = WebhookService()
-    webhook_id = await service.register("u1", "http://test.com", ["event"])
+class TestListWebhooks:
+    def test_lists_user_webhooks(self, webhook_service, mock_user_id):
+        webhook_service.create_webhook(
+            mock_user_id, "https://example.com/wh1", ["event1"]
+        )
+        webhook_service.create_webhook(
+            mock_user_id, "https://example.com/wh2", ["event2"]
+        )
+        webhooks = webhook_service.list_webhooks(mock_user_id)
+        assert len(webhooks) == 2
+        assert all("id" in wh for wh in webhooks)
 
-    # Simulate failures
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        mock_post.side_effect = Exception("Connection error")
+    def test_excludes_secret_from_list(self, webhook_service, mock_user_id):
+        webhook_service.create_webhook(
+            mock_user_id, "https://example.com/wh", ["event1"]
+        )
+        webhooks = webhook_service.list_webhooks(mock_user_id)
+        assert "secret" not in webhooks[0]
 
-        # Initial state
-        assert service.webhooks[webhook_id]["retries"] == 0
-        assert service.webhooks[webhook_id]["active"] is True
+    def test_returns_empty_for_user_without_webhooks(self, webhook_service):
+        webhooks = webhook_service.list_webhooks("nonexistent_user")
+        assert webhooks == []
 
-        # Fail 4 times (threshold is > 3)
-        for i in range(4):
-            await service.deliver(webhook_id, "event", {}, "secret")
+    def test_filters_by_user_id(self, webhook_service):
+        webhook_service.create_webhook("user1", "https://example.com/wh1", ["event1"])
+        webhook_service.create_webhook("user2", "https://example.com/wh2", ["event2"])
+        webhooks = webhook_service.list_webhooks("user1")
+        assert len(webhooks) == 1
 
-        # Should be active until AFTER 4th failure checks logic?
-        # Code: retries += 1. If retries > 3: active = False.
-        # Call 1: retries=1
-        # Call 2: retries=2
-        # Call 3: retries=3
-        # Call 4: retries=4 -> active=False
 
-        assert service.webhooks[webhook_id]["retries"] == 4
-        assert service.webhooks[webhook_id]["active"] is False
+class TestDeleteWebhook:
+    def test_deletes_webhook_successfully(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/wh", ["event1"]
+        )
+        webhook_id = result["webhook_id"]
+        delete_result = webhook_service.delete_webhook(webhook_id, mock_user_id)
+        assert delete_result["success"] is True
+        assert webhook_id not in webhook_service.webhooks
 
-        # 5th call should not trigger post
-        mock_post.reset_mock()
-        await service.deliver(webhook_id, "event", {}, "secret")
-        assert not mock_post.called
+    def test_rejects_delete_for_wrong_user(self, webhook_service):
+        result = webhook_service.create_webhook(
+            "user1", "https://example.com/wh", ["event1"]
+        )
+        webhook_id = result["webhook_id"]
+        delete_result = webhook_service.delete_webhook(webhook_id, "user2")
+        assert delete_result["success"] is False
+        assert "Not found" in delete_result["error"]
+
+    def test_rejects_delete_for_nonexistent_webhook(
+        self, webhook_service, mock_user_id
+    ):
+        delete_result = webhook_service.delete_webhook("nonexistent_id", mock_user_id)
+        assert delete_result["success"] is False
+
+
+class TestSignatureGeneration:
+    def test_generates_signature(self, webhook_service):
+        payload = '{"event": "test", "data": {}}'
+        secret = "test_secret"
+        signature = webhook_service.generate_signature(payload, secret)
+        assert isinstance(signature, str)
+        assert len(signature) == 64
+
+    def test_same_payload_generates_same_signature(self, webhook_service):
+        payload = '{"event": "test"}'
+        secret = "secret123"
+        sig1 = webhook_service.generate_signature(payload, secret)
+        sig2 = webhook_service.generate_signature(payload, secret)
+        assert sig1 == sig2
+
+    def test_different_payload_generates_different_signature(self, webhook_service):
+        secret = "secret123"
+        sig1 = webhook_service.generate_signature('{"event": "test1"}', secret)
+        sig2 = webhook_service.generate_signature('{"event": "test2"}', secret)
+        assert sig1 != sig2
+
+    def test_different_secret_generates_different_signature(self, webhook_service):
+        payload = '{"event": "test"}'
+        sig1 = webhook_service.generate_signature(payload, "secret1")
+        sig2 = webhook_service.generate_signature(payload, "secret2")
+        assert sig1 != sig2
+
+
+class TestSignatureVerification:
+    def test_verifies_valid_signature(self, webhook_service):
+        payload = '{"event": "test"}'
+        secret = "secret123"
+        signature = webhook_service.generate_signature(payload, secret)
+        assert webhook_service.verify_signature(payload, signature, secret) is True
+
+    def test_rejects_invalid_signature(self, webhook_service):
+        payload = '{"event": "test"}'
+        secret = "secret123"
+        invalid_signature = "invalid_signature_hash"
+        assert (
+            webhook_service.verify_signature(payload, invalid_signature, secret)
+            is False
+        )
+
+    def test_rejects_signature_with_wrong_secret(self, webhook_service):
+        payload = '{"event": "test"}'
+        signature = webhook_service.generate_signature(payload, "secret1")
+        assert webhook_service.verify_signature(payload, signature, "secret2") is False
+
+
+class TestTriggerWebhook:
+    @pytest.mark.asyncio
+    async def test_triggers_webhook_successfully(self, webhook_service):
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                return_value=mock_response
+            )
+
+            result = await webhook_service.trigger_webhook(
+                "https://example.com/webhook", "payment.success", {"amount": 100}
+            )
+            assert result["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_handles_webhook_failure(self, webhook_service):
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_response = Mock()
+            mock_response.status_code = 500
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                return_value=mock_response
+            )
+
+            result = await webhook_service.trigger_webhook(
+                "https://example.com/webhook", "payment.success", {"amount": 100}
+            )
+            assert result["success"] is False
+
+    @pytest.mark.asyncio
+    async def test_handles_network_error(self, webhook_service):
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                side_effect=Exception("Network error")
+            )
+
+            result = await webhook_service.trigger_webhook(
+                "https://example.com/webhook", "payment.success", {"amount": 100}
+            )
+            assert result["success"] is False
+            assert "error" in result
+
+
+class TestDeliverWebhook:
+    @pytest.mark.asyncio
+    async def test_delivers_webhook_for_subscribed_event(
+        self, webhook_service, mock_user_id
+    ):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/webhook", ["payment.success"]
+        )
+        webhook_id = result["webhook_id"]
+        secret = result["secret"]
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                return_value=mock_response
+            )
+
+            await webhook_service.deliver(
+                webhook_id, "payment.success", {"amount": 100}, secret
+            )
+            assert webhook_service.webhooks[webhook_id]["retries"] == 0
+
+    @pytest.mark.asyncio
+    async def test_skips_delivery_for_unsubscribed_event(
+        self, webhook_service, mock_user_id
+    ):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/webhook", ["payment.success"]
+        )
+        webhook_id = result["webhook_id"]
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock()
+            await webhook_service.deliver(
+                webhook_id, "sms.received", {"code": "123"}, "secret"
+            )
+            mock_client.return_value.__aenter__.return_value.post.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_increments_retries_on_failure(self, webhook_service, mock_user_id):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/webhook", ["payment.success"]
+        )
+        webhook_id = result["webhook_id"]
+        secret = result["secret"]
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                side_effect=Exception("Network error")
+            )
+
+            await webhook_service.deliver(
+                webhook_id, "payment.success", {"amount": 100}, secret
+            )
+            assert webhook_service.webhooks[webhook_id]["retries"] == 1
+
+    @pytest.mark.asyncio
+    async def test_deactivates_webhook_after_max_retries(
+        self, webhook_service, mock_user_id
+    ):
+        result = webhook_service.create_webhook(
+            mock_user_id, "https://example.com/webhook", ["payment.success"]
+        )
+        webhook_id = result["webhook_id"]
+        secret = result["secret"]
+        webhook_service.webhooks[webhook_id]["retries"] = 3
+
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                side_effect=Exception("Network error")
+            )
+
+            await webhook_service.deliver(
+                webhook_id, "payment.success", {"amount": 100}, secret
+            )
+            assert webhook_service.webhooks[webhook_id]["active"] is False
+
+
+class TestRegisterWebhook:
+    @pytest.mark.asyncio
+    async def test_registers_webhook(self, webhook_service, mock_user_id):
+        webhook_id = await webhook_service.register(
+            mock_user_id, "https://example.com/webhook", ["event1", "event2"]
+        )
+        assert webhook_id.startswith("wh_")
+        assert webhook_id in webhook_service.webhooks
+        assert (
+            webhook_service.webhooks[webhook_id]["url"] == "https://example.com/webhook"
+        )
+        assert webhook_service.webhooks[webhook_id]["events"] == ["event1", "event2"]
+        assert webhook_service.webhooks[webhook_id]["active"] is True

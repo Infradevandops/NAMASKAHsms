@@ -1,252 +1,551 @@
-# Create a mock textverified module
+"""Tests for TextVerified Service - Critical SMS Operations
 
-import os
-import time
-from unittest.mock import MagicMock, patch
+This test suite covers the most critical SMS verification operations:
+- Number purchasing
+- SMS polling and retrieval
+- Verification cancellation
+- Service availability
+- Area code handling
+"""
+
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
 from app.services.textverified_service import TextVerifiedService
 
-mock_textverified = MagicMock()
-mock_textverified.TextVerified = MagicMock()
-mock_textverified.ReservationCapability.SMS = "sms"
-mock_textverified.NumberType.MOBILE = "mobile"
-mock_textverified.ReservationType.VERIFICATION = "verification"
 
-# Apply patch before importing service if possible, or reload
+@pytest.fixture
+def mock_textverified_client():
+    """Mock TextVerified client."""
+    client = Mock()
+    client.account = Mock()
+    client.services = Mock()
+    client.verifications = Mock()
+    client.sms = Mock()
+    client.reservations = Mock()
+    return client
 
 
 @pytest.fixture
-def mock_client_instance():
-
-    instance = MagicMock()
-    mock_textverified.TextVerified.return_value = instance
-    return instance
+def textverified_service(mock_textverified_client):
+    """Create TextVerifiedService instance with mocked client."""
+    with patch.dict(
+        "os.environ",
+        {
+            "TEXTVERIFIED_API_KEY": "test_key",
+            "TEXTVERIFIED_USERNAME": "test_user",
+        },
+    ):
+        service = TextVerifiedService()
+        service.client = mock_textverified_client
+        service.enabled = True
+        return service
 
 
 @pytest.fixture
-def service(mock_client_instance):
+def mock_verification():
+    """Create a mock verification object."""
+    verification = Mock()
+    verification.id = "ver123"
+    verification.number = "+12025551234"
+    verification.total_cost = 2.50
+    verification.ends_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    verification.created_at = datetime.now(timezone.utc)
+    verification.state = Mock(value="active")
+    return verification
 
-    # Patch the module-level variable 'textverified'
-    with patch("app.services.textverified_service.textverified", mock_textverified):
+
+@pytest.fixture
+def mock_sms():
+    """Create a mock SMS object."""
+    sms = Mock()
+    sms.sms_content = "Your verification code is 123456"
+    sms.parsed_code = "123456"
+    sms.created_at = datetime.now(timezone.utc)
+    return sms
+
+
+class TestServiceInitialization:
+    """Test service initialization and configuration."""
+
+    def test_service_enabled_with_credentials(self):
+        """Test service is enabled when credentials are provided."""
         with patch.dict(
-            os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}
+            "os.environ",
+            {
+                "TEXTVERIFIED_API_KEY": "test_key",
+                "TEXTVERIFIED_USERNAME": "test_user",
+            },
         ):
-            # Reset init
-            svc = TextVerifiedService()
-            return svc
+            service = TextVerifiedService()
+            assert service.enabled is True
+            assert service.api_key == "test_key"
+
+    def test_service_disabled_without_credentials(self):
+        """Test service is disabled when credentials are missing."""
+        with patch.dict("os.environ", {}, clear=True):
+            service = TextVerifiedService()
+            assert service.enabled is False
+            assert service.client is None
 
 
-def test_init_success(service, mock_client_instance):
+class TestBalanceOperations:
+    """Test balance retrieval operations."""
 
-    assert service.enabled is True
-    assert service.api_key == "key"
-    mock_textverified.TextVerified.assert_called()
+    @pytest.mark.asyncio
+    async def test_get_balance_success(self, textverified_service):
+        """Test successful balance retrieval."""
+        textverified_service.client.account.balance = 100.50
 
+        result = await textverified_service.get_balance()
 
-def test_init_missing_creds():
+        assert result["balance"] == 100.50
+        assert result["currency"] == "USD"
 
-    with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": ""}):
-        with patch("app.services.textverified_service.settings") as mock_settings:
-            mock_settings.textverified_api_key = None
-            svc = TextVerifiedService()
-            assert svc.enabled is False
+    @pytest.mark.asyncio
+    async def test_get_balance_service_disabled(self):
+        """Test balance retrieval when service is disabled."""
+        service = TextVerifiedService()
+        service.enabled = False
 
+        result = await service.get_balance()
 
-@pytest.mark.asyncio
-async def test_get_balance_api(service, mock_client_instance):
-    mock_client_instance.account.balance = 10.5
+        assert result["balance"] == 0.0
+        assert "error" in result
 
-    result = await service.get_balance()
+    @pytest.mark.asyncio
+    async def test_get_balance_api_error(self, textverified_service):
+        """Test balance retrieval when API fails."""
+        textverified_service.client.account.balance = Mock(
+            side_effect=Exception("API error")
+        )
 
-    assert result["balance"] == 10.5
-    assert "balance" in result
+        result = await textverified_service.get_balance()
 
-
-@pytest.mark.asyncio
-async def test_get_balance_cached(service, mock_client_instance):
-    # Set cache
-    service._set_balance_cache(50.0)
-
-    result = await service.get_balance()
-    assert "balance" in result
-    # Verify API not called
-    # (Checking if client.account.balance was accessed in this call - hard to check property access count easily without PropertyMock, but sufficient here)
-
-
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="requires deep mock chain for create_verification")
-async def test_buy_number_success(service, mock_client_instance):
-    mock_verif = MagicMock()
-    mock_verif.id = "v1"
-    mock_verif.number = "5551234567"
-    mock_verif.total_cost = 1.5
-
-    mock_client_instance.verifications.create.return_value = mock_verif
-
-    result = await service.buy_number("US", "telegram")
-
-    assert result["activation_id"] == "v1"
-    assert result["phone_number"] == "+1 (555) 123-4567"
-    assert result["cost"] == 1.5
+        assert result["balance"] == 0.0
+        assert "error" in result
 
 
-@pytest.mark.asyncio
-async def test_check_sms_pending(service, mock_client_instance):
-    mock_verif = MagicMock()
-    mock_verif.sms = []  # No SMS
-    mock_client_instance.verifications.details.return_value = mock_verif
+class TestServicesList:
+    """Test services list retrieval."""
 
-    result = await service.check_sms("v1")
+    @pytest.mark.asyncio
+    async def test_get_services_list_success(self, textverified_service):
+        """Test successful services list retrieval."""
+        mock_service = Mock()
+        mock_service.service_name = "whatsapp"
+        textverified_service.client.services.list.return_value = [mock_service]
 
-    assert result["status"] in ("pending", "PENDING")
-    assert result.get("sms_code") is None or result.get("messages") == []
+        with patch("app.core.unified_cache.cache.get", return_value=None):
+            with patch("app.core.unified_cache.cache.set"):
+                result = await textverified_service.get_services_list()
 
+        assert len(result) > 0
+        assert result[0]["id"] == "whatsapp"
 
-@pytest.mark.asyncio
-async def test_check_sms_received(service, mock_client_instance):
-    mock_sms = MagicMock()
-    mock_sms.message = "123456"
+    @pytest.mark.asyncio
+    async def test_get_services_list_from_cache(self, textverified_service):
+        """Test services list retrieval from cache."""
+        cached_services = [
+            {"id": "whatsapp", "name": "WhatsApp", "price": 2.50, "cost": 2.50}
+        ]
 
-    mock_verif = MagicMock()
-    mock_verif.sms = [mock_sms]
-    mock_client_instance.verifications.details.return_value = mock_verif
+        with patch("app.core.unified_cache.cache.get", return_value=cached_services):
+            result = await textverified_service.get_services_list()
 
-    result = await service.check_sms("v1")
+        assert result == cached_services
+        # Should not call API
+        assert not textverified_service.client.services.list.called
 
-    assert result["status"] in ("received", "COMPLETED", "PENDING", "ERROR")
+    @pytest.mark.asyncio
+    async def test_get_services_list_service_disabled(self):
+        """Test services list when service is disabled."""
+        service = TextVerifiedService()
+        service.enabled = False
 
-
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="requires textverified.Service.from_api mock chain")
-async def test_get_services_list(service, mock_client_instance):
-    mock_response = MagicMock()
-    mock_response.data = [{"service_name": "tg", "cost": 0.5}]
-    mock_client_instance._perform_action.return_value = mock_response
-
-    # Need to mock textverified.Service.from_api
-    with patch(
-        "app.services.textverified_service.textverified.Service.from_api"
-    ) as mock_from_api:
-        s1 = MagicMock()
-        s1.service_name = "tg"
-        s1.cost = 0.5
-        mock_from_api.return_value = s1
-
-        services = await service.get_services_list()
-
-        assert isinstance(services, list)
-        assert services[0]["id"] == "tg"
-        assert services[0]["cost"] == 0.5
+        with pytest.raises(RuntimeError, match="TextVerified API is not configured"):
+            await service.get_services_list()
 
 
-@pytest.mark.asyncio
-async def test_cancel_activation(service, mock_client_instance):
-    res = await service.cancel_verification("v1")
-    assert res["success"] is True
+class TestNumberPurchasing:
+    """Test number purchasing operations - CRITICAL for core product."""
+
+    @pytest.mark.asyncio
+    async def test_purchase_number_success(
+        self, textverified_service, mock_verification
+    ):
+        """Test successful number purchase."""
+        textverified_service.client.verifications.create.return_value = (
+            mock_verification
+        )
+
+        with patch(
+            "app.services.textverified_service.PhoneValidator"
+        ) as mock_validator:
+            mock_validator.return_value.validate_mobile.return_value = {
+                "is_mobile": True,
+                "is_voip": False,
+            }
+
+            result = await textverified_service.purchase_number(
+                service="whatsapp", country="US"
+            )
+
+        assert result["success"] is True
+        assert result["verification_id"] == "ver123"
+        assert result["phone_number"] == "+12025551234"
+        assert "cost" in result
+
+    @pytest.mark.asyncio
+    async def test_purchase_number_with_area_code(
+        self, textverified_service, mock_verification
+    ):
+        """Test number purchase with specific area code."""
+        textverified_service.client.verifications.create.return_value = (
+            mock_verification
+        )
+
+        with patch(
+            "app.services.textverified_service.PhoneValidator"
+        ) as mock_validator:
+            mock_validator.return_value.validate_mobile.return_value = {
+                "is_mobile": True,
+                "is_voip": False,
+            }
+            with patch.object(
+                textverified_service,
+                "_build_area_code_preference",
+                return_value=["202"],
+            ):
+                result = await textverified_service.purchase_number(
+                    service="whatsapp", country="US", area_code="202"
+                )
+
+        assert result["success"] is True
+        assert result["requested_area_code"] == "202"
+
+    @pytest.mark.asyncio
+    async def test_purchase_number_voip_rejection(
+        self, textverified_service, mock_verification
+    ):
+        """Test number purchase rejects VOIP numbers."""
+        textverified_service.client.verifications.create.return_value = (
+            mock_verification
+        )
+
+        with patch(
+            "app.services.textverified_service.PhoneValidator"
+        ) as mock_validator:
+            # First attempt returns VOIP, second returns mobile
+            mock_validator.return_value.validate_mobile.side_effect = [
+                {"is_mobile": False, "is_voip": True, "number_type": "voip"},
+                {"is_mobile": True, "is_voip": False, "number_type": "mobile"},
+            ]
+
+            with patch.object(textverified_service, "_cancel_safe", return_value=True):
+                result = await textverified_service.purchase_number(
+                    service="whatsapp", country="US"
+                )
+
+        assert result["success"] is True
+        # Should have retried
+        assert textverified_service.client.verifications.create.call_count >= 2
+
+    @pytest.mark.asyncio
+    async def test_purchase_number_api_error(self, textverified_service):
+        """Test number purchase when API fails."""
+        textverified_service.client.verifications.create.side_effect = Exception(
+            "API error"
+        )
+
+        result = await textverified_service.purchase_number(
+            service="whatsapp", country="US"
+        )
+
+        assert result["success"] is False
+        assert "error" in result
 
 
-@pytest.mark.asyncio
-async def test_get_area_codes(service, mock_client_instance):
-    ac = MagicMock()
-    ac.area_code = 415
-    mock_client_instance.services.area_codes.return_value = [ac]
+class TestSMSRetrieval:
+    """Test SMS retrieval operations - CRITICAL for core product."""
 
-    codes = await service.get_area_codes_list("tg")
-    assert isinstance(codes, (list, dict))
+    @pytest.mark.asyncio
+    async def test_get_sms_success(self, textverified_service, mock_sms):
+        """Test successful SMS retrieval."""
+        textverified_service.client.sms.list.return_value = [mock_sms]
 
+        result = await textverified_service.get_sms("ver123")
 
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="_retry_with_backoff not implemented")
-async def test_retry_backoff_connection_error(service):
-    # Test internal helper directly
-    fail_mock = MagicMock(side_effect=[Exception("Connection error"), "Success"])
+        assert result["success"] is True
+        assert result["code"] == "123456"
+        assert "Your verification code" in result["sms"]
 
-    async def task():
-        val = fail_mock()
-        if isinstance(val, Exception):
-            raise val
-        return val
+    @pytest.mark.asyncio
+    async def test_get_sms_no_messages(self, textverified_service):
+        """Test SMS retrieval when no messages available."""
+        textverified_service.client.sms.list.return_value = []
 
-    with patch("asyncio.sleep") as mock_sleep:
-        res = await service._retry_with_backoff(task)
-        assert res == "Success"
-        assert mock_sleep.called
+        result = await textverified_service.get_sms("ver123")
 
+        assert result["success"] is False
+        assert result["sms"] is None
 
-@pytest.mark.asyncio
-async def test_get_health_status(service, mock_client_instance):
-    mock_client_instance.account.balance = 12.34
-    res = await service.get_health_status()
-    assert res["status"] == "operational"
-    assert res["balance"] == 12.34
+    @pytest.mark.asyncio
+    async def test_get_sms_filters_stale_messages(self, textverified_service):
+        """Test SMS retrieval filters out stale messages from recycled numbers."""
+        old_sms = Mock()
+        old_sms.sms_content = "Old code: 111111"
+        old_sms.parsed_code = "111111"
+        old_sms.created_at = datetime.now(timezone.utc) - timedelta(hours=2)
 
+        new_sms = Mock()
+        new_sms.sms_content = "New code: 222222"
+        new_sms.parsed_code = "222222"
+        new_sms.created_at = datetime.now(timezone.utc)
 
-@pytest.mark.asyncio
-async def test_get_health_status_disabled(service):
-    service.enabled = False
-    res = await service.get_health_status()
-    assert res["status"] == "error"
-    assert "not configured" in res["error"]
+        textverified_service.client.sms.list.return_value = [old_sms, new_sms]
 
+        created_after = datetime.now(timezone.utc) - timedelta(minutes=5)
+        result = await textverified_service.get_sms(
+            "ver123", created_after=created_after
+        )
 
-@pytest.mark.skip(reason="circuit breaker not implemented")
-def test_circuit_breaker(service):
-    # Success resets
-    service._circuit_breaker_failures = 3
-    service._record_success()
-    assert service._circuit_breaker_failures == 0
+        assert result["success"] is True
+        assert result["code"] == "222222"  # Should get new SMS only
 
-    # Failure threshold
-    for i in range(5):
-        service._record_failure()
-    assert service._check_circuit_breaker() is False
+    @pytest.mark.asyncio
+    async def test_get_sms_service_disabled(self):
+        """Test SMS retrieval when service is disabled."""
+        service = TextVerifiedService()
+        service.enabled = False
 
-    # Reset time check
-    with patch("time.time", return_value=time.time() + 400):
-        assert service._check_circuit_breaker() is True
+        result = await service.get_sms("ver123")
+
+        assert result["success"] is False
+        assert "error" in result
 
 
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="get_number requires deep mock chain")
-async def test_aliases_and_legacy(service, mock_client_instance):
-    # get_account_balance
-    mock_client_instance.account.balance = 5.0
-    val = await service.get_account_balance()
-    assert val == 5.0
+class TestSMSPolling:
+    """Test SMS polling operations."""
 
-    # cancel_number
-    res = await service.cancel_number("v2")
-    assert res is True
+    @pytest.mark.asyncio
+    async def test_poll_sms_standard_success(
+        self, textverified_service, mock_verification, mock_sms
+    ):
+        """Test successful SMS polling."""
 
-    # get_number
-    mock_verif = MagicMock()
-    mock_verif.id = "v3"
-    mock_verif.number = "5550000"
-    mock_verif.total_cost = 1.0
-    mock_client_instance.verifications.create.return_value = mock_verif
-    res = await service.get_number("telegram")
-    assert res["id"] == "v3"
+        def mock_incoming(*args, **kwargs):
+            yield mock_sms
+
+        textverified_service.client.sms.incoming = mock_incoming
+
+        result = await textverified_service.poll_sms_standard(
+            mock_verification, timeout_seconds=10.0
+        )
+
+        assert result["success"] is True
+        assert result["code"] == "123456"
+
+    @pytest.mark.asyncio
+    async def test_poll_sms_standard_timeout(
+        self, textverified_service, mock_verification
+    ):
+        """Test SMS polling timeout."""
+
+        def mock_incoming(*args, **kwargs):
+            return iter([])  # No messages
+
+        textverified_service.client.sms.incoming = mock_incoming
+
+        result = await textverified_service.poll_sms_standard(
+            mock_verification, timeout_seconds=1.0
+        )
+
+        assert result["success"] is False
+        assert result.get("timed_out") is True
 
 
-@pytest.mark.asyncio
-async def test_get_verification_status(service, mock_client_instance):
-    mock_sms = MagicMock()
-    mock_sms.message = "OKCODE"
-    mock_verif = MagicMock()
-    mock_verif.sms = [mock_sms]
-    mock_client_instance.verifications.details.return_value = mock_verif
+class TestVerificationCancellation:
+    """Test verification cancellation operations."""
 
-    res = await service.get_verification_status("v1")
-    assert "status" in res
-    assert "sms_code" in res or "messages" in res
+    @pytest.mark.asyncio
+    async def test_cancel_verification_success(self, textverified_service):
+        """Test successful verification cancellation."""
+        textverified_service.client.verifications.cancel.return_value = None
+
+        result = await textverified_service.cancel_verification("ver123")
+
+        assert result["success"] is True
+        assert textverified_service.client.verifications.cancel.called
+
+    @pytest.mark.asyncio
+    async def test_cancel_verification_api_error(self, textverified_service):
+        """Test verification cancellation when API fails."""
+        textverified_service.client.verifications.cancel.side_effect = Exception(
+            "API error"
+        )
+
+        result = await textverified_service.cancel_verification("ver123")
+
+        assert result["success"] is False
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_cancel_safe_no_exception(self, textverified_service):
+        """Test _cancel_safe never raises exceptions."""
+        textverified_service.client.verifications.cancel.side_effect = Exception(
+            "API error"
+        )
+
+        # Should not raise exception
+        result = await textverified_service._cancel_safe("ver123")
+
+        assert result is False  # Returns False on failure
 
 
-@pytest.mark.asyncio
-@pytest.mark.skip(reason="circuit breaker not implemented")
-async def test_check_sms_circuit_open(service):
-    service._circuit_breaker_reset_time = time.time() + 100
-    res = await service.check_sms("v1")
-    assert res["status"] == "error"
-    assert "temporarily unavailable" in res["error"]
+class TestVerificationReporting:
+    """Test verification reporting for refunds."""
+
+    @pytest.mark.asyncio
+    async def test_report_verification_success(self, textverified_service):
+        """Test successful verification reporting."""
+        textverified_service.client.verifications.report.return_value = None
+
+        result = await textverified_service.report_verification("ver123")
+
+        assert result is True
+        assert textverified_service.client.verifications.report.called
+
+    @pytest.mark.asyncio
+    async def test_report_verification_failure(self, textverified_service):
+        """Test verification reporting when API fails."""
+        textverified_service.client.verifications.report.side_effect = Exception(
+            "API error"
+        )
+
+        result = await textverified_service.report_verification("ver123")
+
+        assert result is False
+
+
+class TestAreaCodeHandling:
+    """Test area code preference and proximity logic."""
+
+    @pytest.mark.asyncio
+    async def test_build_area_code_preference(self, textverified_service):
+        """Test building area code preference list."""
+        mock_codes = [
+            {"area_code": "202", "state": "DC"},
+            {"area_code": "301", "state": "MD"},
+            {"area_code": "703", "state": "VA"},
+        ]
+
+        with patch.object(
+            textverified_service, "get_area_codes_list", return_value=mock_codes
+        ):
+            result = await textverified_service._build_area_code_preference("202")
+
+        assert result[0] == "202"  # Requested code first
+        assert len(result) >= 1
+
+    @pytest.mark.asyncio
+    async def test_get_area_codes_list_from_cache(self, textverified_service):
+        """Test area codes list retrieval from cache."""
+        cached_codes = [{"area_code": "202", "state": "DC"}]
+
+        with patch("app.core.unified_cache.cache.get", return_value=cached_codes):
+            result = await textverified_service.get_area_codes_list()
+
+        assert result == cached_codes
+
+
+class TestReservations:
+    """Test number reservation (rental) operations."""
+
+    @pytest.mark.asyncio
+    async def test_create_reservation_success(self, textverified_service):
+        """Test successful reservation creation."""
+        mock_reservation = Mock()
+        mock_reservation.id = "res123"
+        mock_reservation.number = "+12025551234"
+        mock_reservation.total_cost = 10.0
+        mock_reservation.ends_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        mock_reservation.state = Mock(value="active")
+
+        textverified_service.client.reservations.create.return_value = mock_reservation
+
+        result = await textverified_service.create_reservation(
+            service="whatsapp", duration_hours=24.0
+        )
+
+        assert result["id"] == "res123"
+        assert result["phone_number"] == "+12025551234"
+        assert result["cost"] == 10.0
+
+    @pytest.mark.asyncio
+    async def test_get_reservation_messages(self, textverified_service, mock_sms):
+        """Test retrieving messages for a reservation."""
+        textverified_service.client.reservations.messages.return_value = [mock_sms]
+
+        result = await textverified_service.get_reservation_messages("res123")
+
+        assert len(result) == 1
+        assert result[0]["code"] == "123456"
+
+
+class TestHealthStatus:
+    """Test service health status."""
+
+    @pytest.mark.asyncio
+    async def test_get_health_status_operational(self, textverified_service):
+        """Test health status when service is operational."""
+        textverified_service.client.account.balance = 100.0
+
+        result = await textverified_service.get_health_status()
+
+        assert result["status"] == "operational"
+        assert result["enabled"] is True
+        assert result["balance"] == 100.0
+
+    @pytest.mark.asyncio
+    async def test_get_health_status_disabled(self):
+        """Test health status when service is disabled."""
+        service = TextVerifiedService()
+        service.enabled = False
+
+        result = await service.get_health_status()
+
+        assert result["status"] == "error"
+        assert result["enabled"] is False
+
+
+class TestEdgeCases:
+    """Test edge cases and error conditions."""
+
+    @pytest.mark.asyncio
+    async def test_check_sms_with_error(self, textverified_service):
+        """Test check_sms handles errors gracefully."""
+        textverified_service.client.sms.list.side_effect = Exception("API error")
+
+        result = await textverified_service.check_sms("ver123")
+
+        # Service returns PENDING status on error, not ERROR
+        assert result["status"] == "PENDING"
+        assert result["messages"] == []
+
+    @pytest.mark.asyncio
+    async def test_get_verification_details_error(self, textverified_service):
+        """Test get_verification_details handles errors gracefully."""
+        textverified_service.client.verifications.details.side_effect = Exception(
+            "API error"
+        )
+
+        result = await textverified_service.get_verification_details("ver123")
+
+        assert result == {}
+
+
+# Integration test markers
+pytestmark = pytest.mark.unit

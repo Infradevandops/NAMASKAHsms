@@ -68,10 +68,10 @@ async def configure_forwarding(
                 "telegram_status": "coming_soon",
             },
         }
-
     except Exception as e:
-        logger.error(f"Failed to configure forwarding: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback()
+        logger.error(f"Failed to configure forwarding: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to configure forwarding")
 
 
 @router.get("")
@@ -110,10 +110,11 @@ async def get_forwarding_config(
                 "telegram_status": "coming_soon",
             },
         }
-
     except Exception as e:
-        logger.error(f"Failed to get forwarding config: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to get forwarding config: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch forwarding configuration"
+        )
 
 
 @router.post("/test")

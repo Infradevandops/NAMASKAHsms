@@ -1,5 +1,7 @@
 """Admin verification actions endpoints."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -26,4 +29,10 @@ async def get_verification_actions_summary(
     db: Session = Depends(get_db),
 ):
     """Get verification actions summary."""
-    return {"summary": "No actions available"}
+    try:
+        return {"summary": "No actions available"}
+    except Exception as e:
+        logger.error(f"Failed to get verification actions summary: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Failed to get verification actions summary"
+        )

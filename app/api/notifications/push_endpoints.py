@@ -14,7 +14,7 @@ from app.services.mobile_notification_service import MobileNotificationService
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/api/notifications/push", tags=["Push Notifications"])
+router = APIRouter(prefix="/push", tags=["Push Notifications"])
 
 
 @router.post("/register-device")

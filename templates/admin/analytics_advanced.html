@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Analytics - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12 d-flex justify-content-between">
+                <h2>Advanced Analytics</h2>
+                <div>
+                    <select class="form-select" id="timeRange" onchange="loadAllData()">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Verifications</h6>
+                        <h3 id="totalVerifications">0</h3>
+                        <small class="text-success" id="verificationsTrend">+0%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Success Rate</h6>
+                        <h3 id="successRate">0%</h3>
+                        <small class="text-success" id="successTrend">+0%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Revenue</h6>
+                        <h3 id="totalRevenue">$0</h3>
+                        <small class="text-success" id="revenueTrend">+0%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Refund Rate</h6>
+                        <h3 id="refundRate">0%</h3>
+                        <small class="text-danger" id="refundTrend">+0%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Verification Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="verificationsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Success vs Failed</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="successPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Top Services</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="servicesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Revenue by Service</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Refund Analytics -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Refund Analytics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6>Total Refunds</h6>
+                                <h4 id="totalRefunds">0</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Refund Amount</h6>
+                                <h4 id="refundAmount">$0</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Avg Refund Time</h6>
+                                <h4 id="avgRefundTime">0 min</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Auto Refund Rate</h6>
+                                <h4 id="autoRefundRate">0%</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let verificationsChart, successPieChart, servicesChart, revenueChart;
+
+        async function loadOverview() {
+            try {
+                const response = await fetch('/api/admin/analytics/verifications/overview', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('totalVerifications').textContent = data.total_verifications || 0;
+                document.getElementById('successRate').textContent = (data.success_rate || 0).toFixed(1) + '%';
+                document.getElementById('totalRevenue').textContent = '$' + (data.total_revenue || 0).toFixed(2);
+                document.getElementById('refundRate').textContent = (data.refund_rate || 0).toFixed(1) + '%';
+            } catch (error) {
+                console.error('Failed to load overview:', error);
+            }
+        }
+
+        async function loadTimeseries() {
+            const days = document.getElementById('timeRange').value;
+            try {
+                const response = await fetch(`/api/admin/analytics/verifications/timeseries?days=${days}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const labels = data.timeseries?.map(d => d.date) || [];
+                const totals = data.timeseries?.map(d => d.total) || [];
+                const successes = data.timeseries?.map(d => d.successful) || [];
+
+                if (verificationsChart) verificationsChart.destroy();
+
+                const ctx = document.getElementById('verificationsChart').getContext('2d');
+                verificationsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total',
+                            data: totals,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }, {
+                            label: 'Successful',
+                            data: successes,
+                            borderColor: 'rgb(54, 162, 235)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true
+                    }
+                });
+
+                // Success Pie Chart
+                const totalSuccess = successes.reduce((a, b) => a + b, 0);
+                const totalFailed = totals.reduce((a, b) => a + b, 0) - totalSuccess;
+
+                if (successPieChart) successPieChart.destroy();
+
+                const pieCtx = document.getElementById('successPieChart').getContext('2d');
+                successPieChart = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Successful', 'Failed'],
+                        datasets: [{
+                            data: [totalSuccess, totalFailed],
+                            backgroundColor: ['rgb(75, 192, 192)', 'rgb(255, 99, 132)']
+                        }]
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load timeseries:', error);
+            }
+        }
+
+        async function loadServiceStats() {
+            try {
+                const response = await fetch('/api/admin/analytics/verifications/by-service', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const services = data.services?.slice(0, 10) || [];
+                const labels = services.map(s => s.service_name);
+                const counts = services.map(s => s.count);
+
+                if (servicesChart) servicesChart.destroy();
+
+                const ctx = document.getElementById('servicesChart').getContext('2d');
+                servicesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Verifications',
+                            data: counts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load service stats:', error);
+            }
+        }
+
+        async function loadRevenueByService() {
+            try {
+                const response = await fetch('/api/admin/analytics/revenue/by-service', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const services = data.services?.slice(0, 10) || [];
+                const labels = services.map(s => s.service_name);
+                const revenue = services.map(s => s.net_revenue);
+
+                if (revenueChart) revenueChart.destroy();
+
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                revenueChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Revenue ($)',
+                            data: revenue,
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load revenue by service:', error);
+            }
+        }
+
+        async function loadRefundAnalytics() {
+            const days = document.getElementById('timeRange').value;
+            try {
+                const response = await fetch(`/api/admin/analytics/refunds?days=${days}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('totalRefunds').textContent = data.total_refunds || 0;
+                document.getElementById('refundAmount').textContent = '$' + (data.total_amount || 0).toFixed(2);
+                document.getElementById('avgRefundTime').textContent = (data.avg_time_minutes || 0).toFixed(0) + ' min';
+                document.getElementById('autoRefundRate').textContent = (data.auto_refund_rate || 0).toFixed(1) + '%';
+            } catch (error) {
+                console.error('Failed to load refund analytics:', error);
+            }
+        }
+
+        function loadAllData() {
+            loadOverview();
+            loadTimeseries();
+            loadServiceStats();
+            loadRevenueByService();
+            loadRefundAnalytics();
+        }
+
+        loadAllData();
+        setInterval(loadAllData, 60000); // Refresh every minute
+    </script>
+</body>
+</html>

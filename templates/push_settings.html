@@ -435,7 +435,7 @@ document.getElementById('btn-test-push').addEventListener('click', async () => {
 // Load devices
 async function loadDevices() {
     try {
-        const response = await fetch('/api/push/devices', {
+        const response = await fetch('/api/notifications/push/devices', {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             }
@@ -486,7 +486,7 @@ async function removeDevice(deviceId) {
     if (!confirm('Remove this device?')) return;
 
     try {
-        const response = await fetch(`/api/push/devices/${deviceId}`, {
+        const response = await fetch(`/api/notifications/push/devices/${deviceId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`

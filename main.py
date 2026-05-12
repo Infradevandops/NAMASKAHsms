@@ -205,6 +205,7 @@ def create_app() -> FastAPI:
     # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
     from app.api.core.dashboard_activity import router as dashboard_activity_router
     from app.api.core.textverified_balance import router as textverified_balance_router
+    from app.api.core.whitelabel_endpoints import router as whitelabel_endpoints_router
 
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(textverified_balance_router)
@@ -212,8 +213,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(alerts_router)
     fastapi_app.include_router(mfa_router)
     fastapi_app.include_router(currencies_router)
-    # OLD whitelabel router removed - now included via core router
-    # fastapi_app.include_router(whitelabel_router)
+    fastapi_app.include_router(whitelabel_endpoints_router)  # ✅ WHITELABEL ENABLED
     fastapi_app.include_router(disputes_router)
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")

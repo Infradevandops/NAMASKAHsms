@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Monitoring - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'admin/header.html' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2>Refund Monitoring</h2>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Pending Refunds</h6>
+                        <h3 id="pendingCount" class="text-warning">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Amount</h6>
+                        <h3 id="totalAmount">$0.00</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Auto-Refund Status</h6>
+                        <h3 class="text-success">Active</h3>
+                        <small class="text-muted">5-min interval</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Actions</h6>
+                        <button class="btn btn-sm btn-primary w-100" onclick="processAllRefunds()">
+                            <i class="bi bi-arrow-repeat"></i> Process All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Refunds Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Pending Refunds</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Verification ID</th>
+                                <th>User</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="refundsTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Refund Modal -->
+    <div class="modal fade" id="manualRefundModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manual Refund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Verification ID</label>
+                        <input type="text" class="form-control" id="manualVerificationId" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Refund Amount</label>
+                        <input type="number" class="form-control" id="manualAmount" step="0.01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea class="form-control" id="manualReason" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitManualRefund()">Process Refund</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentVerificationId = null;
+
+        async function loadPendingRefunds() {
+            try {
+                const response = await fetch('/api/admin/refunds/status', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('pendingCount').textContent = data.total;
+
+                const totalAmount = data.pending_refunds.reduce((sum, r) => sum + r.cost, 0);
+                document.getElementById('totalAmount').textContent = '$' + totalAmount.toFixed(2);
+
+                const tbody = document.getElementById('refundsTable');
+                if (data.pending_refunds.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No pending refunds</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.pending_refunds.map(refund => `
+                    <tr>
+                        <td>${refund.id.substring(0, 8)}</td>
+                        <td>${refund.user_id.substring(0, 8)}</td>
+                        <td>${refund.service}</td>
+                        <td><span class="badge bg-${getStatusColor(refund.status)}">${refund.status}</span></td>
+                        <td>$${refund.cost.toFixed(2)}</td>
+                        <td>${new Date(refund.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="processRefund('${refund.id}')">
+                                <i class="bi bi-arrow-repeat"></i> Process
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="openManualRefund('${refund.id}', ${refund.cost})">
+                                <i class="bi bi-pencil"></i> Manual
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load pending refunds:', error);
+                document.getElementById('refundsTable').innerHTML =
+                    '<tr><td colspan="7" class="text-center text-danger">Failed to load refunds</td></tr>';
+            }
+        }
+
+        async function processRefund(verificationId) {
+            if (!confirm('Process automatic refund for this verification?')) return;
+
+            try {
+                const response = await fetch(`/api/admin/refunds/${verificationId}/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Refund processed successfully');
+                    loadPendingRefunds();
+                } else {
+                    alert('Failed to process refund');
+                }
+            } catch (error) {
+                console.error('Failed to process refund:', error);
+                alert('Failed to process refund');
+            }
+        }
+
+        async function processAllRefunds() {
+            if (!confirm('Process all pending refunds? This may take a while.')) return;
+
+            try {
+                const response = await fetch('/api/admin/refunds/process-all', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Processed ${data.processed} refunds`);
+                    loadPendingRefunds();
+                } else {
+                    alert('Failed to process refunds');
+                }
+            } catch (error) {
+                console.error('Failed to process refunds:', error);
+                alert('Failed to process refunds');
+            }
+        }
+
+        function openManualRefund(verificationId, amount) {
+            currentVerificationId = verificationId;
+            document.getElementById('manualVerificationId').value = verificationId;
+            document.getElementById('manualAmount').value = amount.toFixed(2);
+            document.getElementById('manualReason').value = '';
+            new bootstrap.Modal(document.getElementById('manualRefundModal')).show();
+        }
+
+        async function submitManualRefund() {
+            const amount = parseFloat(document.getElementById('manualAmount').value);
+            const reason = document.getElementById('manualReason').value;
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/refunds/${currentVerificationId}/manual`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount, reason })
+                });
+
+                if (response.ok) {
+                    alert('Manual refund processed successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('manualRefundModal')).hide();
+                    loadPendingRefunds();
+                } else {
+                    alert('Failed to process manual refund');
+                }
+            } catch (error) {
+                console.error('Failed to process manual refund:', error);
+                alert('Failed to process manual refund');
+            }
+        }
+
+        function getStatusColor(status) {
+            const colors = { failed: 'danger', timeout: 'warning', cancelled: 'secondary' };
+            return colors[status] || 'secondary';
+        }
+
+        loadPendingRefunds();
+        setInterval(loadPendingRefunds, 30000); // Refresh every 30 seconds
+    </script>
+</body>
+</html>

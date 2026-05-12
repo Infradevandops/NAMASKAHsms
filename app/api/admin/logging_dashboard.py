@@ -1,5 +1,7 @@
 """Admin logging dashboard endpoints."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -26,4 +29,8 @@ async def get_logging_status(
     db: Session = Depends(get_db),
 ):
     """Get logging status."""
-    return {"status": "operational"}
+    try:
+        return {"status": "operational"}
+    except Exception as e:
+        logger.error(f"Failed to get logging status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get logging status")

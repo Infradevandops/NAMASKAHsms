@@ -1,7 +1,8 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.models.purchase_outcome import PurchaseOutcome
 from app.services.area_code_geo import NANPA_DATA
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -20,85 +22,91 @@ async def get_area_code_analytics(
     user_id: str = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Admin analytics for area code performance."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
-    outcomes = (
-        db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
-    )
-
-    if not outcomes:
-        return {
-            "period": f"{days}d",
-            "total_purchases": 0,
-            "match_rate": 0.0,
-            "top_requested": [],
-            "worst_performing": [],
-            "data_coverage": 0.0,
-        }
-
-    total_purchases = len(outcomes)
-    matched_purchases = sum(1 for o in outcomes if o.matched)
-
-    # Calculate stats per area code and service
-    ac_stats = {}
-    total_area_codes_known = set()
-
-    for outcome in outcomes:
-        req = outcome.requested_code
-        if not req:
-            if outcome.assigned_code:
-                total_area_codes_known.add(outcome.assigned_code)
-            continue
-
-        total_area_codes_known.add(req)
-
-        assigned = outcome.assigned_code
-        service = outcome.service
-
-        key = (req, service)
-        if key not in ac_stats:
-            ac_stats[key] = {"requests": 0, "successes": 0}
-
-        ac_stats[key]["requests"] += 1
-        if req == assigned:
-            ac_stats[key]["successes"] += 1
-
-    # Format and sort
-    results = []
-    for (ac, svc), stats in ac_stats.items():
-        results.append(
-            {
-                "area_code": ac,
-                "service": svc,
-                "requests": stats["requests"],
-                "success_rate": round(stats["successes"] / stats["requests"], 2),
-            }
+        outcomes = (
+            db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
         )
 
-    results.sort(key=lambda x: x["requests"], reverse=True)
+        if not outcomes:
+            return {
+                "period": f"{days}d",
+                "total_purchases": 0,
+                "match_rate": 0.0,
+                "top_requested": [],
+                "worst_performing": [],
+                "data_coverage": 0.0,
+            }
 
-    top_requested = [r for r in results if r["requests"] >= 5][:10]
-    if not top_requested:
-        top_requested = results[:10]
+        total_purchases = len(outcomes)
+        matched_purchases = sum(1 for o in outcomes if o.matched)
 
-    worst_performing = sorted(
-        [r for r in results if r["requests"] >= 5], key=lambda x: x["success_rate"]
-    )[:10]
+        # Calculate stats per area code and service
+        ac_stats = {}
+        total_area_codes_known = set()
 
-    return {
-        "period": f"{days}d",
-        "total_purchases": total_purchases,
-        "match_rate": (
-            round(matched_purchases / total_purchases, 2)
-            if total_purchases > 0
-            else 0.0
-        ),
-        "top_requested": top_requested,
-        "worst_performing": worst_performing,
-        "data_coverage": round(
-            len(total_area_codes_known) / 350, 2
-        ),  # Rough approximation of total US area codes
-    }
+        for outcome in outcomes:
+            req = outcome.requested_code
+            if not req:
+                if outcome.assigned_code:
+                    total_area_codes_known.add(outcome.assigned_code)
+                continue
+
+            total_area_codes_known.add(req)
+
+            assigned = outcome.assigned_code
+            service = outcome.service
+
+            key = (req, service)
+            if key not in ac_stats:
+                ac_stats[key] = {"requests": 0, "successes": 0}
+
+            ac_stats[key]["requests"] += 1
+            if req == assigned:
+                ac_stats[key]["successes"] += 1
+
+        # Format and sort
+        results = []
+        for (ac, svc), stats in ac_stats.items():
+            results.append(
+                {
+                    "area_code": ac,
+                    "service": svc,
+                    "requests": stats["requests"],
+                    "success_rate": round(stats["successes"] / stats["requests"], 2),
+                }
+            )
+
+        results.sort(key=lambda x: x["requests"], reverse=True)
+
+        top_requested = [r for r in results if r["requests"] >= 5][:10]
+        if not top_requested:
+            top_requested = results[:10]
+
+        worst_performing = sorted(
+            [r for r in results if r["requests"] >= 5], key=lambda x: x["success_rate"]
+        )[:10]
+
+        return {
+            "period": f"{days}d",
+            "total_purchases": total_purchases,
+            "match_rate": (
+                round(matched_purchases / total_purchases, 2)
+                if total_purchases > 0
+                else 0.0
+            ),
+            "top_requested": top_requested,
+            "worst_performing": worst_performing,
+            "data_coverage": round(
+                len(total_area_codes_known) / 350, 2
+            ),  # Rough approximation of total US area codes
+        }
+    except Exception as e:
+        logger.error(f"Error fetching area code analytics: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch area code analytics"
+        )
 
 
 @router.get("/analytics/carriers")
@@ -108,93 +116,105 @@ async def get_carrier_analytics(
     user_id: str = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Admin analytics for carrier performance."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
-    outcomes = (
-        db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
-    )
+        outcomes = (
+            db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
+        )
 
-    if not outcomes:
+        if not outcomes:
+            return {
+                "period": f"{days}d",
+                "carrier_distribution": [],
+                "carrier_by_service": [],
+                "voip_rate": 0.0,
+                "landline_rate": 0.0,
+            }
+
+        # Analyze carriers
+        total = len(outcomes)
+        voip = sum(1 for o in outcomes if o.carrier_type == "voip")
+        landline = sum(1 for o in outcomes if o.carrier_type == "landline")
+
+        carrier_stats = {}
+        service_carrier_stats = {}
+
+        for o in outcomes:
+            c = o.assigned_carrier or "unknown"
+            svc = o.service
+
+            if c not in carrier_stats:
+                carrier_stats[c] = {"count": 0, "sms_total": 0, "sms_success": 0}
+            carrier_stats[c]["count"] += 1
+
+            if o.sms_received is not None:
+                carrier_stats[c]["sms_total"] += 1
+                if o.sms_received:
+                    carrier_stats[c]["sms_success"] += 1
+
+            key = (svc, c)
+            if key not in service_carrier_stats:
+                service_carrier_stats[key] = {
+                    "count": 0,
+                    "sms_total": 0,
+                    "sms_success": 0,
+                }
+            service_carrier_stats[key]["count"] += 1
+            if o.sms_received is not None:
+                service_carrier_stats[key]["sms_total"] += 1
+                if o.sms_received:
+                    service_carrier_stats[key]["sms_success"] += 1
+
+        distribution = []
+        for c, stats in carrier_stats.items():
+            if c == "unknown" and stats["count"] < 5:
+                continue
+            sr = (
+                stats["sms_success"] / stats["sms_total"]
+                if stats["sms_total"] > 0
+                else 0.0
+            )
+            pct = stats["count"] / total if total > 0 else 0.0
+            distribution.append(
+                {
+                    "carrier": c,
+                    "count": stats["count"],
+                    "pct": round(pct, 2),
+                    "sms_delivery_rate": round(sr, 2),
+                }
+            )
+
+        distribution.sort(key=lambda x: x["count"], reverse=True)
+
+        by_service = []
+        for (svc, c), stats in service_carrier_stats.items():
+            sr = (
+                stats["sms_success"] / stats["sms_total"]
+                if stats["sms_total"] > 0
+                else 0.0
+            )
+            by_service.append(
+                {
+                    "service": svc,
+                    "carrier": c,
+                    "count": stats["count"],
+                    "sms_delivery_rate": round(sr, 2),
+                }
+            )
+
+        by_service.sort(key=lambda x: x["count"], reverse=True)
+
         return {
             "period": f"{days}d",
-            "carrier_distribution": [],
-            "carrier_by_service": [],
-            "voip_rate": 0.0,
-            "landline_rate": 0.0,
+            "carrier_distribution": distribution[:15],
+            "carrier_by_service": by_service[:20],
+            "voip_rate": round(voip / total, 2) if total > 0 else 0.0,
+            "landline_rate": round(landline / total, 2) if total > 0 else 0.0,
         }
-
-    # Analyze carriers
-    total = len(outcomes)
-    voip = sum(1 for o in outcomes if o.carrier_type == "voip")
-    landline = sum(1 for o in outcomes if o.carrier_type == "landline")
-
-    carrier_stats = {}
-    service_carrier_stats = {}
-
-    for o in outcomes:
-        c = o.assigned_carrier or "unknown"
-        svc = o.service
-
-        if c not in carrier_stats:
-            carrier_stats[c] = {"count": 0, "sms_total": 0, "sms_success": 0}
-        carrier_stats[c]["count"] += 1
-
-        if o.sms_received is not None:
-            carrier_stats[c]["sms_total"] += 1
-            if o.sms_received:
-                carrier_stats[c]["sms_success"] += 1
-
-        key = (svc, c)
-        if key not in service_carrier_stats:
-            service_carrier_stats[key] = {"count": 0, "sms_total": 0, "sms_success": 0}
-        service_carrier_stats[key]["count"] += 1
-        if o.sms_received is not None:
-            service_carrier_stats[key]["sms_total"] += 1
-            if o.sms_received:
-                service_carrier_stats[key]["sms_success"] += 1
-
-    distribution = []
-    for c, stats in carrier_stats.items():
-        if c == "unknown" and stats["count"] < 5:
-            continue
-        sr = (
-            stats["sms_success"] / stats["sms_total"] if stats["sms_total"] > 0 else 0.0
-        )
-        pct = stats["count"] / total if total > 0 else 0.0
-        distribution.append(
-            {
-                "carrier": c,
-                "count": stats["count"],
-                "pct": round(pct, 2),
-                "sms_delivery_rate": round(sr, 2),
-            }
-        )
-
-    distribution.sort(key=lambda x: x["count"], reverse=True)
-
-    by_service = []
-    for (svc, c), stats in service_carrier_stats.items():
-        sr = (
-            stats["sms_success"] / stats["sms_total"] if stats["sms_total"] > 0 else 0.0
-        )
-        by_service.append(
-            {
-                "service": svc,
-                "carrier": c,
-                "count": stats["count"],
-                "sms_delivery_rate": round(sr, 2),
-            }
-        )
-
-    by_service.sort(key=lambda x: x["count"], reverse=True)
-
-    return {
-        "period": f"{days}d",
-        "carrier_distribution": distribution[:15],
-        "carrier_by_service": by_service[:20],
-        "voip_rate": round(voip / total, 2) if total > 0 else 0.0,
-        "landline_rate": round(landline / total, 2) if total > 0 else 0.0,
-    }
+    except Exception as e:
+        logger.error(f"Error fetching carrier analytics: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch carrier analytics")
 
 
 @router.get("/analytics/geography")
