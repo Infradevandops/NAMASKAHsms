@@ -74,6 +74,12 @@
                     <div class="stat-value" id="stat-fraud-f1">--</div>
                     <div style="font-size: 11px; color: var(--admin-text-muted);" id="stat-fraud-precision">Precision: --</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-label">💰 Balance Sync</div>
+                    <div class="stat-value" id="stat-balance-sync">--</div>
+                    <div style="font-size: 11px; color: var(--admin-text-muted);" id="stat-balance-status">Checking...</div>
+                    <button onclick="triggerBalanceSync()" style="margin-top:8px; padding:4px 10px; background:var(--admin-accent); border:none; border-radius:6px; color:white; font-size:11px; cursor:pointer;">🔄 Sync Now</button>
+                </div>
             </div>
 
             <div class="content-grid">
@@ -279,6 +285,49 @@
     <script>
         const ForensicsManager = window.ForensicsManager; // From forensics.js
 
+        async function loadBalanceSyncStatus() {
+            try {
+                const response = await fetch('/api/balance/real-time', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('stat-balance-sync').textContent = `$${data.balance.toFixed(2)}`;
+                const lastUpdated = new Date(data.last_updated);
+                const minutesAgo = Math.floor((new Date() - lastUpdated) / 60000);
+                document.getElementById('stat-balance-status').textContent = `Updated ${minutesAgo}m ago`;
+            } catch (error) {
+                console.error('Failed to load balance sync status:', error);
+                document.getElementById('stat-balance-sync').textContent = 'Error';
+                document.getElementById('stat-balance-status').textContent = 'Failed to load';
+            }
+        }
+
+        async function triggerBalanceSync() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Syncing...';
+
+            try {
+                const response = await fetch('/api/balance/refresh', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('stat-balance-sync').textContent = `$${data.balance.toFixed(2)}`;
+                document.getElementById('stat-balance-status').textContent = 'Just synced';
+
+                alert(`Balance synced successfully!\nBalance: $${data.balance.toFixed(2)}\nSource: ${data.sync_source}`);
+            } catch (error) {
+                console.error('Failed to sync balance:', error);
+                alert('Failed to sync balance');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Sync Now';
+            }
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
@@ -286,12 +335,21 @@
             event.target.classList.add('active');
             document.getElementById('page-' + tab).classList.add('active');
 
-            if (tab === 'overview') OverviewManager.init();
+            if (tab === 'overview') {
+                OverviewManager.init();
+                loadBalanceSyncStatus();
+            }
             if (tab === 'users') UsersManager.init();
             if (tab === 'history') ForensicsManager.loadHistory();
             if (tab === 'pricing') PricingManager.init();
             if (tab === 'audit') ComplianceManager.init();
         }
+
+        // Load balance sync on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBalanceSyncStatus();
+            setInterval(loadBalanceSyncStatus, 60000); // Refresh every minute
+        });
     </script>
 </body>
 </html>

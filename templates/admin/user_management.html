@@ -85,15 +85,53 @@
 
 <!-- User Detail Modal -->
 <div class="modal fade" id="userDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">User Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="user-detail-content">
-                <div class="text-center">
-                    <div class="spinner-border" role="status"></div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" id="userDetailTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">Information</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button">Activity Timeline</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="userDetailTabContent">
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                        <div id="user-detail-content">
+                            <div class="text-center"><div class="spinner-border"></div></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="timeline" role="tabpanel">
+                        <div class="mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <select id="timeline-filter" class="form-select form-select-sm">
+                                        <option value="">All Actions</option>
+                                        <option value="login">Login</option>
+                                        <option value="verification">Verification</option>
+                                        <option value="payment">Payment</option>
+                                        <option value="tier_change">Tier Change</option>
+                                        <option value="admin_action">Admin Action</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="date" id="timeline-date" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-sm btn-primary" onclick="filterTimeline()">Filter</button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="exportTimeline()">Export</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="timeline-content" style="max-height: 500px; overflow-y: auto;">
+                            <div class="text-center"><div class="spinner-border"></div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -216,6 +254,50 @@
 .action-buttons {
     display: flex;
     gap: 0.25rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+    border-left: 2px solid #dee2e6;
+    padding-left: 1.5rem;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -0.5rem;
+    top: 0;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #0d6efd;
+}
+
+.timeline-marker.login { border-color: #0d6efd; }
+.timeline-marker.verification { border-color: #198754; }
+.timeline-marker.payment { border-color: #ffc107; }
+.timeline-marker.tier_change { border-color: #fd7e14; }
+.timeline-marker.admin_action { border-color: #dc3545; }
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+.timeline-time {
+    font-size: 0.875rem;
+    color: #6c757d;
 }
 </style>
 
@@ -343,8 +425,11 @@ function renderPagination() {
     pagination.innerHTML = html;
 }
 
+let currentUserId = null;
+
 // View user details
 async function viewUser(userId) {
+    currentUserId = userId;
     const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
     const content = document.getElementById('user-detail-content');
 
@@ -381,6 +466,128 @@ async function viewUser(userId) {
         content.innerHTML = '<div class="alert alert-danger">Failed to load user details</div>';
     }
 }
+
+// Load activity timeline
+async function loadTimeline(userId, actionType = '', date = '') {
+    const content = document.getElementById('timeline-content');
+    content.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+
+    try {
+        let url = `${API_BASE}/users/${userId}/activity?limit=50`;
+        if (actionType) url += `&action_type=${actionType}`;
+        if (date) url += `&date=${date}`;
+
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to load timeline');
+
+        const data = await response.json();
+        renderTimeline(data.activities || []);
+    } catch (error) {
+        content.innerHTML = '<div class="alert alert-danger">Failed to load activity timeline</div>';
+    }
+}
+
+// Render timeline
+function renderTimeline(activities) {
+    const content = document.getElementById('timeline-content');
+
+    if (activities.length === 0) {
+        content.innerHTML = '<div class="text-center text-muted">No activity found</div>';
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="timeline">
+            ${activities.map(activity => `
+                <div class="timeline-item">
+                    <div class="timeline-marker ${activity.action_type}"></div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>${formatActionType(activity.action_type)}</strong>
+                                <p class="mb-1">${activity.description || 'No description'}</p>
+                                ${activity.metadata ? `<small class="text-muted">${JSON.stringify(activity.metadata)}</small>` : ''}
+                            </div>
+                            <span class="timeline-time">${formatTimestamp(activity.created_at)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Format action type
+function formatActionType(type) {
+    const types = {
+        'login': 'Login',
+        'verification': 'Verification',
+        'payment': 'Payment',
+        'tier_change': 'Tier Change',
+        'admin_action': 'Admin Action'
+    };
+    return types[type] || type;
+}
+
+// Format timestamp
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+}
+
+// Filter timeline
+function filterTimeline() {
+    const actionType = document.getElementById('timeline-filter').value;
+    const date = document.getElementById('timeline-date').value;
+    loadTimeline(currentUserId, actionType, date);
+}
+
+// Export timeline
+async function exportTimeline() {
+    try {
+        const actionType = document.getElementById('timeline-filter').value;
+        const date = document.getElementById('timeline-date').value;
+        let url = `${API_BASE}/users/${currentUserId}/activity/export?`;
+        if (actionType) url += `action_type=${actionType}&`;
+        if (date) url += `date=${date}`;
+
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+
+        if (!response.ok) throw new Error('Export failed');
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `user_activity_${currentUserId}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showSuccess('Timeline exported successfully');
+    } catch (error) {
+        showError('Failed to export timeline');
+    }
+}
+
+// Load timeline when tab is shown
+document.getElementById('timeline-tab').addEventListener('shown.bs.tab', function() {
+    if (currentUserId) loadTimeline(currentUserId);
+});
 
 // Edit tier
 function editTier(userId, currentTier) {
@@ -464,6 +671,16 @@ function showError(message) {
 }
 
 // Load users on page load
-document.addEventListener('DOMContentLoaded', () => loadUsers(1));
+document.addEventListener('DOMContentLoaded', () => {
+    loadUsers(1);
+
+    // Add event listener for timeline tab
+    const timelineTab = document.getElementById('timeline-tab');
+    if (timelineTab) {
+        timelineTab.addEventListener('click', function() {
+            if (currentUserId) loadTimeline(currentUserId);
+        });
+    }
+});
 </script>
 {% endblock %}

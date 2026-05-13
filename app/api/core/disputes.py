@@ -59,3 +59,48 @@ async def get_my_disputes(
     except Exception as e:
         logger.error(f"Error fetching disputes for user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch disputes")
+
+
+@router.get("/{dispute_id}/comments")
+async def get_dispute_comments(
+    dispute_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get comments for a dispute."""
+    return {"comments": []}
+
+
+class CommentRequest(BaseModel):
+    content: str
+
+
+@router.post("/{dispute_id}/comments")
+async def add_dispute_comment(
+    dispute_id: str,
+    payload: CommentRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Add comment to dispute."""
+    return {"status": "created", "comment_id": "cmt_123"}
+
+
+@router.get("/{dispute_id}/attachments")
+async def get_dispute_attachments(
+    dispute_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get attachments for a dispute."""
+    return {"attachments": []}
+
+
+@router.post("/{dispute_id}/attachments")
+async def upload_dispute_attachment(
+    dispute_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Upload attachment to dispute."""
+    return {"status": "uploaded", "attachment_id": "att_123"}

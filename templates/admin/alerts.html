@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts & Monitoring | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin_premium.css">
+    <style>
+        .alerts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .alert-card { background: rgba(255,255,255,0.03); border-left: 4px solid; border-radius: 8px; padding: 16px; }
+        .alert-critical { border-color: #ef4444; }
+        .alert-warning { border-color: #fbbf24; }
+        .alert-info { border-color: #3b82f6; }
+        .alert-success { border-color: #4ade80; }
+        .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .alert-title { font-weight: 600; font-size: 14px; }
+        .alert-time { font-size: 11px; color: var(--admin-text-muted); }
+        .alert-message { font-size: 13px; color: var(--admin-text-muted); margin-bottom: 12px; }
+        .alert-actions { display: flex; gap: 8px; }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-resolve { background: #4ade80; color: white; }
+        .btn-mute { background: rgba(255,255,255,0.1); color: white; }
+        .threshold-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .threshold-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .threshold-controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+        .form-group { margin-bottom: 0; }
+        .form-label { display: block; font-size: 12px; color: var(--admin-text-muted); margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 13px; }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.1); border-radius: 24px; transition: 0.3s; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        input:checked + .toggle-slider { background: var(--admin-accent); }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+        .stat-mini { display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 12px; margin-right: 8px; }
+    </style>
+</head>
+<body class="premium-admin">
+    <div class="admin-v2-container">
+        {% include 'admin/header.html' %}
+
+        <h1 style="font-size: 28px; margin-bottom: 10px;">🔔 Alerts & Monitoring</h1>
+        <p style="color: var(--admin-text-muted); margin-bottom: 30px;">Configure alerts, set thresholds, and monitor system health</p>
+
+        <!-- Alert Summary -->
+        <div class="alerts-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="glass-card" style="padding: 20px;">
+                <div style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 8px;">Active Alerts</div>
+                <div style="font-size: 32px; font-weight: 700; color: #ef4444;" id="active-count">0</div>
+            </div>
+            <div class="glass-card" style="padding: 20px;">
+                <div style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 8px;">Resolved Today</div>
+                <div style="font-size: 32px; font-weight: 700; color: #4ade80;" id="resolved-count">0</div>
+            </div>
+            <div class="glass-card" style="padding: 20px;">
+                <div style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 8px;">Avg Response Time</div>
+                <div style="font-size: 32px; font-weight: 700; color: var(--admin-accent);" id="response-time">--</div>
+            </div>
+            <div class="glass-card" style="padding: 20px;">
+                <div style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 8px;">Notification Channels</div>
+                <div style="font-size: 32px; font-weight: 700;" id="channels-count">3</div>
+            </div>
+        </div>
+
+        <!-- Active Alerts -->
+        <div class="glass-card" style="margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="card-title">Active Alerts</h3>
+                <div style="display: flex; gap: 8px;">
+                    <span class="stat-mini">🔴 Critical: <span id="critical-count">0</span></span>
+                    <span class="stat-mini">🟡 Warning: <span id="warning-count">0</span></span>
+                    <span class="stat-mini">🔵 Info: <span id="info-count">0</span></span>
+                </div>
+            </div>
+            <div id="active-alerts"></div>
+        </div>
+
+        <!-- Alert Configuration -->
+        <div class="glass-card" style="margin-bottom: 30px;">
+            <h3 class="card-title">Alert Thresholds</h3>
+
+            <div class="threshold-item">
+                <div class="threshold-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">High Error Rate</div>
+                        <div style="font-size: 12px; color: var(--admin-text-muted);">Trigger when error rate exceeds threshold</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAlert('error_rate', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="threshold-controls">
+                    <div class="form-group">
+                        <label class="form-label">Threshold (%)</label>
+                        <input type="number" class="form-input" value="5" id="error-rate-threshold">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-input" value="5" id="error-rate-duration">
+                    </div>
+                    <button class="btn-xs btn-resolve" onclick="saveThreshold('error_rate')">Save</button>
+                </div>
+            </div>
+
+            <div class="threshold-item">
+                <div class="threshold-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Low Balance</div>
+                        <div style="font-size: 12px; color: var(--admin-text-muted);">Alert when provider balance is low</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAlert('low_balance', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="threshold-controls">
+                    <div class="form-group">
+                        <label class="form-label">Threshold ($)</label>
+                        <input type="number" class="form-input" value="100" id="balance-threshold">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Check Interval (hours)</label>
+                        <input type="number" class="form-input" value="1" id="balance-interval">
+                    </div>
+                    <button class="btn-xs btn-resolve" onclick="saveThreshold('low_balance')">Save</button>
+                </div>
+            </div>
+
+            <div class="threshold-item">
+                <div class="threshold-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">High Refund Rate</div>
+                        <div style="font-size: 12px; color: var(--admin-text-muted);">Alert when refund rate is abnormally high</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAlert('refund_rate', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="threshold-controls">
+                    <div class="form-group">
+                        <label class="form-label">Threshold (%)</label>
+                        <input type="number" class="form-input" value="20" id="refund-rate-threshold">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sample Size</label>
+                        <input type="number" class="form-input" value="100" id="refund-sample">
+                    </div>
+                    <button class="btn-xs btn-resolve" onclick="saveThreshold('refund_rate')">Save</button>
+                </div>
+            </div>
+
+            <div class="threshold-item">
+                <div class="threshold-header">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Slow Response Time</div>
+                        <div style="font-size: 12px; color: var(--admin-text-muted);">Alert when API response time is slow</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAlert('response_time', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="threshold-controls">
+                    <div class="form-group">
+                        <label class="form-label">Threshold (ms)</label>
+                        <input type="number" class="form-input" value="2000" id="response-threshold">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-input" value="10" id="response-duration">
+                    </div>
+                    <button class="btn-xs btn-resolve" onclick="saveThreshold('response_time')">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Preferences -->
+        <div class="glass-card" style="margin-bottom: 30px;">
+            <h3 class="card-title">Notification Channels</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div class="threshold-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">📧 Email</div>
+                            <div style="font-size: 12px; color: var(--admin-text-muted);">admin@namaskah.app</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="toggleChannel('email', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="threshold-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">💬 Slack</div>
+                            <div style="font-size: 12px; color: var(--admin-text-muted);">#alerts channel</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="toggleChannel('slack', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="threshold-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">📱 SMS</div>
+                            <div style="font-size: 12px; color: var(--admin-text-muted);">+1 (555) 123-4567</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" onchange="toggleChannel('sms', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert History -->
+        <div class="glass-card">
+            <h3 class="card-title">Alert History (Last 24 Hours)</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Alert</th>
+                        <th>Severity</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Response Time</th>
+                    </tr>
+                </thead>
+                <tbody id="alert-history">
+                    <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--admin-text-muted);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        const mockAlerts = [
+            { id: 1, name: 'High Error Rate', severity: 'critical', message: 'Error rate at 8.2% (threshold: 5%)', time: new Date(Date.now() - 300000), status: 'firing' },
+            { id: 2, name: 'Low Balance', severity: 'warning', message: 'Provider balance: $85 (threshold: $100)', time: new Date(Date.now() - 600000), status: 'firing' },
+            { id: 3, name: 'Slow Response', severity: 'info', message: 'Avg response time: 2.3s', time: new Date(Date.now() - 900000), status: 'resolved' }
+        ];
+
+        function loadAlerts() {
+            const activeAlerts = mockAlerts.filter(a => a.status === 'firing');
+            const resolvedToday = mockAlerts.filter(a => a.status === 'resolved').length;
+
+            document.getElementById('active-count').textContent = activeAlerts.length;
+            document.getElementById('resolved-count').textContent = resolvedToday;
+            document.getElementById('response-time').textContent = '12m';
+
+            const criticalCount = activeAlerts.filter(a => a.severity === 'critical').length;
+            const warningCount = activeAlerts.filter(a => a.severity === 'warning').length;
+            const infoCount = activeAlerts.filter(a => a.severity === 'info').length;
+
+            document.getElementById('critical-count').textContent = criticalCount;
+            document.getElementById('warning-count').textContent = warningCount;
+            document.getElementById('info-count').textContent = infoCount;
+
+            const container = document.getElementById('active-alerts');
+            if (activeAlerts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--admin-text-muted);">✅ No active alerts</div>';
+            } else {
+                container.innerHTML = '<div class="alerts-grid">' + activeAlerts.map(alert => `
+                    <div class="alert-card alert-${alert.severity}">
+                        <div class="alert-header">
+                            <div class="alert-title">${alert.name}</div>
+                            <div class="alert-time">${getTimeAgo(alert.time)}</div>
+                        </div>
+                        <div class="alert-message">${alert.message}</div>
+                        <div class="alert-actions">
+                            <button class="btn-xs btn-resolve" onclick="resolveAlert(${alert.id})">Resolve</button>
+                            <button class="btn-xs btn-mute" onclick="muteAlert(${alert.id})">Mute 1h</button>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+            }
+
+            loadAlertHistory();
+        }
+
+        function loadAlertHistory() {
+            const tbody = document.getElementById('alert-history');
+            tbody.innerHTML = mockAlerts.map(alert => `
+                <tr>
+                    <td>${alert.time.toLocaleTimeString()}</td>
+                    <td>${alert.name}</td>
+                    <td><span class="status-badge status-${alert.severity === 'critical' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'success'}">${alert.severity}</span></td>
+                    <td>${alert.message}</td>
+                    <td><span class="status-badge status-${alert.status === 'firing' ? 'danger' : 'success'}">${alert.status}</span></td>
+                    <td>${alert.status === 'resolved' ? '12m' : '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getTimeAgo(date) {
+            const minutes = Math.floor((new Date() - date) / 60000);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            return hours + 'h ago';
+        }
+
+        function resolveAlert(id) {
+            const alert = mockAlerts.find(a => a.id === id);
+            if (alert) {
+                alert.status = 'resolved';
+                loadAlerts();
+            }
+        }
+
+        function muteAlert(id) {
+            alert('Alert muted for 1 hour');
+        }
+
+        function toggleAlert(type, enabled) {
+            console.log(`Alert ${type} ${enabled ? 'enabled' : 'disabled'}`);
+        }
+
+        function saveThreshold(type) {
+            alert(`Threshold for ${type} saved successfully`);
+        }
+
+        function toggleChannel(channel, enabled) {
+            console.log(`Channel ${channel} ${enabled ? 'enabled' : 'disabled'}`);
+        }
+
+        loadAlerts();
+        setInterval(loadAlerts, 30000); // Refresh every 30 seconds
+    </script>
+</body>
+</html>

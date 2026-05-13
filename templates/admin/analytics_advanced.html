@@ -16,12 +16,25 @@
             <div class="col-md-12 d-flex justify-content-between">
                 <h2>Advanced Analytics</h2>
                 <div>
-                    <select class="form-select" id="timeRange" onchange="loadAllData()">
+                    <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#customReportModal">
+                        <i class="bi bi-plus-circle"></i> Custom Report
+                    </button>
+                    <select class="form-select d-inline-block" style="width: auto;" id="timeRange" onchange="loadAllData()">
                         <option value="7">Last 7 days</option>
                         <option value="30" selected>Last 30 days</option>
                         <option value="90">Last 90 days</option>
                     </select>
                 </div>
+            </div>
+        </div>
+
+        <!-- Saved Reports -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Saved Custom Reports</h5>
+            </div>
+            <div class="card-body">
+                <div id="savedReports" class="row"></div>
             </div>
         </div>
 
@@ -145,9 +158,316 @@
         </div>
     </div>
 
+    <!-- Custom Report Builder Modal -->
+    <div class="modal fade" id="customReportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Custom Report Builder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Report Configuration</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Report Name</label>
+                                <input type="text" class="form-control" id="reportName" placeholder="My Custom Report">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Date Range</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="date" class="form-control" id="reportStartDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="date" class="form-control" id="reportEndDate">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Metrics</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="metricVerifications" checked>
+                                    <label class="form-check-label" for="metricVerifications">Total Verifications</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="metricRevenue" checked>
+                                    <label class="form-check-label" for="metricRevenue">Revenue</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="metricRefunds">
+                                    <label class="form-check-label" for="metricRefunds">Refunds</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="metricUsers">
+                                    <label class="form-check-label" for="metricUsers">Active Users</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Group By</label>
+                                <select class="form-select" id="reportGroupBy">
+                                    <option value="day">Day</option>
+                                    <option value="week">Week</option>
+                                    <option value="month">Month</option>
+                                    <option value="service">Service</option>
+                                    <option value="country">Country</option>
+                                    <option value="tier">User Tier</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Filters</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Service</label>
+                                <select class="form-select" id="filterService">
+                                    <option value="">All Services</option>
+                                    <option value="google">Google</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Country</label>
+                                <select class="form-select" id="filterCountry">
+                                    <option value="">All Countries</option>
+                                    <option value="US">United States</option>
+                                    <option value="GB">United Kingdom</option>
+                                    <option value="CA">Canada</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">User Tier</label>
+                                <select class="form-select" id="filterTier">
+                                    <option value="">All Tiers</option>
+                                    <option value="freemium">Freemium</option>
+                                    <option value="payg">Pay-As-You-Go</option>
+                                    <option value="pro">Pro</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Export Format</label>
+                                <select class="form-select" id="exportFormat">
+                                    <option value="csv">CSV</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="json">JSON</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="generateReport()">Generate Report</button>
+                    <button type="button" class="btn btn-primary" onclick="saveReport()">Save & Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Preview Modal -->
+    <div class="modal fade" id="reportPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewTitle">Report Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reportPreview"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadReport()">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .report-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let verificationsChart, successPieChart, servicesChart, revenueChart;
+        let currentReportData = null;
+
+        async function loadSavedReports() {
+            try {
+                const response = await fetch('/api/admin/analytics/reports/saved', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                const container = document.getElementById('savedReports');
+                if (data.reports.length === 0) {
+                    container.innerHTML = '<div class="col-12"><p class="text-muted">No saved reports yet. Create your first custom report!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = data.reports.map(report => `
+                    <div class="col-md-4 mb-3">
+                        <div class="card report-card" onclick="loadReport('${report.id}')">
+                            <div class="card-body">
+                                <h6>${report.name}</h6>
+                                <small class="text-muted">${report.description}</small>
+                                <div class="mt-2">
+                                    <span class="badge bg-primary">${report.metrics.length} metrics</span>
+                                    <span class="badge bg-secondary">${report.group_by}</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Created: ${new Date(report.created_at).toLocaleDateString()}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load saved reports:', error);
+            }
+        }
+
+        async function generateReport() {
+            const config = {
+                name: document.getElementById('reportName').value,
+                start_date: document.getElementById('reportStartDate').value,
+                end_date: document.getElementById('reportEndDate').value,
+                metrics: [
+                    document.getElementById('metricVerifications').checked ? 'verifications' : null,
+                    document.getElementById('metricRevenue').checked ? 'revenue' : null,
+                    document.getElementById('metricRefunds').checked ? 'refunds' : null,
+                    document.getElementById('metricUsers').checked ? 'users' : null
+                ].filter(m => m),
+                group_by: document.getElementById('reportGroupBy').value,
+                filters: {
+                    service: document.getElementById('filterService').value,
+                    country: document.getElementById('filterCountry').value,
+                    tier: document.getElementById('filterTier').value
+                }
+            };
+
+            try {
+                const response = await fetch('/api/admin/analytics/reports/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                const data = await response.json();
+
+                currentReportData = data;
+                displayReportPreview(data);
+                bootstrap.Modal.getInstance(document.getElementById('customReportModal')).hide();
+                new bootstrap.Modal(document.getElementById('reportPreviewModal')).show();
+            } catch (error) {
+                alert('Failed to generate report');
+            }
+        }
+
+        async function saveReport() {
+            const config = {
+                name: document.getElementById('reportName').value,
+                start_date: document.getElementById('reportStartDate').value,
+                end_date: document.getElementById('reportEndDate').value,
+                metrics: [
+                    document.getElementById('metricVerifications').checked ? 'verifications' : null,
+                    document.getElementById('metricRevenue').checked ? 'revenue' : null,
+                    document.getElementById('metricRefunds').checked ? 'refunds' : null,
+                    document.getElementById('metricUsers').checked ? 'users' : null
+                ].filter(m => m),
+                group_by: document.getElementById('reportGroupBy').value,
+                filters: {
+                    service: document.getElementById('filterService').value,
+                    country: document.getElementById('filterCountry').value,
+                    tier: document.getElementById('filterTier').value
+                }
+            };
+
+            try {
+                const response = await fetch('/api/admin/analytics/reports/save', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    alert('Report saved successfully');
+                    loadSavedReports();
+                    generateReport();
+                }
+            } catch (error) {
+                alert('Failed to save report');
+            }
+        }
+
+        async function loadReport(reportId) {
+            try {
+                const response = await fetch(`/api/admin/analytics/reports/${reportId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                currentReportData = data;
+                displayReportPreview(data);
+                new bootstrap.Modal(document.getElementById('reportPreviewModal')).show();
+            } catch (error) {
+                alert('Failed to load report');
+            }
+        }
+
+        function displayReportPreview(data) {
+            const preview = document.getElementById('reportPreview');
+            document.getElementById('previewTitle').textContent = data.name || 'Report Preview';
+
+            let html = `
+                <div class="mb-4">
+                    <h6>Report Summary</h6>
+                    <p><strong>Period:</strong> ${data.start_date} to ${data.end_date}</p>
+                    <p><strong>Group By:</strong> ${data.group_by}</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>${data.group_by}</th>
+                                ${data.metrics.map(m => `<th>${m}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.results.forEach(row => {
+                html += '<tr>';
+                html += `<td>${row.label}</td>`;
+                data.metrics.forEach(metric => {
+                    html += `<td>${row[metric] || 0}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            preview.innerHTML = html;
+        }
+
+        async function downloadReport() {
+            if (!currentReportData) return;
+            const format = document.getElementById('exportFormat').value;
+            window.open(`/api/admin/analytics/reports/download?format=${format}`, '_blank');
+        }
 
         async function loadOverview() {
             try {
@@ -310,6 +630,7 @@
         }
 
         function loadAllData() {
+            loadSavedReports();
             loadOverview();
             loadTimeseries();
             loadServiceStats();

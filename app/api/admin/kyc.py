@@ -319,3 +319,29 @@ async def trigger_aml_screening(
         "match_score": screening_result.match_score,
         "requires_review": screening_result.status in ["match", "review"],
     }
+
+
+@router.get("/admin/documents/{kyc_profile_id}")
+def get_kyc_profile_documents(
+    kyc_profile_id: str,
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get all documents for a KYC profile (admin only)."""
+    documents = (
+        db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile_id).all()
+    )
+
+    return [
+        {
+            "id": doc.id,
+            "document_type": doc.document_type,
+            "file_name": doc.file_name,
+            "file_size": doc.file_size,
+            "url": doc.file_url,
+            "thumbnail_url": doc.thumbnail_url or doc.file_url,
+            "verification_status": doc.verification_status,
+            "uploaded_at": doc.created_at.isoformat(),
+        }
+        for doc in documents
+    ]

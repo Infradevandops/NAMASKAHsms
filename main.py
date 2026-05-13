@@ -22,6 +22,7 @@ from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
 from app.api.compatibility_routes import router as compatibility_router
 from app.api.core.api_key_endpoints import router as api_key_router
+from app.api.core.balance_sync import router as balance_sync_router
 from app.api.core.blacklist import router as blacklist_router
 from app.api.core.contact import router as contact_router
 from app.api.core.currencies import router as currencies_router
@@ -31,11 +32,14 @@ from app.api.core.gdpr import router as gdpr_router
 from app.api.core.google_oauth import router as google_oauth_router
 from app.api.core.mfa import router as mfa_router
 from app.api.core.notification_endpoints import router as notification_router
+from app.api.core.quotas import router as quotas_router
 from app.api.core.referrals import router as referrals_router
+from app.api.core.user_insights import router as user_insights_router
 from app.api.core.user_settings import auth_router as user_auth_router
 from app.api.core.user_settings_endpoints import (
     router as user_settings_endpoints_router,
 )
+from app.api.core.waitlist import router as waitlist_router
 
 # OLD whitelabel router removed - using whitelabel_endpoints.py via core router
 # from app.api.core.whitelabel import router as whitelabel_router
@@ -202,19 +206,35 @@ def create_app() -> FastAPI:
     # WebSocket endpoints (real-time notifications)
     fastapi_app.include_router(websocket_router)
 
-    # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
+    # Modular Routers
+    from app.api.admin.analytics_reports import router as analytics_reports_router
+    from app.api.admin.gdpr_admin import router as gdpr_admin_router
+    from app.api.billing.history import router as billing_history_router
     from app.api.core.dashboard_activity import router as dashboard_activity_router
+    from app.api.core.router import (
+        router as core_router,  # ✅ CORE ROUTER (OneSignal, Push, etc.)
+    )
     from app.api.core.textverified_balance import router as textverified_balance_router
     from app.api.core.whitelabel_endpoints import router as whitelabel_endpoints_router
 
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(textverified_balance_router)
+    fastapi_app.include_router(balance_sync_router)
+    fastapi_app.include_router(waitlist_router)
+    fastapi_app.include_router(user_insights_router)
+    fastapi_app.include_router(quotas_router)
     fastapi_app.include_router(admin_router, prefix="/api")
     fastapi_app.include_router(alerts_router)
     fastapi_app.include_router(mfa_router)
     fastapi_app.include_router(currencies_router)
     fastapi_app.include_router(whitelabel_endpoints_router)  # ✅ WHITELABEL ENABLED
+    fastapi_app.include_router(
+        core_router, prefix="/api"
+    )  # ✅ CORE ROUTER (OneSignal, Push, etc.)
     fastapi_app.include_router(disputes_router)
+    fastapi_app.include_router(gdpr_admin_router, prefix="/api")
+    fastapi_app.include_router(billing_history_router)
+    fastapi_app.include_router(analytics_reports_router)
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")
 

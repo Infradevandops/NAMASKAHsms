@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhooks | Namaskah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .webhook-grid { display: grid; gap: 20px; margin-bottom: 30px; }
+        .webhook-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .webhook-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .webhook-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .webhook-name { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+        .webhook-url { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #666; margin-bottom: 12px; word-break: break-all; }
+        .webhook-meta { display: flex; gap: 16px; font-size: 13px; color: #666; margin-bottom: 12px; }
+        .webhook-actions { display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #f8f9fa; color: #333; border: 1px solid #e0e0e0; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 20px; font-weight: 600; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #333; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: 'Outfit', sans-serif; }
+        .form-help { font-size: 12px; color: #999; margin-top: 4px; }
+        .event-checkboxes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; }
+        .checkbox-label:hover { background: #f8f9ff; border-color: #667eea; }
+        .checkbox-label input { cursor: pointer; }
+        .secret-display { background: #f8f9fa; padding: 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; word-break: break-all; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+        .delivery-log { max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        .log-entry { padding: 8px; border-bottom: 1px solid #e0e0e0; }
+        .log-success { color: #28a745; }
+        .log-failure { color: #dc3545; }
+    </style>
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>🔗 Webhooks</h1>
+                <p>Receive real-time notifications when verifications complete</p>
+            </div>
+            <button class="btn btn-primary" onclick="openCreateModal()">+ Add Webhook</button>
+        </div>
+
+        <!-- Info Card -->
+        <div class="webhook-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 30px;">
+            <h3 style="margin-bottom: 12px;">📚 Webhook Documentation</h3>
+            <p style="opacity: 0.9; margin-bottom: 16px;">Webhooks send HTTP POST requests to your URL when events occur. Each request includes a signature for verification.</p>
+            <a href="/api-documentation#webhooks" style="color: white; text-decoration: underline;">View Documentation →</a>
+        </div>
+
+        <!-- Webhooks List -->
+        <div class="webhook-card">
+            <h2 style="font-size: 18px; margin-bottom: 20px;">Your Webhooks</h2>
+            <div id="webhooks-list"></div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="webhook-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Add Webhook</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="webhook-form">
+                <div class="form-group">
+                    <label class="form-label" for="webhook-name">Name *</label>
+                    <input type="text" id="webhook-name" class="form-input" placeholder="Production Server" required>
+                    <div class="form-help">A friendly name to identify this webhook</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="webhook-url">Webhook URL *</label>
+                    <input type="url" id="webhook-url" class="form-input" placeholder="https://your-domain.com/webhook" required>
+                    <div class="form-help">Must be a valid HTTPS URL</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Events to Subscribe *</label>
+                    <div class="event-checkboxes">
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="verification.completed" checked>
+                            <span>Verification Completed</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="verification.failed">
+                            <span>Verification Failed</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="message.received">
+                            <span>Message Received</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" value="payment.completed">
+                            <span>Payment Completed</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="secret-section" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Webhook Secret</label>
+                        <div class="secret-display">
+                            <span id="webhook-secret"></span>
+                            <button type="button" class="btn btn-secondary" onclick="copySecret()">Copy</button>
+                        </div>
+                        <div class="form-help">Use this secret to verify webhook signatures</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Create Webhook</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Test Modal -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Test Webhook</h2>
+                <button class="close-btn" onclick="closeTestModal()">&times;</button>
+            </div>
+            <p style="margin-bottom: 20px;">Send a test ping to verify your webhook endpoint is working correctly.</p>
+            <div class="delivery-log" id="test-log">
+                <div style="color: #999;">Waiting for test...</div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeTestModal()">Close</button>
+                <button class="btn btn-success" onclick="sendTestPing()" id="test-btn">Send Test Ping</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        let currentWebhookId = null;
+
+        async function loadWebhooks() {
+            try {
+                const response = await fetch('/webhooks', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                const container = document.getElementById('webhooks-list');
+
+                if (!data.data || data.data.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔗</div>
+                            <h3>No webhooks configured</h3>
+                            <p>Add your first webhook to receive real-time notifications</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.data.map(webhook => `
+                    <div class="webhook-item">
+                        <div class="webhook-header">
+                            <div>
+                                <div class="webhook-name">${webhook.name}</div>
+                                <span class="status-badge status-${webhook.is_active ? 'active' : 'inactive'}">
+                                    ${webhook.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <div class="webhook-actions">
+                                <button class="btn btn-secondary" onclick="testWebhook('${webhook.id}')">Test</button>
+                                <button class="btn btn-secondary" onclick="toggleWebhook('${webhook.id}', ${!webhook.is_active})">
+                                    ${webhook.is_active ? 'Disable' : 'Enable'}
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteWebhook('${webhook.id}')">Delete</button>
+                            </div>
+                        </div>
+                        <div class="webhook-url">${webhook.url}</div>
+                        <div class="webhook-meta">
+                            <span>Events: ${webhook.events || 'All'}</span>
+                            ${webhook.last_success ? `<span>✅ Last success: ${new Date(webhook.last_success).toLocaleString()}</span>` : ''}
+                            ${webhook.last_failure ? `<span>❌ Last failure: ${new Date(webhook.last_failure).toLocaleString()}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load webhooks:', error);
+            }
+        }
+
+        function openCreateModal() {
+            document.getElementById('modal-title').textContent = 'Add Webhook';
+            document.getElementById('submit-btn').textContent = 'Create Webhook';
+            document.getElementById('webhook-form').reset();
+            document.getElementById('secret-section').style.display = 'none';
+            document.querySelector('input[value="verification.completed"]').checked = true;
+            currentWebhookId = null;
+            document.getElementById('webhook-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('webhook-modal').classList.remove('show');
+        }
+
+        document.getElementById('webhook-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
+            const events = Array.from(document.querySelectorAll('.event-checkboxes input:checked'))
+                .map(cb => cb.value);
+
+            const webhookData = {
+                name: document.getElementById('webhook-name').value,
+                url: document.getElementById('webhook-url').value,
+                events: events.length > 0 ? events : ['*']
+            };
+
+            try {
+                const response = await fetch('/webhooks', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(webhookData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('webhook-secret').textContent = data.data.secret;
+                    document.getElementById('secret-section').style.display = 'block';
+                    document.getElementById('submit-btn').style.display = 'none';
+
+                    alert('Webhook created successfully! Save your secret key.');
+                    loadWebhooks();
+                } else {
+                    alert(data.detail || 'Failed to create webhook');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Webhook';
+            }
+        });
+
+        async function deleteWebhook(webhookId) {
+            if (!confirm('Delete this webhook? This action cannot be undone.')) return;
+
+            try {
+                const response = await fetch(`/webhooks/${webhookId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('Webhook deleted successfully');
+                    loadWebhooks();
+                } else {
+                    alert('Failed to delete webhook');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        function testWebhook(webhookId) {
+            currentWebhookId = webhookId;
+            document.getElementById('test-log').innerHTML = '<div style="color: #999;">Ready to send test ping...</div>';
+            document.getElementById('test-modal').classList.add('show');
+        }
+
+        function closeTestModal() {
+            document.getElementById('test-modal').classList.remove('show');
+        }
+
+        async function sendTestPing() {
+            const testBtn = document.getElementById('test-btn');
+            testBtn.disabled = true;
+            testBtn.textContent = 'Sending...';
+
+            const log = document.getElementById('test-log');
+            log.innerHTML = '<div style="color: #999;">Sending test ping...</div>';
+
+            try {
+                const response = await fetch(`/webhooks/${currentWebhookId}/test`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log.innerHTML = `
+                        <div class="log-entry log-success">✅ ${new Date().toLocaleTimeString()} - Test ping sent successfully</div>
+                        <div class="log-entry">Response: ${data.message}</div>
+                    `;
+                } else {
+                    log.innerHTML = `<div class="log-entry log-failure">❌ ${new Date().toLocaleTimeString()} - Failed to send test ping</div>`;
+                }
+            } catch (error) {
+                log.innerHTML = `<div class="log-entry log-failure">❌ ${new Date().toLocaleTimeString()} - Network error</div>`;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Send Test Ping';
+            }
+        }
+
+        async function toggleWebhook(webhookId, enable) {
+            // TODO: Implement toggle endpoint
+            alert(`Webhook ${enable ? 'enabled' : 'disabled'}`);
+            loadWebhooks();
+        }
+
+        function copySecret() {
+            const secret = document.getElementById('webhook-secret').textContent;
+            navigator.clipboard.writeText(secret);
+            event.target.textContent = 'Copied!';
+            setTimeout(() => event.target.textContent = 'Copy', 2000);
+        }
+
+        loadWebhooks();
+    </script>
+</body>
+</html>

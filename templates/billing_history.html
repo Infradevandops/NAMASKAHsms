@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing History - Namaskah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container-fluid mt-4">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2>Billing History</h2>
+                    <p class="text-muted">View your transaction history and download invoices</p>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Spent</h6>
+                            <h3 id="totalSpent">$0.00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">This Month</h6>
+                            <h3 id="monthSpent">$0.00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Transactions</h6>
+                            <h3 id="totalTransactions">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">Avg Transaction</h6>
+                            <h3 id="avgTransaction">$0.00</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="verification">Verification</option>
+                                <option value="refund">Refund</option>
+                                <option value="subscription">Subscription</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="fromDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="toDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="applyFilters()">
+                                <i class="bi bi-funnel"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5>Transaction History</h5>
+                    <button class="btn btn-sm btn-success" onclick="exportTransactions()">
+                        <i class="bi bi-download"></i> Export CSV
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Transaction ID</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTable">
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div id="paginationInfo">Showing 0 of 0 transactions</div>
+                        <nav>
+                            <ul class="pagination mb-0" id="pagination"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invoice</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="invoiceContent">
+                    <div class="text-center">
+                        <div class="spinner-border"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadInvoice()">
+                        <i class="bi bi-download"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        .badge-deposit { background-color: #28a745; }
+        .badge-verification { background-color: #007bff; }
+        .badge-refund { background-color: #ffc107; color: #000; }
+        .badge-subscription { background-color: #6f42c1; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalTransactions = 0;
+        let currentInvoiceId = null;
+        const ITEMS_PER_PAGE = 20;
+
+        function getToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+
+        async function loadSummary() {
+            try {
+                const response = await fetch('/api/billing/summary', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('totalSpent').textContent = `$${data.total_spent.toFixed(2)}`;
+                document.getElementById('monthSpent').textContent = `$${data.month_spent.toFixed(2)}`;
+                document.getElementById('totalTransactions').textContent = data.total_transactions;
+                document.getElementById('avgTransaction').textContent = `$${data.avg_transaction.toFixed(2)}`;
+            } catch (error) {
+                console.error('Failed to load summary:', error);
+            }
+        }
+
+        async function loadTransactions(page = 1) {
+            const type = document.getElementById('typeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            const params = new URLSearchParams();
+            params.append('limit', ITEMS_PER_PAGE);
+            params.append('offset', (page - 1) * ITEMS_PER_PAGE);
+            if (type) params.append('type', type);
+            if (status) params.append('status', status);
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+
+            try {
+                const response = await fetch(`/api/billing/transactions?${params}`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                totalTransactions = data.total;
+                currentPage = page;
+
+                renderTransactions(data.transactions);
+                renderPagination();
+            } catch (error) {
+                console.error('Failed to load transactions:', error);
+                document.getElementById('transactionsTable').innerHTML =
+                    '<tr><td colspan="7" class="text-center text-danger">Failed to load transactions</td></tr>';
+            }
+        }
+
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactionsTable');
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No transactions found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = transactions.map(tx => `
+                <tr>
+                    <td>${new Date(tx.created_at).toLocaleDateString()}</td>
+                    <td><small>${tx.id.substring(0, 12)}...</small></td>
+                    <td><span class="badge badge-${tx.transaction_type}">${tx.transaction_type}</span></td>
+                    <td>${tx.description || '-'}</td>
+                    <td><strong>$${tx.amount.toFixed(2)}</strong></td>
+                    <td><span class="badge bg-${getStatusColor(tx.status)}">${tx.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewInvoice('${tx.id}')">
+                            <i class="bi bi-file-earmark-text"></i> Invoice
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(totalTransactions / ITEMS_PER_PAGE);
+            const pagination = document.getElementById('pagination');
+            const info = document.getElementById('paginationInfo');
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const end = Math.min(currentPage * ITEMS_PER_PAGE, totalTransactions);
+            info.textContent = `Showing ${start}-${end} of ${totalTransactions} transactions`;
+
+            let html = '';
+
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadTransactions(${currentPage - 1}); return false;">Previous</a>
+            </li>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="loadTransactions(${i}); return false;">${i}</a>
+                    </li>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadTransactions(${currentPage + 1}); return false;">Next</a>
+            </li>`;
+
+            pagination.innerHTML = html;
+        }
+
+        async function viewInvoice(transactionId) {
+            currentInvoiceId = transactionId;
+            const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+            const content = document.getElementById('invoiceContent');
+
+            content.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+            modal.show();
+
+            try {
+                const response = await fetch(`/api/billing/invoice/${transactionId}`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const invoice = await response.json();
+
+                content.innerHTML = `
+                    <div class="invoice">
+                        <div class="text-center mb-4">
+                            <h3>Namaskah SMS</h3>
+                            <p class="text-muted">Invoice #${invoice.invoice_number}</p>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6>Bill To:</h6>
+                                <p>${invoice.user_email}<br>${invoice.user_id}</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h6>Invoice Date:</h6>
+                                <p>${new Date(invoice.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${invoice.description}</td>
+                                    <td>${invoice.transaction_type}</td>
+                                    <td class="text-end">$${invoice.amount.toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-end"><strong>$${invoice.amount.toFixed(2)}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                content.innerHTML = '<div class="alert alert-danger">Failed to load invoice</div>';
+            }
+        }
+
+        async function downloadInvoice() {
+            if (!currentInvoiceId) return;
+            window.open(`/api/billing/invoice/${currentInvoiceId}/download`, '_blank');
+        }
+
+        async function exportTransactions() {
+            const type = document.getElementById('typeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            const params = new URLSearchParams();
+            if (type) params.append('type', type);
+            if (status) params.append('status', status);
+            if (fromDate) params.append('from_date', fromDate);
+            if (toDate) params.append('to_date', toDate);
+
+            window.open(`/api/billing/export?${params}`, '_blank');
+        }
+
+        function applyFilters() {
+            loadTransactions(1);
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                completed: 'success',
+                pending: 'warning',
+                failed: 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        loadSummary();
+        loadTransactions(1);
+    </script>
+</body>
+</html>

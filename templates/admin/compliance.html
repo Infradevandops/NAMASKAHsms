@@ -51,13 +51,114 @@
         <!-- Filters -->
         <div class="card mb-4">
             <div class="card-header">
+                <h5>GDPR Compliance Tools</h5>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" id="gdprTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="export-tab" data-bs-toggle="tab" data-bs-target="#export" type="button">Data Export Requests</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="deletion-tab" data-bs-toggle="tab" data-bs-target="#deletion" type="button">Right to be Forgotten</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="consent-tab" data-bs-toggle="tab" data-bs-target="#consent" type="button">Consent Management</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button">Audit Logs</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="gdprTabContent">
+                    <div class="tab-pane fade show active" id="export" role="tabpanel">
+                        <div class="mb-3">
+                            <h6>Pending Export Requests</h6>
+                            <div id="exportRequests">Loading...</div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Generate User Data Export</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="exportUserId" placeholder="User ID or Email">
+                                <button class="btn btn-primary" onclick="generateExport()">Generate Export</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="deletion" role="tabpanel">
+                        <div class="mb-3">
+                            <h6>Pending Deletion Requests</h6>
+                            <div id="deletionRequests">Loading...</div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Process User Deletion</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="deleteUserId" placeholder="User ID or Email">
+                                <button class="btn btn-danger" onclick="confirmDeletion()">Request Deletion</button>
+                            </div>
+                            <small class="text-muted">This will anonymize user data after 30-day grace period</small>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="consent" role="tabpanel">
+                        <div class="mb-3">
+                            <h6>Consent Statistics</h6>
+                            <div id="consentStats">Loading...</div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Check User Consent</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="consentUserId" placeholder="User ID or Email">
+                                <button class="btn btn-primary" onclick="checkConsent()">Check Consent</button>
+                            </div>
+                        </div>
+                        <div id="consentResults"></div>
+                    </div>
+                    <div class="tab-pane fade" id="audit" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Action Type</label>
+                                <select class="form-select" id="actionFilter">
+                                    <option value="">All Actions</option>
+                                    <option value="user_created">User Created</option>
+                                    <option value="user_suspended">User Suspended</option>
+                                    <option value="tier_changed">Tier Changed</option>
+                                    <option value="credits_adjusted">Credits Adjusted</option>
+                                    <option value="kyc_approved">KYC Approved</option>
+                                    <option value="kyc_rejected">KYC Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Time Range</label>
+                                <select class="form-select" id="daysFilter">
+                                    <option value="7">Last 7 days</option>
+                                    <option value="30" selected>Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Admin</label>
+                                <input type="text" class="form-control" id="adminFilter" placeholder="Admin ID">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary w-100" onclick="loadAuditLogs()">
+                                    <i class="bi bi-funnel"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters (Old - Hidden) -->
+        <div class="card mb-4" style="display:none;">
+            <div class="card-header">
                 <h5>Audit Log Filters</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
                         <label class="form-label">Action Type</label>
-                        <select class="form-select" id="actionFilter">
+                        <select class="form-select" id="actionFilterOld">
                             <option value="">All Actions</option>
                             <option value="user_created">User Created</option>
                             <option value="user_suspended">User Suspended</option>
@@ -69,7 +170,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Time Range</label>
-                        <select class="form-select" id="daysFilter">
+                        <select class="form-select" id="daysFilterOld">
                             <option value="7">Last 7 days</option>
                             <option value="30" selected>Last 30 days</option>
                             <option value="90">Last 90 days</option>
@@ -78,7 +179,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Admin</label>
-                        <input type="text" class="form-control" id="adminFilter" placeholder="Admin ID">
+                        <input type="text" class="form-control" id="adminFilterOld" placeholder="Admin ID">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">&nbsp;</label>
@@ -150,6 +251,200 @@
                 document.getElementById('soc2Status').className = 'text-warning';
             }
         }
+
+        async function loadGDPRRequests() {
+            try {
+                const response = await fetch('/api/admin/gdpr/requests', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                // Export requests
+                const exportDiv = document.getElementById('exportRequests');
+                if (data.export_requests.length === 0) {
+                    exportDiv.innerHTML = '<p class="text-muted">No pending export requests</p>';
+                } else {
+                    exportDiv.innerHTML = `
+                        <table class="table table-sm">
+                            <thead><tr><th>User</th><th>Requested</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody>
+                                ${data.export_requests.map(req => `
+                                    <tr>
+                                        <td>${req.user_email}</td>
+                                        <td>${new Date(req.created_at).toLocaleDateString()}</td>
+                                        <td><span class="badge bg-${req.status === 'completed' ? 'success' : 'warning'}">${req.status}</span></td>
+                                        <td><button class="btn btn-sm btn-primary" onclick="downloadExport('${req.id}')">Download</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+
+                // Deletion requests
+                const deletionDiv = document.getElementById('deletionRequests');
+                if (data.deletion_requests.length === 0) {
+                    deletionDiv.innerHTML = '<p class="text-muted">No pending deletion requests</p>';
+                } else {
+                    deletionDiv.innerHTML = `
+                        <table class="table table-sm">
+                            <thead><tr><th>User</th><th>Requested</th><th>Grace Period Ends</th><th>Action</th></tr></thead>
+                            <tbody>
+                                ${data.deletion_requests.map(req => `
+                                    <tr>
+                                        <td>${req.user_email}</td>
+                                        <td>${new Date(req.created_at).toLocaleDateString()}</td>
+                                        <td>${new Date(req.grace_period_end).toLocaleDateString()}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" onclick="processDeletion('${req.id}')">Process</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="cancelDeletion('${req.id}')">Cancel</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load GDPR requests:', error);
+            }
+        }
+
+        async function loadConsentStats() {
+            try {
+                const response = await fetch('/api/admin/gdpr/consent/stats', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('consentStats').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-3"><strong>Total Users:</strong> ${data.total_users}</div>
+                        <div class="col-md-3"><strong>Marketing Consent:</strong> ${data.marketing_consent}%</div>
+                        <div class="col-md-3"><strong>Analytics Consent:</strong> ${data.analytics_consent}%</div>
+                        <div class="col-md-3"><strong>Data Processing:</strong> ${data.data_processing}%</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load consent stats:', error);
+            }
+        }
+
+        async function generateExport() {
+            const userId = document.getElementById('exportUserId').value;
+            if (!userId) return alert('Please enter User ID or Email');
+
+            try {
+                const response = await fetch('/api/admin/gdpr/export', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_identifier: userId })
+                });
+
+                if (response.ok) {
+                    alert('Export generated successfully');
+                    loadGDPRRequests();
+                } else {
+                    alert('Failed to generate export');
+                }
+            } catch (error) {
+                alert('Failed to generate export');
+            }
+        }
+
+        async function confirmDeletion() {
+            const userId = document.getElementById('deleteUserId').value;
+            if (!userId) return alert('Please enter User ID or Email');
+            if (!confirm('Are you sure? This will start a 30-day deletion process.')) return;
+
+            try {
+                const response = await fetch('/api/admin/gdpr/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_identifier: userId })
+                });
+
+                if (response.ok) {
+                    alert('Deletion request created');
+                    loadGDPRRequests();
+                } else {
+                    alert('Failed to create deletion request');
+                }
+            } catch (error) {
+                alert('Failed to create deletion request');
+            }
+        }
+
+        async function checkConsent() {
+            const userId = document.getElementById('consentUserId').value;
+            if (!userId) return alert('Please enter User ID or Email');
+
+            try {
+                const response = await fetch(`/api/admin/gdpr/consent/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('consentResults').innerHTML = `
+                    <div class="alert alert-info mt-3">
+                        <h6>Consent Status for ${data.user_email}</h6>
+                        <ul>
+                            <li>Marketing: ${data.marketing_consent ? '✅ Granted' : '❌ Not granted'}</li>
+                            <li>Analytics: ${data.analytics_consent ? '✅ Granted' : '❌ Not granted'}</li>
+                            <li>Data Processing: ${data.data_processing_consent ? '✅ Granted' : '❌ Not granted'}</li>
+                            <li>Last Updated: ${new Date(data.updated_at).toLocaleString()}</li>
+                        </ul>
+                    </div>
+                `;
+            } catch (error) {
+                alert('Failed to check consent');
+            }
+        }
+
+        async function downloadExport(requestId) {
+            window.open(`/api/admin/gdpr/export/${requestId}/download`, '_blank');
+        }
+
+        async function processDeletion(requestId) {
+            if (!confirm('Process this deletion now? This cannot be undone.')) return;
+            try {
+                const response = await fetch(`/api/admin/gdpr/delete/${requestId}/process`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.ok) {
+                    alert('Deletion processed');
+                    loadGDPRRequests();
+                }
+            } catch (error) {
+                alert('Failed to process deletion');
+            }
+        }
+
+        async function cancelDeletion(requestId) {
+            try {
+                const response = await fetch(`/api/admin/gdpr/delete/${requestId}/cancel`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.ok) {
+                    alert('Deletion cancelled');
+                    loadGDPRRequests();
+                }
+            } catch (error) {
+                alert('Failed to cancel deletion');
+            }
+        }
+
+        document.getElementById('export-tab').addEventListener('click', loadGDPRRequests);
+        document.getElementById('deletion-tab').addEventListener('click', loadGDPRRequests);
+        document.getElementById('consent-tab').addEventListener('click', loadConsentStats);
 
         async function loadAuditLogs() {
             const action = document.getElementById('actionFilter').value;

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join the Waitlist | Namaskah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { max-width: 500px; width: 100%; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; text-align: center; }
+        .subtitle { font-size: 16px; color: #666; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px; }
+        input, select { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; font-family: 'Outfit', sans-serif; transition: 0.2s; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .success-message { background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; display: none; }
+        .error-message { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; display: none; }
+        .position-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-top: 30px; display: none; }
+        .position-number { font-size: 48px; font-weight: 700; margin-bottom: 10px; }
+        .position-text { font-size: 16px; opacity: 0.9; }
+        .features { margin-top: 30px; padding-top: 30px; border-top: 1px solid #e0e0e0; }
+        .feature { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .feature-icon { width: 24px; height: 24px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .feature-text { font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Join the Waitlist</h1>
+        <p class="subtitle">Be the first to know when we launch new features</p>
+
+        <div id="success-msg" class="success-message"></div>
+        <div id="error-msg" class="error-message"></div>
+
+        <form id="waitlist-form">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="source">How did you hear about us?</label>
+                <select id="source" name="source" required>
+                    <option value="">Select an option</option>
+                    <option value="landing_page">Landing Page</option>
+                    <option value="social_media">Social Media</option>
+                    <option value="friend">Friend Referral</option>
+                    <option value="search">Search Engine</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" id="submit-btn">Join Waitlist</button>
+        </form>
+
+        <div id="position-card" class="position-card">
+            <div class="position-number">#<span id="position">0</span></div>
+            <div class="position-text">You're on the list! We'll notify you soon.</div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <div class="feature-text">Early access to new features</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <div class="feature-text">Exclusive launch discounts</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <div class="feature-text">Priority support</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('waitlist-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const successMsg = document.getElementById('success-msg');
+        const errorMsg = document.getElementById('error-msg');
+        const positionCard = document.getElementById('position-card');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Joining...';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                source: document.getElementById('source').value
+            };
+
+            try {
+                const response = await fetch('/waitlist/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successMsg.textContent = data.message;
+                    successMsg.style.display = 'block';
+                    form.style.display = 'none';
+                    positionCard.style.display = 'block';
+
+                    // Fetch position
+                    const listResponse = await fetch('/waitlist/list');
+                    const listData = await listResponse.json();
+                    const position = listData.findIndex(entry => entry.email === formData.email.toLowerCase()) + 1;
+                    document.getElementById('position').textContent = position || listData.length;
+                } else {
+                    errorMsg.textContent = data.detail || 'Failed to join waitlist';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                errorMsg.textContent = 'Network error. Please try again.';
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Join Waitlist';
+            }
+        });
+    </script>
+</body>
+</html>

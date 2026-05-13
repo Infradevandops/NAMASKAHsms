@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support | Namaskah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .support-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .support-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .category-btn { padding: 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: 0.2s; text-align: left; }
+        .category-btn:hover { border-color: #667eea; background: #f8f9ff; }
+        .category-btn.selected { border-color: #667eea; background: #f8f9ff; }
+        .category-icon { font-size: 24px; margin-bottom: 8px; }
+        .category-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .category-desc { font-size: 12px; color: #666; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #333; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: 'Outfit', sans-serif; }
+        .form-textarea { resize: vertical; min-height: 120px; }
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .ticket-item { padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .ticket-item:hover { border-color: #667eea; background: #f8f9ff; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ticket-subject { font-weight: 600; font-size: 14px; }
+        .ticket-status { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-open { background: #fff3cd; color: #856404; }
+        .status-resolved { background: #d4edda; color: #155724; }
+        .status-closed { background: #e2e3e5; color: #383d41; }
+        .ticket-meta { font-size: 12px; color: #666; }
+        .faq-item { padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; }
+        .faq-question { font-weight: 600; font-size: 14px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-answer { font-size: 13px; color: #666; line-height: 1.6; display: none; }
+        .faq-answer.show { display: block; }
+        .priority-select { display: flex; gap: 8px; }
+        .priority-btn { flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .priority-btn.selected { border-color: #667eea; background: #f8f9ff; color: #667eea; }
+        .success-message { background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .error-message { background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    </style>
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>💬 Support Center</h1>
+            <p>Get help with your account, verifications, or billing</p>
+        </div>
+
+        <div class="support-grid">
+            <!-- Left Column: Create Ticket -->
+            <div>
+                <div class="support-card">
+                    <h2 style="font-size: 20px; margin-bottom: 20px;">Create Support Ticket</h2>
+
+                    <div id="success-msg" class="success-message"></div>
+                    <div id="error-msg" class="error-message"></div>
+
+                    <form id="ticket-form">
+                        <div class="form-group">
+                            <label class="form-label">Category *</label>
+                            <div class="category-grid" id="category-grid"></div>
+                            <input type="hidden" id="category" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Priority *</label>
+                            <div class="priority-select">
+                                <button type="button" class="priority-btn" data-priority="low">Low</button>
+                                <button type="button" class="priority-btn selected" data-priority="medium">Medium</button>
+                                <button type="button" class="priority-btn" data-priority="high">High</button>
+                                <button type="button" class="priority-btn" data-priority="urgent">Urgent</button>
+                            </div>
+                            <input type="hidden" id="priority" value="medium" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="subject">Subject *</label>
+                            <input type="text" id="subject" class="form-input" placeholder="Brief description of your issue" required maxlength="200">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="message">Message *</label>
+                            <textarea id="message" class="form-textarea" placeholder="Please provide detailed information about your issue..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="submit-btn">Submit Ticket</button>
+                    </form>
+                </div>
+
+                <!-- My Tickets -->
+                <div class="support-card" style="margin-top: 30px;">
+                    <h2 style="font-size: 20px; margin-bottom: 20px;">My Tickets</h2>
+                    <div id="tickets-list"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: FAQ & Status -->
+            <div>
+                <!-- Support Status -->
+                <div class="support-card" style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; margin-bottom: 16px;">Support Status</h3>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 12px; height: 12px; background: #4ade80; border-radius: 50%;"></div>
+                        <span style="font-size: 14px; font-weight: 600;">Operational</span>
+                    </div>
+                    <div style="font-size: 13px; color: #666; margin-bottom: 8px;">
+                        <strong>Avg Response:</strong> <span id="avg-response">4 hours</span>
+                    </div>
+                    <div style="font-size: 13px; color: #666;">
+                        <strong>Support Hours:</strong> 24/7
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div class="support-card">
+                    <h3 style="font-size: 16px; margin-bottom: 16px;">Frequently Asked Questions</h3>
+                    <div id="faq-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        let selectedCategory = null;
+        let selectedPriority = 'medium';
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/support/categories');
+                const data = await response.json();
+
+                const grid = document.getElementById('category-grid');
+                grid.innerHTML = data.categories.map(cat => `
+                    <button type="button" class="category-btn" onclick="selectCategory('${cat.id}')">
+                        <div class="category-icon">${cat.icon}</div>
+                        <div class="category-name">${cat.name}</div>
+                        <div class="category-desc">${cat.description}</div>
+                    </button>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        function selectCategory(categoryId) {
+            selectedCategory = categoryId;
+            document.getElementById('category').value = categoryId;
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.category-btn').classList.add('selected');
+        }
+
+        document.querySelectorAll('.priority-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                selectedPriority = this.dataset.priority;
+                document.getElementById('priority').value = selectedPriority;
+
+                document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        document.getElementById('ticket-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedCategory) {
+                showError('Please select a category');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const ticketData = {
+                category: selectedCategory,
+                priority: selectedPriority,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+
+            try {
+                const response = await fetch('/support/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Ticket submitted successfully! We\'ll respond within 24 hours.');
+                    document.getElementById('ticket-form').reset();
+                    selectedCategory = null;
+                    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
+                    loadTickets();
+                } else {
+                    showError(data.detail || 'Failed to submit ticket');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Ticket';
+            }
+        });
+
+        async function loadTickets() {
+            try {
+                const response = await fetch('/support/tickets', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const tickets = await response.json();
+
+                const container = document.getElementById('tickets-list');
+                if (tickets.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No tickets yet</div>';
+                    return;
+                }
+
+                container.innerHTML = tickets.map(ticket => `
+                    <div class="ticket-item" onclick="viewTicket('${ticket.id}')">
+                        <div class="ticket-header">
+                            <div class="ticket-subject">${ticket.subject}</div>
+                            <span class="ticket-status status-${ticket.status}">${ticket.status}</span>
+                        </div>
+                        <div class="ticket-meta">
+                            ${ticket.category} • ${ticket.priority} priority • ${new Date(ticket.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load tickets:', error);
+            }
+        }
+
+        function viewTicket(ticketId) {
+            // TODO: Open ticket detail modal
+            alert('Ticket details: ' + ticketId);
+        }
+
+        async function loadFAQ() {
+            try {
+                const response = await fetch('/support/faq');
+                const data = await response.json();
+
+                const container = document.getElementById('faq-list');
+                container.innerHTML = data.faq.slice(0, 5).map((item, index) => `
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(${index})">
+                            <span>${item.question}</span>
+                            <span id="faq-icon-${index}">▼</span>
+                        </div>
+                        <div class="faq-answer" id="faq-answer-${index}">${item.answer}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load FAQ:', error);
+            }
+        }
+
+        function toggleFAQ(index) {
+            const answer = document.getElementById(`faq-answer-${index}`);
+            const icon = document.getElementById(`faq-icon-${index}`);
+
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                icon.textContent = '▼';
+            } else {
+                answer.classList.add('show');
+                icon.textContent = '▲';
+            }
+        }
+
+        async function loadSupportStatus() {
+            try {
+                const response = await fetch('/support/status');
+                const data = await response.json();
+                document.getElementById('avg-response').textContent = data.average_response_time;
+            } catch (error) {
+                console.error('Failed to load support status:', error);
+            }
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('success-msg');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('error-msg').style.display = 'none';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('error-msg');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('success-msg').style.display = 'none';
+        }
+
+        loadCategories();
+        loadTickets();
+        loadFAQ();
+        loadSupportStatus();
+    </script>
+</body>
+</html>

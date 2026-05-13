@@ -389,3 +389,131 @@ async def activate_user(
         raise HTTPException(
             status_code=500, detail=f"Failed to activate user: {str(e)}"
         )
+
+
+@router.get("/users/{user_id}/activity")
+async def get_user_activity(
+    user_id: str,
+    limit: int = 50,
+    action_type: str = None,
+    date: str = None,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get user activity timeline."""
+    from datetime import timedelta
+
+    from app.models.audit_log import AuditLog
+    from app.models.transaction import Transaction
+    from app.models.verification import Verification
+
+    activities = []
+
+    # Audit logs
+    query = db.query(AuditLog).filter(AuditLog.user_id == user_id)
+    if action_type:
+        query = query.filter(AuditLog.action.contains(action_type))
+    if date:
+        target_date = datetime.fromisoformat(date)
+        query = query.filter(
+            AuditLog.created_at >= target_date,
+            AuditLog.created_at < target_date + timedelta(days=1),
+        )
+
+    audit_logs = query.order_by(AuditLog.created_at.desc()).limit(limit).all()
+    for log in audit_logs:
+        activities.append(
+            {
+                "action_type": (
+                    "admin_action"
+                    if "admin" in log.action
+                    else "tier_change" if "tier" in log.action else "login"
+                ),
+                "description": log.action.replace("_", " ").title(),
+                "metadata": log.details,
+                "created_at": log.created_at.isoformat(),
+            }
+        )
+
+    # Verifications
+    if not action_type or action_type == "verification":
+        verifications = (
+            db.query(Verification)
+            .filter(Verification.user_id == user_id)
+            .order_by(Verification.created_at.desc())
+            .limit(20)
+            .all()
+        )
+        for v in verifications:
+            activities.append(
+                {
+                    "action_type": "verification",
+                    "description": f"Verification for {v.service_name} - {v.status}",
+                    "metadata": {"country": v.country_code, "status": v.status},
+                    "created_at": v.created_at.isoformat(),
+                }
+            )
+
+    # Transactions
+    if not action_type or action_type == "payment":
+        transactions = (
+            db.query(Transaction)
+            .filter(Transaction.user_id == user_id)
+            .order_by(Transaction.created_at.desc())
+            .limit(20)
+            .all()
+        )
+        for t in transactions:
+            activities.append(
+                {
+                    "action_type": "payment",
+                    "description": f"{t.transaction_type.title()} - ${t.amount:.2f}",
+                    "metadata": {"status": t.status, "reference": t.reference},
+                    "created_at": t.created_at.isoformat(),
+                }
+            )
+
+    activities.sort(key=lambda x: x["created_at"], reverse=True)
+    return {"activities": activities[:limit], "total": len(activities)}
+
+
+@router.get("/users/{user_id}/activity/export")
+async def export_user_activity(
+    user_id: str,
+    action_type: str = None,
+    date: str = None,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Export user activity as CSV."""
+    import csv
+    import io
+
+    from fastapi.responses import StreamingResponse
+
+    activity_data = await get_user_activity(
+        user_id, 1000, action_type, date, admin_id, db
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Timestamp", "Action Type", "Description", "Metadata"])
+
+    for activity in activity_data["activities"]:
+        writer.writerow(
+            [
+                activity["created_at"],
+                activity["action_type"],
+                activity["description"],
+                str(activity.get("metadata", {})),
+            ]
+        )
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=user_activity_{user_id}.csv"
+        },
+    )

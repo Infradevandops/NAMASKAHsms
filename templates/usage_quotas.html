@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Quotas - Namaskah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <div class="main-content">
+        <div class="container-fluid mt-4">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2>Usage Quotas</h2>
+                    <p class="text-muted">Monitor your usage limits and consumption</p>
+                </div>
+            </div>
+
+            <!-- Current Tier Info -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 id="tierName">Loading...</h5>
+                            <p class="text-muted mb-0" id="tierDescription">Loading tier information...</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="/pricing" class="btn btn-primary">Upgrade Plan</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quota Cards -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">Monthly SMS Quota</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 id="smsUsed">0</h3>
+                                <span class="text-muted">/ <span id="smsLimit">0</span></span>
+                            </div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar" id="smsProgress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Resets on <span id="smsResetDate">-</span></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">API Requests (Daily)</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 id="apiUsed">0</h3>
+                                <span class="text-muted">/ <span id="apiLimit">0</span></span>
+                            </div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar" id="apiProgress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Resets daily at midnight UTC</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">API Keys</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 id="keysUsed">0</h3>
+                                <span class="text-muted">/ <span id="keysLimit">0</span></span>
+                            </div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar" id="keysProgress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Active API keys</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="text-muted">Webhooks</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h3 id="webhooksUsed">0</h3>
+                                <span class="text-muted">/ <span id="webhooksLimit">0</span></span>
+                            </div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar" id="webhooksProgress" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Active webhooks</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Alerts -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Usage Alerts</h5>
+                </div>
+                <div class="card-body">
+                    <div id="alertsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Usage History Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Usage History (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="usageChart" height="80"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Detailed Usage Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Resource</th>
+                                    <th>Used</th>
+                                    <th>Limit</th>
+                                    <th>Percentage</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="breakdownTable">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .progress-bar.bg-success { background-color: #28a745 !important; }
+        .progress-bar.bg-warning { background-color: #ffc107 !important; }
+        .progress-bar.bg-danger { background-color: #dc3545 !important; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let usageChart = null;
+
+        function getToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+        }
+
+        async function loadQuotas() {
+            try {
+                const response = await fetch('/api/quotas/current', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                // Tier info
+                document.getElementById('tierName').textContent = data.tier.name;
+                document.getElementById('tierDescription').textContent = data.tier.description;
+
+                // SMS Quota
+                updateQuota('sms', data.sms_quota.used, data.sms_quota.limit);
+                document.getElementById('smsResetDate').textContent = new Date(data.sms_quota.reset_date).toLocaleDateString();
+
+                // API Quota
+                updateQuota('api', data.api_quota.used, data.api_quota.limit);
+
+                // API Keys
+                updateQuota('keys', data.api_keys.used, data.api_keys.limit);
+
+                // Webhooks
+                updateQuota('webhooks', data.webhooks.used, data.webhooks.limit);
+
+                // Alerts
+                renderAlerts(data.alerts);
+
+                // Breakdown
+                renderBreakdown(data);
+            } catch (error) {
+                console.error('Failed to load quotas:', error);
+            }
+        }
+
+        function updateQuota(type, used, limit) {
+            const percentage = limit > 0 ? (used / limit) * 100 : 0;
+            const color = percentage >= 90 ? 'bg-danger' : percentage >= 75 ? 'bg-warning' : 'bg-success';
+
+            document.getElementById(`${type}Used`).textContent = used;
+            document.getElementById(`${type}Limit`).textContent = limit === -1 ? '∞' : limit;
+
+            const progressBar = document.getElementById(`${type}Progress`);
+            progressBar.style.width = `${Math.min(percentage, 100)}%`;
+            progressBar.className = `progress-bar ${color}`;
+        }
+
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alertsContainer');
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<p class="text-muted">No usage alerts</p>';
+                return;
+            }
+
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert alert-${alert.severity} d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        <strong>${alert.title}</strong>
+                        <p class="mb-0">${alert.message}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBreakdown(data) {
+            const tbody = document.getElementById('breakdownTable');
+
+            const resources = [
+                { name: 'SMS Verifications', used: data.sms_quota.used, limit: data.sms_quota.limit },
+                { name: 'API Requests', used: data.api_quota.used, limit: data.api_quota.limit },
+                { name: 'API Keys', used: data.api_keys.used, limit: data.api_keys.limit },
+                { name: 'Webhooks', used: data.webhooks.used, limit: data.webhooks.limit },
+                { name: 'Voice Verifications', used: data.voice_quota?.used || 0, limit: data.voice_quota?.limit || 0 },
+                { name: 'Number Rentals', used: data.rentals?.used || 0, limit: data.rentals?.limit || 0 }
+            ];
+
+            tbody.innerHTML = resources.map(resource => {
+                const percentage = resource.limit > 0 ? (resource.used / resource.limit) * 100 : 0;
+                const status = percentage >= 90 ? 'danger' : percentage >= 75 ? 'warning' : 'success';
+                const statusText = percentage >= 90 ? 'Critical' : percentage >= 75 ? 'Warning' : 'Good';
+
+                return `
+                    <tr>
+                        <td>${resource.name}</td>
+                        <td>${resource.used}</td>
+                        <td>${resource.limit === -1 ? 'Unlimited' : resource.limit}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-${status}" style="width: ${Math.min(percentage, 100)}%">
+                                    ${percentage.toFixed(1)}%
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-${status}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadUsageHistory() {
+            try {
+                const response = await fetch('/api/quotas/history?days=30', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+
+                const ctx = document.getElementById('usageChart').getContext('2d');
+
+                if (usageChart) {
+                    usageChart.destroy();
+                }
+
+                usageChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [
+                            {
+                                label: 'SMS Verifications',
+                                data: data.sms_usage,
+                                borderColor: '#007bff',
+                                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'API Requests',
+                                data: data.api_usage,
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load usage history:', error);
+            }
+        }
+
+        loadQuotas();
+        loadUsageHistory();
+
+        // Refresh every 60 seconds
+        setInterval(() => {
+            loadQuotas();
+            loadUsageHistory();
+        }, 60000);
+    </script>
+</body>
+</html>
