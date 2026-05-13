@@ -676,17 +676,18 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
 
 ### Current & Upcoming
 
-### Q2 2026 - Growth Features ✅
-- ✅ **Telegram SMS forwarding** (6/6 tasks, 100%)
-- ✅ **Whitelabel system** (6/8 tasks, 75% - email templates deferred)
-- 📋 **Push notifications** (deferred - WebSocket alternative active)
-- 📋 **SDK libraries** (Python, JavaScript)
+### Q2 2026 - Growth & Adoption (Phase 8) 🔄
+- 📝 **SDK Libraries** (Python, JavaScript) - In Planning
+- 📝 **Onboarding Tour** (6-step guided walkthrough) - In Planning
+- ✅ **Telegram SMS forwarding** (Code complete, needs config)
+- ✅ **Whitelabel system** (Complete)
+- ⏸️ **Push notifications** (Deferred - WebSocket active)
 
 ### Q3 2026 - Scale 📋
 - 📋 **Multi-region deployment**
-- 📋 **Enterprise tier + KYC**
-- 📋 **Tax collection** (>100 users)
-- 📋 **Reseller program**
+- 📋 **Enterprise tier + KYC** (Triggered by demand)
+- 📋 **Tax collection** (Triggered at >100 users)
+- 📋 **Reseller program** (Triggered by partner agreement)
 
 ---
 
