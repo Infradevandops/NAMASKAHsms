@@ -18,7 +18,7 @@
 - ✅ Test users created
 
 **Deployed**: May 12, 2026
-**Commit**: 6cb4c0ed
+**Commit**: 4cef16ab
 **Time Invested**: 1h 37min
 
 ---
@@ -177,9 +177,9 @@
 
 **Documentation**:
 - README.md - Platform overview
+- STATUS.md - Current state
 - ACTIVE_TASKS.md - Remaining tasks
-- 12hourstoprod.md - Recent deployment
-- NEXT_STEPS.md - Post-launch actions
+- PLATFORM_STATUS.md - This file
 
 **Monitoring**:
 - Sentry: https://dev-vp.sentry.io/issues/

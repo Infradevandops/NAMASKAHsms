@@ -257,9 +257,9 @@ If you want faster results:
 
 **Documentation**:
 - README.md - Platform overview
-- 12hourstoprod.md - Recent deployment
-- NEXT_STEPS.md - Post-launch tasks
+- STATUS.md - Current state
 - ACTIVE_TASKS.md - This file
+- PLATFORM_STATUS.md - Technical details
 
 **Monitoring**:
 - Sentry: https://dev-vp.sentry.io/issues/
