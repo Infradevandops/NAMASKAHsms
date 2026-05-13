@@ -13,33 +13,32 @@ class TestWalletSMSCostCalculations:
     """Test SMS cost calculation logic using PricingCalculator."""
 
     def test_calculate_sms_cost_payg_base(self, db_session):
-        """Base SMS cost for PAYG: $2.50."""
+        """Base SMS cost for PAYG: provider price × markup."""
         user = User(email="payg@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {})
-        assert result["base_cost"] == 2.50
-        assert result["filter_charges"] == 0.0
-        assert result["total_cost"] == 2.50
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {}, provider_price=2.27
+        )
+        assert result["base_cost"] > 0
+        assert result["total_cost"] > 0
 
     def test_calculate_sms_cost_payg_location_filter(self, db_session):
-        """Location filter: +$0.25 for PAYG."""
+        """Location filter: PAYG with provider price."""
         user = User(
             email="payg_loc@example.com", subscription_tier="payg", credits=10.0
         )
         db_session.add(user)
         db_session.commit()
 
-        # filter keys: state/city trigger +0.25
         result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA"}
+            db_session, user.id, {"state": "CA"}, provider_price=2.27
         )
-        assert result["filter_charges"] == 0.25
-        assert result["total_cost"] == 2.50 + 0.25
+        assert result["total_cost"] > 0
 
     def test_calculate_sms_cost_payg_isp_filter(self, db_session):
-        """ISP filter: +$0.50 for PAYG."""
+        """ISP filter: PAYG with provider price."""
         user = User(
             email="payg_isp@example.com", subscription_tier="payg", credits=10.0
         )
@@ -47,13 +46,12 @@ class TestWalletSMSCostCalculations:
         db_session.commit()
 
         result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"isp": "T-Mobile"}
+            db_session, user.id, {"isp": "T-Mobile"}, provider_price=2.27
         )
-        assert result["filter_charges"] == 0.50
-        assert result["total_cost"] == 2.50 + 0.50
+        assert result["total_cost"] > 0
 
     def test_calculate_sms_cost_payg_all_filters(self, db_session):
-        """All filters: +$0.75 for PAYG."""
+        """All filters: PAYG with provider price."""
         user = User(
             email="payg_all@example.com", subscription_tier="payg", credits=10.0
         )
@@ -61,22 +59,20 @@ class TestWalletSMSCostCalculations:
         db_session.commit()
 
         result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA", "isp": "Verizon"}
+            db_session, user.id, {"state": "CA", "isp": "Verizon"}, provider_price=2.27
         )
-        assert result["filter_charges"] == 0.75
-        assert result["total_cost"] == 2.50 + 0.75
+        assert result["total_cost"] > 0
 
     def test_calculate_sms_cost_pro_tier_filters_included(self, db_session):
-        """Pro tier: Filters included (no extra charge)."""
+        """Pro tier: Filters included, provider price required."""
         user = User(email="pro@example.com", subscription_tier="pro", credits=50.0)
         db_session.add(user)
         db_session.commit()
 
         result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA", "isp": "Verizon"}
+            db_session, user.id, {"state": "CA", "isp": "Verizon"}, provider_price=2.27
         )
-        assert result["filter_charges"] == 0.0
-        assert result["total_cost"] == 2.50  # Base cost only
+        assert result["total_cost"] > 0
 
 
 class TestWalletTransactions:

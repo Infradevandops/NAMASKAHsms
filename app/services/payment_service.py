@@ -214,14 +214,23 @@ class PaymentService:
 
             logger.info(f"Credited {amount} to user {user_id}")
 
+            # Fire-and-forget async tasks safely from sync context
+            def _fire(coro):
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(coro)
+                    else:
+                        coro.close()
+                except Exception:
+                    coro.close()
+
             # Notify user
             try:
                 from app.services.notification_dispatcher import NotificationDispatcher
 
                 dispatcher = NotificationDispatcher(self.db)
-                import asyncio
-
-                asyncio.create_task(
+                _fire(
                     dispatcher.notify_payment_completed(
                         user_id=user_id, amount=amount, new_balance=float(user.credits)
                     )
@@ -233,7 +242,7 @@ class PaymentService:
             try:
                 from app.services.event_broadcaster import event_broadcaster
 
-                asyncio.create_task(
+                _fire(
                     event_broadcaster.broadcast_payment_event(
                         user_id=user_id,
                         event_type="completed",
@@ -251,7 +260,7 @@ class PaymentService:
                     RevenueRecognitionService,
                 )
 
-                asyncio.create_task(
+                _fire(
                     RevenueRecognitionService(self.db).recognize_revenue(
                         transaction_id=transaction.id,
                         gross_amount=float(amount),
@@ -267,7 +276,7 @@ class PaymentService:
                 if getattr(user, "is_affiliate", False):
                     from app.services.commission_engine import get_commission_engine
 
-                    asyncio.create_task(
+                    _fire(
                         get_commission_engine(self.db).calculate_commission(
                             partner_id=user_id,
                             transaction_amount=float(amount),

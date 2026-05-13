@@ -12,9 +12,13 @@ client = TestClient(app)
 def auth_token():
     email = "analytics_test@example.com"
     password = "testpass123"
-    client.post("/api/auth/register", json={"email": email, "password": password})
+    client.post(
+        "/api/auth/register",
+        json={"email": email, "password": password, "terms_accepted": True},
+    )
     response = client.post(
-        "/api/auth/login", json={"email": email, "password": password}
+        "/api/auth/login",
+        json={"email": email, "password": password, "terms_accepted": True},
     )
     return response.json()["access_token"]
 

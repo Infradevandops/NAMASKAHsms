@@ -32,28 +32,44 @@ from app.api.core.whitelabel_endpoints import router as whitelabel_router
 router = APIRouter()
 
 # router.include_router(auth_router, prefix="/api")  # Disabled - using auth_standalone
-router.include_router(gdpr_router, prefix="/api")
-router.include_router(notification_router)
-router.include_router(dashboard_activity_router)
-router.include_router(textverified_balance_router)
-router.include_router(user_profile_router, prefix="/api")
-router.include_router(countries_router, prefix="/api")
+router.include_router(gdpr_router, prefix="/api")  # prefix=/gdpr → /api/gdpr
+router.include_router(notification_router)  # prefix=/api/notifications (self-contained)
+router.include_router(
+    dashboard_activity_router
+)  # prefix=/api/dashboard (self-contained)
+router.include_router(
+    textverified_balance_router
+)  # prefix=/api/textverified (self-contained)
+router.include_router(user_profile_router, prefix="/api")  # prefix=/user → /api/user
+router.include_router(countries_router)  # prefix=/api/countries (self-contained)
 router.include_router(services_router)
 router.include_router(system_router)
-router.include_router(api_key_router)
-router.include_router(user_settings_router, prefix="/api")
-router.include_router(user_settings_endpoints_router)
-router.include_router(preferences_router)
-router.include_router(affiliate_router)
-router.include_router(analytics_enhanced_router)
-router.include_router(user_insights_router)
-router.include_router(balance_sync_router)
-router.include_router(wallet_router)
-router.include_router(blacklist_router)
-router.include_router(forwarding_router, prefix="/api")
-router.include_router(webhooks_router, prefix="/api")
-router.include_router(referrals_router, prefix="/api")
-router.include_router(telegram_router)
+router.include_router(api_key_router)  # prefix=/api/keys (self-contained)
+router.include_router(user_settings_router, prefix="/api")  # prefix=/user → /api/user
+router.include_router(
+    user_settings_endpoints_router
+)  # prefix=/api/user (self-contained)
+router.include_router(
+    preferences_router
+)  # prefix=/api/user/preferences (self-contained)
+router.include_router(affiliate_router)  # prefix=/api/affiliate (self-contained)
+router.include_router(
+    analytics_enhanced_router
+)  # prefix=/api/analytics (self-contained)
+router.include_router(user_insights_router)  # prefix=/api/analytics (self-contained)
+router.include_router(balance_sync_router)  # prefix=/api/balance (self-contained)
+router.include_router(wallet_router)  # prefix=/wallet (mounted via billing_router)
+router.include_router(blacklist_router)  # prefix=/api/blacklist (self-contained)
+router.include_router(
+    forwarding_router, prefix="/api"
+)  # prefix=/forwarding → /api/forwarding
+router.include_router(
+    webhooks_router, prefix="/api"
+)  # prefix=/webhooks → /api/webhooks
+router.include_router(
+    referrals_router, prefix="/api"
+)  # prefix=/referrals → /api/referrals
+router.include_router(telegram_router)  # prefix=/api/telegram (self-contained)
 router.include_router(onesignal_router)
-router.include_router(push_router)
-router.include_router(whitelabel_router)
+router.include_router(push_router)  # prefix=/api/push (self-contained)
+router.include_router(whitelabel_router)  # prefix=/api/whitelabel (self-contained)

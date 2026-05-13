@@ -247,11 +247,12 @@ class TestWebhookSignature:
     def test_verify_webhook_signature_valid(self, payment_service):
         """Test valid webhook signature."""
         payload = b'{"event": "charge.success"}'
-        # This is a mock signature - in real tests, generate actual HMAC
         signature = "valid_signature_hash"
 
-        with patch("hmac.compare_digest", return_value=True):
-            result = payment_service.verify_webhook_signature(payload, signature)
+        with patch("app.services.payment_service.settings") as mock_settings:
+            mock_settings.paystack_secret_key = "test_secret_key_for_testing"
+            with patch("hmac.compare_digest", return_value=True):
+                result = payment_service.verify_webhook_signature(payload, signature)
 
         assert result is True
 

@@ -22,9 +22,12 @@ class AddCreditsRequest(BaseModel):
 
 
 class PaymentInitialize(BaseModel):
-    """Schema for payment initialization."""
+    """Schema for payment initialization. Accepts both 'amount_usd' and 'amount'."""
 
-    amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
+    amount_usd: Optional[float] = Field(
+        None, gt=0, description="Amount in USD (minimum $5)"
+    )
+    amount: Optional[float] = Field(None, gt=0, description="Alias for amount_usd")
     payment_method: str = Field(default="paystack", description="Payment method")
     metadata: dict = Field(
         default_factory=dict, description="Optional metadata (e.g. upgrade_to)"
@@ -33,14 +36,16 @@ class PaymentInitialize(BaseModel):
         default=None, description="Client-supplied idempotency key"
     )
 
-    @field_validator("amount_usd", mode="before")
-    @classmethod
-    def validate_amount(cls, v):
-        if v < 5.0:
+    def model_post_init(self, __context):
+        """Resolve amount_usd from either field."""
+        if self.amount_usd is None and self.amount is not None:
+            self.amount_usd = self.amount
+        if self.amount_usd is None:
+            raise ValueError("amount_usd is required")
+        if self.amount_usd < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
-        if v > 10000.0:
+        if self.amount_usd > 10000.0:
             raise ValueError("Maximum payment amount is $10,000 USD")
-        return v
 
     @field_validator("payment_method", mode="before")
     @classmethod

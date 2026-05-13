@@ -13,9 +13,13 @@ def auth_token():
     """Register and login to get token"""
     email = "wallet_test@example.com"
     password = "testpass123"
-    client.post("/api/auth/register", json={"email": email, "password": password})
+    client.post(
+        "/api/auth/register",
+        json={"email": email, "password": password, "terms_accepted": True},
+    )
     response = client.post(
-        "/api/auth/login", json={"email": email, "password": password}
+        "/api/auth/login",
+        json={"email": email, "password": password, "terms_accepted": True},
     )
     return response.json()["access_token"]
 

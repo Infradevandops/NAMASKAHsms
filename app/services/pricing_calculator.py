@@ -66,8 +66,6 @@ class PricingCalculator:
 
             get_logger(__name__).warning(f"Failed to get active template markup: {e}")
 
-        from decimal import Decimal
-
         base_cost = round(float(Decimal(str(provider_price)) * markup), 2)
 
         if tier_name == "freemium" and any(filters.values()):

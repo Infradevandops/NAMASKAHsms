@@ -229,8 +229,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(currencies_router)
     fastapi_app.include_router(whitelabel_endpoints_router)  # ✅ WHITELABEL ENABLED
     fastapi_app.include_router(
-        core_router, prefix="/api"
-    )  # ✅ CORE ROUTER (OneSignal, Push, etc.)
+        core_router
+    )  # ✅ CORE ROUTER — no prefix, routers carry their own /api prefix
     fastapi_app.include_router(disputes_router)
     fastapi_app.include_router(gdpr_admin_router, prefix="/api")
     fastapi_app.include_router(billing_history_router)

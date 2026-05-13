@@ -12,7 +12,11 @@ def test_register_new_user():
     """Test user registration"""
     response = client.post(
         "/api/auth/register",
-        json={"email": "newuser@test.com", "password": "SecurePass123!"},
+        json={
+            "email": "newuser@test.com",
+            "password": "SecurePass123!",
+            "terms_accepted": True,
+        },
     )
     assert response.status_code in [200, 201, 409]  # 409 if user exists
 

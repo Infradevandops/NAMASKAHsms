@@ -60,17 +60,7 @@ async def lifespan(app):
         except Exception as e:
             startup_logger.warning(f"Cache initialization failed: {e}")
 
-        # Invalidate stale service cache (forces fresh fetch with dedup + real prices)
-        try:
-            from app.core.unified_cache import cache as _cache
-
-            await _cache.delete("tv:services_list")
-            await _cache.delete("tv:services_names")
-            startup_logger.info("Cleared stale service cache")
-        except Exception as e:
-            startup_logger.warning(f"Cache clear failed (non-critical): {e}")
-
-        # Pre-warm services and area codes cache (non-blocking background task)
+        # Pre-warm services and area codes cache (blocking — must complete before traffic)
         async def _prewarm():
             try:
                 from app.services.textverified_service import TextVerifiedService
@@ -101,9 +91,12 @@ async def lifespan(app):
             except Exception as e:
                 startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
 
-        # Skip pre-warming in test mode
+        # Skip pre-warming in test mode — block startup until warm (max 20s)
         if os.getenv("TESTING") != "1":
-            asyncio.create_task(_prewarm())
+            try:
+                await asyncio.wait_for(_prewarm(), timeout=20.0)
+            except asyncio.TimeoutError:
+                startup_logger.warning("Pre-warm timed out — first request may be slow")
         else:
             startup_logger.info("Skipping TextVerified pre-warming in test mode")
 
