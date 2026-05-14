@@ -173,11 +173,11 @@ class Settings(BaseSettings):
     # Last updated: April 2026. Current market rate ~1500.
     ngn_usd_rate: float = 1500.0
 
-    # Crypto Settlement Addresses (Placeholders for Institutional Liquidity)
-    btc_address: str = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-    eth_address: str = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    sol_address: str = "8xS2FfDqK4h1K7Z6zU9E8R4zG9vL4T1d7yP6U5w3b3a"
-    ltc_address: str = "LM6G7R8S4T5U1V2W3X4Y5Z6A7B8C9D0E1F"
+    # Crypto Settlement Addresses — must be set via environment variables in production
+    btc_address: Optional[str] = None
+    eth_address: Optional[str] = None
+    sol_address: Optional[str] = None
+    ltc_address: Optional[str] = None
 
     # Admin settings
     admin_email: Optional[str] = None

@@ -269,11 +269,11 @@
     <div style="display: grid; grid-template-columns: 1fr 350px; gap: 24px;">
         <!-- Inbound Settlement Card -->
         <div class="glass-card">
-            <h2 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Add Institutional Credits</h2>
+            <h2 style="font-size: 18px; margin-bottom: 20px; font-weight: 700;">Add Credits</h2>
 
             <div class="payment-tabs">
                 <button class="payment-tab active" id="tab-card-btn" onclick="switchMethod('card')">Credit/Debit Card</button>
-                <button class="payment-tab" id="tab-crypto-btn" style="opacity:0.5; cursor:not-allowed;" title="Coming soon" disabled>Cryptocurrency <span style="font-size:10px;">(Coming Soon)</span></button>
+                <button class="payment-tab" id="tab-crypto-btn" onclick="switchMethod('crypto')">Cryptocurrency</button>
             </div>
 
             <!-- Card Layout -->
@@ -285,7 +285,7 @@
                     <button class="preset-btn" onclick="initSettlement(100, this)">$100 <span class="bonus">+15%</span></button>
                 </div>
                 <div class="input-group">
-                    <input type="number" id="custom-usd" class="premium-input" placeholder="Custom Settlement Amount (USD)" aria-label="Custom deposit amount in USD">
+                    <input type="number" id="custom-usd" class="premium-input" placeholder="Custom Amount (USD) — min $5" aria-label="Custom deposit amount in USD">
                     <button class="btn nsk-btn-primary" onclick="initSettlement(null, this)" style="padding: 14px 24px;">Initialize</button>
                 </div>
             </div>
@@ -556,6 +556,15 @@
             });
             if (res.ok) {
                 cryptoState.addresses = await res.json();
+            } else {
+                // Addresses not configured — disable crypto tab gracefully
+                const btn = document.getElementById('tab-crypto-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.4';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'Crypto payments temporarily unavailable';
+                }
             }
         } catch (e) { console.error('Failed to load addresses', e); }
     }
@@ -597,6 +606,13 @@
             const token = localStorage.getItem('access_token');
             const addrKey = `${cryptoState.currentAsset.toLowerCase()}_address`;
             const addr = cryptoState.addresses[addrKey];
+
+            if (!addr) {
+                window.errorHandler.showToast('This crypto asset is not currently available. Please choose another or use card payment.', 'error');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+            }
 
             const res = await fetch('/api/v1/wallet/crypto/intent', {
                 method: 'POST',

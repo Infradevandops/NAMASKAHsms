@@ -39,11 +39,21 @@ class CryptoConfirmRequest(BaseModel):
 
 @router.get("/crypto/addresses")
 async def get_crypto_addresses(user_id: str = Depends(get_current_user_id)):
-    """Crypto payments not yet available."""
-    return {
-        "available": False,
-        "message": "Crypto payments coming soon. Use Paystack for now.",
+    """Return configured crypto deposit addresses."""
+    addresses = {
+        "btc_address": settings.btc_address,
+        "eth_address": settings.eth_address,
+        "sol_address": settings.sol_address,
+        "ltc_address": settings.ltc_address,
     }
+    # Only expose addresses that are actually configured
+    configured = {k: v for k, v in addresses.items() if v}
+    if not configured:
+        raise HTTPException(
+            status_code=503,
+            detail="Crypto payments temporarily unavailable. Please use card payment.",
+        )
+    return configured
 
 
 @router.post("/crypto/intent")
