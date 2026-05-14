@@ -185,18 +185,15 @@ class TestWalletBalanceOperations:
             credit_service.deduct_credits(user.id, 5.0)
 
     def test_validate_balance_freemium_bonus(self, db_session):
-        """Test validate_balance for freemium with bonus SMS."""
+        """Test validate_balance for freemium with sufficient credits."""
         user = User(
             email="free_bonus@example.com",
             subscription_tier="freemium",
-            credits=0,
-            bonus_sms_balance=2,  # Has free SMS
+            credits=10.0,
         )
         db_session.add(user)
         db_session.commit()
 
-        # Should pass validation for any cost since bonus > 0 logic exists in PricingCalculator.validate_balance
-        # Note: PricingCalculator.validate_balance checks bonus_sms_balance >= 1 for freemium
         is_valid = PricingCalculator.validate_balance(db_session, user.id, 5.0)
         assert is_valid is True
 

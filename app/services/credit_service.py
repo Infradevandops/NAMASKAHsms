@@ -159,9 +159,7 @@ class CreditService:
                 f"Insufficient credits for user {user_id}. "
                 f"Required: {amount}, Available: {current_balance}"
             )
-            raise InsufficientCreditsError(
-                f"Insufficient credits. Required: {amount}, Available: {current_balance}"
-            )
+            raise InsufficientCreditsError(required=amount, available=current_balance)
 
         # Check spending limit before deducting
         pref = (
@@ -418,12 +416,13 @@ class CreditService:
         # Check sufficient credits
         if (from_user.credits or 0.0) < amount:
             raise InsufficientCreditsError(
-                "Insufficient credits for transfer. "
-                f"Required: {amount}, Available: {from_user.credits}"
+                required=amount, available=float(from_user.credits or 0)
             )
 
         # Perform transfer
-        from_user.credits = (from_user.credits or 0.0) - amount
+        from_user.credits = type(from_user.credits)(
+            float(from_user.credits or 0) - float(amount)
+        )
         to_user.credits = type(to_user.credits)(
             float(to_user.credits or 0) + float(amount)
         )
