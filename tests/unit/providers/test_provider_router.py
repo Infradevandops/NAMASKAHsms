@@ -30,7 +30,7 @@ class TestProviderRouter:
     @pytest.mark.asyncio
     async def test_us_routes_to_textverified(self, router):
         """US requests should route to TextVerified."""
-        provider, _, _ = await router.get_provider("whatsapp", "US")
+        provider, _, _ = await router.get_provider(MagicMock(), "whatsapp", "US")
         assert provider.name == "textverified"
 
     @pytest.mark.asyncio
@@ -47,7 +47,7 @@ class TestProviderRouter:
             mock_provider.name = "5sim"
             mock_fivesim.return_value = mock_provider
 
-            provider, _, _ = await router.get_provider("whatsapp", "GB")
+            provider, _, _ = await router.get_provider(MagicMock(), "whatsapp", "GB")
             assert provider.name == "5sim"
 
     @pytest.mark.asyncio
@@ -65,7 +65,7 @@ class TestProviderRouter:
             mock_telnyx.return_value = mock_provider
 
             provider, _, _ = await router.get_provider(
-                "whatsapp", "GB", prefer_enterprise=True
+                MagicMock(), "whatsapp", "GB", prefer_enterprise=True
             )
             assert provider.name == "telnyx"
 
@@ -93,7 +93,7 @@ class TestProviderRouter:
             mock_pvapins_provider.enabled = False
             mock_pvapins.return_value = mock_pvapins_provider
 
-            provider, _, _ = await router.get_provider("whatsapp", "GB")
+            provider, _, _ = await router.get_provider(MagicMock(), "whatsapp", "GB")
             assert provider.name == "textverified"
 
     @pytest.mark.asyncio

@@ -63,13 +63,13 @@ class TestVerificationEndpoints:
 
             response = authenticated_regular_client.post(
                 "/api/verification/request",
-                json={"service_name": "telegram", "country": "US", "capability": "sms"},
+                json={"service": "telegram", "country": "US", "capability": "sms"},
             )
 
         assert response.status_code == 201
         data = response.json()
         assert "id" in data
-        assert data["service_name"] == "telegram"
+        assert data["service"] == "telegram"
         assert data["phone_number"] == "+12025551234"
         assert data["status"] == "pending"
 
@@ -83,7 +83,7 @@ class TestVerificationEndpoints:
 
         response = authenticated_regular_client.post(
             "/api/verification/request",
-            json={"service_name": "telegram", "country": "US", "capability": "sms"},
+            json={"service": "telegram", "country": "US", "capability": "sms"},
         )
 
         assert response.status_code == 402
@@ -113,16 +113,14 @@ class TestVerificationEndpoints:
 
             response = authenticated_regular_client.post(
                 "/api/verification/request",
-                json={"service_name": "telegram", "country": "US", "capability": "sms"},
+                json={"service": "telegram", "country": "US", "capability": "sms"},
             )
 
         assert response.status_code == 201
         db.refresh(regular_user)
         assert regular_user.free_verifications == 4
 
-    def test_create_verification_missing_service_name(
-        self, authenticated_regular_client
-    ):
+    def test_create_verification_missing_service(self, authenticated_regular_client):
         """Test verification creation without service name."""
         response = authenticated_regular_client.post(
             "/api/verification/request", json={"country": "US", "capability": "sms"}
@@ -136,7 +134,7 @@ class TestVerificationEndpoints:
         """Test idempotency key prevents duplicate verifications."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="pending",
             cost=0.50,
@@ -151,7 +149,7 @@ class TestVerificationEndpoints:
         response = authenticated_regular_client.post(
             "/api/verification/request",
             json={
-                "service_name": "telegram",
+                "service": "telegram",
                 "country": "US",
                 "capability": "sms",
                 "idempotency_key": "test-key-123",
@@ -189,7 +187,7 @@ class TestVerificationEndpoints:
                 response = client.post(
                     "/api/verification/request",
                     json={
-                        "service_name": "telegram",
+                        "service": "telegram",
                         "country": "US",
                         "capability": "sms",
                         "area_code": "202",
@@ -209,7 +207,7 @@ class TestVerificationEndpoints:
         response = authenticated_regular_client.post(
             "/api/verification/request",
             json={
-                "service_name": "telegram",
+                "service": "telegram",
                 "country": "US",
                 "capability": "sms",
                 "area_code": "202",
@@ -235,7 +233,7 @@ class TestVerificationEndpoints:
             response = authenticated_pro_client.post(
                 "/api/verification/request",
                 json={
-                    "service_name": "telegram",
+                    "service": "telegram",
                     "country": "US",
                     "capability": "sms",
                     "carrier": "verizon",
@@ -259,7 +257,7 @@ class TestVerificationEndpoints:
             response = client.post(
                 "/api/verification/request",
                 json={
-                    "service_name": "telegram",
+                    "service": "telegram",
                     "country": "US",
                     "capability": "sms",
                     "carrier": "verizon",
@@ -274,7 +272,7 @@ class TestVerificationEndpoints:
         """Test getting verification status."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="pending",
             cost=0.50,
@@ -303,7 +301,7 @@ class TestVerificationEndpoints:
         for i in range(3):
             verification = Verification(
                 user_id=regular_user.id,
-                service_name=f"service{i}",
+                service=f"service{i}",
                 phone_number=f"+1202555{i:04d}",
                 status="completed",
                 cost=0.50,
@@ -330,7 +328,7 @@ class TestVerificationEndpoints:
         for i in range(10):
             verification = Verification(
                 user_id=regular_user.id,
-                service_name=f"service{i}",
+                service=f"service{i}",
                 phone_number=f"+1202555{i:04d}",
                 status="completed",
                 cost=0.50,
@@ -368,7 +366,7 @@ class TestVerificationEndpoints:
         """Test polling for pending verification."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="pending",
             cost=0.50,
@@ -399,7 +397,7 @@ class TestVerificationEndpoints:
         """Test polling when SMS is received."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="pending",
             cost=0.50,
@@ -442,7 +440,7 @@ class TestVerificationEndpoints:
         """Test canceling verification."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="pending",
             cost=0.50,
@@ -480,7 +478,7 @@ class TestVerificationEndpoints:
         """Test canceling already completed verification."""
         verification = Verification(
             user_id=regular_user.id,
-            service_name="telegram",
+            service="telegram",
             phone_number="+12025551234",
             status="completed",
             cost=0.50,
@@ -510,7 +508,7 @@ class TestVerificationEndpoints:
 
             response = authenticated_regular_client.post(
                 "/api/verification/request",
-                json={"service_name": "telegram", "country": "US", "capability": "sms"},
+                json={"service": "telegram", "country": "US", "capability": "sms"},
             )
 
         assert response.status_code == 503
@@ -527,7 +525,7 @@ class TestVerificationEndpoints:
         try:
             response = client.post(
                 "/api/verification/request",
-                json={"service_name": "telegram", "country": "US", "capability": "sms"},
+                json={"service": "telegram", "country": "US", "capability": "sms"},
             )
 
             assert response.status_code == 404

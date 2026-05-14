@@ -4,7 +4,7 @@ Handles refunds when area code or carrier filters don't match
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from sqlalchemy.orm import Session
@@ -98,8 +98,6 @@ class RefundService:
                 )
 
                 # Create BalanceTransaction (Strict Audit)
-                from datetime import datetime, timezone
-
                 from app.core.constants import TransactionType
                 from app.models.balance_transaction import BalanceTransaction
 
@@ -150,8 +148,6 @@ class RefundService:
             )
 
             # Create BalanceTransaction (Strict Audit)
-            from datetime import datetime, timezone
-
             from app.core.constants import TransactionType
             from app.models.balance_transaction import BalanceTransaction
 

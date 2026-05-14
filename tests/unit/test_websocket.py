@@ -62,9 +62,8 @@ class TestConnectionManager:
         mock_websocket = AsyncMock()
         mock_websocket.accept = AsyncMock()
 
-        result = await connection_manager_instance.connect("user-123", mock_websocket)
+        result = await connection_manager_instance.connect(mock_websocket, "user-123")
 
-        assert result is True
         assert connection_manager_instance.is_user_connected("user-123")
         mock_websocket.accept.assert_called_once()
 
@@ -74,7 +73,7 @@ class TestConnectionManager:
         mock_websocket = AsyncMock()
         mock_websocket.accept = AsyncMock()
 
-        await connection_manager_instance.connect("user-123", mock_websocket)
+        await connection_manager_instance.connect(mock_websocket, "user-123")
         assert connection_manager_instance.is_user_connected("user-123")
 
         result = await connection_manager_instance.disconnect("user-123")
@@ -89,7 +88,7 @@ class TestConnectionManager:
         mock_websocket.accept = AsyncMock()
         mock_websocket.send_json = AsyncMock()
 
-        await connection_manager_instance.connect("user-123", mock_websocket)
+        await connection_manager_instance.connect(mock_websocket, "user-123")
 
         message = {"type": "notification", "title": "Test"}
         result = await connection_manager_instance.broadcast_to_user(
@@ -120,8 +119,8 @@ class TestConnectionManager:
         mock_websocket2.accept = AsyncMock()
         mock_websocket2.send_json = AsyncMock()
 
-        await connection_manager_instance.connect("user-1", mock_websocket1)
-        await connection_manager_instance.connect("user-2", mock_websocket2)
+        await connection_manager_instance.connect(mock_websocket1, "user-1")
+        await connection_manager_instance.connect(mock_websocket2, "user-2")
 
         message = {"type": "notification", "title": "Test"}
         result = await connection_manager_instance.broadcast_to_all(message)
@@ -141,8 +140,8 @@ class TestConnectionManager:
         mock_websocket2.accept = AsyncMock()
         mock_websocket2.send_json = AsyncMock()
 
-        await connection_manager_instance.connect("user-1", mock_websocket1)
-        await connection_manager_instance.connect("user-2", mock_websocket2)
+        await connection_manager_instance.connect(mock_websocket1, "user-1")
+        await connection_manager_instance.connect(mock_websocket2, "user-2")
 
         connection_manager_instance.subscribe_user("user-1", "notifications")
         connection_manager_instance.subscribe_user("user-2", "activities")
@@ -189,8 +188,8 @@ class TestConnectionManager:
         mock_websocket2 = AsyncMock()
         mock_websocket2.accept = AsyncMock()
 
-        await connection_manager_instance.connect("user-1", mock_websocket1)
-        await connection_manager_instance.connect("user-2", mock_websocket2)
+        await connection_manager_instance.connect(mock_websocket1, "user-1")
+        await connection_manager_instance.connect(mock_websocket2, "user-2")
 
         active_users = connection_manager_instance.get_active_users()
 

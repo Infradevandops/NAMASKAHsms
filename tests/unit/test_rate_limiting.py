@@ -2,6 +2,7 @@ import time
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi import FastAPI
 
 from app.core.unified_rate_limiting import (
     TokenBucket,

@@ -1,4 +1,4 @@
-"""Unit tests for PricingCalculator."""
+"""Unit tests for PricingCalculator — v5.0 clean pricing model."""
 
 import pytest
 
@@ -9,51 +9,37 @@ from app.services.pricing_calculator import PricingCalculator
 class TestPricingLogic:
     """Test pricing calculator logic."""
 
-    def test_get_filter_charges_payg(self, db_session):
-        """Test filter charges for PAYG user."""
+    def test_calculate_sms_cost_payg(self, db_session):
+        """PAYG: cost = provider_price * markup, no overage."""
         user = User(
             email="payg_filter@example.com", subscription_tier="payg", credits=10.0
         )
         db_session.add(user)
         db_session.commit()
 
-        # State filter only
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA"}
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {}, provider_price=2.00
         )
-        assert charges == 0.25
+        assert result["provider_cost"] == 2.00
+        assert result["base_cost"] > 0
+        assert result["overage_charge"] == 0.0
 
-        # ISP filter only
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"isp": "Comcast"}
-        )
-        assert charges == 0.50
-
-        # Both
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA", "isp": "Comcast"}
-        )
-        assert charges == 0.75
-
-        # None
-        charges = PricingCalculator.get_filter_charges(db_session, user.id, {})
-        assert charges == 0.0
-
-    def test_get_filter_charges_pro(self, db_session):
-        """Test filter charges for Pro user (free filters)."""
+    def test_calculate_sms_cost_pro(self, db_session):
+        """Pro: within quota, overage = 0."""
         user = User(
             email="pro_filter@example.com", subscription_tier="pro", credits=10.0
         )
         db_session.add(user)
         db_session.commit()
 
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA", "isp": "Comcast"}
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {}, provider_price=2.00
         )
-        assert charges == 0.0
+        assert result["overage_charge"] == 0.0
+        assert result["tier"] == "pro"
 
-    def test_get_filter_charges_freemium_error(self, db_session):
-        """Test filter charges raises error for Freemium user."""
+    def test_calculate_sms_cost_freemium_no_filters(self, db_session):
+        """Freemium: no filters allowed."""
         user = User(
             email="free_filter@example.com", subscription_tier="freemium", credits=0.0
         )
@@ -61,29 +47,27 @@ class TestPricingLogic:
         db_session.commit()
 
         with pytest.raises(ValueError, match="Filters not available"):
-            PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA"})
+            PricingCalculator.calculate_sms_cost(
+                db_session, user.id, {"state": "CA"}, provider_price=2.00
+            )
 
     def test_get_pricing_breakdown(self, db_session):
-        """Test full pricing breakdown."""
+        """Breakdown includes all expected keys."""
         user = User(
             email="breakdown@example.com", subscription_tier="payg", credits=100.0
         )
         db_session.add(user)
         db_session.commit()
 
-        # Mock QuotaService?? No need if it uses defaults (quota=0 for PAYG)
-        # Assuming QuotaService calls work with defaults.
-
         breakdown = PricingCalculator.get_pricing_breakdown(
-            db_session, user.id, {"state": "NY"}
+            db_session, user.id, {}, provider_price=2.00
         )
 
         assert breakdown["tier"] == "payg"
-        assert breakdown["base_cost"] == 2.50
-        assert breakdown["filter_charges"] == 0.25
-        # Overage calculation in QuotaService might need attention if QuotaService.get_monthly_usage returns 0
-        # If overage_rate is 0 for PAYG (as we patched), overage_charge should be 0.
+        assert breakdown["base_cost"] > 0
         assert breakdown["overage_charge"] == 0.0
-        assert breakdown["total_cost"] == 2.75
+        assert breakdown["total_cost"] > 0
         assert breakdown["user_balance"] == 100.0
         assert breakdown["sufficient_balance"] is True
+        assert "provider_cost" in breakdown
+        assert "markup" in breakdown

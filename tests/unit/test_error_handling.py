@@ -1,4 +1,5 @@
 import pytest
+from fastapi import FastAPI
 
 from app.core.unified_error_handling import (
     NamaskahException,

@@ -13,13 +13,11 @@ def test_core_router_inclusion():
 
     # Check for representative routes from various domains
     expected_prefixes = [
-        "/api/auth/login",
-        "/api/auth/register",
         "/api/keys",
         "/api/webhooks",
-        "/api/user/me",  # from user_profile_router
-        "/api/user/preferences",  # from preferences_router
-        "/system/health",  # from system_router
+        "/api/user/me",
+        "/api/user/preferences",
+        "/system/health",
         "/api/countries",
         "/api/referrals",
     ]

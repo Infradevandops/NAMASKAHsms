@@ -44,8 +44,8 @@ class TestBackendTierCheck1_UserExistence:
             mock_instance.get_user_tier.return_value = "pro"
             mock_tm.return_value = mock_instance
 
-            call_next = Mock()
-            call_next.return_value = "response"
+            call_next = AsyncMock()
+            call_next.return_value = MagicMock()
 
             result = await tier_verification_middleware(request, call_next)
 
@@ -66,8 +66,8 @@ class TestBackendTierCheck1_UserExistence:
             mock_instance.get_user_tier.side_effect = ValueError("User not found")
             mock_tm.return_value = mock_instance
 
-            call_next = Mock()
-            call_next.return_value = "response"
+            call_next = AsyncMock()
+            call_next.return_value = MagicMock()
 
             result = await tier_verification_middleware(request, call_next)
 
@@ -81,8 +81,8 @@ class TestBackendTierCheck1_UserExistence:
         request.state = Mock()
         request.state.user_id = None
 
-        call_next = Mock()
-        call_next.return_value = "response"
+        call_next = AsyncMock()
+        call_next.return_value = MagicMock()
 
         result = await tier_verification_middleware(request, call_next)
 
@@ -583,8 +583,8 @@ class TestPhase3Integration:
             mock_instance.get_user_tier.return_value = "pro"
             mock_tm.return_value = mock_instance
 
-            call_next = Mock()
-            call_next.return_value = "response"
+            call_next = AsyncMock()
+            call_next.return_value = MagicMock()
 
             result = await tier_verification_middleware(request, call_next)
 

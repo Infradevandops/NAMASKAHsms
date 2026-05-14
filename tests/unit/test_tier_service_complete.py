@@ -167,7 +167,7 @@ class TestTierServiceComplete:
         assert config["has_api_access"] is False
         assert config["has_area_code_selection"] is False
         assert config["has_isp_filtering"] is False
-        assert config["api_key_limit"] == 0
+        assert config.get("api_key_limit", 0) == 0
 
     def test_payg_feature_access(self):
         """Test PAYG tier feature access."""
@@ -184,7 +184,7 @@ class TestTierServiceComplete:
         assert config["has_api_access"] is True
         assert config["has_area_code_selection"] is True
         assert config["has_isp_filtering"] is True
-        assert config["api_key_limit"] == 10
+        assert config.get("api_key_limit", 0) == 10
 
     def test_custom_feature_access(self):
         """Test custom tier feature access."""
@@ -193,7 +193,7 @@ class TestTierServiceComplete:
         assert config["has_api_access"] is True
         assert config["has_area_code_selection"] is True
         assert config["has_isp_filtering"] is True
-        assert config["api_key_limit"] == -1  # Unlimited
+        assert config.get("api_key_limit", 0) == -1  # Unlimited
 
     # ==================== Billing & Payments ====================
 

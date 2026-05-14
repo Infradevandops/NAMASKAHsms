@@ -105,8 +105,8 @@ class TestNotificationCenter:
         if response.status_code == 200:
             data = response.json()
             assert data["total"] == 2
-        for notif in data["notifications"]:
-            assert notif["is_read"] is False
+            for notif in data["notifications"]:
+                assert notif["is_read"] is False
 
     def test_get_notification_center_with_sorting(
         self, client, test_user, test_notifications, auth_headers_factory
