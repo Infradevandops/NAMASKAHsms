@@ -227,6 +227,50 @@ async def lifespan(app):
 
             asyncio.create_task(start_rental_expiry_loop())
             startup_logger.info("✅ Rental expiry monitor started (15-min loop)")
+
+            # Abandoned payment cleanup (hourly)
+            # Paystack expires checkouts after ~30min but never fires a webhook.
+            # Any PaymentLog still in pending/processing after 2 hours is abandoned.
+            async def start_abandoned_payment_cleanup():
+                while True:
+                    try:
+                        from datetime import datetime, timedelta, timezone
+
+                        from app.core.database import SessionLocal
+                        from app.models.transaction import PaymentLog, Transaction
+
+                        with SessionLocal() as db:
+                            cutoff = datetime.now(timezone.utc) - timedelta(hours=2)
+                            stale = (
+                                db.query(PaymentLog)
+                                .filter(
+                                    PaymentLog.state.in_(["pending", "processing"]),
+                                    PaymentLog.processing_started_at <= cutoff,
+                                    # Never auto-cancel crypto intents — require admin review
+                                    PaymentLog.payment_method.is_(None),
+                                )
+                                .all()
+                            )
+                            for p in stale:
+                                p.state = "abandoned"
+                                tx = (
+                                    db.query(Transaction)
+                                    .filter(Transaction.reference == p.reference)
+                                    .first()
+                                )
+                                if tx and tx.status == "pending":
+                                    tx.status = "abandoned"
+                            if stale:
+                                db.commit()
+                                startup_logger.info(
+                                    f"Marked {len(stale)} abandoned Paystack checkout(s)"
+                                )
+                    except Exception as e:
+                        startup_logger.error(f"Abandoned payment cleanup error: {e}")
+                    await asyncio.sleep(3600)  # hourly
+
+            asyncio.create_task(start_abandoned_payment_cleanup())
+            startup_logger.info("✅ Abandoned payment cleanup started (hourly)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 
