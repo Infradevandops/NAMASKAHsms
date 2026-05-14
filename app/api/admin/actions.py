@@ -80,7 +80,43 @@ async def get_pending_settlements(
         )
 
 
-@router.post("/settlements/approve/{reference}")
+@router.post("/settlements/cancel/{reference}")
+async def cancel_settlement(
+    reference: str,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Cancel/dismiss a pending settlement intent (e.g. test artifacts, fraud)."""
+    try:
+        intent = db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+        if not intent:
+            raise HTTPException(status_code=404, detail="Settlement record not found")
+
+        if intent.state == "completed":
+            return {
+                "status": "error",
+                "message": "Cannot cancel a completed settlement",
+            }
+
+        intent.state = "cancelled"
+        intent.error_message = (
+            f"{intent.error_message or ''} | Cancelled by admin {admin_id}"
+        ).strip(" |")
+
+        tx = db.query(Transaction).filter(Transaction.reference == reference).first()
+        if tx:
+            tx.status = "cancelled"
+
+        db.commit()
+        return {"status": "success", "message": f"Settlement {reference} cancelled"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error cancelling settlement {reference}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to cancel settlement")
+
+
 async def approve_settlement(
     reference: str,
     admin_id: str = Depends(require_admin),
