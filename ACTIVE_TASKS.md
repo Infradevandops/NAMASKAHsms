@@ -52,12 +52,12 @@
 - **Priority**: Medium - user convenience
 - **File**: `app/api/core/forwarding.py`
 
-**4. Push Notifications** (6-8 hours)
-- **Status**: Deferred - WebSocket active
-- **Dependency**: `FCM_SERVER_KEY` (Firebase)
-- **Cost**: $20-50/month for 1,000 users
-- **Priority**: Low - WebSocket works
-- **File**: `app/api/core/push_endpoints.py`
+**4. Push Notifications** ✅ COMPLETE
+- **Status**: Live — OneSignal fully configured
+- **App ID**: `072fead1-5fcd-4fbe-bb4e-d16bf69eb629`
+- **Credentials**: `ONESIGNAL_APP_ID` + `ONESIGNAL_API_KEY` in Render
+- **Delivers**: SMS codes, payment confirmations, low balance alerts
+- **File**: `app/services/onesignal_service.py`
 
 **5. SDK Libraries** (2-3 weeks)
 - **Status**: Not started
@@ -169,7 +169,7 @@ If you want faster results:
 | Telegram Forwarding | 1 day | Medium | P2 | Now |
 | Feature Tooltips | 2 hours | Medium | P2 | Now |
 | "What's New" Badges | 1 hour | Low | P3 | Now |
-| Push Notifications | 1 week | Low | P3 | Optional |
+| Push Notifications | ✅ Done | — | Complete | — |
 | Voice Transcription | 1 week | Low | P4 | >50 voice/mo |
 | Fraud Rolling Avg | 3 hours | Low | P4 | >500 verifications |
 | Tax Collection | 2-3 weeks | High | P4 | >100 users |

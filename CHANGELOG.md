@@ -2,6 +2,33 @@
 
 All notable changes to the Namaskah project.
 
+## [4.7.2] - May 15, 2026
+
+Wallet Improvements, Crypto Activation & Push Notifications
+
+### Added
+- **Crypto Payments**: Activated payment method v2 — BTC, ETH, SOL, LTC deposit flow with QR code, intent recording, admin approval/cancel
+- **Admin Settlement Endpoints**: `GET /admin/settlements/pending`, `POST /admin/settlements/approve/{ref}`, `POST /admin/settlements/cancel/{ref}`
+- **Abandoned Checkout Cleanup**: Hourly background loop auto-marks stale Paystack checkouts (>2h) as abandoned
+- **OneSignal Push Notifications**: Fully live — `ONESIGNAL_APP_ID` + `ONESIGNAL_API_KEY` configured in production
+- **13 Crypto Payment Tests**: Full coverage — addresses, intent, confirm, double-confirm prevention, full flow
+
+### Fixed
+- **Wallet Currency Consistency**: Preset amounts ($10/$25/$50/$100) now convert to selected currency via `data-usd` + `formatMoney`
+- **Balance Color**: Healthy balance (≥$5 USD) shows green, low balance shows red — consistent across all currencies
+- **Crypto Tab Styling**: Inactive tab now readable (dark text + hover), only disables on explicit 503
+- **Placeholder Truncation**: Custom amount input placeholder shortened to fit
+- **Sidebar Duplicates**: Removed Quick Access section (3 duplicate links — /verify, /wallet, /history)
+- **Label Clarity**: Push Notifications→Push Setup, Notifications→Notification Center, Insights→Usage Insights
+- **Wallet Copy**: Available Liquidity→Credit Balance, Add Institutional Credits→Add Credits
+- **Pending Queue**: Cleared 5 stale settlements (2 test artifacts + 3 abandoned Paystack checkouts)
+- **Config Safety**: Removed hardcoded placeholder crypto addresses from config.py defaults
+- **Route Double-Prefix**: Removed `prefix="/api"` from core_router mount — eliminated 222 phantom routes
+- **Lifespan Cache**: Removed unconditional service cache delete on startup (was causing 503 on first verification)
+
+### Changed
+- **`.env.production`**: Added `GOOGLE_CLIENT_SECRET`, `ONESIGNAL_APP_ID`, `ONESIGNAL_API_KEY`
+
 ## [4.7.1] - May 12, 2026
 
 Email Templates & Navigation Improvements

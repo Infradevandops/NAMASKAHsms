@@ -1,8 +1,8 @@
 # Namaskah — Stability Source of Truth
 
-**Version**: v4.7.1
+**Version**: v4.7.2
 **Tested Against**: https://vrenum.onrender.com (live production)
-**Date**: May 13, 2026
+**Date**: May 15, 2026
 **Method**: Live API calls + static codebase analysis
 
 ---
@@ -13,7 +13,7 @@
 GET /health → {"status": "healthy", "service": "namaskah-sms"} ✅
 GET /        → 200 ✅
 GET /login   → 200 ✅
-Total routes in OpenAPI: 705 (483 clean, 222 duplicated — see Issue 1)
+Total routes in OpenAPI: 483 clean (222 phantom routes eliminated — Issue 1 fixed)
 ```
 
 ---

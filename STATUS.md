@@ -1,9 +1,9 @@
 # Namaskah Platform - Current Status
 
-**Version**: v4.7.1
+**Version**: v4.7.2
 **Status**: 🟢 Production Deployed
-**Updated**: May 12, 2026
-**Readiness**: 94/100
+**Updated**: May 15, 2026
+**Readiness**: 96/100
 
 ---
 
@@ -67,7 +67,7 @@
 ### P3 - Growth Features
 - SDK Libraries (HIGH PRIORITY)
 - Telegram forwarding (code complete)
-- Push notifications (optional)
+- Push notifications (OneSignal ✅ live — credentials configured)
 
 ### P4 - Enterprise Features
 - Tax collection (>100 users)
