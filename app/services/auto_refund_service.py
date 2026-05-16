@@ -55,9 +55,12 @@ class AutoRefundService:
             )
             return None
 
-        if verification.status not in ["timeout", "cancelled", "failed"]:
+        # PRODUCTION FIX: Allow "error" status for refunds (common failure state)
+        refundable_statuses = ["timeout", "cancelled", "failed", "error"]
+        if verification.status not in refundable_statuses:
             logger.warning(
-                f"Cannot refund verification {verification_id} with status: {verification.status}"
+                f"Cannot refund verification {verification_id} with status: {verification.status}. "
+                f"Refundable statuses: {refundable_statuses}"
             )
             return None
 
@@ -69,14 +72,23 @@ class AutoRefundService:
         refund_amount = verification.cost
 
         try:
-            old_balance = user.credits
-            user.credits = (user.credits or 0.0) + refund_amount
+            # PRODUCTION FIX: Handle Decimal/float type mismatch from database
+            old_balance = float(user.credits) if user.credits else 0.0
+            refund_amount_float = float(refund_amount)
+            user.credits = old_balance + refund_amount_float
 
-            # Mark verification as refunded
+            # Mark verification as refunded with proper type handling
             verification.refunded = True
-            verification.refund_amount = float(refund_amount)
+            verification.refund_amount = refund_amount_float
             verification.refund_reason = reason
             verification.refunded_at = datetime.now(timezone.utc)
+
+            logger.debug(
+                f"Refund staged: verification={verification_id}, "
+                f"amount=${refund_amount_float:.2f}, "
+                f"old_balance=${old_balance:.2f}, "
+                f"new_balance=${user.credits:.2f}"
+            )
 
             # Sync to PurchaseOutcome telemetry
             from sqlalchemy import update
@@ -109,11 +121,11 @@ class AutoRefundService:
             from app.core.constants import TransactionType
             from app.models.balance_transaction import BalanceTransaction
 
-            # 1. Create BalanceTransaction (for accounting)
+            # 1. Create BalanceTransaction (for accounting) with proper type handling
             balance_tx = BalanceTransaction(
                 id=str(uuid.uuid4()),
                 user_id=verification.user_id,
-                amount=abs(refund_amount),
+                amount=abs(refund_amount_float),
                 type=TransactionType.REFUND,
                 description=f"Refund: {verification.service_name} ({display_reason})",
                 balance_after=float(user.credits),
@@ -122,18 +134,37 @@ class AutoRefundService:
             self.db.add(balance_tx)
             self.db.flush()
 
-            # 2. Create Transaction (for analytics/history)
-            transaction = Transaction(
-                id=str(uuid.uuid4()),
-                user_id=verification.user_id,
-                amount=refund_amount,
-                type="verification_refund",
-                description=f"Auto-refund: {verification.service_name} ({display_reason})",
-                status="completed",
-                reference=f"refund_{verification.id}",
-                created_at=datetime.now(timezone.utc),
+            logger.debug(f"BalanceTransaction created: {balance_tx.id}")
+
+            # 2. Create Transaction (for analytics/history) with idempotency
+            transaction_reference = f"refund_{verification.id}"
+
+            # Check for duplicate transaction (idempotency)
+            existing_tx = (
+                self.db.query(Transaction)
+                .filter(Transaction.reference == transaction_reference)
+                .first()
             )
-            self.db.add(transaction)
+
+            if existing_tx:
+                logger.warning(
+                    f"Transaction already exists for verification {verification_id}: {existing_tx.id}. "
+                    f"Using existing transaction."
+                )
+                transaction = existing_tx
+            else:
+                transaction = Transaction(
+                    id=str(uuid.uuid4()),
+                    user_id=verification.user_id,
+                    amount=refund_amount_float,
+                    type="verification_refund",
+                    description=f"Auto-refund: {verification.service_name} ({display_reason})",
+                    status="completed",
+                    reference=transaction_reference,
+                    created_at=datetime.now(timezone.utc),
+                )
+                self.db.add(transaction)
+                logger.debug(f"Transaction created: {transaction.id}")
 
             # Link verification to balance transaction
             verification.refund_transaction_id = balance_tx.id
@@ -218,11 +249,33 @@ class AutoRefundService:
 
         except Exception as e:
             self.db.rollback()
+
+            # Enhanced error logging for production debugging
+            error_context = {
+                "verification_id": verification_id,
+                "user_id": verification.user_id if verification else None,
+                "refund_amount": (
+                    refund_amount_float if "refund_amount_float" in locals() else None
+                ),
+                "old_balance": old_balance if "old_balance" in locals() else None,
+                "reason": reason,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+            }
+
             logger.error(
-                f"Failed to process refund for verification {verification_id}: {str(e)}",
+                f"🚨 REFUND FAILED: {error_context}",
                 exc_info=True,
             )
-            return None
+
+            # Return error details for monitoring
+            return {
+                "error": True,
+                "verification_id": verification_id,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "context": error_context,
+            }
 
     def reconcile_unrefunded_verifications(
         self, days_back: int = 30, dry_run: bool = True
