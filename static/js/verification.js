@@ -330,11 +330,65 @@ async function purchaseVerification() {
             return;
         }
 
-        // All other errors
-        const msg = data?.detail || data?.message || 'Purchase failed. Please try again.';
+        // FIX #1: Enhanced error categorization and reporting
+        const errorInfo = {
+            failure_reason: data?.error_code || data?.error || 'unknown_error',
+            failure_category: categorizeError(error),
+            provider_error_code: data?.provider_error || null,
+            outcome_category: determineOutcomeCategory(error),
+            error_message: data?.detail || data?.message || 'Purchase failed. Please try again.',
+            timestamp: new Date().toISOString()
+        };
+
+        // Report to backend for analytics
+        reportVerificationError(currentVerification?.id, errorInfo);
+
+        // Show user-friendly message
+        const msg = errorInfo.error_message;
         _showPurchaseError(msg);
         btn.disabled = false;
         btn.textContent = 'Get SMS Code';
+    }
+}
+
+// FIX #1: Error categorization helper
+function categorizeError(error) {
+    const status = error.response?.status;
+    const data = error.response?.data;
+
+    if (status === 402) return 'insufficient_balance';
+    if (status === 409) return 'provider_issue';
+    if (status === 503) return 'network_issue';
+    if (data?.error === 'area_code_unavailable') return 'area_code_unavailable';
+    if (error.code === 'ECONNABORTED') return 'network_timeout';
+    if (status === 403) return 'tier_restricted';
+
+    return 'system_error';
+}
+
+// FIX #1: Outcome category determination
+function determineOutcomeCategory(error) {
+    const category = categorizeError(error);
+
+    if (['insufficient_balance', 'tier_restricted'].includes(category)) return 'PRODUCT';
+    if (['network_timeout', 'network_issue'].includes(category)) return 'NETWORK';
+    if (['provider_issue', 'area_code_unavailable'].includes(category)) return 'PROVIDER';
+
+    return 'SYSTEM';
+}
+
+// FIX #1: Report error to backend
+async function reportVerificationError(verificationId, errorInfo) {
+    if (!verificationId) return;
+
+    try {
+        const token = localStorage.getItem('access_token');
+        await axios.post(`/api/verification/${verificationId}/error`, errorInfo, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log('[Error Reporting] Sent to backend:', errorInfo.failure_category);
+    } catch (e) {
+        console.error('[Error Reporting] Failed:', e);
     }
 }
 
@@ -418,7 +472,7 @@ function selectAlternativeCode(code) {
 
 
 
-async function cancelVerification() {
+async function cancelVerification(reason = 'user_cancelled', category = 'user_action') {
     if (!currentVerification) return;
 
     const btn = document.getElementById('cancel-btn');
@@ -427,11 +481,27 @@ async function cancelVerification() {
 
     try {
         const token = localStorage.getItem('access_token');
-        await axios.delete(`/api/verify/${currentVerification.id}`, {
+        // FIX #3: Enhanced cancellation tracking
+        await axios.post(`/api/verification/${currentVerification.id}/cancel`, {
+            reason: reason,
+            category: category,
+            cancelled_at: new Date().toISOString(),
+            cancelled_by: 'user'
+        }, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        console.log(`[Cancel] Reason: ${reason}, Category: ${category}`);
     } catch (error) {
-        console.error('Cancel failed:', error);
+        console.error('[Cancel] Failed:', error);
+        // Fallback to DELETE if POST not supported
+        try {
+            await axios.delete(`/api/verify/${currentVerification.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (e) {
+            console.error('[Cancel] Fallback failed:', e);
+        }
     }
 
     resetForm();
@@ -461,6 +531,11 @@ function startPolling(id) {
                 displaySMSCode(data.data.sms_code);
                 smsWS.close();
             }
+        }
+
+        // FIX #5: Handle refund notifications
+        if (data.type === 'refund_processed') {
+            showRefundNotification(data.data);
         }
     });
 
@@ -496,6 +571,10 @@ function startPolling(id) {
             document.getElementById('status-text').parentElement.style.background = '#fee2e2';
             document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
             document.getElementById('status-text').style.color = '#991b1b';
+
+            // FIX #4: Report timeout to backend
+            reportTimeout(id, count * 5);
+
             clearInterval(pollingInterval);
             smsWS.close();
         }
@@ -514,10 +593,92 @@ function displaySMSCode(code) {
     document.getElementById('code-display').style.color = '#059669';
     document.getElementById('copy-btn').style.display = 'block';
 
+    // FIX #2: Report SMS receipt to backend
+    if (currentVerification?.id) {
+        confirmSMSReceipt(code);
+    }
+
     // Play notification sound
     playNotificationSound();
 
     if (pollingInterval) clearInterval(pollingInterval);
+}
+
+// FIX #2: SMS receipt confirmation
+async function confirmSMSReceipt(code) {
+    try {
+        const token = localStorage.getItem('access_token');
+        await axios.post(`/api/verification/${currentVerification.id}/sms-received`, {
+            sms_code: code,
+            received_at: new Date().toISOString(),
+            latency_seconds: calculateLatency(currentVerification.created_at)
+        }, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log('[SMS Receipt] Confirmed to backend');
+    } catch (e) {
+        console.error('[SMS Receipt] Failed to report:', e);
+    }
+}
+
+// FIX #2: Calculate latency helper
+function calculateLatency(startTime) {
+    if (!startTime) return null;
+    const start = new Date(startTime);
+    const now = new Date();
+    return (now - start) / 1000; // seconds
+}
+
+// FIX #4: Timeout reporting
+async function reportTimeout(verificationId, elapsedSeconds) {
+    if (!verificationId) return;
+
+    try {
+        const token = localStorage.getItem('access_token');
+        await axios.post(`/api/verification/${verificationId}/timeout`, {
+            timeout_at: new Date().toISOString(),
+            elapsed_seconds: elapsedSeconds,
+            failure_reason: 'sms_timeout',
+            failure_category: 'provider_issue',
+            refund_eligible: true
+        }, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log('[Timeout] Reported to backend - refund will be processed');
+    } catch (e) {
+        console.error('[Timeout] Failed to report:', e);
+    }
+}
+
+// FIX #5: Refund notification display
+function showRefundNotification(refundData) {
+    const alert = document.createElement('div');
+    alert.className = 'refund-notification';
+    alert.style.cssText = 'position:fixed;top:20px;right:20px;background:#d1fae5;border:2px solid #10b981;color:#065f46;padding:16px 20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:9999;max-width:320px;animation:slideIn 0.3s ease-out;';
+    alert.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:24px;">💰</div>
+            <div>
+                <div style="font-weight:700;margin-bottom:4px;">Refund Processed</div>
+                <div style="font-size:13px;opacity:0.9;">
+                    ${formatMoney(refundData.amount)} credited to your balance
+                </div>
+                <div style="font-size:11px;margin-top:4px;opacity:0.7;">
+                    Reason: ${(refundData.reason || '').replace(/_/g, ' ')}
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(alert);
+
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+        alert.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => alert.remove(), 300);
+    }, 8000);
+
+    // Refresh balance
+    if (window.refreshBalance) window.refreshBalance();
 }
 
 function copyCode() {

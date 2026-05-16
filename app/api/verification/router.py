@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.verification.area_code_endpoints import router as area_code_router
 from app.api.verification.cancel_endpoint import router as cancel_router
+from app.api.verification.error_tracking import router as error_tracking_router
 from app.api.verification.outcome_endpoint import router as outcome_router
 from app.api.verification.preset_endpoints import router as preset_router
 from app.api.verification.purchase_endpoints import router as purchase_router
@@ -38,3 +39,6 @@ router.include_router(area_code_router)
 
 # Include rental routes
 router.include_router(rental_router)
+
+# Include error tracking routes (v4.7.2)
+router.include_router(error_tracking_router)
