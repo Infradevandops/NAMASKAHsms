@@ -12,39 +12,47 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "add_cancellation_fields"
-down_revision = None  # Update this to your latest migration
+down_revision = None
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
     """Add cancellation tracking fields to verifications table."""
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = [c["name"] for c in insp.get_columns("verifications")]
 
-    # Add cancelled_at column
-    op.add_column(
-        "verifications",
-        sa.Column(
-            "cancelled_at",
-            sa.DateTime(),
-            nullable=True,
-            comment="When verification was cancelled",
-        ),
-    )
+    if "cancelled_at" not in cols:
+        op.add_column(
+            "verifications",
+            sa.Column(
+                "cancelled_at",
+                sa.DateTime(),
+                nullable=True,
+                comment="When verification was cancelled",
+            ),
+        )
 
-    # Add cancelled_by column
-    op.add_column(
-        "verifications",
-        sa.Column(
-            "cancelled_by",
-            sa.String(length=50),
-            nullable=True,
-            comment="Who cancelled: user, system, admin",
-        ),
-    )
+    if "cancelled_by" not in cols:
+        op.add_column(
+            "verifications",
+            sa.Column(
+                "cancelled_by",
+                sa.String(length=50),
+                nullable=True,
+                comment="Who cancelled: user, system, admin",
+            ),
+        )
 
 
 def downgrade():
     """Remove cancellation tracking fields."""
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = [c["name"] for c in insp.get_columns("verifications")]
 
-    op.drop_column("verifications", "cancelled_by")
-    op.drop_column("verifications", "cancelled_at")
+    if "cancelled_by" in cols:
+        op.drop_column("verifications", "cancelled_by")
+    if "cancelled_at" in cols:
+        op.drop_column("verifications", "cancelled_at")

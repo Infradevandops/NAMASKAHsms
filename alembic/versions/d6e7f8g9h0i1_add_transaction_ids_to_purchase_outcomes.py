@@ -18,32 +18,44 @@ depends_on = None
 
 
 def upgrade():
-    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
-        batch_op.add_column(
-            sa.Column("debit_transaction_id", sa.String(), nullable=True)
-        )
-        batch_op.add_column(
-            sa.Column("refund_transaction_id", sa.String(), nullable=True)
-        )
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = [c["name"] for c in insp.get_columns("purchase_outcomes")]
 
-    # Add foreign keys in separate batch operations
-    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
-        batch_op.create_foreign_key(
-            "fk_purchase_outcomes_debit_transaction",
-            "balance_transactions",
-            ["debit_transaction_id"],
-            ["id"],
-            ondelete="SET NULL",
-        )
+    if "debit_transaction_id" not in cols:
+        with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+            batch_op.add_column(
+                sa.Column("debit_transaction_id", sa.String(), nullable=True)
+            )
+    if "refund_transaction_id" not in cols:
+        with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+            batch_op.add_column(
+                sa.Column("refund_transaction_id", sa.String(), nullable=True)
+            )
 
-    with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
-        batch_op.create_foreign_key(
-            "fk_purchase_outcomes_refund_transaction",
-            "balance_transactions",
-            ["refund_transaction_id"],
-            ["id"],
-            ondelete="SET NULL",
-        )
+    try:
+        with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+            batch_op.create_foreign_key(
+                "fk_purchase_outcomes_debit_transaction",
+                "balance_transactions",
+                ["debit_transaction_id"],
+                ["id"],
+                ondelete="SET NULL",
+            )
+    except Exception:
+        pass
+
+    try:
+        with op.batch_alter_table("purchase_outcomes", schema=None) as batch_op:
+            batch_op.create_foreign_key(
+                "fk_purchase_outcomes_refund_transaction",
+                "balance_transactions",
+                ["refund_transaction_id"],
+                ["id"],
+                ondelete="SET NULL",
+            )
+    except Exception:
+        pass
 
 
 def downgrade():
