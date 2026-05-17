@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 Starting Namaskah API..."
+echo "🚀 Starting Vrenum API..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database..."

@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 Starting Namaskah Monitoring Stack..."
+echo "🚀 Starting Vrenum Monitoring Stack..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -35,7 +35,7 @@ cat > grafana/provisioning/dashboards/dashboards.yml << 'EOF'
 apiVersion: 1
 
 providers:
-  - name: 'Namaskah Dashboards'
+  - name: 'Vrenum Dashboards'
     orgId: 1
     folder: ''
     type: file

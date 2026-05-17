@@ -30,7 +30,7 @@ test.describe('Dashboard E2E', () => {
                         referral_earnings, provider, language, currency,
                         is_affiliate, is_active, is_suspended, is_banned, is_deleted
                     ) VALUES (
-                        '1', 'test@namaskah.app', 'hashed_password', 0, 0,
+                        '1', 'test@vrenum.app', 'hashed_password', 0, 0,
                         10.0, 'payg', datetime('now'), 1.0,
                         1, 0.0, 0.0,
                         0.0, 'email', 'en', 'USD',

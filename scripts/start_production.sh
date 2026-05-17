@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🚀 Starting Namaskah SMS..."
+echo "🚀 Starting Vrenum..."
 
 # Initialize database schema if needed
 echo "📊 Initializing database schema..."

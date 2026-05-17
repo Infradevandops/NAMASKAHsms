@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: namaskah-app
+    container_name: vrenum-app
     restart: always
     ports:
       - "8000:8000"
@@ -22,7 +22,7 @@ services:
     volumes:
       - ./logs:/app/logs
     networks:
-      - namaskah-network
+      - vrenum-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -32,7 +32,7 @@ services:
 
   db:
     image: postgres:15-alpine
-    container_name: namaskah-db
+    container_name: vrenum-db
     restart: always
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -41,7 +41,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - namaskah-network
+      - vrenum-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
@@ -50,12 +50,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: namaskah-redis
+    container_name: vrenum-redis
     restart: always
     volumes:
       - redis_data:/data
     networks:
-      - namaskah-network
+      - vrenum-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -64,7 +64,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: namaskah-nginx
+    container_name: vrenum-nginx
     restart: always
     ports:
       - "80:80"
@@ -76,12 +76,12 @@ services:
     depends_on:
       - app
     networks:
-      - namaskah-network
+      - vrenum-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  namaskah-network:
+  vrenum-network:
     driver: bridge

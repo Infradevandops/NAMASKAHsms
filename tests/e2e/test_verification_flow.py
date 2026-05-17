@@ -276,7 +276,7 @@ async def authenticated_page(page, base_url):
     """Fixture to authenticate user before tests"""
     base = base_url.replace("localhost", "127.0.0.1")
     await page.goto(f"{base}/login")
-    await page.fill("input[name='email']", "admin@namaskah.app")
+    await page.fill("input[name='email']", "admin@vrenum.app")
     await page.fill("input[name='password']", "admin123")
     await page.click("button[type='submit']")
     await page.wait_for_url("**/dashboard", timeout=10000)

@@ -3,6 +3,7 @@
 
 
 import sys
+
 from app.core.database import SessionLocal
 from app.models.user import User
 
@@ -16,7 +17,7 @@ print("BALANCE VERIFICATION")
 print("=" * 60)
 
 # Check admin user
-admin = db.query(User).filter(User.email == "admin@namaskah.app").first()
+admin = db.query(User).filter(User.email == "admin@vrenum.app").first()
 
 if admin:
     print("\n✅ Admin User Found")
@@ -31,7 +32,7 @@ if admin.credits == 1000.0:
         print("   The API is working properly.")
         print("\n   To test with different balance:")
         print(
-            f"   1. Update database: UPDATE users SET credits = 50.00 WHERE email = 'admin@namaskah.app';"
+            f"   1. Update database: UPDATE users SET credits = 50.00 WHERE email = 'admin@vrenum.app';"
         )
         print("   2. Or use the wallet page to add/spend credits")
         print("   3. Refresh browser (Cmd+Shift+R to clear cache)")

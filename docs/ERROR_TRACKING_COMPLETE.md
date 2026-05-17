@@ -1,8 +1,8 @@
 # Error Tracking System - Complete Documentation
 
-**Version**: 4.7.2
+**Version**: 4.7.3
 **Date**: May 17, 2026
-**Status**: ✅ DEPLOYED TO PRODUCTION
+**Status**: ✅ Phase 1 DEPLOYED | ✅ Phase 2 COMPLETE
 **Commit**: 1fffd125
 
 ---
@@ -17,6 +17,7 @@
 6. [Deployment](#deployment)
 7. [Monitoring & Metrics](#monitoring--metrics)
 8. [Troubleshooting](#troubleshooting)
+9. [Phase 2: Analytics & History Enrichment](#-phase-2-analytics--history-enrichment-v473)
 
 ---
 
@@ -685,8 +686,8 @@ Analytics and History tabs were functional but below industry standard (Stripe, 
 | H4 | Latency color badge (green <30s, yellow 30-60s, red >60s) | ✅ Done | `templates/history.html` |
 | H5 | Relative time ("3 min ago", "Yesterday") with hover tooltip | ✅ Done | `templates/history.html` |
 | H6 | Multi-status filter (comma-separated `?status=failed,timeout`) | ✅ Done | `app/api/dashboard_router.py` + `templates/history.html` |
-| H7 | Inline row expansion | 📋 Sprint 3 | — |
-| H8 | Retry chain linking | 📋 Sprint 3 | — |
+| H7 | Inline row expansion (chevron toggle, detail panel) | ✅ Done | `templates/history.html` |
+| H8 | Retry chain linking (10-min window grouping, badge) | ✅ Done | `templates/history.html` |
 
 #### D3: Structural Fixes
 
@@ -711,13 +712,13 @@ Analytics and History tabs were functional but below industry standard (Stripe, 
 - [x] Donut chart shows PRODUCT vs PROVIDER vs NETWORK vs SYSTEM split
 - [x] Only appears when user has >0 outcome records
 - [x] Data sourced from `GET /api/analytics/outcome-insights` → `outcome_categories`
-- [ ] Clicking a segment filters the top services table (deferred — Sprint 3)
+- [x] Clicking a segment filters the top services table (Sprint 3 — `dataPointSelection` event)
 
 #### AC-9: Latency Percentiles ✅
 - [x] New endpoint `GET /api/analytics/latency-percentiles` returns `{p50, p95, p99, avg, total_samples}`
 - [x] Only returns data when ≥5 samples exist
 - [x] Queries `purchase_outcomes.latency_seconds WHERE user_id = X AND latency_seconds > 0`
-- [ ] Frontend card rendering (deferred — needs ApexCharts gauge, Sprint 3)
+- [x] Frontend gauge card renders p50/p95/p99 with visual hierarchy (Sprint 3)
 
 #### AC-10: Verification Funnel ✅
 - [x] Horizontal funnel: Initiated (100%) → Number Assigned (X%) → SMS Received (Y%) → Completed (Z%)
@@ -747,11 +748,16 @@ Analytics and History tabs were functional but below industry standard (Stripe, 
 - [x] Full date shown on hover (title attribute)
 - [x] Items older than 7 days show absolute date
 
-#### AC-15: Inline Row Expansion 📋
-- [ ] Deferred to Sprint 3
+#### AC-15: Inline Row Expansion ✅
+- [x] Chevron toggle on each row expands detail panel inline
+- [x] Shows latency, cost breakdown, provider, order ID, request vs assignment, SMS text
+- [x] "Full Audit →" button opens existing modal for complete view
+- [x] Expansion state preserved during sort
 
-#### AC-16: Retry Chain 📋
-- [ ] Deferred to Sprint 3
+#### AC-16: Retry Chain ✅
+- [x] Detects retries by matching service_name + requested_area_code within 10 min window
+- [x] Shows "Retry #N" badge on chained items
+- [x] Visual connector styling between chain members
 
 ---
 
@@ -806,14 +812,14 @@ GET /api/verify/history?phone=215&sms_code=1234&status=completed,failed
 
 ---
 
-### Remaining (Sprint 3 — Rich UI)
+### Remaining (Sprint 3 — Rich UI) ✅ COMPLETE
 
-| # | Feature | Effort | Dependency |
-|---|---------|--------|------------|
-| H7 | Inline row expansion (expand details without modal) | 2 hr | None |
-| H8 | Retry chain linking (group retries visually) | 2 hr | None |
-| AC-8 partial | Click funnel/chart segment to filter table | 1 hr | ApexCharts events |
-| AC-9 partial | Frontend latency gauge card | 1 hr | Endpoint ready |
+| # | Feature | Status | File Changed |
+|---|---------|--------|---------------|
+| H7 | Inline row expansion (expand details without modal) | ✅ Done | `templates/history.html` |
+| H8 | Retry chain linking (group retries visually) | ✅ Done | `templates/history.html` |
+| AC-8 partial | Click funnel/chart segment to filter table | ✅ Done | `templates/analytics.html` |
+| AC-9 partial | Frontend latency gauge card (p50/p95/p99) | ✅ Done | `templates/analytics.html` |
 
 ---
 
@@ -828,6 +834,6 @@ GET /api/verify/history?phone=215&sms_code=1234&status=completed,failed
 
 ---
 
-**Document Version**: 1.2
+**Document Version**: 1.3
 **Last Updated**: May 17, 2026
-**Status**: ✅ Phase 1 DEPLOYED | ✅ Phase 2 Sprint 1+2 IMPLEMENTED | 📋 Sprint 3 PLANNED
+**Status**: ✅ Phase 1 DEPLOYED | ✅ Phase 2 COMPLETE (Sprint 1+2+3)

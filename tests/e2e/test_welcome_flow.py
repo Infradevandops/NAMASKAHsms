@@ -8,7 +8,7 @@ from playwright.async_api import Page, expect
 async def test_welcome_page_loads(page: Page):
     """Test welcome page loads correctly"""
     await page.goto("http://localhost:8000/welcome")
-    await expect(page.locator("h1")).to_contain_text("Welcome to Namaskah")
+    await expect(page.locator("h1")).to_contain_text("Welcome to VRENUM ACTV8TN")
     await expect(page.locator("#language")).to_be_visible()
     await expect(page.locator("#currency")).to_be_visible()
 

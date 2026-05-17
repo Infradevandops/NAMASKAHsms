@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting Namaskah SMS API..."
+echo "Starting Vrenum API..."
 
 # Run database migrations
 echo "Running database migrations..."

@@ -64,7 +64,7 @@ async def run_reconciliation(days_back: int = 30, dry_run: bool = True):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Namaskah Financial Reconciliation")
+    parser = argparse.ArgumentParser(description="Vrenum Financial Reconciliation")
     parser.add_argument("--days", type=int, default=30, help="Days back to scan")
     parser.add_argument(
         "--execute", action="store_true", help="Actually process refunds"

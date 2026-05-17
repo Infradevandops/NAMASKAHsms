@@ -29,11 +29,11 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 db = SessionLocal()
 
 # Check if admin exists
-admin = db.query(User).filter(User.email == 'admin@namaskah.app').first()
+admin = db.query(User).filter(User.email == 'admin@vrenum.app').first()
 if not admin:
     admin = User(
         id=str(uuid.uuid4()),
-        email='admin@namaskah.app',
+        email='admin@vrenum.app',
         username='admin',
         hashed_password=pwd_context.hash('changeme123'),
         is_active=True,
@@ -43,7 +43,7 @@ if not admin:
     )
     db.add(admin)
     db.commit()
-    print('✅ Admin user created: admin@namaskah.app / changeme123')
+    print('✅ Admin user created: admin@vrenum.app / changeme123')
 else:
     print('ℹ️  Admin user already exists')
 
@@ -55,5 +55,5 @@ echo ""
 echo "📋 Next steps:"
 echo "1. Update DATABASE_URL in Render dashboard"
 echo "2. Trigger manual deploy"
-echo "3. Login with: admin@namaskah.app / changeme123"
+echo "3. Login with: admin@vrenum.app / changeme123"
 echo "4. Change password immediately!"

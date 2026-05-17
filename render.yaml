@@ -1,7 +1,7 @@
 services:
   # Backend and Frontend (Vite SSR or Static as per project)
   - type: web
-    name: namaskah-api-staging
+    name: vrenum-api-staging
     env: python
     plan: free
     buildCommand: pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
@@ -9,11 +9,11 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: namaskah-db-staging
+          name: vrenum-db-staging
           property: connectionString
       - key: REDIS_URL
         fromService:
-          name: namaskah-redis-staging
+          name: vrenum-redis-staging
           type: redis
           property: connectionString
       - key: ENVIRONMENT
@@ -23,13 +23,13 @@ services:
 
   # PostgreSQL Database
   - type: db
-    name: namaskah-db-staging
+    name: vrenum-db-staging
     plan: free
     region: ohio
 
   # Redis Cache
   - type: redis
-    name: namaskah-redis-staging
+    name: vrenum-redis-staging
     plan: free
     region: ohio
     maxmemoryPolicy: allkeys-lru

@@ -1,9 +1,9 @@
-"""Locust performance tests for Namaskah API"""
+"""Locust performance tests for Vrenum API"""
 
 from locust import HttpUser, between, task
 
 
-class NamaskahUser(HttpUser):
+class VrenumUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):

@@ -34,7 +34,7 @@ if not tables:
         # Clear account lockouts if table exists
 if "account_lockouts" in tables:
             cursor.execute(
-                'DELETE FROM account_lockouts WHERE email = "admin@namaskah.app"'
+                'DELETE FROM account_lockouts WHERE email = "admin@vrenum.app"'
             )
             print(f"✅ Cleared {cursor.rowcount} admin account lockouts")
 
@@ -45,7 +45,7 @@ if "users" in tables:
             hashed_password = pwd_context.hash(admin_password)
 
             # Check if admin exists
-            cursor.execute('SELECT id FROM users WHERE email = "admin@namaskah.app"')
+            cursor.execute('SELECT id FROM users WHERE email = "admin@vrenum.app"')
             admin_exists = cursor.fetchone()
 
 if admin_exists:
@@ -54,7 +54,7 @@ if admin_exists:
                     """
                     UPDATE users
                     SET password_hash = ?, is_admin = 1, is_active = 1
-                    WHERE email = "admin@namaskah.app"
+                    WHERE email = "admin@vrenum.app"
                 """,
                     (hashed_password,),
                 )
@@ -66,11 +66,11 @@ else:
                     INSERT INTO users (email, password_hash, is_admin, is_active, credits, tier, created_at)
                     VALUES (?, ?, 1, 1, 1000.0, 'custom', ?)
                 """,
-                    ("admin@namaskah.app", hashed_password, datetime.now().isoformat()),
+                    ("admin@vrenum.app", hashed_password, datetime.now().isoformat()),
                 )
                 print("✅ Created new admin user")
 
-            print("   Email: admin@namaskah.app")
+            print("   Email: admin@vrenum.app")
             print(f"   Password: {admin_password}")
 
         conn.commit()

@@ -1,11 +1,11 @@
 #!/bin/bash
 # deploy.sh — Run on the droplet to pull and restart
-# Usage: /home/namaskah/deploy.sh
+# Usage: /home/vrenum/deploy.sh
 set -e
 
-echo "🚀 Deploying Namaskah..."
+echo "🚀 Deploying Vrenum..."
 
-cd /home/namaskah/app
+cd /home/vrenum/app
 
 # Pull latest code
 git pull origin main
@@ -18,7 +18,7 @@ pip install -r requirements.txt --quiet
 alembic upgrade head
 
 # Restart app (graceful — supervisor handles zero-downtime)
-sudo supervisorctl restart namaskah
+sudo supervisorctl restart vrenum
 
 echo "✅ Deploy complete"
 curl -s http://127.0.0.1:8000/health

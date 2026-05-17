@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🧪 Running Namaskah Test Suite"
+echo "🧪 Running Vrenum Test Suite"
 echo "================================"
 echo ""
 

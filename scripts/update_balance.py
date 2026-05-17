@@ -3,6 +3,7 @@
 
 
 import sys
+
 from app.core.database import SessionLocal
 from app.models.user import User
 
@@ -15,7 +16,7 @@ print("=" * 60)
 print("UPDATE ADMIN BALANCE")
 print("=" * 60)
 
-admin = db.query(User).filter(User.email == "admin@namaskah.app").first()
+admin = db.query(User).filter(User.email == "admin@vrenum.app").first()
 
 if admin:
     old_balance = admin.credits

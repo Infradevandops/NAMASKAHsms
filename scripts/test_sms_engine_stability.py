@@ -137,7 +137,7 @@ async def test_csv_export_logic():
 
 async def main():
     print("=" * 60)
-    print("NAMASKAH SMS ENGINE STABILITY ROLLOUT (V6.0.0)")
+    print("VRENUM SMS ENGINE STABILITY ROLLOUT (V6.0.0)")
     print("=" * 60)
 
     tests = [await test_adaptive_polling_success(), await test_csv_export_logic()]

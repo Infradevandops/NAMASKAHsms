@@ -115,9 +115,9 @@ log "✅ Smoke tests passed"
 log "Step 6: Verifying deployment..."
 
 if [ "$ENVIRONMENT" == "staging" ]; then
-    BASE_URL="https://staging.namaskah.app"
+    BASE_URL="https://staging.vrenum.app"
 elif [ "$ENVIRONMENT" == "production" ]; then
-    BASE_URL="https://namaskah.app"
+    BASE_URL="https://vrenum.app"
 fi
 
 # Check health endpoint

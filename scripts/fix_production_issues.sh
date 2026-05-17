@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🔧 Namaskah Production Fix Script"
+echo "🔧 Vrenum Production Fix Script"
 echo "=================================="
 echo ""
 
@@ -45,19 +45,19 @@ fi
 
 # 3. Restart service
 echo ""
-echo "3️⃣ Restarting Namaskah service..."
-systemctl restart namaskah
+echo "3️⃣ Restarting Vrenum service..."
+systemctl restart vrenum
 sleep 3
 
 # 4. Check service status
 echo ""
 echo "4️⃣ Checking service status..."
-if systemctl is-active --quiet namaskah; then
+if systemctl is-active --quiet vrenum; then
     echo "✅ Service is running"
 else
     echo "❌ Service failed to start"
     echo "Logs:"
-    journalctl -u namaskah -n 20 --no-pager
+    journalctl -u vrenum -n 20 --no-pager
     exit 1
 fi
 

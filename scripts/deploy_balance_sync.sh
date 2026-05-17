@@ -21,4 +21,4 @@ echo "✅ Pushing to remote..."
 git push origin main
 
 echo "✅ Deployment complete! Check CI at:"
-echo "https://github.com/yourusername/namaskah-sms/actions"
+echo "https://github.com/yourusername/vrenum-sms/actions"

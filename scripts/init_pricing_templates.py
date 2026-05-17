@@ -6,7 +6,7 @@ from app.core.database import get_db
 from app.models.pricing_template import PricingHistory, PricingTemplate, TierPricing
 from app.models.user import User
 
-Initialize Pricing Templates for Namaskah Admin Dashboard
+Initialize Pricing Templates for Vrenum Admin Dashboard
 Creates Standard, Promotional, and Holiday pricing templates
 """
 
@@ -256,5 +256,5 @@ for tier_data in template_data["tiers"]:
 
 
 if __name__ == "__main__":
-    print("🏗️  Initializing Namaskah Pricing Templates...")
+    print("🏗️  Initializing Vrenum Pricing Templates...")
     create_pricing_templates()

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from app.core.secrets import SecretsManager
 
-Secret Management Utility for Namaskah SMS
+Secret Management Utility for Vrenum
 
 This script helps you manage environment variables and secrets securely.
 
@@ -154,7 +154,7 @@ else:
 def main():
 
     """Main CLI interface."""
-    parser = argparse.ArgumentParser(description="Manage secrets for Namaskah SMS")
+    parser = argparse.ArgumentParser(description="Manage secrets for Vrenum")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Generate command

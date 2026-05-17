@@ -8,7 +8,7 @@ ISSUE: Credits deducted for failed/timeout/cancelled verifications without auto-
 
 # Analysis findings
 print("=" * 80)
-print("CRITICAL REFUND FLAW ANALYSIS - Namaskah SMS Platform")
+print("CRITICAL REFUND FLAW ANALYSIS - Vrenum Platform")
 print("=" * 80)
 print()
 

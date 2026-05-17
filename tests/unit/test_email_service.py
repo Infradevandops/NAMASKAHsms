@@ -14,7 +14,7 @@ class TestEmailService:
             mock_settings.return_value.smtp_port = 587
             mock_settings.return_value.smtp_user = "user"
             mock_settings.return_value.smtp_password = "pass"
-            mock_settings.return_value.from_email = "test@namaskah.com"
+            mock_settings.return_value.from_email = "test@vrenum.app"
         return EmailService()
 
     @pytest.mark.asyncio

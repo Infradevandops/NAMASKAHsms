@@ -5,7 +5,7 @@ import subprocess
 import sys
 import starlette
 
-Security Update Script for Namaskah SMS
+Security Update Script for Vrenum
 Handles security dependency updates and vulnerability checks
 """
 
@@ -153,7 +153,7 @@ else:
 def main():
 
     """Main security update process."""
-    print("🔒 Namaskah SMS Security Update")
+    print("🔒 Vrenum Security Update")
     print("=" * 40)
 
     # Step 1: Check current vulnerabilities

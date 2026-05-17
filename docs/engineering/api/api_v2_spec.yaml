@@ -1,16 +1,16 @@
 openapi: 3.0.0
 info:
-  title: Namaskah SMS API
+  title: VRENUM ACTV8TN API
   version: 2.5.0
   description: Modular SMS Verification Service
   contact:
-    name: Namaskah Support
-    url: https://namaskah.app
+    name: Vrenum Support
+    url: https://vrenum.app
   license:
     name: MIT
 
 servers:
-  - url: https://namaskah.app/api/v1
+  - url: https://vrenum.app/api/v1
     description: Production
   - url: http://localhost:8000/api/v1
     description: Development

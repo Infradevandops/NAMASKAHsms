@@ -51,12 +51,12 @@ class TestMiddlewareInitialization:
     """Test middleware initialization"""
 
     def test_init_strips_protocol(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="https://namaskah.app")
-        assert middleware.base_domain == "namaskah.app"
+        middleware = WhitelabelMiddleware(mock_app, base_domain="https://vrenum.app")
+        assert middleware.base_domain == "vrenum.app"
 
     def test_init_strips_port(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app:8000")
-        assert middleware.base_domain == "namaskah.app"
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app:8000")
+        assert middleware.base_domain == "vrenum.app"
 
 
 class TestDomainDetection:
@@ -64,10 +64,10 @@ class TestDomainDetection:
 
     @pytest.mark.asyncio
     async def test_base_domain_no_whitelabel(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
-        request.headers = {"host": "namaskah.app"}
+        request.headers = {"host": "vrenum.app"}
         request.state = Mock()
 
         with patch("app.middleware.whitelabel_middleware.SessionLocal") as mock_session:
@@ -84,7 +84,7 @@ class TestDomainDetection:
 
     @pytest.mark.asyncio
     async def test_custom_domain_queries_db(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
         request.headers = {"host": "custom.example.com"}
@@ -120,7 +120,7 @@ class TestBrandingInjection:
 
     @pytest.mark.asyncio
     async def test_css_injected_for_html(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
         request.headers = {"host": "custom.example.com"}
@@ -153,7 +153,7 @@ class TestBrandingInjection:
 
     @pytest.mark.asyncio
     async def test_no_injection_for_json(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
         request.state = Mock()
@@ -175,7 +175,7 @@ class TestErrorHandling:
 
     @pytest.mark.asyncio
     async def test_db_error_graceful(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
         request.headers = {"host": "custom.example.com"}
@@ -196,7 +196,7 @@ class TestErrorHandling:
 
     @pytest.mark.asyncio
     async def test_injection_error_graceful(self, mock_app):
-        middleware = WhitelabelMiddleware(mock_app, base_domain="namaskah.app")
+        middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
         request.state = Mock()

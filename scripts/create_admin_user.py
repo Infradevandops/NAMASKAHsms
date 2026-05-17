@@ -14,7 +14,7 @@ def create_admin_user():
     """Create admin user in SQLite database"""
 
     db_path = "namaskah.db"
-    email = "admin@namaskah.app"
+    email = "admin@vrenum.app"
     password = "<admin-password>"
 
     print(f"🔧 Creating admin user in {db_path}")
@@ -150,7 +150,7 @@ if notif_count == 0:
             cursor.execute("""
                 INSERT INTO notifications (id, user_id, type, title, message, is_read, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (notif_id, user_id, 'welcome', '🎉 Welcome to Namaskah!',
+            """, (notif_id, user_id, 'welcome', '🎉 Welcome to Vrenum!',
                   'Your admin account has been created successfully.', False, datetime.now()))
             print("✅ Created test notification")
 

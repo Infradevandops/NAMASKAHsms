@@ -24,7 +24,7 @@ class TestForwardingEmail:
 
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
-            mock_email.from_email = "noreply@namaskah.app"
+            mock_email.from_email = "noreply@vrenum.app"
             mock_email._send_smtp = Mock()
 
             result = await _send_forwarding_email("user@example.com", sms_data)
@@ -45,7 +45,7 @@ class TestForwardingEmail:
 
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
-            mock_email.from_email = "noreply@namaskah.app"
+            mock_email.from_email = "noreply@vrenum.app"
             mock_email._send_smtp = Mock()
 
             result = await _send_forwarding_email("user@example.com", sms_data)
@@ -81,7 +81,7 @@ class TestForwardingEmail:
 
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
-            mock_email.from_email = "noreply@namaskah.app"
+            mock_email.from_email = "noreply@vrenum.app"
             mock_email._send_smtp = Mock(side_effect=Exception("SMTP error"))
 
             result = await _send_forwarding_email("user@example.com", sms_data)
@@ -100,7 +100,7 @@ class TestForwardingEmail:
 
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
-            mock_email.from_email = "noreply@namaskah.app"
+            mock_email.from_email = "noreply@vrenum.app"
 
             captured_message = None
 

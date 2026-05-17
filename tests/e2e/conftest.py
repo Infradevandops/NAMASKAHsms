@@ -35,7 +35,7 @@ def base_url():
 def test_user():
     """Test user credentials."""
     return {
-        "email": os.getenv("TEST_USER_EMAIL", "admin@namaskah.app"),
+        "email": os.getenv("TEST_USER_EMAIL", "admin@vrenum.app"),
         "password": os.getenv("TEST_USER_PASSWORD", "test-password-123"),
     }
 

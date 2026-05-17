@@ -24,10 +24,10 @@ def set_user_passwords():
 
     # Update existing users with known passwords
     user_passwords = {
-        "test@namaskah.app": "test123",
+        "test@vrenum.app": "test123",
         "test@example.com": "demo123",
         "test@flow.com": "flow123",
-        "admin@namaskah.app": "admin123",  # Keep admin password
+        "admin@vrenum.app": "admin123",  # Keep admin password
     }
 
     updated_users = []

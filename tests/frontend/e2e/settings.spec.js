@@ -20,7 +20,7 @@ test.describe('Settings Page', () => {
                     referral_earnings, provider, language, currency,
                     is_affiliate, is_active, is_suspended, is_banned, is_deleted
                 ) VALUES (
-                    '1', 'test@namaskah.app', 'hashed_password', 0, 0,
+                    '1', 'test@vrenum.app', 'hashed_password', 0, 0,
                     10.0, 'payg', datetime('now'), 1.0,
                     1, 0.0, 0.0,
                     0.0, 'email', 'en', 'USD',
@@ -73,7 +73,7 @@ test.describe('Settings Page', () => {
 
     test('should display account information', async ({ page }) => {
         // Wait for the value to be populated
-        await expect(page.locator('#account-email')).toHaveValue('test@namaskah.app', { timeout: 10000 });
+        await expect(page.locator('#account-email')).toHaveValue('test@vrenum.app', { timeout: 10000 });
         await expect(page.locator('#account-id')).toHaveValue('1', { timeout: 10000 });
     });
 

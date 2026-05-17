@@ -1,4 +1,4 @@
-# Kubernetes Production Deployment for Namaskah SMS
+# Kubernetes Production Deployment for Vrenum
 # Complete production-ready configuration with secrets, monitoring, and scaling
 
 ---
@@ -6,9 +6,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: namaskah-prod
+  name: vrenum-prod
   labels:
-    name: namaskah-prod
+    name: vrenum-prod
     environment: production
 
 ---
@@ -16,10 +16,10 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: namaskah-config
-  namespace: namaskah-prod
+  name: vrenum-config
+  namespace: vrenum-prod
 data:
-  APP_NAME: "Namaskah SMS"
+  APP_NAME: "VRENUM ACTV8TN"
   APP_VERSION: "2.4.0"
   ENVIRONMENT: "production"
   DEBUG: "false"
@@ -37,8 +37,8 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: namaskah-secrets
-  namespace: namaskah-prod
+  name: vrenum-secrets
+  namespace: vrenum-prod
 stringData:
   # SMS Provider API Key (configure via secure secret store or CI/CD pipeline)
   SMS_PROVIDER_API_KEY: "REQUIRED_YOUR_API_KEY"
@@ -50,7 +50,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: namaskah-prod
+  namespace: vrenum-prod
   labels:
     app: postgres
 spec:
@@ -70,9 +70,9 @@ spec:
         - containerPort: 5432
         env:
         - name: POSTGRES_DB
-          value: "namaskah_prod"
+          value: "vrenum_prod"
         - name: POSTGRES_USER
-          value: "namaskah_user"
+          value: "vrenum_user"
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -95,9 +95,9 @@ spec:
             command:
             - pg_isready
             - -U
-            - namaskah_user
+            - vrenum_user
             - -d
-            - namaskah_prod
+            - vrenum_prod
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
@@ -107,9 +107,9 @@ spec:
             command:
             - pg_isready
             - -U
-            - namaskah_user
+            - vrenum_user
             - -d
-            - namaskah_prod
+            - vrenum_prod
           initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 3
@@ -125,7 +125,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-secret
-  namespace: namaskah-prod
+  namespace: vrenum-prod
 type: Opaque
 stringData:
   password: "REQUIRED_STRONG_DB_PASSWORD"
@@ -136,7 +136,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: namaskah-prod
+  namespace: vrenum-prod
 spec:
   accessModes:
     - ReadWriteOnce
@@ -151,7 +151,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
-  namespace: namaskah-prod
+  namespace: vrenum-prod
 spec:
   selector:
     app: postgres
@@ -166,7 +166,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
-  namespace: namaskah-prod
+  namespace: vrenum-prod
   labels:
     app: redis
 spec:
@@ -231,7 +231,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-pvc
-  namespace: namaskah-prod
+  namespace: vrenum-prod
 spec:
   accessModes:
     - ReadWriteOnce
@@ -246,7 +246,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis-service
-  namespace: namaskah-prod
+  namespace: vrenum-prod
 spec:
   selector:
     app: redis
@@ -260,10 +260,10 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: namaskah-app
-  namespace: namaskah-prod
+  name: vrenum-app
+  namespace: vrenum-prod
   labels:
-    app: namaskah-app
+    app: vrenum-app
     version: v2.4.0
 spec:
   replicas: 3
@@ -274,11 +274,11 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: namaskah-app
+      app: vrenum-app
   template:
     metadata:
       labels:
-        app: namaskah-app
+        app: vrenum-app
         version: v2.4.0
       annotations:
         prometheus.io/scrape: "true"
@@ -287,15 +287,15 @@ spec:
     spec:
       containers:
       - name: app
-        image: namaskah-app:2.4.0
+        image: vrenum-app:2.4.0
         ports:
         - containerPort: 8000
           name: http
         envFrom:
         - configMapRef:
-            name: namaskah-config
+            name: vrenum-config
         - secretRef:
-            name: namaskah-secrets
+            name: vrenum-secrets
         resources:
           requests:
             memory: "256Mi"
@@ -335,13 +335,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: namaskah-service
-  namespace: namaskah-prod
+  name: vrenum-service
+  namespace: vrenum-prod
   labels:
-    app: namaskah-app
+    app: vrenum-app
 spec:
   selector:
-    app: namaskah-app
+    app: vrenum-app
   ports:
   - port: 80
     targetPort: 8000
@@ -354,13 +354,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: namaskah-hpa
-  namespace: namaskah-prod
+  name: vrenum-hpa
+  namespace: vrenum-prod
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: namaskah-app
+    name: vrenum-app
   minReplicas: 3
   maxReplicas: 10
   metrics:
@@ -382,8 +382,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: namaskah-ingress
-  namespace: namaskah-prod
+  name: vrenum-ingress
+  namespace: vrenum-prod
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -400,17 +400,17 @@ metadata:
 spec:
   tls:
   - hosts:
-    - api.namaskah.app
-    secretName: namaskah-tls
+    - api.vrenum.app
+    secretName: vrenum-tls
   rules:
-  - host: api.namaskah.app
+  - host: api.vrenum.app
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: namaskah-service
+            name: vrenum-service
             port:
               number: 80
 
@@ -419,12 +419,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: namaskah-network-policy
-  namespace: namaskah-prod
+  name: vrenum-network-policy
+  namespace: vrenum-prod
 spec:
   podSelector:
     matchLabels:
-      app: namaskah-app
+      app: vrenum-app
   policyTypes:
   - Ingress
   - Egress
@@ -465,27 +465,27 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: namaskah-pdb
-  namespace: namaskah-prod
+  name: vrenum-pdb
+  namespace: vrenum-prod
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: namaskah-app
+      app: vrenum-app
 
 ---
 # ServiceMonitor for Prometheus (if using Prometheus Operator)
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: namaskah-metrics
-  namespace: namaskah-prod
+  name: vrenum-metrics
+  namespace: vrenum-prod
   labels:
-    app: namaskah-app
+    app: vrenum-app
 spec:
   selector:
     matchLabels:
-      app: namaskah-app
+      app: vrenum-app
   endpoints:
   - port: http
     path: /metrics

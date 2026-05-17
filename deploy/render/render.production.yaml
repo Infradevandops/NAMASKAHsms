@@ -1,7 +1,7 @@
 services:
   # Backend API (Production)
   - type: web
-    name: namaskah-api-prod
+    name: vrenum-api-prod
     env: python
     plan: standard
     region: oregon
@@ -15,11 +15,11 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: namaskah-db-prod
+          name: vrenum-db-prod
           property: connectionString
       - key: REDIS_URL
         fromService:
-          name: namaskah-redis-prod
+          name: vrenum-redis-prod
           type: redis
           property: connectionString
       - key: ENVIRONMENT
@@ -48,7 +48,7 @@ services:
 
   # PostgreSQL Database (Production)
   - type: db
-    name: namaskah-db-prod
+    name: vrenum-db-prod
     plan: standard
     region: oregon
     ipAllowList:
@@ -56,7 +56,7 @@ services:
 
   # Redis Cache (Production)
   - type: redis
-    name: namaskah-redis-prod
+    name: vrenum-redis-prod
     plan: standard
     region: oregon
     maxmemoryPolicy: allkeys-lru
@@ -65,7 +65,7 @@ services:
 
   # Monitoring Service (Prometheus)
   - type: web
-    name: namaskah-prometheus-prod
+    name: vrenum-prometheus-prod
     env: docker
     plan: starter
     region: oregon
@@ -83,7 +83,7 @@ services:
 
   # Grafana Dashboard (Monitoring)
   - type: web
-    name: namaskah-grafana-prod
+    name: vrenum-grafana-prod
     env: docker
     plan: starter
     region: oregon

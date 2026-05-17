@@ -9,8 +9,8 @@ if [ -z "$1" ]; then
 fi
 
 BACKUP_FILE="$1"
-DB_NAME="${POSTGRES_DB:-namaskah_prod}"
-DB_USER="${POSTGRES_USER:-namaskah_user}"
+DB_NAME="${POSTGRES_DB:-vrenum_prod}"
+DB_USER="${POSTGRES_USER:-vrenum_user}"
 DB_HOST="${POSTGRES_HOST:-localhost}"
 
 if [ ! -f "$BACKUP_FILE" ]; then

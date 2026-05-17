@@ -1,5 +1,5 @@
 #!/bin/bash
-# Production Deployment Script for Namaskah SMS
+# Production Deployment Script for Vrenum
 # Handles validation, deployment, and rollback
 
 set -e
@@ -81,7 +81,7 @@ backup_database() {
 
     # Check if database is running
     if docker-compose -f "$COMPOSE_FILE" ps db | grep -q "Up"; then
-        docker-compose -f "$COMPOSE_FILE" exec -T db pg_dump -U namaskah_user namaskah_prod > "$backup_file"
+        docker-compose -f "$COMPOSE_FILE" exec -T db pg_dump -U vrenum_user vrenum_prod > "$backup_file"
 
         if [[ -f "$backup_file" && -s "$backup_file" ]]; then
             log "✅ Database backup created: $backup_file"
@@ -122,7 +122,7 @@ deploy_application() {
     local attempt=1
 
     while [[ $attempt -le $max_attempts ]]; do
-        if docker-compose -f "$COMPOSE_FILE" exec -T db pg_isready -U namaskah_user -d namaskah_prod &>/dev/null && \
+        if docker-compose -f "$COMPOSE_FILE" exec -T db pg_isready -U vrenum_user -d vrenum_prod &>/dev/null && \
            docker-compose -f "$COMPOSE_FILE" exec -T redis redis-cli ping &>/dev/null; then
             log "✅ Infrastructure services are ready"
             break
@@ -222,7 +222,7 @@ rollback_deployment() {
             sleep 30
 
             # Restore database
-            docker-compose -f "$COMPOSE_FILE" exec -T db psql -U namaskah_user -d namaskah_prod < "$backup_file"
+            docker-compose -f "$COMPOSE_FILE" exec -T db psql -U vrenum_user -d vrenum_prod < "$backup_file"
 
             log "✅ Database restored from backup"
         fi

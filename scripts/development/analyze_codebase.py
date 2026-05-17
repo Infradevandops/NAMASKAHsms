@@ -4,7 +4,7 @@ import os
 import re
 from collections import defaultdict
 
-Comprehensive analysis of duplicates and abandoned code in Namaskah app
+Comprehensive analysis of duplicates and abandoned code in Vrenum app
 """
 
 

@@ -14,7 +14,7 @@ async def authenticated_page(page: Page, base_url):
 
     # 1. Login
     await page.goto(f"{base}/login", timeout=15000)
-    await page.fill("#email", "admin@namaskah.app")
+    await page.fill("#email", "admin@vrenum.app")
     await page.fill("#password", "<admin-password>")
     await page.click("button[type='submit']")
     await page.wait_for_url("**/dashboard", timeout=15000)

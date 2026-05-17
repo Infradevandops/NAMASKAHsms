@@ -5,7 +5,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'namaskah-sms'
+    monitor: 'vrenum-sms'
 
 # Alertmanager configuration
 alerting:
@@ -26,7 +26,7 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # Application metrics
-  - job_name: 'namaskah-app'
+  - job_name: 'vrenum-app'
     static_configs:
       - targets: ['localhost:8000']
     metrics_path: '/metrics'

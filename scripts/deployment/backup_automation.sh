@@ -16,6 +16,6 @@ fi
 python3 scripts/backup_database.py
 
 # Optional: Upload to cloud storage (uncomment and configure)
-# aws s3 cp backups/ s3://your-backup-bucket/ --recursive --exclude "*" --include "namaskah_backup_*.sql"
+# aws s3 cp backups/ s3://your-backup-bucket/ --recursive --exclude "*" --include "vrenum_backup_*.sql"
 
 echo "Backup automation completed at $(date)"

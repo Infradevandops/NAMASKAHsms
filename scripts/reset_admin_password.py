@@ -6,10 +6,11 @@
 
 import os
 import sys
+import traceback
+
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.utils.security import hash_password, verify_password
-import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def reset_admin_password():
 
     """Reset admin password from ADMIN_PASSWORD env var."""
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@vrenum.app")
     admin_password = os.getenv("ADMIN_PASSWORD")
 
 if not admin_password:

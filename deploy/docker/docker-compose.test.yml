@@ -17,7 +17,7 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: namaskah_test
+      POSTGRES_DB: vrenum_test
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:

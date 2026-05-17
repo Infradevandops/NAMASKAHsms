@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Namaskah frontend uses a consolidated CSS architecture with a single source of truth for design tokens. The CSS has been refactored to eliminate duplicates and improve maintainability.
+The Vrenum frontend uses a consolidated CSS architecture with a single source of truth for design tokens. The CSS has been refactored to eliminate duplicates and improve maintainability.
 
 ## File Structure
 

@@ -23,7 +23,7 @@ if not token:
         'Content-Type': 'application/json'
     }
 
-    base_url = "https://namaskah.app"  # Change if testing locally
+    base_url = "https://vrenum.app"  # Change if testing locally
 
     print(f"🔍 Testing endpoints on {base_url}")
     print("=" * 50)

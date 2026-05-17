@@ -1,7 +1,7 @@
 #!/bin/bash
 # CI/CD Setup Script
 
-echo "🚀 Setting up CI/CD for Namaskah SMS"
+echo "🚀 Setting up CI/CD for Vrenum"
 echo ""
 
 # Check if Railway CLI is installed

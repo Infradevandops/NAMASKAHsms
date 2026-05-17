@@ -47,20 +47,20 @@ sed -n '73p' app/services/auto_refund_service.py | grep -q "float(user.credits)"
 
 # Restart service
 echo ""
-echo "🔄 Restarting Namaskah service..."
-systemctl restart namaskah
+echo "🔄 Restarting Vrenum service..."
+systemctl restart vrenum
 
 # Wait for service to start
 sleep 5
 
 # Check service status
-if systemctl is-active --quiet namaskah; then
+if systemctl is-active --quiet vrenum; then
     echo "✅ Service restarted successfully"
 else
     echo "❌ Service failed to start!"
     echo "Rolling back..."
     cp "$BACKUP_FILE" app/services/auto_refund_service.py
-    systemctl restart namaskah
+    systemctl restart vrenum
     exit 1
 fi
 
@@ -80,5 +80,5 @@ echo "3. Verify user credits increased"
 echo ""
 echo "Rollback command (if needed):"
 echo "  cp $BACKUP_FILE app/services/auto_refund_service.py"
-echo "  systemctl restart namaskah"
+echo "  systemctl restart vrenum"
 echo ""

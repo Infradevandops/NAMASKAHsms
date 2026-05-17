@@ -36,7 +36,7 @@ async def test_daily_snapshot_recording(db):
     service = TargetTrackingService(db)
 
     # Ensure some users exist
-    user = User(email="test@namaskah.com", subscription_tier="pro", email_verified=True)
+    user = User(email="test@vrenum.app", subscription_tier="pro", email_verified=True)
     db.add(user)
     db.commit()  # Sync commit
 

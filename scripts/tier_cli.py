@@ -240,7 +240,7 @@ for user in users:
 def main():
 
     parser = argparse.ArgumentParser(
-        description="Namaskah Tier Management CLI",
+        description="Vrenum Tier Management CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

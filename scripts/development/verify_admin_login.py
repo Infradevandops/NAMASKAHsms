@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Verify admin login credentials work correctly."""
 
-import sys
 import os
+import sys
+
 import bcrypt
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -11,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/namaskah")
 
 # Default admin credentials
-ADMIN_EMAIL = "admin@namaskah.app"
+ADMIN_EMAIL = "admin@vrenum.app"
 ADMIN_PASSWORD = "<admin-password>"
 
 print("🔐 Admin Login Verification")

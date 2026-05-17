@@ -37,7 +37,7 @@ echo ""
 
 echo "Step 2: Update Environment Variables"
 echo "- Go to Render dashboard"
-echo "- Select namaskah service"
+echo "- Select vrenum service"
 echo "- Environment → Edit"
 echo "- Update keys"
 echo "- Deploy"

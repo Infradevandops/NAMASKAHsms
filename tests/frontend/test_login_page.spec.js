@@ -39,8 +39,8 @@ test.describe('Login Page', () => {
 
   test('should login successfully with valid credentials', async ({ page }) => {
     // Fill in credentials
-    await page.fill('#email', 'admin@namaskah.app');
-    await page.fill('#password', 'Namaskah@Admin2024');
+    await page.fill('#email', 'admin@vrenum.app');
+    await page.fill('#password', 'Vrenum@Admin2024');
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -155,8 +155,8 @@ test.describe('Login Page', () => {
     });
 
     // Fill and submit
-    await page.fill('#email', 'admin@namaskah.app');
-    await page.fill('#password', 'Namaskah@Admin2024');
+    await page.fill('#email', 'admin@vrenum.app');
+    await page.fill('#password', 'Vrenum@Admin2024');
     await page.click('button[type="submit"]');
 
     // Button should show loading state

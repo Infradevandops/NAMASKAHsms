@@ -6,9 +6,10 @@
 
 import os
 import sys
+import traceback
+
 from app.core.database import SessionLocal
 from app.models.user import User
-import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -16,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def check_admin():
 
     """Check admin user status."""
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@vrenum.app")
 
     db = SessionLocal()
 try:

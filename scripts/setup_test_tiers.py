@@ -28,11 +28,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Test user tier assignments
 TEST_USER_TIERS = {
-    "admin@namaskah.app": "freemium",
+    "admin@vrenum.app": "freemium",
     "user@test.com": "freemium",
     "starter@test.com": "payg",
     "pro@test.com": "pro",
-    "demo@namaskah.app": "custom",
+    "demo@vrenum.app": "custom",
 }
 
 VALID_TIERS = ["freemium", "payg", "pro", "custom"]
@@ -144,7 +144,7 @@ if existing:
                 hashed_password=get_password_hash("TestPassword123!"),
                 subscription_tier=tier,
                 is_active=True,
-                is_admin=email.endswith("@namaskah.app"),
+                is_admin=email.endswith("@vrenum.app"),
             )
             db.add(user)
             db.commit()

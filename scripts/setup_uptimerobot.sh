@@ -6,15 +6,15 @@ echo "🔍 UptimeRobot Monitoring Setup"
 echo "================================"
 
 # Configuration
-BASE_URL="https://namaskah.onrender.com"
-ALERT_EMAIL="admin@namaskah.app"
+BASE_URL="https://vrenum.onrender.com"
+ALERT_EMAIL="admin@vrenum.app"
 
 echo "📋 Required UptimeRobot Monitors:"
 echo ""
 echo "1. Main Site Monitor"
 echo "   URL: $BASE_URL"
 echo "   Type: HTTP(s)"
-echo "   Keyword: 'Namaskah SMS'"
+echo "   Keyword: 'Vrenum'"
 echo "   Interval: 5 minutes"
 echo ""
 echo "2. API Health Monitor"

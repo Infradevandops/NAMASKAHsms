@@ -50,7 +50,7 @@ def backup() -> str:
 
     LOCAL_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    filename = f"namaskah_backup_{timestamp}.sql.gz"
+    filename = f"vrenum_backup_{timestamp}.sql.gz"
     local_path = LOCAL_BACKUP_DIR / filename
 
     logger.info(f"Starting backup → {local_path}")
@@ -160,7 +160,7 @@ def _download_s3(s3_key: str, local_path: Path):
 
 def _cleanup_local(backup_dir: Path):
     cutoff = datetime.datetime.utcnow().timestamp() - (KEEP_DAYS * 86400)
-    for f in backup_dir.glob("namaskah_backup_*.sql.gz"):
+    for f in backup_dir.glob("vrenum_backup_*.sql.gz"):
         if f.stat().st_mtime < cutoff:
             f.unlink()
             logger.info(f"Removed old backup: {f.name}")

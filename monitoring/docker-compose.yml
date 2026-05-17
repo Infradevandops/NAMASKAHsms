@@ -149,7 +149,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://namaskah_user:${POSTGRES_PASSWORD}@host.docker.internal:5432/namaskah_prod?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://vrenum_user:${POSTGRES_PASSWORD}@host.docker.internal:5432/vrenum_prod?sslmode=disable
     restart: unless-stopped
     networks:
       - monitoring

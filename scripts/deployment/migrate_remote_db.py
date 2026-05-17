@@ -85,7 +85,7 @@ def run_migration():
         print()
         print("Next steps:")
         print("1. Restart your Render service")
-        print("2. Test login at https://namaskahsms.onrender.com/login")
+        print("2. Test login at https://vrenum.onrender.com/login")
         print("3. Verify all features are working")
         print()
 

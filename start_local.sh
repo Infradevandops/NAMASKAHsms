@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Start Namaskah with Local Database
-echo "🚀 Starting Namaskah SMS API (Local Development)..."
+# Start Vrenum with Local Database
+echo "🚀 Starting Vrenum API (Local Development)..."
 echo ""
 
 # Check if virtual environment exists
@@ -15,10 +15,10 @@ source .venv/bin/activate
 
 # Use local development environment
 export ENVIRONMENT=development
-export DATABASE_URL=sqlite:///./data/namaskah_local.db
+export DATABASE_URL=sqlite:///./data/vrenum_local.db
 
 echo "✅ Environment: development"
-echo "✅ Database: SQLite (./data/namaskah_local.db)"
+echo "✅ Database: SQLite (./data/vrenum_local.db)"
 echo ""
 
 # Skip migrations for SQLite (they're for PostgreSQL)

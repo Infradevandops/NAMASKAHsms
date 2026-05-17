@@ -1,6 +1,6 @@
 """
 BRUTAL STABILITY VERIFICATION SCRIPT (V5.0.0)
-Performs a comprehensive health check on the Namaskah Wallet backend,
+Performs a comprehensive health check on the Vrenum Wallet backend,
 CSP policies, and financial integrity.
 """
 
@@ -138,7 +138,7 @@ def check_tier_alignment():
 
 def main():
     print("=" * 60)
-    print("NAMASKAH STABILITY VERIFICATION (V5.0.0)")
+    print("VRENUM STABILITY VERIFICATION (V5.0.0)")
     print("=" * 60)
 
     results = [

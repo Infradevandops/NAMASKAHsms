@@ -106,7 +106,7 @@ def main():
 
     """Run all checks."""
     print("=" * 70)
-    print("NAMASKAH DEPLOYMENT VERIFICATION")
+    print("VRENUM DEPLOYMENT VERIFICATION")
     print("=" * 70)
     print()
 

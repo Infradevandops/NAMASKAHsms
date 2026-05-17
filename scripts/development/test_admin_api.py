@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Test admin login via API endpoint."""
 
-import requests
 import sys
 
+import requests
+
 BASE_URL = "http://localhost:9876"
-ADMIN_EMAIL = "admin@namaskah.app"
+ADMIN_EMAIL = "admin@vrenum.app"
 ADMIN_PASSWORD = "<admin-password>"
 
 print("🧪 Testing Admin Login API")

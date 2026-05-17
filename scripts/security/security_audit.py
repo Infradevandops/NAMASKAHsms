@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Security audit script for Namaskah"""
+"""Security audit script for Vrenum"""
 import subprocess
 import sys
 
@@ -59,7 +59,7 @@ def check_secrets():
 
 def main():
     print("=" * 60)
-    print("🔒 NAMASKAH SECURITY AUDIT")
+    print("🔒 VRENUM SECURITY AUDIT")
     print("=" * 60)
 
     results = {

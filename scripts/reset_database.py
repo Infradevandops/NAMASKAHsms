@@ -44,14 +44,14 @@ def create_admin_user():
     db = SessionLocal()
     try:
         # Check if admin exists
-        existing = db.query(User).filter(User.email == "admin@namaskah.app").first()
+        existing = db.query(User).filter(User.email == "admin@vrenum.app").first()
         if existing:
             print("   Admin user already exists")
             return
 
         # Create admin user
         admin = User(
-            email="admin@namaskah.app",
+            email="admin@vrenum.app",
             hashed_password=get_password_hash("admin123"),
             is_admin=True,
             is_active=True,
@@ -68,7 +68,7 @@ def create_admin_user():
         db.commit()
 
         print("✅ Admin user created!")
-        print("   Email: admin@namaskah.app")
+        print("   Email: admin@vrenum.app")
         print("   Password: admin123")
 
     except Exception as e:
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     print("\nThis will:")
     print("  1. Drop all existing tables")
     print("  2. Recreate tables with current schema")
-    print("  3. Create admin user (admin@namaskah.app / admin123)")
+    print("  3. Create admin user (admin@vrenum.app / admin123)")
     print("  4. Create test user (test@example.com / testpassword123)")
     print("\n⚠️  WARNING: All existing data will be lost!")
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         print("=" * 60)
         print("\nYou can now:")
         print("  1. Start server: uvicorn main:app --reload")
-        print("  2. Login as admin: admin@namaskah.app / admin123")
+        print("  2. Login as admin: admin@vrenum.app / admin123")
         print("  3. Login as test user: test@example.com / testpassword123")
         print("  4. Run Phase 2 tests: python tests/manual/test_email_templates.py")
 

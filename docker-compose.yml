@@ -35,8 +35,8 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: namaskah_dev
-      POSTGRES_USER: namaskah
+      POSTGRES_DB: vrenum_dev
+      POSTGRES_USER: vrenum
       POSTGRES_PASSWORD: dev_password
     volumes:
       - postgres_data:/var/lib/postgresql/data

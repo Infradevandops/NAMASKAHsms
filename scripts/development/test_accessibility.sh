@@ -43,7 +43,7 @@ if command -v npm &> /dev/null; then
     if [ ! -f "package.json" ]; then
         cat > package.json << EOF
 {
-  "name": "namaskah-accessibility-tests",
+  "name": "vrenum-accessibility-tests",
   "version": "1.0.0",
   "devDependencies": {
     "@axe-core/cli": "^4.8.0",
