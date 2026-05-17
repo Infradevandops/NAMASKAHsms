@@ -650,6 +650,192 @@ ORDER BY count DESC;
 
 ---
 
-**Document Version**: 1.0
+## 🎯 Phase 2: Analytics & History Enrichment (v4.7.3)
+
+**Status**: 📋 PLANNED
+**Priority**: High — User-facing quality gap
+**Effort**: ~2 days total
+
+### Problem Statement
+Analytics and History tabs are functional but below industry standard (Stripe, Twilio, Plivo). Data exists in DB (`purchase_outcomes`, `carrier_analytics`, `daily_user_snapshots`) but isn't surfaced to users. Key gaps: no failure breakdown, no latency percentiles, no sortable columns, no phone search.
+
+---
+
+### Deliverables
+
+#### D1: Analytics Tab Enrichment (Frontend + 1 new endpoint)
+
+| # | Feature | Type | Data Source | Effort |
+|---|---------|------|-------------|--------|
+| A1 | Preset date range buttons (Today, Yesterday, 7d, 30d, 90d) | Frontend-only | Existing | 30 min |
+| A2 | Failure reason breakdown chart | Frontend + existing API | `purchase_outcomes.outcome_category` | 1 hr |
+| A3 | Latency percentile card (p50, p95, p99) | New endpoint | `purchase_outcomes.latency_seconds` | 2 hr |
+| A4 | Verification funnel (initiated → assigned → received → completed) | Frontend + existing API | `verifications` status counts | 1 hr |
+| A5 | Cost-per-success metric | Frontend-only | `net_spent / successful_verifications` | 15 min |
+| A6 | Savings summary ("refunds saved you $X") | Frontend-only | `total_refunded` from existing API | 15 min |
+| A7 | Service success rate sparklines in top services table | Frontend-only (inline SVG) | `top_services[].success_rate` | 1 hr |
+
+#### D2: History Tab Enrichment (Frontend + backend filter params)
+
+| # | Feature | Type | Data Source | Effort |
+|---|---------|------|-------------|--------|
+| H1 | Phone number search | Backend param + frontend | `verifications.phone_number` | 1 hr |
+| H2 | SMS code search | Backend param + frontend | `verifications.sms_code` | 30 min |
+| H3 | Sortable columns (click header → sort by cost, date, status) | Frontend-only | Current page data | 1 hr |
+| H4 | Latency color coding in table (green <30s, yellow 30-60s, red >60s) | Frontend-only | `latency` field | 20 min |
+| H5 | Relative time display ("3 min ago") alongside absolute date | Frontend-only | `created_at` | 20 min |
+| H6 | Multi-status filter (select multiple statuses) | Backend param + frontend | `verifications.status` | 1 hr |
+| H7 | Inline row expansion (click to expand details without modal) | Frontend-only | Existing `allHistory` data | 2 hr |
+| H8 | Retry chain linking (show original + retries grouped) | Frontend + backend | `verifications.bulk_id`, `retry_attempts` | 2 hr |
+
+#### D3: Structural Fixes (Already Completed)
+
+| # | Fix | Status |
+|---|-----|--------|
+| S1 | `insights.html` — extend `dashboard_base.html`, fix `access_token` bug | ✅ Done |
+| S2 | History server-side pagination (30/page with offset) | ✅ Done |
+| S3 | Sidebar full i18n coverage (12 items added) | ✅ Done |
+| S4 | Export fetches all records server-side (not limited to current page) | ✅ Done |
+
+---
+
+### Acceptance Criteria
+
+#### AC-7: Analytics Preset Ranges ✅ criteria
+- [ ] Clicking "Today" sets date range to today 00:00 → now and reloads
+- [ ] Clicking "Yesterday" sets to yesterday 00:00 → 23:59
+- [ ] Active button visually highlighted
+- [ ] Chart range syncs with date picker inputs
+
+#### AC-8: Failure Reason Breakdown
+- [ ] Donut/bar chart shows PRODUCT vs PROVIDER vs NETWORK vs SYSTEM split
+- [ ] Only appears when user has >0 failed verifications
+- [ ] Clicking a segment filters the top services table to that category
+- [ ] Data sourced from `GET /api/analytics/outcome-insights` → `outcome_categories`
+
+#### AC-9: Latency Percentiles
+- [ ] New endpoint `GET /api/analytics/latency-percentiles` returns `{p50, p95, p99, avg, total_samples}`
+- [ ] Card shows p50 and p95 prominently, p99 as secondary
+- [ ] Color coding: p50 <30s green, 30-60s yellow, >60s red
+- [ ] Only shows when ≥5 completed verifications with latency data
+
+#### AC-10: Verification Funnel
+- [ ] Horizontal funnel: Initiated (100%) → Number Assigned (X%) → SMS Received (Y%) → Code Used (Z%)
+- [ ] Drop-off percentages shown between stages
+- [ ] Sourced from existing summary: `total_verifications`, `successful_verifications`, `failed_verifications`
+- [ ] Additional field needed: count of verifications with `sms_received=TRUE`
+
+#### AC-11: Phone Number Search
+- [ ] Input field in History filter bar accepts partial or full phone number
+- [ ] Backend `GET /api/verify/history?phone=215` returns matching records
+- [ ] Supports partial match (area code search)
+- [ ] Debounced (300ms) to avoid excessive API calls
+
+#### AC-12: Sortable History Columns
+- [ ] Clicking column header sorts current page data (client-side)
+- [ ] Sort indicator (▲/▼) shown on active column
+- [ ] Sortable columns: Service, Status, Cost, Date
+- [ ] Default sort: Date descending (newest first)
+
+#### AC-13: Latency Color Coding
+- [ ] History table shows latency value with colored badge
+- [ ] Green: <30s | Yellow: 30-60s | Red: >60s | Gray: no data
+- [ ] Audit modal also uses same color coding
+
+#### AC-14: Relative Time
+- [ ] Date column shows "2 min ago", "1 hr ago", "Yesterday" for recent items
+- [ ] Full date shown on hover (title attribute)
+- [ ] Items older than 7 days show absolute date only
+
+#### AC-15: Inline Row Expansion
+- [ ] Clicking a row expands an inline detail panel below the row (no modal)
+- [ ] Panel shows: SMS text, financial breakdown, carrier info, timestamps
+- [ ] Only one row expanded at a time (clicking another collapses the first)
+- [ ] Modal still accessible via "Full Audit" button in expanded panel
+
+#### AC-16: Retry Chain
+- [ ] Verifications with `retry_attempts > 0` show a retry badge
+- [ ] Clicking badge shows linked verifications (same service + user within 5 min window)
+- [ ] Chain displayed as: "Attempt 1 (failed) → Attempt 2 (failed) → Attempt 3 (success)"
+
+---
+
+### Backend Changes Required
+
+#### New Endpoint: Latency Percentiles
+```python
+GET /api/analytics/latency-percentiles
+```
+**Response**:
+```json
+{
+  "p50": 28.4,
+  "p95": 89.2,
+  "p99": 145.0,
+  "avg": 42.1,
+  "total_samples": 156,
+  "period": "30d"
+}
+```
+**Source**: `purchase_outcomes.latency_seconds WHERE user_id = X AND latency_seconds > 0`
+
+#### Modified Endpoint: Verify History (add search params)
+```python
+GET /api/verify/history?phone=215&sms_code=1234&status=completed,failed
+```
+**New params**:
+- `phone` (str, optional) — partial match on `verifications.phone_number`
+- `sms_code` (str, optional) — exact match on `verifications.sms_code`
+- `status` (str, optional) — comma-separated for multi-status filter
+
+#### Modified Endpoint: Analytics Summary (add funnel data)
+Add to existing `/api/analytics/summary` response:
+```json
+{
+  "sms_received_count": 142,
+  "number_assigned_count": 165
+}
+```
+**Source**: `COUNT(verifications WHERE sms_received = TRUE)` and `COUNT(verifications WHERE phone_number IS NOT NULL)`
+
+---
+
+### Implementation Order
+
+**Sprint 1 — Quick Wins (frontend-only, no backend):**
+1. A1: Preset date range buttons
+2. A5: Cost-per-success metric
+3. A6: Savings summary
+4. H4: Latency color coding
+5. H5: Relative time display
+6. H3: Sortable columns
+
+**Sprint 2 — Backend + Frontend:**
+7. H1: Phone number search (backend param)
+8. H2: SMS code search (backend param)
+9. H6: Multi-status filter (backend param)
+10. A3: Latency percentiles (new endpoint)
+11. A4: Verification funnel (modify summary response)
+
+**Sprint 3 — Rich UI:**
+12. A2: Failure reason breakdown chart
+13. A7: Service sparklines
+14. H7: Inline row expansion
+15. H8: Retry chain linking
+
+---
+
+### Success Metrics
+
+| Metric | Current | Target | How to Measure |
+|--------|---------|--------|----------------|
+| Analytics page engagement | ~15s avg session | >45s | Frontend logger |
+| History page utility | Export-only usage | Filter + search active | Track filter usage events |
+| Support tickets ("where's my data?") | ~5/week | 0 | Ticket categorization |
+| User self-diagnosis rate | Unknown | >80% can find failure reason | Survey / heatmap |
+
+---
+
+**Document Version**: 1.1
 **Last Updated**: May 17, 2026
-**Status**: ✅ COMPLETE AND DEPLOYED
+**Status**: ✅ Phase 1 DEPLOYED | 📋 Phase 2 PLANNED

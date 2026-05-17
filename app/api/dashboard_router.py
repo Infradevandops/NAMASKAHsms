@@ -232,30 +232,36 @@ async def get_analytics_summary(
             reverse=True,
         )[:10]
 
+        # Funnel data
+        number_assigned_count = sum(1 for v in verifications if v.phone_number)
+        sms_received_count = sum(
+            1 for v in verifications if getattr(v, "sms_received", False)
+        )
+
         return {
             "total_verifications": total,
             "successful_verifications": successful,
             "failed_verifications": failed,
             "pending_verifications": pending,
-            "total_spent": (
-                ledger_spent if ledger_spent > 0 else total_spent
-            ),  # Safe Fallback during migration
+            "total_spent": (ledger_spent if ledger_spent > 0 else total_spent),
             "total_deposited": total_deposited,
             "total_refunded": total_refunded,
             "net_spent": (ledger_spent if ledger_spent > 0 else total_spent)
             - total_refunded,
             "avg_cost": avg_cost,
-            "average_cost": avg_cost,  # Test Alias
-            "success_rate": success_rate,  # Test Expects decimal (e.g. 0.7)
+            "average_cost": avg_cost,
+            "success_rate": success_rate,
             "success_rate_pct": success_rate * 100,
             "current_balance": float(user.credits or 0.0) if user else 0.0,
             "daily_verifications": daily_verifications,
             "spending_by_service": spending_by_service,
             "top_services": top_services,
-            "recent_activity": recent_activities[:5],  # Test expects 5 item list
-            "monthly_verifications": monthly_verifications,  # Test requirement
-            "monthly_spent": monthly_spent,  # Test requirement
+            "recent_activity": recent_activities[:5],
+            "monthly_verifications": monthly_verifications,
+            "monthly_spent": monthly_spent,
             "monthly_change": monthly_change,
+            "number_assigned_count": number_assigned_count,
+            "sms_received_count": sms_received_count,
             "last_updated": now.isoformat(),
         }
 
@@ -291,13 +297,24 @@ async def get_verification_history(
     limit: int = 50,
     offset: int = 0,
     status: Optional[str] = None,
+    phone: Optional[str] = None,
+    sms_code: Optional[str] = None,
 ):
     try:
         from app.models.verification import Verification
 
         query = db.query(Verification).filter(Verification.user_id == user_id)
         if status:
-            query = query.filter(Verification.status == status)
+            # Support comma-separated multi-status
+            statuses = [s.strip() for s in status.split(",") if s.strip()]
+            if len(statuses) == 1:
+                query = query.filter(Verification.status == statuses[0])
+            elif len(statuses) > 1:
+                query = query.filter(Verification.status.in_(statuses))
+        if phone:
+            query = query.filter(Verification.phone_number.ilike(f"%{phone}%"))
+        if sms_code:
+            query = query.filter(Verification.sms_code == sms_code)
 
         verifications = (
             query.order_by(desc(Verification.created_at))
@@ -310,7 +327,21 @@ async def get_verification_history(
             Verification.user_id == user_id
         )
         if status:
-            total_query = total_query.filter(Verification.status == status)
+            statuses_for_count = [s.strip() for s in status.split(",") if s.strip()]
+            if len(statuses_for_count) == 1:
+                total_query = total_query.filter(
+                    Verification.status == statuses_for_count[0]
+                )
+            elif len(statuses_for_count) > 1:
+                total_query = total_query.filter(
+                    Verification.status.in_(statuses_for_count)
+                )
+        if phone:
+            total_query = total_query.filter(
+                Verification.phone_number.ilike(f"%{phone}%")
+            )
+        if sms_code:
+            total_query = total_query.filter(Verification.sms_code == sms_code)
         total = total_query.scalar()
 
         return {

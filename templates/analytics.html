@@ -190,8 +190,15 @@ endblock %}
 {% endblock %}
 
 {% block content %}
-<!-- Date Range Picker -->
-<div class="date-range-picker">
+<!-- Date Range Picker with Presets -->
+<div class="date-range-picker" style="flex-wrap: wrap;">
+    <div class="chart-controls" style="margin-right: 12px;">
+        <button class="chart-btn" data-preset="today" onclick="setPresetRange('today')">Today</button>
+        <button class="chart-btn" data-preset="yesterday" onclick="setPresetRange('yesterday')">Yesterday</button>
+        <button class="chart-btn" data-preset="7" onclick="setPresetRange('7')">7 Days</button>
+        <button class="chart-btn active" data-preset="30" onclick="setPresetRange('30')">30 Days</button>
+        <button class="chart-btn" data-preset="90" onclick="setPresetRange('90')">90 Days</button>
+    </div>
     <label for="date-from" style="font-size: 14px; color: var(--text-secondary);">From:</label>
     <input type="date" id="date-from" class="date-input" aria-label="Start date">
     <label for="date-to" style="font-size: 14px; color: var(--text-secondary);">To:</label>
@@ -237,15 +244,15 @@ endblock %}
         <div class="stat-change neutral" id="stat-total-verifs">Loading Total...</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Efficiency</div>
+        <div class="stat-label">Cost per Success</div>
         <div class="stat-value" id="stat-avg-cost" style="font-size: 24px;">
             <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
         </div>
-        <div class="stat-change neutral">Avg. per Success</div>
+        <div class="stat-change neutral" id="stat-cost-per-success-note">Net Spent ÷ Successful</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Total Deposited</div>
-        <div class="stat-value" id="stat-deposited" style="color: #10b981; font-size: 24px;">
+        <div class="stat-label">Refunds Saved You</div>
+        <div class="stat-value" id="stat-savings" style="color: #10b981; font-size: 24px;">
             <span class="skeleton" style="width: 80px; height: 24px; display: inline-block;"></span>
         </div>
         <div class="stat-change neutral" id="stat-balance">Loading Balance...</div>
@@ -297,6 +304,14 @@ endblock %}
     </div>
 </div>
 
+<!-- Verification Funnel -->
+<div class="chart-container" id="funnel-container" style="display: none;">
+    <div class="chart-header">
+        <h3 class="chart-title">Verification Funnel</h3>
+    </div>
+    <div id="funnel-chart" style="display: flex; align-items: center; justify-content: center; gap: 0; padding: 24px 0;"></div>
+</div>
+
 <!-- Top Services Table -->
 <div class="chart-container">
     <div class="chart-header">
@@ -309,12 +324,13 @@ endblock %}
                     <th scope="col">Service</th>
                     <th scope="col">Verifications</th>
                     <th scope="col">Success Rate</th>
+                    <th scope="col">Trend</th>
                     <th scope="col">Total Spent</th>
                 </tr>
             </thead>
             <tbody id="services-tbody">
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 40px;">
+                    <td colspan="5" style="text-align: center; padding: 40px;">
                         <span class="loading-spinner"></span> Loading services...
                     </td>
                 </tr>
@@ -537,15 +553,21 @@ endblock %}
         document.getElementById('stat-net-spent').textContent = formatCurrency(data.net_spent || 0);
         document.getElementById('stat-gross-volume').textContent = formatCurrency(data.total_spent || 0);
         document.getElementById('stat-refunded').textContent = formatCurrency(data.total_refunded || 0);
-        document.getElementById('stat-success-rate-val').textContent = formatPercent(data.success_rate || 0);
-        document.getElementById('stat-avg-cost').textContent = formatCurrency(data.avg_cost || 0);
+        document.getElementById('stat-success-rate-val').textContent = formatPercent((data.success_rate || 0) * 100);
 
-        // Total deposited & current balance
-        document.getElementById('stat-deposited').textContent = formatCurrency(data.total_deposited || 0);
+        // Cost per success (net spent / successful)
+        const successful = data.successful_verifications || 0;
+        const netSpent = data.net_spent || 0;
+        const costPerSuccess = successful > 0 ? netSpent / successful : 0;
+        document.getElementById('stat-avg-cost').textContent = formatCurrency(costPerSuccess);
+
+        // Savings from refunds
+        const savings = data.total_refunded || 0;
+        document.getElementById('stat-savings').textContent = formatCurrency(savings);
         document.getElementById('stat-balance').textContent = `Balance: ${formatCurrency(data.current_balance || 0)}`;
 
         // Refund rate
-        const refundRate = (data.total_refunded / data.total_spent * 100) || 0;
+        const refundRate = data.total_spent > 0 ? (data.total_refunded / data.total_spent * 100) : 0;
         document.getElementById('stat-refund-rate').textContent = `${refundRate.toFixed(1)}% Refund Rate`;
         document.getElementById('stat-total-verifs').textContent = `${formatNumber(data.total_verifications || 0)} Initiated`;
 
@@ -553,12 +575,84 @@ endblock %}
         const spentVsPrev = data.monthly_change || 0;
         const netSpentChangeEl = document.getElementById('stat-spent-vs-prev');
         if (spentVsPrev > 0) {
-            netSpentChangeEl.textContent = `↑ ${spentVsPrev}% vs last month`;
-            netSpentChangeEl.style.color = '#ef4444'; // More spending = red for cost
+            netSpentChangeEl.textContent = `\u2191 ${spentVsPrev}% vs last month`;
+            netSpentChangeEl.style.color = '#ef4444';
         } else if (spentVsPrev < 0) {
-            netSpentChangeEl.textContent = `↓ ${Math.abs(spentVsPrev)}% vs last month`;
-            netSpentChangeEl.style.color = '#10b981'; // Less spending = green
+            netSpentChangeEl.textContent = `\u2193 ${Math.abs(spentVsPrev)}% vs last month`;
+            netSpentChangeEl.style.color = '#10b981';
         }
+
+        // Render funnel
+        renderFunnel(data);
+    }
+
+    // Verification Funnel
+    function renderFunnel(data) {
+        const total = data.total_verifications || 0;
+        if (total === 0) return;
+
+        const container = document.getElementById('funnel-container');
+        container.style.display = 'block';
+
+        const assigned = data.number_assigned_count || (total - (data.pending_verifications || 0));
+        const received = data.sms_received_count || data.successful_verifications || 0;
+        const successful = data.successful_verifications || 0;
+
+        const stages = [
+            { label: 'Initiated', count: total, pct: 100 },
+            { label: 'Number Assigned', count: assigned, pct: Math.round(assigned / total * 100) },
+            { label: 'SMS Received', count: received, pct: Math.round(received / total * 100) },
+            { label: 'Completed', count: successful, pct: Math.round(successful / total * 100) }
+        ];
+
+        const funnelEl = document.getElementById('funnel-chart');
+        funnelEl.innerHTML = stages.map((s, i) => {
+            const dropoff = i > 0 ? stages[i-1].count - s.count : 0;
+            const dropPct = i > 0 && stages[i-1].count > 0 ? Math.round(dropoff / stages[i-1].count * 100) : 0;
+            const width = 40 + (s.pct * 0.6);
+            const color = s.pct >= 80 ? '#10b981' : s.pct >= 50 ? '#f59e0b' : '#ef4444';
+            return `
+                ${i > 0 ? `<div style="display:flex;flex-direction:column;align-items:center;padding:0 4px;">
+                    <div style="font-size:18px;color:#94a3b8;">→</div>
+                    <div style="font-size:10px;color:#ef4444;white-space:nowrap;">-${dropPct}%</div>
+                </div>` : ''}
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;">
+                    <div style="width:${width}%;min-width:60px;background:${color};color:white;padding:12px 8px;border-radius:8px;text-align:center;font-weight:700;font-size:18px;">${s.count}</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;text-align:center;">${s.label}</div>
+                    <div style="font-size:11px;color:${color};font-weight:600;">${s.pct}%</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Preset date range
+    function setPresetRange(preset) {
+        const to = new Date();
+        let from = new Date();
+
+        switch(preset) {
+            case 'today':
+                from = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+                break;
+            case 'yesterday':
+                from = new Date(to.getFullYear(), to.getMonth(), to.getDate() - 1);
+                to.setDate(to.getDate() - 1);
+                break;
+            case '7': from.setDate(from.getDate() - 7); break;
+            case '30': from.setDate(from.getDate() - 30); break;
+            case '90': from.setDate(from.getDate() - 90); break;
+        }
+
+        document.getElementById('date-to').value = to.toISOString().split('T')[0];
+        document.getElementById('date-from').value = from.toISOString().split('T')[0];
+        chartRange = preset === 'today' || preset === 'yesterday' ? 1 : parseInt(preset) || 30;
+
+        // Update active button
+        document.querySelectorAll('[data-preset]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.preset === preset);
+        });
+
+        loadAnalytics();
     }
 
     // Render charts using ApexCharts
@@ -732,26 +826,37 @@ endblock %}
         chart.render();
     }
 
-    // Render services table
+    // Render services table with sparklines
     function renderServicesTable(data) {
         const tbody = document.getElementById('services-tbody');
         const services = data.top_services || [];
 
         if (services.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted);">No services used yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No services used yet</td></tr>';
             return;
         }
 
         let html = '';
         for (const service of services) {
+            const rate = service.success_rate || 0;
+            const rateColor = rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444';
+            // Mini sparkline SVG bar
+            const barWidth = Math.max(4, Math.min(60, rate * 0.6));
             html += `
                 <tr>
                     <td style="font-weight: 500;">${escapeHtml(service.name || 'Unknown')}</td>
                     <td>${formatNumber(service.count || 0)}</td>
                     <td>
-                        <span style="color: ${(service.success_rate || 0) >= 80 ? '#10b981' : (service.success_rate || 0) >= 50 ? '#f59e0b' : '#ef4444'};">
-                            ${formatPercent(service.success_rate || 0)}
+                        <span style="color: ${rateColor}; font-weight: 600;">
+                            ${formatPercent(rate)}
                         </span>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="width:60px;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                                <div style="width:${barWidth}px;height:100%;background:${rateColor};border-radius:4px;"></div>
+                            </div>
+                        </div>
                     </td>
                     <td>${formatCurrency(service.total_spent || 0)}</td>
                 </tr>

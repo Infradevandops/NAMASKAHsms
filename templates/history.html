@@ -5,14 +5,17 @@
 
 {% block content %}
 <div class="card" style="margin-bottom: 16px;">
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
         <select id="filter-status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
             <option value="">All Status</option>
             <option value="completed">Completed</option>
             <option value="pending">Pending</option>
             <option value="failed">Failed</option>
+            <option value="timeout">Timeout</option>
+            <option value="cancelled">Cancelled</option>
         </select>
-        <input type="text" id="filter-service" placeholder="Filter by service..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; min-width: 160px;">
+        <input type="text" id="filter-service" placeholder="Filter by service..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; min-width: 140px;">
+        <input type="text" id="filter-phone" placeholder="Search phone / area code..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; min-width: 160px;">
         <input type="date" id="filter-date" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
         <button class="btn" onclick="applyFilters()" style="padding: 8px 16px;">Filter</button>
         <button class="btn" onclick="clearFilters()" style="padding: 8px 16px; background: #6b7280;">Clear</button>
@@ -25,13 +28,13 @@
     <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
         <thead style="background: #f8fafc;">
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px;">SERVICE / COUNTRY</th>
-                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px;">NUMBER / CARRIER</th>
+                <th onclick="sortHistory('service_name')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px; cursor: pointer; user-select: none;">SERVICE / COUNTRY <span id="sort-service_name" class="sort-indicator"></span></th>
+                <th onclick="sortHistory('phone_number')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">NUMBER / CARRIER <span id="sort-phone_number" class="sort-indicator"></span></th>
                 <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">TX ID</th>
                 <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">SMS CODE</th>
-                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px;">STATUS / STATE</th>
-                <th style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px;">NET COST</th>
-                <th style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px;">DATE</th>
+                <th onclick="sortHistory('status')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">STATUS / STATE <span id="sort-status" class="sort-indicator"></span></th>
+                <th onclick="sortHistory('cost')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px; cursor: pointer; user-select: none;">NET COST <span id="sort-cost" class="sort-indicator"></span></th>
+                <th onclick="sortHistory('created_at')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px; cursor: pointer; user-select: none;">DATE <span id="sort-created_at" class="sort-indicator"></span></th>
             </tr>
         </thead>
         <tbody id="history-body">
@@ -41,6 +44,8 @@
         </tbody>
     </table>
 </div>
+
+<div id="history-pagination" style="margin-top: 0;"></div>
 
 <div id="empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
     <h3 style="margin-bottom: 8px;">No verification history</h3>
@@ -53,6 +58,61 @@
 {{ super() }}
 <script nonce="{{ request.state.csp_nonce }}">
     let allHistory = [];
+    let historyPage = 1;
+    const historyLimit = 30;
+    let historyTotal = 0;
+    let currentSort = { field: 'created_at', dir: 'desc' };
+
+    function relativeTime(isoString) {
+        if (!isoString) return '-';
+        const now = new Date();
+        const date = new Date(isoString);
+        const diffMs = now - date;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHr = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHr / 24);
+
+        if (diffSec < 60) return 'Just now';
+        if (diffMin < 60) return `${diffMin} min ago`;
+        if (diffHr < 24) return `${diffHr} hr ago`;
+        if (diffDay === 1) return 'Yesterday';
+        if (diffDay < 7) return `${diffDay} days ago`;
+        return date.toLocaleDateString();
+    }
+
+    function latencyBadge(latency) {
+        if (!latency && latency !== 0) return '';
+        const sec = parseFloat(latency);
+        let color = '#10b981'; // green
+        if (sec >= 60) color = '#ef4444'; // red
+        else if (sec >= 30) color = '#f59e0b'; // yellow
+        return `<div style="font-size:10px;margin-top:2px;"><span style="padding:1px 5px;border-radius:4px;background:${color}20;color:${color};font-weight:600;">${sec.toFixed(0)}s</span></div>`;
+    }
+
+    function sortHistory(field) {
+        if (currentSort.field === field) {
+            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort = { field, dir: 'asc' };
+        }
+        // Update indicators
+        document.querySelectorAll('.sort-indicator').forEach(el => el.textContent = '');
+        const indicator = document.getElementById(`sort-${field}`);
+        if (indicator) indicator.textContent = currentSort.dir === 'asc' ? '\u25B2' : '\u25BC';
+
+        // Sort current page data
+        const sorted = [...allHistory].sort((a, b) => {
+            let va = a[field], vb = b[field];
+            if (field === 'cost') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+            else if (field === 'created_at') { va = new Date(va || 0); vb = new Date(vb || 0); }
+            else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+            if (va < vb) return currentSort.dir === 'asc' ? -1 : 1;
+            if (va > vb) return currentSort.dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+        renderHistory(sorted);
+    }
 
 function formatPhone(raw) {
         const d = (raw || '').replace(/\D/g, '');
@@ -61,12 +121,22 @@ function formatPhone(raw) {
         return raw || '-';
     }
 
-    async function loadHistory() {
+    async function loadHistory(page) {
+        if (page !== undefined) historyPage = page;
         const token = localStorage.getItem('access_token');
         if (!token) {
             window.location.href = '/auth/login';
             return;
         }
+
+        const offset = (historyPage - 1) * historyLimit;
+
+        // Build query params for server-side filtering
+        const statusFilter = document.getElementById('filter-status').value;
+        const phoneFilter = document.getElementById('filter-phone').value.trim();
+        let url = `/api/verify/history?limit=${historyLimit}&offset=${offset}`;
+        if (statusFilter) url += `&status=${statusFilter}`;
+        if (phoneFilter) url += `&phone=${encodeURIComponent(phoneFilter)}`;
 
         // Timeout: show retry after 10s
         const timeoutId = setTimeout(() => {
@@ -80,7 +150,7 @@ function formatPhone(raw) {
         }, 10000);
 
         try {
-            const res = await fetch('/api/verify/history?limit=200', {
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const tbody = document.getElementById('history-body');
@@ -89,39 +159,48 @@ function formatPhone(raw) {
             if (res.ok) {
                 clearTimeout(timeoutId);
                 const data = await res.json();
-                // Data structure: { verifications: [...], total_count: 5 }
                 allHistory = data.verifications || [];
+                historyTotal = data.total || 0;
 
                 if (allHistory.length > 0) {
                     renderHistory(allHistory);
+                    renderPagination();
                     emptyState.style.display = 'none';
                 } else {
                     tbody.innerHTML = '';
+                    document.getElementById('history-pagination').innerHTML = '';
                     emptyState.style.display = 'block';
                 }
             } else {
-                const errorText = await res.text();
-                console.error(`API Error ${res.status}:`, errorText);
-
-                // Handle specific error codes
+                clearTimeout(timeoutId);
                 if (res.status === 401) {
                     window.location.href = '/auth/login';
                     return;
                 }
 
                 let errorMsg = 'Failed to load history';
-                if (res.status === 403) {
-                    errorMsg = 'Permission denied';
-                } else if (res.status === 500) {
-                    errorMsg = 'Server error - please try again later';
-                }
+                if (res.status === 403) errorMsg = 'Permission denied';
+                else if (res.status === 500) errorMsg = 'Server error - please try again later';
 
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">${errorMsg} (Error ${res.status})</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">${errorMsg} (Error ${res.status})</td></tr>`;
             }
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Failed to load history:', error);
-            document.getElementById('history-body').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history: ' + error.message + '</td></tr>';
+            document.getElementById('history-body').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history: ' + error.message + '</td></tr>';
         }
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(historyTotal / historyLimit);
+        if (totalPages <= 1) { document.getElementById('history-pagination').innerHTML = ''; return; }
+
+        let html = '<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:16px 0;">';
+        html += `<button onclick="loadHistory(${historyPage - 1})" ${historyPage <= 1 ? 'disabled' : ''} style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;${historyPage <= 1 ? 'opacity:0.4;cursor:not-allowed;' : ''}">← Prev</button>`;
+        html += `<span style="font-size:13px;color:var(--text-muted);">Page ${historyPage} of ${totalPages} (${historyTotal} records)</span>`;
+        html += `<button onclick="loadHistory(${historyPage + 1})" ${historyPage >= totalPages ? 'disabled' : ''} style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;${historyPage >= totalPages ? 'opacity:0.4;cursor:not-allowed;' : ''}">Next →</button>`;
+        html += '</div>';
+        document.getElementById('history-pagination').innerHTML = html;
     }
 
     function renderHistory(items) {
@@ -187,8 +266,9 @@ function formatPhone(raw) {
                     ${formatMoney(item.cost || 0)}
                 </td>
                 <td style="padding: 10px 12px; text-align: right;">
-                    <div style="font-size: 12px;">${dateObj.toLocaleDateString()}</div>
+                    <div style="font-size: 12px;" title="${dateObj.toLocaleString()}">${relativeTime(item.created_at)}</div>
                     <div style="font-size: 10px; color: var(--text-muted);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    ${latencyBadge(item.latency)}
                     <button onclick="event.stopPropagation(); reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
                         style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
                 </td>
@@ -430,53 +510,73 @@ function formatPhone(raw) {
     }
 
     function applyFilters() {
-        const status = document.getElementById('filter-status').value;
-        const date = document.getElementById('filter-date').value;
-        const service = document.getElementById('filter-service').value.toLowerCase();
-
-        let filtered = [...allHistory];
-        if (status) filtered = filtered.filter(tx => tx.status === status);
-        if (date) {
-            const filterDate = new Date(date).toDateString();
-            filtered = filtered.filter(tx => new Date(tx.created_at).toDateString() === filterDate);
-        }
-        if (service) filtered = filtered.filter(tx => (tx.service_name || '').toLowerCase().includes(service));
-        renderHistory(filtered);
+        historyPage = 1;
+        // Status filter is sent server-side; service/date filter client-side on current page
+        loadHistory(1).then(() => {
+            const date = document.getElementById('filter-date').value;
+            const service = document.getElementById('filter-service').value.toLowerCase();
+            if (date || service) {
+                let filtered = [...allHistory];
+                if (date) {
+                    const filterDate = new Date(date).toDateString();
+                    filtered = filtered.filter(tx => new Date(tx.created_at).toDateString() === filterDate);
+                }
+                if (service) filtered = filtered.filter(tx => (tx.service_name || '').toLowerCase().includes(service));
+                renderHistory(filtered);
+            }
+        });
     }
 
     function clearFilters() {
         document.getElementById('filter-status').value = '';
         document.getElementById('filter-date').value = '';
         document.getElementById('filter-service').value = '';
-        renderHistory(allHistory);
+        historyPage = 1;
+        loadHistory(1);
     }
 
     function exportHistory() {
-        if (!allHistory || allHistory.length === 0) {
-            alert("No history to export.");
-            return;
-        }
-        const csv = [
-            ['Service', 'Phone', 'Code', 'Carrier', 'Status', 'Cost', 'Date', 'Latency', 'TransactionID'],
-            ...allHistory.map(tx => [
-                tx.service_name,
-                tx.phone_number,
-                tx.sms_code || '',
-                tx.carrier || '',
-                tx.status,
-                tx.cost.toFixed(2),
-                new Date(tx.created_at).toISOString(),
-                tx.latency || '',
-                tx.debit_transaction_id || tx.id
-            ])
-        ].map(row => row.join(',')).join('\n');
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
 
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `namaskah-audit-trail-${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
+        // Fetch all records for export (server-side)
+        fetch('/api/verify/history?limit=5000&offset=0', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const items = data.verifications || [];
+            if (items.length === 0) {
+                alert('No history to export.');
+                return;
+            }
+            const csv = [
+                ['Service', 'Phone', 'Code', 'Carrier', 'Status', 'Cost', 'Date', 'Latency', 'TransactionID'],
+                ...items.map(tx => [
+                    tx.service_name,
+                    tx.phone_number,
+                    tx.sms_code || '',
+                    tx.carrier || '',
+                    tx.status,
+                    (tx.cost || 0).toFixed(2),
+                    new Date(tx.created_at).toISOString(),
+                    tx.latency || '',
+                    tx.debit_transaction_id || tx.id
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `namaskah-audit-trail-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            console.error('Export failed:', err);
+            alert('Export failed. Please try again.');
+        });
     }
 
     function reuseVerification(service) {

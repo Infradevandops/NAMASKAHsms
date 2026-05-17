@@ -19,6 +19,49 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/api/analytics", tags=["User Insights"])
 
 
+@router.get("/latency-percentiles")
+async def get_latency_percentiles(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Delivery latency percentiles (p50, p95, p99) from purchase outcomes."""
+    records = (
+        db.query(PurchaseOutcome.latency_seconds)
+        .filter(
+            PurchaseOutcome.user_id == user_id,
+            PurchaseOutcome.latency_seconds > 0,
+            PurchaseOutcome.latency_seconds.isnot(None),
+        )
+        .all()
+    )
+
+    latencies = sorted([r[0] for r in records])
+    total = len(latencies)
+
+    if total < 5:
+        return {
+            "p50": None,
+            "p95": None,
+            "p99": None,
+            "avg": None,
+            "total_samples": total,
+            "period": "all",
+        }
+
+    def percentile(data, pct):
+        idx = int(len(data) * pct / 100)
+        return round(data[min(idx, len(data) - 1)], 1)
+
+    return {
+        "p50": percentile(latencies, 50),
+        "p95": percentile(latencies, 95),
+        "p99": percentile(latencies, 99),
+        "avg": round(sum(latencies) / total, 1),
+        "total_samples": total,
+        "period": "all",
+    }
+
+
 @router.get("/carrier-insights")
 async def get_carrier_insights(
     user_id: str = Depends(get_current_user_id),
