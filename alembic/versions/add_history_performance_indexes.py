@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "f9a8b7c6d5e4"
-down_revision = None  # Update this to point to your latest migration
+down_revision = "merge_all_heads"
 branch_labels = None
 depends_on = None
 
