@@ -8,7 +8,7 @@ class CurrencyService:
         "USD": 1.0,
         "EUR": 0.92,
         "GBP": 0.79,
-        "NGN": 411.0,
+        "NGN": 1650.0,
         "INR": 83.0,
         "CNY": 7.08,
         "JPY": 149.0,

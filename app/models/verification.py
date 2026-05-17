@@ -63,6 +63,12 @@ class Verification(BaseModel):
     # Outcome tracking
     outcome = Column(String, nullable=True)  # completed, cancelled, timeout, error
     cancel_reason = Column(String, nullable=True)
+    cancelled_at = Column(
+        DateTime, nullable=True, comment="When verification was cancelled"
+    )
+    cancelled_by = Column(
+        String, nullable=True, comment="Who cancelled: user, system, admin"
+    )
     error_message = Column(String, nullable=True)
 
     # Refund tracking fields

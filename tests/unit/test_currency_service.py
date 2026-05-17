@@ -7,11 +7,11 @@ class TestCurrencyService:
         # Same currency
         assert CurrencyService.convert(100, "USD", "USD") == 100
 
-        # USD to NGN (1.0 -> 411.0)
-        assert CurrencyService.convert(1, "USD", "NGN") == 411.0
+        # USD to NGN (1.0 -> 1650.0)
+        assert CurrencyService.convert(1, "USD", "NGN") == 1650.0
 
-        # NGN to USD (411.0 -> 1.0)
-        assert CurrencyService.convert(411, "NGN", "USD") == 1.0
+        # NGN to USD (1650.0 -> 1.0)
+        assert CurrencyService.convert(1650, "NGN", "USD") == 1.0
 
     def test_format_currency(self):
 

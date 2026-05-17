@@ -170,8 +170,8 @@ class Settings(BaseSettings):
     payment_provider: str = "paystack"
     payment_webhook_timeout: int = 30
     # NGN/USD rate — update this when rate drifts significantly.
-    # Last updated: April 2026. Current market rate ~1500.
-    ngn_usd_rate: float = 1500.0
+    # Last updated: May 2026. Current market rate ~1650.
+    ngn_usd_rate: float = 1650.0
 
     # Crypto Settlement Addresses — must be set via environment variables in production
     btc_address: Optional[str] = None
