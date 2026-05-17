@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Database URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/namaskah")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/vrenum")
 
 # Default admin credentials
 ADMIN_EMAIL = "admin@vrenum.app"

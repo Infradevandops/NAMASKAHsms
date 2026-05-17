@@ -23,7 +23,7 @@ INSERT INTO users (
     created_at
 ) VALUES (
     gen_random_uuid(),
-    'admin@namaskah.app',
+    'admin@vrenum.app',
     '$2b$12$vFQWKP1CyJa/r8NvF1ZvjeipjzTNhd0AwcENr0tc82WBFdDU4uPfW',
     10000.0,
     1000.0,
