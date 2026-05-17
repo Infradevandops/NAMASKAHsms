@@ -356,11 +356,10 @@ async def get_verification_history(
                     "outcome": v.outcome,
                     "cancel_reason": v.cancel_reason,
                     "cost": float(v.cost) if v.cost else 0.0,
-                    "sms_code": getattr(v, "sms_code", None),
+                    "sms_code": getattr(v, "sms_code", None)
+                    or ("Pending" if v.status == "pending" else None),
                     "sms_text": getattr(v, "sms_text", None),
-                    "carrier": v.assigned_carrier
-                    or v.operator
-                    or getattr(v, "carrier", None),
+                    "carrier": v.assigned_carrier or "Auto",
                     "assigned_carrier": v.assigned_carrier,
                     "assigned_area_code": v.assigned_area_code,
                     "requested_carrier": v.requested_carrier,

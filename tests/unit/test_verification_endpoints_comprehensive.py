@@ -301,7 +301,7 @@ class TestVerificationEndpoints:
         for i in range(3):
             verification = Verification(
                 user_id=regular_user.id,
-                service=f"service{i}",
+                service_name=f"service{i}",
                 phone_number=f"+1202555{i:04d}",
                 status="completed",
                 cost=0.50,
@@ -311,15 +311,13 @@ class TestVerificationEndpoints:
             db.add(verification)
         db.commit()
 
-        response = authenticated_regular_client.get("/api/verification/history")
+        response = authenticated_regular_client.get("/api/verify/history")
 
-        # Endpoint doesn't exist yet
-        assert response.status_code in [200, 404]
-        if response.status_code == 200:
-            data = response.json()
-            assert "verifications" in data
-            assert data["total_count"] == 3
-            assert len(data["verifications"]) == 3
+        assert response.status_code == 200
+        data = response.json()
+        assert "verifications" in data
+        assert data["total"] >= 3
+        assert len(data["verifications"]) >= 3
 
     def test_get_verification_history_pagination(
         self, authenticated_regular_client, regular_user, db
@@ -328,7 +326,7 @@ class TestVerificationEndpoints:
         for i in range(10):
             verification = Verification(
                 user_id=regular_user.id,
-                service=f"service{i}",
+                service_name=f"service{i}",
                 phone_number=f"+1202555{i:04d}",
                 status="completed",
                 cost=0.50,
@@ -339,26 +337,22 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.get(
-            "/api/verification/history?limit=5&offset=0"
+            "/api/verify/history?limit=5&offset=0"
         )
 
-        # Endpoint doesn't exist yet
-        assert response.status_code in [200, 404]
-        if response.status_code == 200:
-            data = response.json()
-            assert len(data["verifications"]) == 5
-            assert data["total_count"] == 10
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["verifications"]) == 5
+        assert data["total"] >= 10
 
     def test_get_verification_history_empty(self, authenticated_regular_client):
         """Test getting history when no verifications exist."""
-        response = authenticated_regular_client.get("/api/verification/history")
+        response = authenticated_regular_client.get("/api/verify/history")
 
-        # Endpoint doesn't exist yet
-        assert response.status_code in [200, 404]
-        if response.status_code == 200:
-            data = response.json()
-            assert data["total_count"] == 0
-            assert len(data["verifications"]) == 0
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 0
+        assert len(data["verifications"]) == 0
 
     def test_get_verification_status_polling_pending(
         self, authenticated_regular_client, regular_user, db
