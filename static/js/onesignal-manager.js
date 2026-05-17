@@ -192,7 +192,7 @@ class OneSignalManager {
                 },
                 body: JSON.stringify({
                     title: 'Test Notification',
-                    message: 'This is a test notification from Namaskah'
+                    message: 'This is a test notification from Vrenum'
                 })
             });
 

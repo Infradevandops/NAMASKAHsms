@@ -651,7 +651,7 @@
                 <div id="webhooks-empty-state" style="display: none; text-align: center; padding: 60px;">
                     <div style="font-size: 48px; margin-bottom: 16px;">🔗</div>
                     <h2>No Webhooks Configured</h2>
-                    <p style="color: var(--text-muted);">Connect your apps to Namaskah and receive real-time updates.</p>
+                    <p style="color: var(--text-muted);">Connect your apps to vrenum.app and receive real-time updates.</p>
                     <button class="btn btn-primary" onclick="showAddWebhookModal()" style="margin-top: 16px;">Create First Webhook</button>
                 </div>
             </div>
@@ -661,7 +661,7 @@
         <div id="api-docs-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div class="card">
                 <h2>API Documentation</h2>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">Integrate Namaskah SMS verification into your application.</p>
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Integrate vrenum.app SMS verification into your application.</p>
                 <div style="background: var(--bg-body); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                     <strong>Base URL</strong>
                     <code style="display: block; margin-top: 8px; font-size: 13px;">https://vrenum.onrender.com/api</code>
@@ -2162,7 +2162,7 @@
                 const res = await fetch('/api/user/export', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = 'namaskah-data.json'; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = 'vrenum-data.json'; a.click();
                 document.getElementById('last-export-date').textContent = new Date().toLocaleDateString();
             } catch(e) { showToast('Export failed', 'error'); }
             finally { btn.disabled = false; btn.textContent = 'Export Data'; }

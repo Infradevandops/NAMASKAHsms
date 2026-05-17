@@ -211,7 +211,7 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
                         <td style="padding:8px;">{sms_data.get('message','No content')}</td></tr>
                 </table>
             </div>
-            <p style="color:#999;font-size:12px;">Sent via Namaskah SMS Forwarding</p>
+            <p style="color:#999;font-size:12px;">Sent via Vrenum SMS Forwarding</p>
         </div></body></html>
         """
         return await email_service._send(email_address, subject, html_body)
@@ -235,7 +235,7 @@ async def _send_forwarding_webhook(
 
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "Namaskah-SMS-Forwarding/1.0",
+            "User-Agent": "Vrenum-SMS-Forwarding/1.0",
         }
 
         if webhook_secret:

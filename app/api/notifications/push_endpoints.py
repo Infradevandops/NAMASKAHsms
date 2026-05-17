@@ -243,7 +243,7 @@ async def send_test_push_notification(
             user_id=user_id,
             type="test",
             title="Test Notification",
-            message="This is a test push notification from Namaskah",
+            message="This is a test push notification from Vrenum",
             icon="ic_notification",
         )
 

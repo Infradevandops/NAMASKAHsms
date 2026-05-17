@@ -1,5 +1,5 @@
 """
-Namaskah SMS - Optimized Application Factory
+Vrenum SMS - Optimized Application Factory
 """
 
 from datetime import datetime
@@ -108,7 +108,7 @@ def create_app() -> FastAPI:
 
     # Create FastAPI app with lifespan
     fastapi_app = FastAPI(
-        title="Namaskah SMS API",
+        title="VRENUM ACTV8TN API",
         version=settings.version,
         description="Modular SMS Verification Service",
         lifespan=lifespan,

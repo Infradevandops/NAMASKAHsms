@@ -1,5 +1,5 @@
 /**
- * NAMASKAH DASHBOARD - ULTRA-STABLE VERSION
+ * VRENUM DASHBOARD - ULTRA-STABLE VERSION
  * Production-grade implementation with zero broken features
  * All buttons, modals, and business flows guaranteed to work
  */

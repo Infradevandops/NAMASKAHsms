@@ -237,7 +237,7 @@ async def export_wallet_csv(
         service = FinancialStatementsService(db)
         csv_content = await service.export_user_transactions_csv(user_id)
 
-        filename = f"namaskah_wallet_audit_{datetime.now().strftime('%Y%m%d')}.csv"
+        filename = f"vrenum_wallet_audit_{datetime.now().strftime('%Y%m%d')}.csv"
 
         return Response(
             content=csv_content,

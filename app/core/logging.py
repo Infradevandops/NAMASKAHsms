@@ -1,4 +1,4 @@
-"""Logging configuration for Namaskah application."""
+"""Logging configuration for Vrenum application."""
 
 import logging
 import os

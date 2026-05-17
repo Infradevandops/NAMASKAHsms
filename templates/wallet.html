@@ -762,7 +762,7 @@
         const telemetry = document.getElementById('modal-telemetry');
         if (tx.description.toLowerCase().includes('sms') || tx.description.toLowerCase().includes('refund')) {
             telemetry.style.display = 'block';
-            document.getElementById('modal-telemetry-text').textContent = `Institutional record logged via Balance Ledger V5. Linked to session ID ${tx.id.split('-')[0].toUpperCase()}. This record is immutable and verified by the Namaskah Audit System.`;
+            document.getElementById('modal-telemetry-text').textContent = `Institutional record logged via Balance Ledger V5. Linked to session ID ${tx.id.split('-')[0].toUpperCase()}. This record is immutable and verified by the Vrenum Audit System.`;
         } else {
             telemetry.style.display = 'none';
         }
@@ -790,7 +790,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `namaskah_audit_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `vrenum_audit_${new Date().toISOString().split('T')[0]}.csv`;
             document.body.appendChild(a);
             a.click();
             a.remove();

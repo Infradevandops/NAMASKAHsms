@@ -203,9 +203,75 @@ function formatPhone(raw) {
         document.getElementById('history-pagination').innerHTML = html;
     }
 
+    // H8: Detect retry chains — group items by service+area_code within 10 min
+    function detectRetryChains(items) {
+        const chains = {}; // key -> [indices]
+        items.forEach((item, i) => {
+            const key = `${(item.service_name||'').toLowerCase()}|${item.requested_area_code||''}`;
+            if (!chains[key]) chains[key] = [];
+            chains[key].push(i);
+        });
+        const retryMap = {}; // index -> { chainIdx, position }
+        Object.values(chains).forEach(indices => {
+            if (indices.length < 2) return;
+            // Sort by date desc (already sorted), check time proximity
+            for (let j = 0; j < indices.length; j++) {
+                const curr = new Date(items[indices[j]].created_at);
+                const prev = j > 0 ? new Date(items[indices[j-1]].created_at) : null;
+                if (prev && Math.abs(curr - prev) < 600000) { // 10 min
+                    retryMap[indices[j]] = { pos: j + 1, total: indices.length };
+                    if (!retryMap[indices[j-1]]) retryMap[indices[j-1]] = { pos: j, total: indices.length };
+                }
+            }
+        });
+        return retryMap;
+    }
+
+    let expandedRows = new Set();
+
+    function toggleExpand(e, id) {
+        e.stopPropagation();
+        const expandRow = document.getElementById(`expand-${id}`);
+        const toggle = document.getElementById(`toggle-${id}`);
+        if (expandedRows.has(id)) {
+            expandedRows.delete(id);
+            if (expandRow) expandRow.style.display = 'none';
+            if (toggle) toggle.classList.remove('open');
+        } else {
+            expandedRows.add(id);
+            if (expandRow) expandRow.style.display = 'table-row';
+            if (toggle) toggle.classList.add('open');
+        }
+    }
+
+    function buildExpandContent(item) {
+        const latency = item.latency ? `${item.latency.toFixed(1)}s` : 'N/A';
+        const baseCost = (item.cost || 0) - (item.area_code_surcharge || 0) - (item.carrier_surcharge || 0);
+        return `<div class="expand-content">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+                <div><span style="font-size:11px;color:#94a3b8;display:block;">LATENCY</span><strong>${latency}</strong></div>
+                <div><span style="font-size:11px;color:#94a3b8;display:block;">BASE COST</span>${formatMoney(baseCost)}</div>
+                ${item.area_code_surcharge > 0 ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">AREA CODE FEE</span>${formatMoney(item.area_code_surcharge)}</div>` : ''}
+                ${item.carrier_surcharge > 0 ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">CARRIER FEE</span>${formatMoney(item.carrier_surcharge)}</div>` : ''}
+                <div><span style="font-size:11px;color:#94a3b8;display:block;">PROVIDER</span>${item.provider || 'textverified'}</div>
+                <div><span style="font-size:11px;color:#94a3b8;display:block;">ORDER ID</span><span style="font-family:monospace;font-size:11px;">${item.activation_id || '-'}</span></div>
+                ${item.requested_area_code ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">REQUESTED</span>${item.requested_area_code} ${item.requested_carrier || ''}</div>` : ''}
+                ${item.assigned_area_code ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">ASSIGNED</span>${item.assigned_area_code} ${item.assigned_carrier || ''}</div>` : ''}
+                ${item.retry_attempts > 0 ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">RETRIES</span>${item.retry_attempts}</div>` : ''}
+                ${item.failure_reason ? `<div><span style="font-size:11px;color:#94a3b8;display:block;">FAILURE</span>${item.failure_reason.replace(/_/g,' ')}</div>` : ''}
+                ${item.sms_text ? `<div style="grid-column:1/-1;"><span style="font-size:11px;color:#94a3b8;display:block;">SMS TEXT</span><div style="font-size:13px;background:#f1f5f9;padding:8px;border-radius:6px;margin-top:4px;">${escapeHtml(item.sms_text)}</div></div>` : ''}
+            </div>
+            <div style="margin-top:10px;text-align:right;">
+                <button onclick="event.stopPropagation(); viewDetails('${item.id}')" style="font-size:11px;padding:4px 10px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">Full Audit →</button>
+            </div>
+        </div>`;
+    }
+
     function renderHistory(items) {
         const tbody = document.getElementById('history-body');
-        tbody.innerHTML = items.map(item => {
+        const retryMap = detectRetryChains(items);
+
+        tbody.innerHTML = items.map((item, idx) => {
             const status = item.status || 'unknown';
             let statusColor = '#f3f4f6';
             let statusText = '#374151';
@@ -237,12 +303,18 @@ function formatPhone(raw) {
             const txIdShort = item.debit_transaction_id ? item.debit_transaction_id.slice(0, 8) : '-';
             const carrier = (item.assigned_carrier || item.operator || 'Auto').slice(0, 15);
             const dateObj = new Date(item.created_at);
+            const isExpanded = expandedRows.has(item.id);
+            const retry = retryMap[idx];
+            const retryBadge = retry ? `<span class="retry-badge">Retry #${retry.pos}</span>` : '';
 
             return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer;" onclick="viewDetails('${item.id}')" data-id="${item.id}">
                 <td style="padding: 10px 12px;">
-                    <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                    <span id="toggle-${item.id}" class="expand-toggle${isExpanded ? ' open' : ''}" onclick="toggleExpand(event,'${item.id}')">▶</span>
+                    <div style="display:inline-block;vertical-align:middle;">
+                        <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}${retryBadge}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                    </div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <div style="font-family: monospace; font-size: 13px;">${formatPhone(item.phone_number)}</div>
@@ -272,6 +344,9 @@ function formatPhone(raw) {
                     <button onclick="event.stopPropagation(); reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
                         style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
                 </td>
+            </tr>
+            <tr id="expand-${item.id}" class="expand-row" style="display:${isExpanded ? 'table-row' : 'none'};">
+                <td colspan="7">${buildExpandContent(item)}</td>
             </tr>
             `;
         }).join('');
@@ -310,11 +385,21 @@ function formatPhone(raw) {
 <style>
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .sort-indicator { font-size: 10px; color: var(--primary, #FE3C72); margin-left: 2px; }
     .audit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
     .audit-card { padding: 16px; border-radius: 16px; border: 1px solid #f1f5f9; }
     .audit-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .audit-value { font-size: 15px; font-weight: 600; color: #1e293b; }
     .audit-mono { font-family: 'JetBrains Mono', 'Roboto Mono', monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; }
+    /* H7: Inline expansion */
+    .expand-row td { padding: 0 !important; border-bottom: 1px solid rgba(0,0,0,0.03); }
+    .expand-content { padding: 16px 24px; background: #f8fafc; border-top: 1px dashed #e2e8f0; animation: slideDown 0.2s ease; }
+    @keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 500px; } }
+    .expand-toggle { cursor: pointer; transition: transform 0.2s; display: inline-block; font-size: 10px; color: #94a3b8; margin-right: 4px; }
+    .expand-toggle.open { transform: rotate(90deg); }
+    /* H8: Retry chain */
+    .retry-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: #eff6ff; color: #1d4ed8; font-weight: 600; margin-left: 4px; }
+    .retry-connector { position: absolute; left: 18px; top: -8px; width: 2px; height: 8px; background: #bfdbfe; }
 </style>
 
 <script nonce="{{ request.state.csp_nonce }}">
@@ -461,7 +546,7 @@ function formatPhone(raw) {
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 12px; color: #64748b;">SERVICE ROUTING</span>
-                        <span class="audit-mono">${item.provider || 'NAMASKAH_NET'} / ${item.country || 'N/A'}</span>
+                        <span class="audit-mono">${item.provider || 'VRENUM_NET'} / ${item.country || 'N/A'}</span>
                     </div>
                     ${item.retry_attempts > 0 ? `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -531,6 +616,7 @@ function formatPhone(raw) {
         document.getElementById('filter-status').value = '';
         document.getElementById('filter-date').value = '';
         document.getElementById('filter-service').value = '';
+        document.getElementById('filter-phone').value = '';
         historyPage = 1;
         loadHistory(1);
     }
@@ -569,7 +655,7 @@ function formatPhone(raw) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `namaskah-audit-trail-${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `vrenum-audit-trail-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         })

@@ -127,7 +127,7 @@ async def connect_telegram(
 
     # Get bot info
     bot_info = await telegram_service.get_bot_info()
-    bot_username = bot_info.get("result", {}).get("username", "namaskah_sms_bot")
+    bot_username = bot_info.get("result", {}).get("username", "vrenum_sms_bot")
 
     instructions = f"""
 1. Open Telegram and search for @{bot_username}
@@ -333,7 +333,7 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
             if connection and connection.active:
                 await telegram_service.send_message(
                     chat_id,
-                    f"✅ Connected to Namaskah account\nLast message: {connection.last_message_at or 'Never'}",
+                    f"✅ Connected to vrenum.app account\nLast message: {connection.last_message_at or 'Never'}",
                 )
             else:
                 await telegram_service.send_message(
@@ -352,7 +352,7 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
                 connection.active = False
                 db.commit()
                 await telegram_service.send_message(
-                    chat_id, "✅ Disconnected from Namaskah. Use /start to reconnect."
+                    chat_id, "✅ Disconnected from vrenum.app. Use /start to reconnect."
                 )
 
         return {"ok": True}

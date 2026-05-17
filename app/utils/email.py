@@ -97,18 +97,18 @@ class EmailService:
 
 
 WELCOME_TEMPLATE = EmailTemplate(
-    subject="Welcome to Namaskah SMS - $name",
+    subject="Welcome to VRENUM ACTV8TN - $name",
     html_body="""
-    <h2>Welcome to Namaskah SMS!</h2>
+    <h2>Welcome to VRENUM ACTV8TN!</h2>
     <p>Hi $name,</p>
-    <p>Thank you for joining Namaskah SMS. Your account has been created successfully.</p>
+    <p>Thank you for joining vrenum.app. Your account has been created successfully.</p>
     <p><strong>Account Details:</strong></p>
     <ul>
     <li>Email: $email</li>
     <li>Credits: $credits NGN</li>
     </ul>
     <p>You can now start using our SMS verification services.</p>
-    <p>Best regards,<br>Namaskah Team</p>
+    <p>Best regards,<br>Vrenum Team</p>
     """,
 )
 
@@ -125,26 +125,26 @@ VERIFICATION_COMPLETE_TEMPLATE = EmailTemplate(
     <li>Cost: $cost NGN</li>
     <li>Completed At: $completed_at</li>
     </ul>
-    <p>Thank you for using Namaskah SMS.</p>
-    <p>Best regards,<br>Namaskah Team</p>
+    <p>Thank you for using vrenum.app.</p>
+    <p>Best regards,<br>Vrenum Team</p>
     """,
 )
 
 PASSWORD_RESET_TEMPLATE = EmailTemplate(
-    subject="Password Reset - Namaskah SMS",
+    subject="Password Reset - Vrenum",
     html_body="""
     <h2>Password Reset Request</h2>
     <p>Hi $name,</p>
-    <p>You requested a password reset for your Namaskah SMS account.</p>
+    <p>You requested a password reset for your vrenum.app account.</p>
     <p>Your reset code is: <strong>$reset_code</strong></p>
     <p>This code will expire in 15 minutes.</p>
     <p>If you didn't request this reset, please ignore this email.</p>
-    <p>Best regards,<br>Namaskah Team</p>
+    <p>Best regards,<br>Vrenum Team</p>
     """,
 )
 
 RECEIPT_TEMPLATE = EmailTemplate(
-    subject="Payment Receipt - Namaskah SMS",
+    subject="Payment Receipt - Vrenum",
     html_body="""
     <h2>Payment Receipt</h2>
     <p>Hi $name,</p>
@@ -157,7 +157,7 @@ RECEIPT_TEMPLATE = EmailTemplate(
     <li>Payment Method: $payment_method</li>
     </ul>
     <p>Your account has been credited with $credits_added NGN.</p>
-    <p>Best regards,<br>Namaskah Team</p>
+    <p>Best regards,<br>Vrenum Team</p>
     """,
 )
 

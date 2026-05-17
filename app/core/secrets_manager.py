@@ -110,7 +110,7 @@ class SecretsManager:
                     self.client.create_secret(
                         Name=secret_name,
                         SecretString=secret_string,
-                        Tags=[{"Key": "Application", "Value": "Namaskah"}],
+                        Tags=[{"Key": "Application", "Value": "Vrenum"}],
                     )
                     logger.info(f"Created secret: {secret_name}")
                 else:

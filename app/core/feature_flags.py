@@ -56,7 +56,7 @@ class FeatureFlagManager:
                 "webhook_v2",
                 False,
                 RolloutStrategy.USER_LIST,
-                {"users": ["admin@namaskah.app"]},
+                {"users": ["admin@vrenum.app"]},
             ),
         }
         self.flags.update(default_flags)

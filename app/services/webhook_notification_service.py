@@ -33,7 +33,7 @@ class WebhookNotificationService:
 
         default_headers = {
             "Content-Type": "application/json",
-            "User-Agent": "Namaskah/1.0",
+            "User-Agent": "Vrenum/1.0",
         }
         if headers:
             default_headers.update(headers)

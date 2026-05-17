@@ -1,5 +1,5 @@
 /**
- * Namaskah — SMS Arrival Sound
+ * Vrenum — SMS Arrival Sound
  * Web Audio API — no external files, no dependencies
  */
 

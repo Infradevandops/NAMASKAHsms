@@ -16,7 +16,7 @@ def init_admin_user():
 
     settings = get_settings()
 
-    ADMIN_EMAIL = settings.admin_email or "admin@namaskah.app"
+    ADMIN_EMAIL = settings.admin_email or "admin@vrenum.app"
     ADMIN_PASSWORD = settings.admin_password or "ChangeMe@123456"
 
     try:

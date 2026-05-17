@@ -25,7 +25,7 @@ def run_startup_initialization():
 @asynccontextmanager
 async def lifespan(app):
     """Application lifespan manager."""
-    startup_logger.info("🚀 Starting Namaskah SMS API...")
+    startup_logger.info("🚀 Starting Vrenum API...")
 
     try:
         # Initialize Sentry for error tracking
@@ -282,7 +282,7 @@ async def lifespan(app):
     yield
 
     # Shutdown
-    startup_logger.info("🛑 Shutting down Namaskah SMS API...")
+    startup_logger.info("🛑 Shutting down Vrenum API...")
     if os.getenv("TESTING") != "1":
         from app.services.refund_policy_enforcer import refund_policy_enforcer
         from app.services.sms_polling_service import sms_polling_service

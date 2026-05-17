@@ -5,7 +5,7 @@
 
 class ThemeManager {
   constructor() {
-    this.STORAGE_KEY = 'namaskah-theme-preference';
+    this.STORAGE_KEY = 'vrenum-theme-preference';
     this.DARK_MODE_CLASS = 'dark-mode';
     this.LIGHT_MODE_CLASS = 'light-mode';
     this.SYSTEM_MODE = 'system';

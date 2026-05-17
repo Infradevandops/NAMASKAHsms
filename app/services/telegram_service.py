@@ -165,7 +165,7 @@ Verification ID: #{verification.id}
         """Send a test message to verify connection"""
         message = """✅ **Connection Successful!**
 
-Your Namaskah account is now connected to Telegram.
+Your vrenum.app account is now connected to Telegram.
 
 You'll receive SMS verification codes here instantly.
 

@@ -24,7 +24,7 @@ class EmailService:
         self.smtp_user = settings.smtp_username
         self.smtp_password = settings.smtp_password
         self.from_email = settings.smtp_username or "onboarding@resend.dev"
-        self.from_name = "Namaskah"
+        self.from_name = "Vrenum"
 
         if self.resend_api_key:
             # Lazy-load resend to avoid import errors if package is not installed
@@ -96,7 +96,7 @@ class EmailService:
     ) -> bool:
         return await self._send(
             user_email,
-            "Payment Receipt — Namaskah",
+            "Payment Receipt — Vrenum",
             self._receipt_html(payment_details),
         )
 
@@ -105,7 +105,7 @@ class EmailService:
     ) -> bool:
         return await self._send(
             user_email,
-            "Payment Failed — Namaskah",
+            "Payment Failed — Vrenum",
             self._failed_html(payment_details),
         )
 
@@ -114,7 +114,7 @@ class EmailService:
     ) -> bool:
         return await self._send(
             user_email,
-            "Refund Processed — Namaskah",
+            "Refund Processed — Vrenum",
             self._refund_html(refund_details),
         )
 
@@ -129,13 +129,13 @@ class EmailService:
         <html><body style="font-family:Arial,sans-serif;color:#333;">
         <div style="max-width:600px;margin:0 auto;padding:20px;">
             <h2 style="color:#667eea;">Verify your email</h2>
-            <p>Click the button below to verify your Namaskah account.</p>
+            <p>Click the button below to verify your vrenum.app account.</p>
             <a href="{verify_url}" style="display:inline-block;padding:12px 24px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px;margin:20px 0;">Verify Email</a>
             <p style="color:#999;font-size:12px;">Link expires in 24 hours. If you didn't create an account, ignore this email.</p>
         </div>
         </body></html>
         """
-        return await self._send(user_email, "Verify your Namaskah email", html)
+        return await self._send(user_email, "Verify your vrenum.app email", html)
 
     async def send_password_reset(
         self,
@@ -148,13 +148,13 @@ class EmailService:
         <html><body style="font-family:Arial,sans-serif;color:#333;">
         <div style="max-width:600px;margin:0 auto;padding:20px;">
             <h2 style="color:#667eea;">Reset your password</h2>
-            <p>Click the button below to reset your Namaskah password.</p>
+            <p>Click the button below to reset your vrenum.app password.</p>
             <a href="{reset_url}" style="display:inline-block;padding:12px 24px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px;margin:20px 0;">Reset Password</a>
             <p style="color:#999;font-size:12px;">Link expires in 1 hour. If you didn't request this, ignore this email.</p>
         </div>
         </body></html>
         """
-        return await self._send(user_email, "Reset your Namaskah password", html)
+        return await self._send(user_email, "Reset your vrenum.app password", html)
 
     # ── HTML templates ────────────────────────────────────────────────────────
 

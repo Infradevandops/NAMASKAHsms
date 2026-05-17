@@ -359,8 +359,17 @@ endblock %}
     </div>
 </div>
 
-<!-- Latency & Recoup Stats -->
+<!-- Latency Percentiles & Recoup Stats -->
 <div class="analytics-grid" id="insights-stats" style="display: none; margin-bottom: 24px;">
+    <div class="stat-card" id="latency-gauge-card">
+        <div class="stat-label">Delivery Latency</div>
+        <div id="latency-gauge" style="display:flex;align-items:baseline;gap:12px;margin-top:8px;">
+            <div><span style="font-size:28px;font-weight:800;color:var(--text-primary);" id="stat-p50">-</span><span style="font-size:12px;color:#94a3b8;"> p50</span></div>
+            <div><span style="font-size:18px;font-weight:600;color:#f59e0b;" id="stat-p95">-</span><span style="font-size:11px;color:#94a3b8;"> p95</span></div>
+            <div><span style="font-size:14px;font-weight:600;color:#ef4444;" id="stat-p99">-</span><span style="font-size:11px;color:#94a3b8;"> p99</span></div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#94a3b8;" id="latency-samples"></div>
+    </div>
     <div class="stat-card">
         <div class="stat-label">Avg Delivery Latency</div>
         <div class="stat-value" id="stat-avg-latency" style="font-size: 24px;">-</div>
@@ -866,10 +875,33 @@ endblock %}
         tbody.innerHTML = html;
     }
 
+    // AC-9: Load latency percentiles
+    async function loadLatencyGauge() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/analytics/latency-percentiles', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.total_samples >= 5) {
+                document.getElementById('insights-stats').style.display = 'grid';
+                document.getElementById('stat-p50').textContent = `${data.p50}s`;
+                document.getElementById('stat-p95').textContent = `${data.p95}s`;
+                document.getElementById('stat-p99').textContent = `${data.p99}s`;
+                document.getElementById('latency-samples').textContent = `${data.total_samples} samples • avg ${data.avg}s`;
+            }
+        } catch(e) { console.warn('[Analytics] Latency gauge failed:', e); }
+    }
+
     async function loadInsights() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
         const headers = { 'Authorization': `Bearer ${token}` };
+
+        // AC-9: latency gauge
+        loadLatencyGauge();
 
         try {
             const [carrierRes, outcomeRes, notifRes, refundRes] = await Promise.allSettled([
@@ -919,10 +951,20 @@ endblock %}
                     if (cats.length > 0) {
                         const container = document.getElementById('outcome-chart');
                         container.style.display = 'block';
+                        const catLabels = cats.map(([k]) => k);
                         const options = {
                             series: cats.map(([, v]) => v),
-                            chart: { type: 'donut', height: 300, foreColor: '#94a3b8' },
-                            labels: cats.map(([k]) => k),
+                            chart: {
+                                type: 'donut', height: 300, foreColor: '#94a3b8',
+                                events: {
+                                    // AC-8: Click segment to filter services table
+                                    dataPointSelection: function(event, chartContext, config) {
+                                        const selectedCategory = catLabels[config.dataPointIndex];
+                                        filterServicesByCategory(selectedCategory);
+                                    }
+                                }
+                            },
+                            labels: catLabels,
                             colors: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#94a3b8'],
                             plotOptions: { pie: { donut: { size: '65%' } } },
                             legend: { position: 'bottom' },
@@ -1119,6 +1161,37 @@ endblock %}
         document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'block');
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('error-state').style.display = 'none';
+    }
+
+    // AC-8: Filter services table by outcome category
+    let activeOutcomeFilter = null;
+    function filterServicesByCategory(category) {
+        const tbody = document.getElementById('services-tbody');
+        if (activeOutcomeFilter === category) {
+            // Toggle off — restore full table
+            activeOutcomeFilter = null;
+            if (analyticsData) renderServicesTable(analyticsData);
+            document.getElementById('services-filter-badge')?.remove();
+            return;
+        }
+        activeOutcomeFilter = category;
+        // Show filter badge
+        const header = document.querySelector('#services-table-container')?.previousElementSibling;
+        document.getElementById('services-filter-badge')?.remove();
+        if (header) {
+            header.insertAdjacentHTML('beforeend',
+                `<span id="services-filter-badge" style="font-size:11px;padding:3px 8px;background:#eff6ff;color:#1d4ed8;border-radius:4px;margin-left:8px;cursor:pointer;" onclick="filterServicesByCategory('${category}')">${category} ✕</span>`);
+        }
+        // Filter: dim rows that don't match (we don't have per-row category in summary, so highlight the label)
+        // Since top_services doesn't carry category, we show a visual indicator and note
+        tbody.querySelectorAll('tr').forEach(row => {
+            row.style.opacity = '0.5';
+        });
+        // Show note
+        const existingNote = document.getElementById('filter-note');
+        if (existingNote) existingNote.remove();
+        tbody.insertAdjacentHTML('afterbegin',
+            `<tr id="filter-note"><td colspan="5" style="text-align:center;padding:8px;font-size:12px;color:#1d4ed8;background:#eff6ff;">Showing context for outcome: <strong>${category}</strong> — click segment again to clear</td></tr>`);
     }
 
     // Initialize

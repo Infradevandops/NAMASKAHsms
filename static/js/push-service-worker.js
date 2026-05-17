@@ -1,7 +1,7 @@
 // Service Worker for Push Notifications
 // Handles incoming push messages and notification clicks
 
-const CACHE_NAME = 'namaskah-v1';
+const CACHE_NAME = 'vrenum-v1';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -33,7 +33,7 @@ self.addEventListener('push', (event) => {
 
   let data = {};
   let notification = {
-    title: 'Namaskah',
+    title: 'Vrenum',
     body: 'You have a new notification',
     icon: '/static/icons/icon-192x192.png',
     badge: '/static/icons/badge-72x72.png',

@@ -3,7 +3,7 @@
  * Handles push events and notification interactions
  */
 
-const CACHE_NAME = 'namaskah-v1';
+const CACHE_NAME = 'vrenum-v1';
 const URLS_TO_CACHE = [
     '/',
     '/static/css/mobile-notifications.css',
@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
  */
 self.addEventListener('push', (event) => {
     let notificationData = {
-        title: 'Namaskah Notification',
+        title: 'Vrenum Notification',
         options: {
             icon: '/static/images/icon-192x192.png',
             badge: '/static/images/badge-72x72.png',

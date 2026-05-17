@@ -104,7 +104,7 @@ class ComplianceService:
         return {
             "report_id": f"AUDIT-{datetime.now(timezone.utc).strftime('%Y%m%d')}",
             "report_date": datetime.now(timezone.utc).isoformat(),
-            "compliance_framework": "SOC 2 Type II (Namaskah Institutional)",
+            "compliance_framework": "SOC 2 Type II (Vrenum Institutional)",
             "overall_status": compliance_status["status"],
             "compliance_score": compliance_status["compliance_score"],
             "controls_summary": compliance_status["controls"],

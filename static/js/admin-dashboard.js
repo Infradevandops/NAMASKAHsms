@@ -19,7 +19,7 @@ async function initializeDashboard() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: 'admin@namaskah.app',
+                    email: 'admin@vrenum.app',
                     password: 'admin123'
                 })
             });

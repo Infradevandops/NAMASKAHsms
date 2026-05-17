@@ -17,7 +17,7 @@ router = APIRouter(prefix="/setup", tags=["Setup"])
 def initialize_admin(db: Session = Depends(get_db)):
     """Initialize admin user - public endpoint for first - time setup."""
 
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@vrenum.app")
     admin_password = os.getenv("ADMIN_PASSWORD")
 
     if not admin_password:

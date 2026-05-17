@@ -1,5 +1,5 @@
 /**
- * Namaskah Dashboard - Refactored Main Entry Point
+ * Vrenum Dashboard - Refactored Main Entry Point
  * Uses modular architecture with StateManager, API layer, and event bus
  */
 

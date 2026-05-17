@@ -209,7 +209,7 @@ def ensure_admin_user():
     """Ensure admin user exists on startup."""
     db = SessionLocal()
     try:
-        admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@vrenum.app")
         admin_password = os.getenv("ADMIN_PASSWORD")
 
         logger.info(f"🔐 Admin user check starting for: {admin_email}")

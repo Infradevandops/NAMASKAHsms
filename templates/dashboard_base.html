@@ -21,7 +21,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         if ('caches' in window) {
             caches.keys().then(names => {
                 names.forEach(name => {
-                    if (name.includes('namaskah')) {
+                    if (name.includes('vrenum')) {
                         caches.delete(name);
                         console.log('✓ Deleted cache:', name);
                     }

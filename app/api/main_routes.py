@@ -136,7 +136,7 @@ async def docs_page(request: Request):
 @router.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "namaskah-sms"}
+    return {"status": "healthy", "service": "vrenum-sms"}
 
 
 # Redirects for common paths

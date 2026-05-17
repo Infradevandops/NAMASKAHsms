@@ -39,7 +39,7 @@ async def send_test_email(
             user_email=user.email,
             notification_type="system",
             title="Test Email",
-            message="This is a test email from Namaskah SMS. If you received this, email notifications are working correctly!",
+            message="This is a test email from Vrenum. If you received this, email notifications are working correctly!",
         )
 
         if success:

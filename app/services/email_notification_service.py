@@ -108,7 +108,7 @@ class EmailNotificationService:
         return False
 
         try:
-            subject = "Verification Started - Namaskah SMS"
+            subject = "Verification Started - Vrenum"
             html_body = self._create_verification_initiated_html(
                 service_name=service_name,
                 verification_id=verification_id,
@@ -153,7 +153,7 @@ class EmailNotificationService:
         return False
 
         try:
-            subject = "Verification Completed - Namaskah SMS"
+            subject = "Verification Completed - Vrenum"
             html_body = self._create_verification_completed_html(
                 service_name=service_name,
                 verification_id=verification_id,
@@ -197,7 +197,7 @@ class EmailNotificationService:
         return False
 
         try:
-            subject = "Low Balance Alert - Namaskah SMS"
+            subject = "Low Balance Alert - Vrenum"
             html_body = self._create_low_balance_alert_html(
                 current_balance=current_balance,
                 threshold=threshold,
@@ -240,7 +240,7 @@ class EmailNotificationService:
         return False
 
         try:
-            subject = f"Daily Digest - {len(notifications)} Updates - Namaskah SMS"
+            subject = f"Daily Digest - {len(notifications)} Updates - Vrenum"
             html_body = self._create_daily_digest_html(
                 notifications=notifications,
                 unsubscribe_token=unsubscribe_token,
@@ -286,7 +286,7 @@ class EmailNotificationService:
         return False
 
         try:
-            subject = "Weekly Summary - Namaskah SMS"
+            subject = "Weekly Summary - Vrenum"
             html_body = self._create_weekly_digest_html(
                 notifications=notifications,
                 stats=stats,
@@ -315,7 +315,7 @@ class EmailNotificationService:
                     None,
                     lambda: resend.Emails.send(
                         {
-                            "from": f"Namaskah <{self.from_email}>",
+                            "from": f"Vrenum <{self.from_email}>",
                             "to": [to_email],
                             "subject": subject,
                             "html": html_body,
@@ -371,9 +371,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         return """
@@ -414,9 +414,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         return """
@@ -431,13 +431,13 @@ class EmailNotificationService:
                         <p><strong>What's next?</strong></p>
                         <ul>
                             <li>You will receive an SMS code shortly</li>
-                            <li>Enter the code in the Namaskah app to complete verification</li>
+                            <li>Enter the code in the Vrenum app to complete verification</li>
                             <li>Verification typically completes within 2-5 minutes</li>
                         </ul>
                     </div>
 
                     <p>
-                        <a href="https://namaskah.app/verify?id={verification_id}" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                        <a href="https://vrenum.app/verify?id={verification_id}" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
                             View Verification Status
                         </a>
                     </p>
@@ -471,9 +471,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         return """
@@ -530,9 +530,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         return """
@@ -557,7 +557,7 @@ class EmailNotificationService:
                     </div>
 
                     <p>
-                        <a href="https://namaskah.app/wallet" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                        <a href="https://vrenum.app/wallet" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
                             Add Credits
                         </a>
                     </p>
@@ -587,9 +587,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         notifications_html = "".join(
@@ -618,7 +618,7 @@ class EmailNotificationService:
                     </div>
 
                     <p>
-                        <a href="https://namaskah.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                        <a href="https://vrenum.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
                             View All Notifications
                         </a>
                     </p>
@@ -650,9 +650,9 @@ class EmailNotificationService:
             HTML email body
         """
         unsubscribe_link = (
-            f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
+            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
             if unsubscribe_token
-            else "https://namaskah.app/preferences"
+            else "https://vrenum.app/preferences"
         )
 
         notifications_html = "".join(
@@ -701,7 +701,7 @@ class EmailNotificationService:
                     </div>
 
                     <p>
-                        <a href="https://namaskah.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                        <a href="https://vrenum.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
                             View All Notifications
                         </a>
                     </p>

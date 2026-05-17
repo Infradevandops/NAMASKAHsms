@@ -49,7 +49,7 @@ async def download_invoice(
     styles = getSampleStyleSheet()
     elements = []
 
-    elements.append(Paragraph("Namaskah", styles["Title"]))
+    elements.append(Paragraph("VRENUM ACTV8TN", styles["Title"]))
     elements.append(Paragraph("Invoice / Receipt", styles["Heading2"]))
     elements.append(Spacer(1, 12))
 
@@ -83,7 +83,7 @@ async def download_invoice(
     )
     elements.append(table)
     elements.append(Spacer(1, 24))
-    elements.append(Paragraph("Thank you for using Namaskah.", styles["Normal"]))
+    elements.append(Paragraph("Thank you for using vrenum.app.", styles["Normal"]))
 
     doc.build(elements)
     buf.seek(0)

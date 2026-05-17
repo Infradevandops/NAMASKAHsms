@@ -268,7 +268,7 @@ async def forgot_password(
                     asyncio.create_task(
                         email_service.send_email(
                             to_email=user.email,
-                            subject="Password Reset - Namaskah",
+                            subject="Password Reset - Vrenum",
                             html_content=f"""
                             <h2>Password Reset</h2>
                             <p>Click the link below to reset your password:</p>

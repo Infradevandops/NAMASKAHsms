@@ -27,7 +27,7 @@ class UnregisterDeviceRequest(BaseModel):
 
 class TestNotificationRequest(BaseModel):
     title: str = "Test Notification"
-    message: str = "This is a test notification from Namaskah"
+    message: str = "This is a test notification from Vrenum"
 
 
 @router.post("/register")

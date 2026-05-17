@@ -29,7 +29,7 @@ async def send_contact_message(data: ContactRequest):
             from app.services.email_service import email_service
 
             await email_service.send_email(
-                to_email="support@namaskah.app",
+                to_email="support@vrenum.app",
                 subject=f"[Contact Form] {data.category}: {data.subject}",
                 html_content=f"""
                 <h3>New Contact Form Submission</h3>
