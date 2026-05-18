@@ -111,7 +111,7 @@ class TestAuthService:
         payload = auth_service.verify_token(token)
 
         # Verify expiration is approximately 30 minutes from now
-        exp_time = datetime.fromtimestamp(payload["exp"])
+        exp_time = datetime.utcfromtimestamp(payload["exp"])
         expected_exp = datetime.utcnow() + expires_delta
 
         # Allow 5 second tolerance
