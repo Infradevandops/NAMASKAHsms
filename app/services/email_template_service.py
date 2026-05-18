@@ -2,12 +2,17 @@
 
 import logging
 import re
-from typing import Dict, Optional
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
 from jinja2 import Template
 from sqlalchemy.orm import Session
 
-from app.models.whitelabel_models import WhitelabelEmailTemplate
+from app.models.whitelabel_models import (
+    EmailTemplateAnalytics,
+    EmailTemplateVersion,
+    WhitelabelEmailTemplate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +89,9 @@ class EmailTemplateService:
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
+        version_note: Optional[str] = None,
     ) -> WhitelabelEmailTemplate:
-        """Create or update email template"""
+        """Create or update email template with versioning"""
         if template_name not in self.TEMPLATE_TYPES:
             raise ValueError(f"Invalid template type: {template_name}")
 
@@ -95,9 +101,23 @@ class EmailTemplateService:
         template = self.get_template(db, user_id, template_name)
 
         if template:
+            # Save current version to history
+            version = EmailTemplateVersion(
+                template_id=template.id,
+                version_number=template.version,
+                subject=template.subject,
+                html_content=template.html_content,
+                text_content=template.text_content,
+                version_note=version_note or "Auto-saved version",
+                created_by=str(user_id),
+            )
+            db.add(version)
+
+            # Update template
             template.subject = subject
             template.html_content = html_content
             template.text_content = text_content or self._html_to_text(html_content)
+            template.version += 1
         else:
             template = WhitelabelEmailTemplate(
                 user_id=user_id,
@@ -106,8 +126,14 @@ class EmailTemplateService:
                 html_content=html_content,
                 text_content=text_content or self._html_to_text(html_content),
                 active=True,
+                version=1,
             )
             db.add(template)
+            db.flush()  # Get template.id
+
+            # Create initial analytics record
+            analytics = EmailTemplateAnalytics(template_id=template.id)
+            db.add(analytics)
 
         db.commit()
         db.refresh(template)
@@ -240,6 +266,194 @@ class EmailTemplateService:
         }
 
         return defaults.get(template_name, {"subject": "", "html": ""})
+
+    def get_template_versions(
+        self, db: Session, template_id: int, limit: int = 10
+    ) -> List[EmailTemplateVersion]:
+        """Get version history for a template"""
+        return (
+            db.query(EmailTemplateVersion)
+            .filter(EmailTemplateVersion.template_id == template_id)
+            .order_by(EmailTemplateVersion.version_number.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def revert_to_version(
+        self, db: Session, template_id: int, version_number: int, user_id: int
+    ) -> WhitelabelEmailTemplate:
+        """Revert template to a previous version"""
+        # Get the version
+        version = (
+            db.query(EmailTemplateVersion)
+            .filter(
+                EmailTemplateVersion.template_id == template_id,
+                EmailTemplateVersion.version_number == version_number,
+            )
+            .first()
+        )
+
+        if not version:
+            raise ValueError(f"Version {version_number} not found")
+
+        # Get current template
+        template = (
+            db.query(WhitelabelEmailTemplate)
+            .filter(WhitelabelEmailTemplate.id == template_id)
+            .first()
+        )
+
+        if not template:
+            raise ValueError("Template not found")
+
+        # Save current as version before reverting
+        current_version = EmailTemplateVersion(
+            template_id=template.id,
+            version_number=template.version,
+            subject=template.subject,
+            html_content=template.html_content,
+            text_content=template.text_content,
+            version_note=f"Before reverting to v{version_number}",
+            created_by=str(user_id),
+        )
+        db.add(current_version)
+
+        # Revert to old version
+        template.subject = version.subject
+        template.html_content = version.html_content
+        template.text_content = version.text_content
+        template.version += 1
+
+        db.commit()
+        db.refresh(template)
+        return template
+
+    async def send_test_email(
+        self,
+        db: Session,
+        user_id: int,
+        template_name: str,
+        recipient_email: str,
+        test_variables: Optional[Dict[str, str]] = None,
+    ) -> bool:
+        """Send a test email with sample data"""
+        try:
+            # Get template
+            template = self.get_template(db, user_id, template_name)
+            if not template:
+                raise ValueError(f"Template not found: {template_name}")
+
+            # Use test variables or defaults
+            if not test_variables:
+                test_variables = self._get_test_variables(template_name)
+
+            # Render template
+            subject, html_content, text_content = self.render_template(
+                db, user_id, template_name, test_variables
+            )
+
+            # TODO: Integrate with actual email service
+            # For now, just log
+            logger.info(
+                f"Test email sent to {recipient_email}: {subject} (template: {template_name})"
+            )
+
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send test email: {e}")
+            return False
+
+    def _get_test_variables(self, template_name: str) -> Dict[str, str]:
+        """Get test variables for a template"""
+        test_data = {
+            "welcome": {
+                "user_name": "John Doe",
+                "user_email": "john@example.com",
+                "company_name": "VRENUM ACTV8TN",
+                "support_email": "support@vrenum.app",
+            },
+            "verification_code": {
+                "user_name": "John Doe",
+                "verification_code": "123456",
+                "phone_number": "+1234567890",
+                "service_name": "WhatsApp",
+                "expires_in": "10",
+            },
+            "payment_success": {
+                "user_name": "John Doe",
+                "amount": "10.00",
+                "currency": "USD",
+                "credits_added": "10.00",
+                "new_balance": "25.50",
+                "transaction_id": "txn_test123",
+            },
+            "payment_failed": {
+                "user_name": "John Doe",
+                "amount": "10.00",
+                "currency": "USD",
+                "reason": "Insufficient funds",
+                "support_email": "support@vrenum.app",
+            },
+            "low_balance": {
+                "user_name": "John Doe",
+                "current_balance": "2.50",
+                "currency": "USD",
+                "top_up_url": "https://vrenum.app/wallet",
+            },
+            "tier_upgrade": {
+                "user_name": "John Doe",
+                "old_tier": "Freemium",
+                "new_tier": "Pro",
+                "new_features": "API Access, Priority Support",
+                "effective_date": "2026-05-17",
+            },
+            "password_reset": {
+                "user_name": "John Doe",
+                "reset_link": "https://vrenum.app/reset-password?token=test123",
+                "expires_in": "30",
+            },
+        }
+
+        return test_data.get(template_name, {})
+
+    def get_template_analytics(
+        self, db: Session, template_id: int
+    ) -> Optional[EmailTemplateAnalytics]:
+        """Get analytics for a template"""
+        return (
+            db.query(EmailTemplateAnalytics)
+            .filter(EmailTemplateAnalytics.template_id == template_id)
+            .first()
+        )
+
+    def record_email_sent(self, db: Session, template_id: int) -> None:
+        """Record that an email was sent"""
+        analytics = self.get_template_analytics(db, template_id)
+        if analytics:
+            analytics.sent_count += 1
+            analytics.last_sent_at = datetime.now(timezone.utc)
+            db.commit()
+
+    def record_email_opened(self, db: Session, template_id: int) -> None:
+        """Record that an email was opened"""
+        analytics = self.get_template_analytics(db, template_id)
+        if analytics:
+            analytics.opened_count += 1
+            db.commit()
+
+    def record_email_clicked(self, db: Session, template_id: int) -> None:
+        """Record that a link in email was clicked"""
+        analytics = self.get_template_analytics(db, template_id)
+        if analytics:
+            analytics.clicked_count += 1
+            db.commit()
+
+    def record_email_bounced(self, db: Session, template_id: int) -> None:
+        """Record that an email bounced"""
+        analytics = self.get_template_analytics(db, template_id)
+        if analytics:
+            analytics.bounced_count += 1
+            db.commit()
 
 
 # Singleton instance

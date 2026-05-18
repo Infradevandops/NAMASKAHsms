@@ -112,6 +112,7 @@ class WhitelabelEmailTemplate(Base):
     html_content = Column(Text, nullable=True)
     text_content = Column(Text, nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    version = Column(Integer, default=1, nullable=False)  # NEW: Version tracking
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
@@ -122,3 +123,47 @@ class WhitelabelEmailTemplate(Base):
 
     def __repr__(self):
         return f"<WhitelabelEmailTemplate(user_id={self.user_id}, template={self.template_name})>"
+
+
+class EmailTemplateVersion(Base):
+    """Version history for email templates"""
+
+    __tablename__ = "email_template_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(
+        Integer,
+        ForeignKey("whitelabel_custom_email_templates.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version_number = Column(Integer, nullable=False)
+    subject = Column(String(255), nullable=True)
+    html_content = Column(Text, nullable=True)
+    text_content = Column(Text, nullable=True)
+    version_note = Column(String(500), nullable=True)
+    created_by = Column(String, nullable=False)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+
+
+class EmailTemplateAnalytics(Base):
+    """Analytics for email template performance"""
+
+    __tablename__ = "email_template_analytics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(
+        Integer,
+        ForeignKey("whitelabel_custom_email_templates.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sent_count = Column(Integer, default=0, nullable=False)
+    opened_count = Column(Integer, default=0, nullable=False)
+    clicked_count = Column(Integer, default=0, nullable=False)
+    bounced_count = Column(Integer, default=0, nullable=False)
+    last_sent_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime, default=func.now(), onupdate=func.now(), nullable=False
+    )

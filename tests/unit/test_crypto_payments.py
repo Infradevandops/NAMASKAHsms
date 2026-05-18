@@ -19,10 +19,10 @@ class TestCryptoAddresses:
     def test_returns_configured_addresses(self, client, auth):
         """Returns addresses when env vars are set."""
         with patch("app.api.billing.wallet_endpoints.settings") as mock_settings:
-            mock_settings.btc_address = "bc1qtest123"
-            mock_settings.eth_address = "0xtest456"
-            mock_settings.sol_address = "soltest789"
-            mock_settings.ltc_address = None  # LTC not configured
+            mock_settings.effective_btc_address = "bc1qtest123"
+            mock_settings.effective_eth_address = "0xtest456"
+            mock_settings.effective_sol_address = "soltest789"
+            mock_settings.effective_ltc_address = None  # LTC not configured
 
             response = client.get("/api/wallet/crypto/addresses", headers=auth)
 
@@ -36,10 +36,10 @@ class TestCryptoAddresses:
     def test_503_when_no_addresses_configured(self, client, auth):
         """Returns 503 when no addresses are configured."""
         with patch("app.api.billing.wallet_endpoints.settings") as mock_settings:
-            mock_settings.btc_address = None
-            mock_settings.eth_address = None
-            mock_settings.sol_address = None
-            mock_settings.ltc_address = None
+            mock_settings.effective_btc_address = None
+            mock_settings.effective_eth_address = None
+            mock_settings.effective_sol_address = None
+            mock_settings.effective_ltc_address = None
 
             response = client.get("/api/wallet/crypto/addresses", headers=auth)
 
@@ -243,10 +243,10 @@ class TestCryptoFullFlow:
     def test_full_flow_btc(self, client, auth, db_session, regular_user):
         """Full BTC flow: addresses → intent → confirm."""
         with patch("app.api.billing.wallet_endpoints.settings") as mock_settings:
-            mock_settings.btc_address = "bc1qprod123"
-            mock_settings.eth_address = "0xprod456"
-            mock_settings.sol_address = "solprod789"
-            mock_settings.ltc_address = None
+            mock_settings.effective_btc_address = "bc1qprod123"
+            mock_settings.effective_eth_address = "0xprod456"
+            mock_settings.effective_sol_address = "solprod789"
+            mock_settings.effective_ltc_address = None
 
             # Step 1: Get addresses
             addr_res = client.get("/api/wallet/crypto/addresses", headers=auth)

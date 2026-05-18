@@ -25,6 +25,8 @@ class SupportTicket(BaseModel):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     category = Column(String, nullable=False)
+    priority = Column(String, default="medium", nullable=False)
+    subject = Column(String, nullable=False)
     message = Column(String, nullable=False)
     status = Column(String, default="open", nullable=False, index=True)
     admin_response = Column(String)

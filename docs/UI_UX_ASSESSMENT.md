@@ -1,5 +1,11 @@
 # UI/UX Assessment - Namaskah Platform
 
+**⚠️ UPDATE NOTICE**: This assessment is from May 10, 2026 and contains outdated information.
+**See [UI_UX_ASSESSMENT_UPDATE.md](./UI_UX_ASSESSMENT_UPDATE.md) for current status (May 17, 2026).**
+**Critical Finding**: API docs issue reported here has been **RESOLVED**. Score updated from 5.3/10 to 8/10.
+
+---
+
 **Date**: May 10, 2026
 **Screens Analyzed**: 3 (API Docs Error, Number Rentals, Service Selection)
 **Overall UI Score**: 7/10

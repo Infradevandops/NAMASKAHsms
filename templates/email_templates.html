@@ -57,10 +57,21 @@
 
                     <!-- Actions -->
                     <div class="flex justify-between">
-                        <button onclick="deleteTemplate()" id="delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                            Delete (Revert to Default)
-                        </button>
                         <div class="space-x-2">
+                            <button onclick="viewVersions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                View Versions
+                            </button>
+                            <button onclick="sendTestEmail()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Send Test Email
+                            </button>
+                            <button onclick="viewAnalytics()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                View Analytics
+                            </button>
+                        </div>
+                        <div class="space-x-2">
+                            <button onclick="deleteTemplate()" id="delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Delete (Revert to Default)
+                            </button>
                             <button onclick="closeEditor()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
                                 Cancel
                             </button>
@@ -210,6 +221,133 @@
         function closeEditor() {
             document.getElementById('editor-modal').classList.add('hidden');
             currentTemplate = null;
+        }
+
+        async function viewVersions() {
+            if (!currentTemplate || !currentTemplate.active) {
+                alert('No version history for default templates');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/versions`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load versions');
+
+                const versions = await response.json();
+
+                if (versions.length === 0) {
+                    alert('No version history available');
+                    return;
+                }
+
+                const versionList = versions.map((v, i) =>
+                    `${i + 1}. Version ${v.version_number} - ${v.version_note} (${new Date(v.created_at).toLocaleString()})`
+                ).join('\n');
+
+                const versionNum = prompt(`Version History:\n\n${versionList}\n\nEnter version number to revert to (or cancel):`);
+
+                if (versionNum) {
+                    await revertToVersion(parseInt(versionNum));
+                }
+            } catch (error) {
+                console.error('Error loading versions:', error);
+                alert('Failed to load version history');
+            }
+        }
+
+        async function revertToVersion(versionNumber) {
+            if (!confirm(`Revert to version ${versionNumber}? This will create a new version.`)) return;
+
+            try {
+                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/revert/${versionNumber}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to revert version');
+
+                alert('Template reverted successfully!');
+                closeEditor();
+                loadTemplates();
+            } catch (error) {
+                console.error('Error reverting version:', error);
+                alert('Failed to revert to version');
+            }
+        }
+
+        async function sendTestEmail() {
+            const email = prompt('Enter email address to send test email:');
+            if (!email) return;
+
+            // Basic email validation
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Invalid email address');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/whitelabel/email-template/test', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        template_name: currentTemplate.template_name,
+                        recipient_email: email
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to send test email');
+
+                alert(`Test email sent to ${email}!`);
+            } catch (error) {
+                console.error('Error sending test email:', error);
+                alert('Failed to send test email');
+            }
+        }
+
+        async function viewAnalytics() {
+            if (!currentTemplate || !currentTemplate.active) {
+                alert('No analytics for default templates');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/analytics`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load analytics');
+
+                const analytics = await response.json();
+
+                const message = `
+Email Template Analytics
+========================
+
+Sent: ${analytics.sent_count}
+Opened: ${analytics.opened_count} (${analytics.open_rate}%)
+Clicked: ${analytics.clicked_count} (${analytics.click_rate}%)
+Bounced: ${analytics.bounced_count} (${analytics.bounce_rate}%)
+
+Last Sent: ${analytics.last_sent_at ? new Date(analytics.last_sent_at).toLocaleString() : 'Never'}
+                `.trim();
+
+                alert(message);
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                alert('Failed to load analytics');
+            }
         }
 
         // Load templates on page load

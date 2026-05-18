@@ -125,6 +125,38 @@ class EmailTemplateListResponse(BaseModel):
     default_subject: str
 
 
+class EmailTemplateVersionResponse(BaseModel):
+    """Email template version response"""
+
+    version_number: int
+    subject: str
+    html_content: str
+    text_content: str
+    version_note: str
+    created_at: str
+    created_by: str
+
+
+class SendTestEmailRequest(BaseModel):
+    """Send test email request"""
+
+    template_name: str
+    recipient_email: str
+
+
+class EmailTemplateAnalyticsResponse(BaseModel):
+    """Email template analytics response"""
+
+    sent_count: int
+    opened_count: int
+    clicked_count: int
+    bounced_count: int
+    open_rate: float
+    click_rate: float
+    bounce_rate: float
+    last_sent_at: Optional[str]
+
+
 # Endpoints
 @router.post("/setup", response_model=DomainResponse)
 async def setup_whitelabel_domain(
@@ -537,3 +569,176 @@ async def delete_email_template(
     db.commit()
 
     return {"message": "Template deleted, reverted to default"}
+
+
+@router.get(
+    "/email-template/{template_name}/versions",
+    response_model=List[EmailTemplateVersionResponse],
+)
+async def get_template_versions(
+    template_name: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get version history for email template"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    template = email_template_service.get_template(db, current_user.id, template_name)
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    versions = email_template_service.get_template_versions(db, template.id)
+
+    return [
+        EmailTemplateVersionResponse(
+            version_number=v.version_number,
+            subject=v.subject,
+            html_content=v.html_content,
+            text_content=v.text_content,
+            version_note=v.version_note,
+            created_at=v.created_at.isoformat(),
+            created_by=v.created_by,
+        )
+        for v in versions
+    ]
+
+
+@router.post("/email-template/{template_name}/revert/{version_number}")
+async def revert_template_version(
+    template_name: str,
+    version_number: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Revert email template to a previous version"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    template = email_template_service.get_template(db, current_user.id, template_name)
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    try:
+        reverted = email_template_service.revert_to_version(
+            db, template.id, version_number, current_user.id
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return {
+        "message": f"Template reverted to version {version_number}",
+        "current_version": reverted.version,
+    }
+
+
+@router.post("/email-template/test")
+async def send_test_email(
+    request: SendTestEmailRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Send a test email with sample data"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    success = await email_template_service.send_test_email(
+        db=db,
+        user_id=current_user.id,
+        template_name=request.template_name,
+        recipient_email=request.recipient_email,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send test email",
+        )
+
+    return {"message": f"Test email sent to {request.recipient_email}"}
+
+
+@router.get(
+    "/email-template/{template_name}/analytics",
+    response_model=EmailTemplateAnalyticsResponse,
+)
+async def get_template_analytics(
+    template_name: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get analytics for email template"""
+    if current_user.subscription_tier not in ["pro", "custom", "enterprise"]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Email templates require Pro tier or higher",
+        )
+
+    template = email_template_service.get_template(db, current_user.id, template_name)
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    analytics = email_template_service.get_template_analytics(db, template.id)
+    if not analytics:
+        # Return zeros if no analytics yet
+        return EmailTemplateAnalyticsResponse(
+            sent_count=0,
+            opened_count=0,
+            clicked_count=0,
+            bounced_count=0,
+            open_rate=0.0,
+            click_rate=0.0,
+            bounce_rate=0.0,
+            last_sent_at=None,
+        )
+
+    # Calculate rates
+    open_rate = (
+        (analytics.opened_count / analytics.sent_count * 100)
+        if analytics.sent_count > 0
+        else 0.0
+    )
+    click_rate = (
+        (analytics.clicked_count / analytics.sent_count * 100)
+        if analytics.sent_count > 0
+        else 0.0
+    )
+    bounce_rate = (
+        (analytics.bounced_count / analytics.sent_count * 100)
+        if analytics.sent_count > 0
+        else 0.0
+    )
+
+    return EmailTemplateAnalyticsResponse(
+        sent_count=analytics.sent_count,
+        opened_count=analytics.opened_count,
+        clicked_count=analytics.clicked_count,
+        bounced_count=analytics.bounced_count,
+        open_rate=round(open_rate, 2),
+        click_rate=round(click_rate, 2),
+        bounce_rate=round(bounce_rate, 2),
+        last_sent_at=(
+            analytics.last_sent_at.isoformat() if analytics.last_sent_at else None
+        ),
+    )

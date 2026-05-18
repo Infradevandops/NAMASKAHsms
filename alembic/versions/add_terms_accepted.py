@@ -17,14 +17,9 @@ depends_on = None
 
 def _column_exists(table, column):
     bind = op.get_bind()
-    result = bind.execute(
-        sa.text(
-            "SELECT 1 FROM information_schema.columns "
-            "WHERE table_name = :table AND column_name = :column"
-        ),
-        {"table": table, "column": column},
-    )
-    return result.fetchone() is not None
+    inspector = sa.inspect(bind)
+    columns = [col["name"] for col in inspector.get_columns(table)]
+    return column in columns
 
 
 def upgrade():

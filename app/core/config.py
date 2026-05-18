@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Basic app settings
     app_name: str = "VRENUM ACTV8TN"
-    version: str = "4.4.1"
+    version: str = "4.7.3"
     environment: str = "development"
     debug: bool = False
 
@@ -175,9 +175,34 @@ class Settings(BaseSettings):
 
     # Crypto Settlement Addresses — must be set via environment variables in production
     btc_address: Optional[str] = None
+    bitcoin_address: Optional[str] = None  # Alias for btc_address
     eth_address: Optional[str] = None
+    ethereum_address: Optional[str] = None  # Alias for eth_address
     sol_address: Optional[str] = None
+    solana_address: Optional[str] = None  # Alias for sol_address
     ltc_address: Optional[str] = None
+    litecoin_address: Optional[str] = None  # Alias for ltc_address
+    usdt_address: Optional[str] = None  # USDT (ERC-20)
+
+    @property
+    def effective_btc_address(self) -> Optional[str]:
+        """Return BTC address from either btc_address or bitcoin_address."""
+        return self.btc_address or self.bitcoin_address
+
+    @property
+    def effective_eth_address(self) -> Optional[str]:
+        """Return ETH address from either eth_address or ethereum_address."""
+        return self.eth_address or self.ethereum_address
+
+    @property
+    def effective_sol_address(self) -> Optional[str]:
+        """Return SOL address from either sol_address or solana_address."""
+        return self.sol_address or self.solana_address
+
+    @property
+    def effective_ltc_address(self) -> Optional[str]:
+        """Return LTC address from either ltc_address or litecoin_address."""
+        return self.ltc_address or self.litecoin_address
 
     # Admin settings
     admin_email: Optional[str] = None

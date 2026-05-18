@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 
 from app.models.base import BaseModel
 
@@ -80,3 +80,60 @@ class Dispute(BaseModel):
         "processing_error": "Payment processing error",
         "other": "Other reason",
     }
+
+
+class DisputeComment(BaseModel):
+    """Comments on disputes for communication between user and admin."""
+
+    __tablename__ = "dispute_comments"
+
+    dispute_id = Column(String, ForeignKey("disputes.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    content = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
+    created_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+
+
+class DisputeAttachment(BaseModel):
+    """File attachments for dispute evidence."""
+
+    __tablename__ = "dispute_attachments"
+
+    dispute_id = Column(String, ForeignKey("disputes.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    filename = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)  # S3 or local path
+    file_size = Column(Integer, nullable=False)  # bytes
+    content_type = Column(String, nullable=False)
+    uploaded_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+
+
+class DisputeTimeline(BaseModel):
+    """Timeline events for dispute tracking."""
+
+    __tablename__ = "dispute_timeline"
+
+    dispute_id = Column(String, ForeignKey("disputes.id"), nullable=False, index=True)
+    event_type = Column(
+        String, nullable=False
+    )  # opened, comment_added, evidence_uploaded, status_changed, resolved
+    event_description = Column(String, nullable=False)
+    actor_id = Column(String)  # User or admin who triggered event
+    is_admin = Column(Boolean, default=False)
+    event_metadata = Column(String)  # JSON for additional data (renamed from metadata)
+    created_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )

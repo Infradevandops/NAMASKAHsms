@@ -47,11 +47,11 @@ async def create_support_ticket(
     db: Session = Depends(get_db),
 ):
     """Create a new support ticket."""
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
+    try:
         ticket = SupportTicket(
             user_id=user_id,
             email=user.email,

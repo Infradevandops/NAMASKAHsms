@@ -119,7 +119,20 @@
                 <!-- FAQ -->
                 <div class="support-card">
                     <h3 style="font-size: 16px; margin-bottom: 16px;">Frequently Asked Questions</h3>
+
+                    <!-- Knowledge Base Search -->
+                    <div style="margin-bottom: 16px;">
+                        <input
+                            type="text"
+                            id="kb-search"
+                            class="form-input"
+                            placeholder="Search knowledge base..."
+                            style="padding: 10px; font-size: 13px;"
+                        >
+                    </div>
+
                     <div id="faq-list"></div>
+                    <div id="kb-search-results" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -245,9 +258,92 @@
             }
         }
 
-        function viewTicket(ticketId) {
-            // TODO: Open ticket detail modal
-            alert('Ticket details: ' + ticketId);
+        async function viewTicket(ticketId) {
+            try {
+                const response = await fetch(`/support/tickets/${ticketId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const ticket = await response.json();
+                showTicketModal(ticket);
+            } catch (error) {
+                console.error('Failed to load ticket:', error);
+                showError('Failed to load ticket details');
+            }
+        }
+
+        function showTicketModal(ticket) {
+            const modal = document.createElement('div');
+            modal.id = 'ticket-modal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="font-size: 20px; margin: 0;">${ticket.subject}</h2>
+                        <button onclick="closeTicketModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <span class="ticket-status status-${ticket.status}">${ticket.status}</span>
+                        <span style="padding: 4px 12px; background: #f0f0f0; border-radius: 12px; font-size: 12px;">${ticket.category}</span>
+                        <span style="padding: 4px 12px; background: #f0f0f0; border-radius: 12px; font-size: 12px;">${ticket.priority} priority</span>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Created: ${new Date(ticket.created_at).toLocaleString()}</div>
+                        <div style="padding: 16px; background: #f8f9ff; border-radius: 8px; border-left: 4px solid #667eea;">
+                            <div style="font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${ticket.message}</div>
+                        </div>
+                    </div>
+
+                    ${ticket.admin_response ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #667eea;">Support Response:</div>
+                            <div style="padding: 16px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+                                <div style="font-size: 13px; line-height: 1.6; white-space: pre-wrap;">${ticket.admin_response}</div>
+                            </div>
+                            ${ticket.updated_at ? `<div style="font-size: 12px; color: #999; margin-top: 8px;">Responded: ${new Date(ticket.updated_at).toLocaleString()}</div>` : ''}
+                        </div>
+                    ` : '<div style="padding: 16px; background: #fff3cd; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">⏳ Waiting for support response...</div>'}
+
+                    ${ticket.status !== 'closed' ? `
+                        <button onclick="closeTicketById('${ticket.id}')" style="width: 100%; padding: 12px; background: #f44336; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            Close Ticket
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeTicketModal();
+            });
+        }
+
+        function closeTicketModal() {
+            const modal = document.getElementById('ticket-modal');
+            if (modal) modal.remove();
+        }
+
+        async function closeTicketById(ticketId) {
+            if (!confirm('Are you sure you want to close this ticket?')) return;
+
+            try {
+                const response = await fetch(`/support/tickets/${ticketId}/close`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    showSuccess('Ticket closed successfully');
+                    closeTicketModal();
+                    loadTickets();
+                } else {
+                    showError('Failed to close ticket');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
         }
 
         async function loadFAQ() {
@@ -312,6 +408,138 @@
         loadTickets();
         loadFAQ();
         loadSupportStatus();
+        initKnowledgeBaseSearch();
+        initLiveChatIfEligible();
+
+        // Knowledge Base Search
+        let allFAQItems = [];
+
+        function initKnowledgeBaseSearch() {
+            const searchInput = document.getElementById('kb-search');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    searchKnowledgeBase(e.target.value);
+                }, 300);
+            });
+        }
+
+        async function searchKnowledgeBase(query) {
+            const resultsContainer = document.getElementById('kb-search-results');
+            const faqList = document.getElementById('faq-list');
+
+            if (!query || query.trim().length < 2) {
+                resultsContainer.style.display = 'none';
+                faqList.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/support/faq`);
+                const data = await response.json();
+                allFAQItems = data.faq;
+
+                const filtered = allFAQItems.filter(item =>
+                    item.question.toLowerCase().includes(query.toLowerCase()) ||
+                    item.answer.toLowerCase().includes(query.toLowerCase()) ||
+                    item.category.toLowerCase().includes(query.toLowerCase())
+                );
+
+                if (filtered.length === 0) {
+                    resultsContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No results found</div>';
+                } else {
+                    resultsContainer.innerHTML = filtered.map((item, index) => `
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleSearchResult(${index})">
+                                <span>${highlightText(item.question, query)}</span>
+                                <span id="search-icon-${index}">▼</span>
+                            </div>
+                            <div class="faq-answer" id="search-answer-${index}">${highlightText(item.answer, query)}</div>
+                        </div>
+                    `).join('');
+                }
+
+                faqList.style.display = 'none';
+                resultsContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        }
+
+        function highlightText(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background: #fff3cd; padding: 2px 4px; border-radius: 2px;">$1</mark>');
+        }
+
+        function toggleSearchResult(index) {
+            const answer = document.getElementById(`search-answer-${index}`);
+            const icon = document.getElementById(`search-icon-${index}`);
+
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                icon.textContent = '▼';
+            } else {
+                answer.classList.add('show');
+                icon.textContent = '▲';
+            }
+        }
+
+        // Live Chat for Custom Tier
+        async function initLiveChatIfEligible() {
+            try {
+                const response = await fetch('/api/v1/billing/tiers/current', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.current_tier === 'custom') {
+                    loadLiveChatWidget();
+                }
+            } catch (error) {
+                console.error('Failed to check tier:', error);
+            }
+        }
+
+        function loadLiveChatWidget() {
+            const chatButton = document.createElement('div');
+            chatButton.id = 'live-chat-widget';
+            chatButton.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                z-index: 9998;
+                transition: transform 0.2s;
+            `;
+            chatButton.innerHTML = '<span style="font-size: 28px;">💬</span>';
+            chatButton.title = 'Live Chat (Custom Tier)';
+
+            chatButton.addEventListener('mouseenter', () => {
+                chatButton.style.transform = 'scale(1.1)';
+            });
+            chatButton.addEventListener('mouseleave', () => {
+                chatButton.style.transform = 'scale(1)';
+            });
+            chatButton.addEventListener('click', openLiveChat);
+
+            document.body.appendChild(chatButton);
+        }
+
+        function openLiveChat() {
+            alert('Live chat feature coming soon! For now, please create a support ticket with "urgent" priority for fastest response.');
+            // TODO: Integrate with live chat service (Intercom, Crisp, etc.)
+        }
     </script>
 </body>
 </html>

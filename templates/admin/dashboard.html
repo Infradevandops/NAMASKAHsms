@@ -40,6 +40,15 @@
             <button class="tab-btn" onclick="switchTab('history')">Verification Forensics</button>
             <button class="tab-btn" onclick="switchTab('pricing')">Pricing Governance</button>
             <button class="tab-btn" onclick="switchTab('audit')">Control & Audit</button>
+            <div style="margin-left: auto; display: flex; gap: 12px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--admin-text-muted);">
+                    <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefresh(this.checked)" style="cursor: pointer;">
+                    Auto-refresh (30s)
+                </label>
+                <button class="tab-btn" onclick="exportDashboardData()" title="Export current tab data">
+                    💾 Export CSV
+                </button>
+            </div>
         </div>
 
         <!-- Tab 1: Institutional Overview -->
@@ -104,7 +113,21 @@
                 <div class="glass-card">
                     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <h3 class="card-title">Unified User Control</h3>
-                        <input type="text" id="user-search" placeholder="Search Email/ID..." style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 12px; border-radius:4px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="tier-filter" onchange="filterUsers()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 12px; border-radius:4px;">
+                                <option value="">All Tiers</option>
+                                <option value="freemium">Freemium</option>
+                                <option value="payg">Pay-As-You-Go</option>
+                                <option value="pro">Pro</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <select id="status-filter" onchange="filterUsers()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 12px; border-radius:4px;">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                            <input type="text" id="user-search" placeholder="Search Email/ID..." onkeyup="filterUsers()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:6px 12px; border-radius:4px;">
+                        </div>
                     </div>
                     <table class="admin-table">
                         <thead>
@@ -335,6 +358,8 @@
             event.target.classList.add('active');
             document.getElementById('page-' + tab).classList.add('active');
 
+            currentTab = tab; // Store current tab for auto-refresh
+
             if (tab === 'overview') {
                 OverviewManager.init();
                 loadBalanceSyncStatus();
@@ -350,6 +375,234 @@
             loadBalanceSyncStatus();
             setInterval(loadBalanceSyncStatus, 60000); // Refresh every minute
         });
+
+        // Auto-refresh functionality
+        let autoRefreshInterval = null;
+        let currentTab = 'overview';
+
+        function toggleAutoRefresh(enabled) {
+            if (enabled) {
+                autoRefreshInterval = setInterval(() => {
+                    refreshCurrentTab();
+                }, 30000); // 30 seconds
+                console.log('Auto-refresh enabled (30s interval)');
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                console.log('Auto-refresh disabled');
+            }
+        }
+
+        function refreshCurrentTab() {
+            console.log(`Auto-refreshing tab: ${currentTab}`);
+            switch(currentTab) {
+                case 'overview':
+                    OverviewManager.init();
+                    loadBalanceSyncStatus();
+                    break;
+                case 'users':
+                    UsersManager.init();
+                    break;
+                case 'history':
+                    ForensicsManager.loadHistory();
+                    break;
+                case 'pricing':
+                    PricingManager.init();
+                    break;
+                case 'audit':
+                    ComplianceManager.init();
+                    break;
+            }
+        }
+
+        // CSV Export functionality
+        function exportDashboardData() {
+            const timestamp = new Date().toISOString().split('T')[0];
+            let csvContent = '';
+            let filename = '';
+
+            switch(currentTab) {
+                case 'overview':
+                    csvContent = exportOverviewData();
+                    filename = `admin-overview-${timestamp}.csv`;
+                    break;
+                case 'users':
+                    csvContent = exportUsersData();
+                    filename = `admin-users-${timestamp}.csv`;
+                    break;
+                case 'history':
+                    csvContent = exportForensicsData();
+                    filename = `admin-forensics-${timestamp}.csv`;
+                    break;
+                case 'pricing':
+                    csvContent = exportPricingData();
+                    filename = `admin-pricing-${timestamp}.csv`;
+                    break;
+                case 'audit':
+                    csvContent = exportAuditData();
+                    filename = `admin-audit-${timestamp}.csv`;
+                    break;
+            }
+
+            if (csvContent) {
+                downloadCSV(csvContent, filename);
+            } else {
+                alert('No data to export');
+            }
+        }
+
+        function exportOverviewData() {
+            const rows = [
+                ['Metric', 'Value'],
+                ['Monthly Growth Target', document.getElementById('target-count')?.textContent || 'N/A'],
+                ['Daily Velocity', document.getElementById('stat-velocity')?.textContent || 'N/A'],
+                ['30d Net Revenue', document.getElementById('stat-net-revenue')?.textContent || 'N/A'],
+                ['DAU', document.getElementById('stat-dau')?.textContent || 'N/A'],
+                ['Fraud Model F1', document.getElementById('stat-fraud-f1')?.textContent || 'N/A'],
+                ['Balance Sync', document.getElementById('stat-balance-sync')?.textContent || 'N/A']
+            ];
+            return rows.map(row => row.join(',')).join('\n');
+        }
+
+        function exportUsersData() {
+            const table = document.getElementById('user-intelligence-table');
+            if (!table || table.rows.length === 0) return '';
+
+            const headers = ['User ID', 'Tier', 'Credits', 'Status'];
+            const rows = [headers];
+
+            for (let row of table.rows) {
+                const cells = Array.from(row.cells).slice(0, 4).map(cell =>
+                    cell.textContent.trim().replace(/,/g, ';')
+                );
+                rows.push(cells);
+            }
+
+            return rows.map(row => row.join(',')).join('\n');
+        }
+
+        function exportForensicsData() {
+            const table = document.getElementById('forensics-history-table');
+            if (!table || table.rows.length === 0) return '';
+
+            const headers = ['Audit ID', 'User', 'Service', 'Phone', 'Platform Price', 'Net Profit', 'Drift', 'Time'];
+            const rows = [headers];
+
+            for (let row of table.rows) {
+                const cells = Array.from(row.cells).map(cell =>
+                    cell.textContent.trim().replace(/,/g, ';')
+                );
+                rows.push(cells);
+            }
+
+            return rows.map(row => row.join(',')).join('\n');
+        }
+
+        function exportPricingData() {
+            const table = document.getElementById('live-inventory-table');
+            if (!table || table.rows.length === 0) return '';
+
+            const headers = ['Service', 'Provider Cost', 'Active Price', 'Markup', 'Trend'];
+            const rows = [headers];
+
+            for (let row of table.rows) {
+                const cells = Array.from(row.cells).map(cell =>
+                    cell.textContent.trim().replace(/,/g, ';')
+                );
+                rows.push(cells);
+            }
+
+            return rows.map(row => row.join(',')).join('\n');
+        }
+
+        function exportAuditData() {
+            const tables = [
+                { id: 'disputes-table', name: 'Disputes' },
+                { id: 'failed-refunds-table', name: 'Failed Refunds' },
+                { id: 'full-audit-table', name: 'Audit Trail' }
+            ];
+
+            let csvContent = '';
+
+            tables.forEach(({ id, name }) => {
+                const table = document.getElementById(id);
+                if (table && table.rows.length > 0) {
+                    csvContent += `\n${name}\n`;
+                    for (let row of table.rows) {
+                        const cells = Array.from(row.cells).map(cell =>
+                            cell.textContent.trim().replace(/,/g, ';')
+                        );
+                        csvContent += cells.join(',') + '\n';
+                    }
+                }
+            });
+
+            return csvContent;
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            console.log(`Exported: ${filename}`);
+        }
+
+        // Advanced user filtering
+        let allUsers = [];
+
+        async function filterUsers() {
+            const tierFilter = document.getElementById('tier-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchQuery = document.getElementById('user-search').value.toLowerCase();
+
+            // If we don't have users loaded, load them first
+            if (allUsers.length === 0 && window.UsersManager) {
+                await UsersManager.init();
+                // Store the loaded users
+                const table = document.getElementById('user-intelligence-table');
+                if (table) {
+                    allUsers = Array.from(table.rows).map(row => ({
+                        id: row.cells[0]?.textContent || '',
+                        tier: row.cells[1]?.textContent || '',
+                        credits: row.cells[2]?.textContent || '',
+                        status: row.cells[3]?.textContent || '',
+                        element: row
+                    }));
+                }
+            }
+
+            // Apply filters
+            allUsers.forEach(user => {
+                let show = true;
+
+                if (tierFilter && !user.tier.toLowerCase().includes(tierFilter.toLowerCase())) {
+                    show = false;
+                }
+
+                if (statusFilter && !user.status.toLowerCase().includes(statusFilter.toLowerCase())) {
+                    show = false;
+                }
+
+                if (searchQuery && !user.id.toLowerCase().includes(searchQuery)) {
+                    show = false;
+                }
+
+                if (user.element) {
+                    user.element.style.display = show ? '' : 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>
