@@ -18,13 +18,55 @@ depends_on = None
 
 
 def upgrade():
-    """Add dispute comments, attachments, and timeline tables."""
+    """Add disputes table and related tables."""
     from sqlalchemy import inspect
     from sqlalchemy.engine import reflection
 
     conn = op.get_bind()
     inspector = inspect(conn)
     existing_tables = inspector.get_table_names()
+
+    # Create disputes table first (parent table)
+    if "disputes" not in existing_tables:
+        op.create_table(
+            "disputes",
+            sa.Column("id", sa.String(), nullable=False),
+            sa.Column("user_id", sa.String(), nullable=False),
+            sa.Column("transaction_id", sa.String(), nullable=True),
+            sa.Column("payment_log_id", sa.String(), nullable=False),
+            sa.Column("amount", sa.Float(), nullable=False),
+            sa.Column("reason_code", sa.String(), nullable=False),
+            sa.Column("reason_description", sa.String(), nullable=False),
+            sa.Column("dispute_date", sa.DateTime(), nullable=False),
+            sa.Column("status", sa.String(), nullable=False, server_default="opened"),
+            sa.Column("resolution", sa.String(), nullable=True),
+            sa.Column("resolution_date", sa.DateTime(), nullable=True),
+            sa.Column("resolution_notes", sa.String(), nullable=True),
+            sa.Column(
+                "balance_reversed", sa.Boolean(), nullable=False, server_default="false"
+            ),
+            sa.Column("reversal_amount", sa.Float(), nullable=True),
+            sa.Column("reversal_at", sa.DateTime(), nullable=True),
+            sa.Column("evidence_notes", sa.String(), nullable=True),
+            sa.Column("evidence_files", sa.String(), nullable=True),
+            sa.Column("assigned_to", sa.String(), nullable=True),
+            sa.Column("assigned_at", sa.DateTime(), nullable=True),
+            sa.Column("last_updated_by", sa.String(), nullable=True),
+            sa.Column("last_updated_at", sa.DateTime(), nullable=True),
+            sa.Column("created_at", sa.DateTime(), nullable=False),
+            sa.Column("updated_at", sa.DateTime(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+            sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
+            sa.ForeignKeyConstraint(["transaction_id"], ["sms_transactions.id"]),
+            sa.ForeignKeyConstraint(["payment_log_id"], ["payment_logs.id"]),
+        )
+        op.create_index("ix_disputes_user_id", "disputes", ["user_id"])
+        op.create_index("ix_disputes_transaction_id", "disputes", ["transaction_id"])
+        op.create_index("ix_disputes_payment_log_id", "disputes", ["payment_log_id"])
+        op.create_index("ix_disputes_reason_code", "disputes", ["reason_code"])
+        op.create_index("ix_disputes_dispute_date", "disputes", ["dispute_date"])
+        op.create_index("ix_disputes_status", "disputes", ["status"])
+        op.create_index("ix_disputes_created_at", "disputes", ["created_at"])
 
     # Create dispute_comments table only if it doesn't exist
     if "dispute_comments" not in existing_tables:
@@ -98,13 +140,14 @@ def upgrade():
 
 
 def downgrade():
-    """Remove dispute comments, attachments, and timeline tables."""
+    """Remove disputes table and related tables."""
     from sqlalchemy import inspect
 
     conn = op.get_bind()
     inspector = inspect(conn)
     existing_tables = inspector.get_table_names()
 
+    # Drop child tables first (foreign key constraints)
     if "dispute_timeline" in existing_tables:
         op.drop_index("ix_dispute_timeline_created_at", "dispute_timeline")
         op.drop_index("ix_dispute_timeline_dispute_id", "dispute_timeline")
@@ -119,3 +162,14 @@ def downgrade():
         op.drop_index("ix_dispute_comments_created_at", "dispute_comments")
         op.drop_index("ix_dispute_comments_dispute_id", "dispute_comments")
         op.drop_table("dispute_comments")
+
+    # Drop parent table last
+    if "disputes" in existing_tables:
+        op.drop_index("ix_disputes_created_at", "disputes")
+        op.drop_index("ix_disputes_status", "disputes")
+        op.drop_index("ix_disputes_dispute_date", "disputes")
+        op.drop_index("ix_disputes_reason_code", "disputes")
+        op.drop_index("ix_disputes_payment_log_id", "disputes")
+        op.drop_index("ix_disputes_transaction_id", "disputes")
+        op.drop_index("ix_disputes_user_id", "disputes")
+        op.drop_table("disputes")

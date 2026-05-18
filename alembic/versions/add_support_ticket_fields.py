@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "add_support_ticket_fields"
-down_revision = None  # Update this to your latest migration
+down_revision = "f9a8b7c6d5e4"
 branch_labels = None
 depends_on = None
 
