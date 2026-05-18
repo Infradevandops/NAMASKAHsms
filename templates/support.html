@@ -40,6 +40,17 @@
         .priority-btn.selected { border-color: #667eea; background: #f8f9ff; color: #667eea; }
         .success-message { background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
         .error-message { background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        @media (max-width: 768px) {
+            .support-grid { grid-template-columns: 1fr; gap: 20px; }
+            .support-card { padding: 16px; }
+            .category-grid { grid-template-columns: 1fr; }
+            .category-btn { min-height: 44px; }
+            .form-input, .form-textarea, .form-select { font-size: 16px; }
+            .priority-btn { min-height: 44px; padding: 10px 6px; font-size: 12px; }
+            .btn-submit { min-height: 48px; }
+            .faq-question { min-height: 44px; padding: 4px 0; }
+            .ticket-item { min-height: 44px; }
+        }
     </style>
 </head>
 <body>

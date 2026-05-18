@@ -5,6 +5,7 @@
 
 {% block head_extra %}
 {{ super() }}
+<link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
 <style>
     .profile-header {
         background: var(--bg-card);
@@ -34,6 +35,7 @@
         position: relative;
         width: 120px;
         height: 120px;
+        flex-shrink: 0;
         border-radius: 50%;
         border: 4px solid var(--bg-card);
         background: var(--bg-body);
@@ -65,13 +67,15 @@
         font-weight: 600;
     }
 
-    .avatar-container:hover .avatar-overlay {
+    .avatar-container:hover .avatar-overlay,
+    .avatar-container:focus .avatar-overlay {
         opacity: 1;
     }
 
     .profile-info {
         z-index: 1;
         flex: 1;
+        min-width: 0;
     }
 
     .profile-name {
@@ -81,6 +85,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
     }
 
     .profile-email {
@@ -89,6 +94,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        word-break: break-all;
     }
 
     .form-grid {
@@ -144,6 +150,90 @@
 
     .avatar-upload-input {
         display: none;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px 16px;
+            gap: 16px;
+        }
+
+        .profile-bg {
+            height: 90px;
+        }
+
+        .avatar-container {
+            width: 96px;
+            height: 96px;
+        }
+
+        /* Always show overlay on mobile (no hover) */
+        .avatar-container .avatar-overlay {
+            opacity: 0.7;
+            font-size: 12px;
+        }
+
+        .profile-name {
+            font-size: 22px;
+            justify-content: center;
+        }
+
+        .profile-email {
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .card-form {
+            padding: 16px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 12px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+        }
+
+        /* Save button full-width on mobile */
+        #save-profile-btn {
+            width: 100%;
+            min-height: 48px;
+        }
+
+        /* Prevent user-id overflow */
+        #profile-user-id {
+            font-size: 11px;
+            word-break: break-all;
+        }
+
+        /* Form inputs: prevent iOS zoom */
+        .form-input, select.form-input {
+            font-size: 16px !important;
+            min-height: 44px;
+        }
+
+        /* Account Settings link: full-width */
+        .card-form a.btn {
+            display: block;
+            min-height: 44px;
+            line-height: 44px;
+            padding: 0 16px;
+        }
     }
 </style>
 {% endblock %}
@@ -232,8 +322,8 @@
             </select>
         </div>
 
-        <div style="text-align: right; margin-top: 32px;">
-            <button class="btn btn-primary" onclick="saveProfile()" id="save-profile-btn">Save Changes</button>
+        <div style="margin-top: 32px;">
+            <button class="btn btn-primary" onclick="saveProfile()" id="save-profile-btn" style="min-height: 44px;">Save Changes</button>
         </div>
     </div>
 

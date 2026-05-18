@@ -10,6 +10,32 @@ endblock %}
 <!-- Legacy CSS for backward compatibility -->
 <link rel="stylesheet" href="/static/css/loading-animations.css?v=20260506">
 <link rel="stylesheet" href="/static/css/tier-colors.css?v=20260506">
+<link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
+<style>
+    @media (max-width: 640px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        .tier-cta-container {
+            flex-direction: column;
+            width: 100%;
+        }
+        .tier-cta-container .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+        #activity-table {
+            display: none !important;
+        }
+        #activity-mobile-cards {
+            display: block;
+        }
+    }
+    #activity-mobile-cards {
+        display: none;
+    }
+</style>
 
 <!-- Tier Information Card -->
 <div class="card" id="tier-card" aria-live="polite" style="margin-bottom: 24px;">
@@ -67,7 +93,7 @@ endblock %}
 </div>
 
 <div class="stats-grid"
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin-bottom: 40px;">
     <div class="nsk-stat" style="border-left: 3px solid #FE3C72;">
         <div class="nsk-stat-label" data-i18n="dashboard.total_sms">Total SMS</div>
         <div class="nsk-stat-value" id="total-sms">0</div>
@@ -136,6 +162,7 @@ endblock %}
         </thead>
         <tbody id="activity-body"></tbody>
     </table>
+    <div id="activity-mobile-cards" aria-label="Recent verification activity"></div>
     <div id="activity-pagination" style="margin-top: 16px;"></div>
 </div>
 
@@ -279,6 +306,7 @@ endblock %}
             }
 
             let html = '';
+            let mobileHtml = '';
             for (const activity of activities) {
                 const statusColor = activity.status === 'completed' ? '#10b981'
                     : activity.status === 'failed' ? '#ef4444'
@@ -296,10 +324,20 @@ endblock %}
                     </td>
                 </tr>
             `;
+                mobileHtml += `
+                <div class="mobile-card-item">
+                    <div class="card-row"><span class="card-label">Service</span><span class="card-value">${escapeHtml(displayName)}</span></div>
+                    <div class="card-row"><span class="card-label">Number</span><span class="card-value">${escapeHtml(activity.phone_number || '-')}</span></div>
+                    <div class="card-row"><span class="card-label">Time</span><span class="card-value">${formatTime(activity.created_at)}</span></div>
+                    <div class="card-row"><span class="card-label">Status</span><span class="card-value" style="color:${statusColor}">${escapeHtml(activity.status || 'pending')}${activity.status === 'failed' && (activity.cost === 0 || !activity.cost) ? ' <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;">refunded</span>' : ''}</span></div>
+                </div>
+            `;
             }
 
             bodyEl.innerHTML = html;
             tableEl.style.display = 'table';
+            const mobileCards = document.getElementById('activity-mobile-cards');
+            if (mobileCards) mobileCards.innerHTML = mobileHtml;
 
             if (!activityPagination) {
                 activityPagination = new Pagination('activity-pagination', {

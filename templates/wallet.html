@@ -5,6 +5,7 @@
 
 {% block head_extra %}
 {{ super() }}
+<link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
 <style>
     /* Institutional Glassmorphism Design System */
     :root {
@@ -41,6 +42,55 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+        .stat-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .glass-card {
+            padding: 16px;
+        }
+        .grid-presets {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .qr-container {
+            width: 80%;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        .qr-container img, .qr-container canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        .history-table-wrap {
+            display: none;
+        }
+        .history-mobile-cards {
+            display: block !important;
+        }
+        .input-group {
+            flex-direction: column;
+        }
+        .input-group .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+        #section-crypto > div {
+            grid-template-columns: 1fr !important;
+        }
+        .modal-content {
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        }
+        .payment-tabs {
+            width: 100%;
+        }
+        .payment-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 12px;
+        }
     }
 
     .stat-box {
@@ -359,7 +409,7 @@
                 <button onclick="exportAudit()" class="btn" style="padding: 8px 16px; font-size: 13px;" aria-label="Export audit trail as CSV">Export CSV</button>
             </div>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive history-table-wrap">
             <table class="history-table">
                 <thead>
                     <tr>
@@ -376,6 +426,7 @@
                 </tbody>
             </table>
         </div>
+        <div class="history-mobile-cards" style="display:none;"></div>
         <div id="audit-pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;"></div>
     </div>
 </div>
@@ -741,6 +792,24 @@
                         </tr>
                     `;
                 }).join('');
+
+                // Mobile cards
+                const mobileCards = document.querySelector('.history-mobile-cards');
+                if (mobileCards) {
+                    mobileCards.innerHTML = txs.map(tx => {
+                        const amountColor = tx.amount >= 0 ? '#10b981' : '#ef4444';
+                        const statusClass = (tx.status || 'completed').toLowerCase();
+                        return `
+                            <div class="mobile-card-item" onclick='openAuditModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' style="cursor:pointer;">
+                                <div class="card-row"><span class="card-label">Description</span><span class="card-value">${tx.description || tx.type}</span></div>
+                                <div class="card-row"><span class="card-label">Amount</span><span class="card-value" style="color:${amountColor}">${tx.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(tx.amount))}</span></div>
+                                <div class="card-row"><span class="card-label">Balance After</span><span class="card-value">${formatMoney(tx.balance_after || 0)}</span></div>
+                                <div class="card-row"><span class="card-label">Status</span><span class="card-value"><span class="status-badge ${statusClass}">${tx.status || 'Completed'}</span></span></div>
+                                <div class="card-row"><span class="card-label">Date</span><span class="card-value" style="font-size:12px">${new Date(tx.created_at).toLocaleString()}</span></div>
+                            </div>
+                        `;
+                    }).join('');
+                }
             }
         } catch (e) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444;">Error syncing audit trail.</td></tr>`;

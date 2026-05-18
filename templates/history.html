@@ -4,6 +4,40 @@
 {% block page_subtitle %}Your verification history{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
+<style>
+    @media (max-width: 640px) {
+        /* Filter bar: stack vertically */
+        .card > div[style*="flex"] {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        #filter-status, #filter-service, #filter-phone, #filter-date {
+            width: 100%;
+            font-size: 16px !important;
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+        .card > div > .btn {
+            min-height: 44px;
+            width: 100%;
+        }
+        /* History table: hide on mobile */
+        .card[style*="padding: 0"] {
+            display: none;
+        }
+        #history-mobile-cards {
+            display: block !important;
+        }
+        /* Audit modal: full-screen on mobile */
+        .modal-content {
+            margin: 0 !important;
+            border-radius: 0 !important;
+            max-height: 100vh !important;
+            height: 100vh;
+        }
+    }
+</style>
 <div class="card" style="margin-bottom: 16px;">
     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
         <select id="filter-status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
@@ -28,13 +62,13 @@
     <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
         <thead style="background: #f8fafc;">
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th onclick="sortHistory('service_name')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px; cursor: pointer; user-select: none;">SERVICE / COUNTRY <span id="sort-service_name" class="sort-indicator"></span></th>
-                <th onclick="sortHistory('phone_number')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">NUMBER / CARRIER <span id="sort-phone_number" class="sort-indicator"></span></th>
-                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">TX ID</th>
-                <th style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">SMS CODE</th>
-                <th onclick="sortHistory('status')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">STATUS / STATE <span id="sort-status" class="sort-indicator"></span></th>
-                <th onclick="sortHistory('cost')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px; cursor: pointer; user-select: none;">NET COST <span id="sort-cost" class="sort-indicator"></span></th>
-                <th onclick="sortHistory('created_at')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px; cursor: pointer; user-select: none;">DATE <span id="sort-created_at" class="sort-indicator"></span></th>
+                <th onclick="sortHistory('service_name')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('service_name')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px; cursor: pointer; user-select: none;">SERVICE / COUNTRY <span id="sort-service_name" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('phone_number')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('phone_number')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">NUMBER / CARRIER <span id="sort-phone_number" class="sort-indicator" aria-hidden="true"></span></th>
+                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">TX ID</th>
+                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">SMS CODE</th>
+                <th onclick="sortHistory('status')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('status')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">STATUS / STATE <span id="sort-status" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('cost')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('cost')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px; cursor: pointer; user-select: none;">NET COST <span id="sort-cost" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('created_at')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('created_at')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px; cursor: pointer; user-select: none;">DATE <span id="sort-created_at" class="sort-indicator" aria-hidden="true"></span></th>
             </tr>
         </thead>
         <tbody id="history-body">
@@ -44,6 +78,8 @@
         </tbody>
     </table>
 </div>
+
+<div id="history-mobile-cards" style="display:none;"></div>
 
 <div id="history-pagination" style="margin-top: 0;"></div>
 
@@ -96,10 +132,12 @@
         } else {
             currentSort = { field, dir: 'asc' };
         }
-        // Update indicators
         document.querySelectorAll('.sort-indicator').forEach(el => el.textContent = '');
+        document.querySelectorAll('th[role="columnheader"]').forEach(th => th.setAttribute('aria-sort', 'none'));
         const indicator = document.getElementById(`sort-${field}`);
         if (indicator) indicator.textContent = currentSort.dir === 'asc' ? '\u25B2' : '\u25BC';
+        const th = indicator?.closest('th');
+        if (th) th.setAttribute('aria-sort', currentSort.dir === 'asc' ? 'ascending' : 'descending');
 
         // Sort current page data
         const sorted = [...allHistory].sort((a, b) => {
@@ -271,7 +309,117 @@ function formatPhone(raw) {
         const tbody = document.getElementById('history-body');
         const retryMap = detectRetryChains(items);
 
-        tbody.innerHTML = items.map((item, idx) => {
+        const rowsHtml = items.map((item, idx) => {
+            const status = item.status || 'unknown';
+            let statusColor = '#f3f4f6';
+            let statusText = '#374151';
+
+            switch (status.toLowerCase()) {
+                case 'completed':
+                    statusColor = '#dcfce7';
+                    statusText = '#166534';
+                    break;
+                case 'pending':
+                    statusColor = '#fef9c3';
+                    statusText = '#854d0e';
+                    break;
+                case 'failed':
+                case 'cancelled':
+                case 'timeout':
+                case 'refunded':
+                    statusColor = '#fee2e2';
+                    statusText = '#991b1b';
+                    break;
+            }
+
+            let stateLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            if (item.failure_reason) {
+                stateLabel = item.failure_reason.replace(/_/g, ' ');
+                stateLabel = stateLabel.charAt(0).toUpperCase() + stateLabel.slice(1);
+            }
+
+            const txIdShort = item.debit_transaction_id ? item.debit_transaction_id.slice(0, 8) : '-';
+            const carrier = (item.assigned_carrier || item.operator || 'Auto').slice(0, 15);
+            const dateObj = new Date(item.created_at);
+            const isExpanded = expandedRows.has(item.id);
+            const retry = retryMap[idx];
+            const retryBadge = retry ? `<span class="retry-badge">Retry #${retry.pos}</span>` : '';
+
+            return `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer;" onclick="viewDetails('${item.id}')" data-id="${item.id}">
+                <td style="padding: 10px 12px;">
+                    <span id="toggle-${item.id}" class="expand-toggle${isExpanded ? ' open' : ''}" onclick="toggleExpand(event,'${item.id}')">▶</span>
+                    <div style="display:inline-block;vertical-align:middle;">
+                        <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}${retryBadge}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                    </div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-size: 13px;">${formatPhone(item.phone_number)}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${carrier}</div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-size: 11px; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; display: inline-block;" title="${item.debit_transaction_id}">
+                        #${txIdShort}
+                    </div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <div style="font-family: monospace; font-weight: bold; color: var(--primary);">${item.sms_code || '-'}</div>
+                </td>
+                <td style="padding: 10px 12px;">
+                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${statusColor}; color: ${statusText}; display: inline-block;">
+                        ${stateLabel}
+                    </span>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${item.failure_category || ''}</div>
+                </td>
+                <td style="padding: 10px 12px; text-align: right; font-weight: 600;">
+                    ${formatMoney(item.cost || 0)}
+                </td>
+                <td style="padding: 10px 12px; text-align: right;">
+                    <div style="font-size: 12px;" title="${dateObj.toLocaleString()}">${relativeTime(item.created_at)}</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    ${latencyBadge(item.latency)}
+                    <button onclick="event.stopPropagation(); reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
+                        style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
+                </td>
+            </tr>
+            <tr id="expand-${item.id}" class="expand-row" style="display:${isExpanded ? 'table-row' : 'none'};">
+                <td colspan="7">${buildExpandContent(item)}</td>
+            </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = rowsHtml;
+
+        // Mobile cards
+        const mobileContainer = document.getElementById('history-mobile-cards');
+        if (mobileContainer) {
+            mobileContainer.innerHTML = items.map(item => {
+                const status = item.status || 'unknown';
+                let statusColor = '#f3f4f6', statusText = '#374151';
+                if (status === 'completed') { statusColor = '#dcfce7'; statusText = '#166534'; }
+                else if (status === 'pending') { statusColor = '#fef9c3'; statusText = '#854d0e'; }
+                else if (['failed','cancelled','timeout','refunded'].includes(status)) { statusColor = '#fee2e2'; statusText = '#991b1b'; }
+                let stateLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                if (item.failure_reason) stateLabel = item.failure_reason.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+                return `
+                <div class="mobile-card-item" onclick="viewDetails('${item.id}')" style="cursor:pointer;">
+                    <div class="card-row">
+                        <span class="card-value" style="text-transform:capitalize;font-size:14px;">${item.service_name || '-'}</span>
+                        <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${statusColor};color:${statusText};">${stateLabel}</span>
+                    </div>
+                    <div class="card-row"><span class="card-label">Number</span><span class="card-value" style="font-family:monospace;font-size:12px;">${formatPhone(item.phone_number)}</span></div>
+                    ${item.sms_code ? `<div class="card-row"><span class="card-label">Code</span><span class="card-value" style="font-family:monospace;color:var(--primary,#FE3C72);font-weight:700;">${item.sms_code}</span></div>` : ''}
+                    <div class="card-row"><span class="card-label">Cost</span><span class="card-value">${formatMoney(item.cost||0)}</span></div>
+                    <div class="card-row"><span class="card-label">Date</span><span class="card-value" style="font-size:12px;">${relativeTime(item.created_at)}</span></div>
+                    <div style="margin-top:8px;">
+                        <button onclick="event.stopPropagation();reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
+                            style="font-size:12px;padding:6px 14px;background:var(--primary,#FE3C72);color:white;border:none;border-radius:6px;cursor:pointer;min-height:36px;">Reuse</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
             const status = item.status || 'unknown';
             let statusColor = '#f3f4f6';
             let statusText = '#374151';

@@ -34,6 +34,7 @@
         font-size: 13px;
         cursor: pointer;
         transition: all 0.2s;
+        min-height: 36px;
     }
 
     .filter-btn:hover, .filter-btn.active {
@@ -185,6 +186,32 @@
 
         .notification-actions {
             margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .notification-btn {
+            min-height: 36px;
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .notifications-actions {
+            width: 100%;
+        }
+
+        .notifications-actions .btn {
+            flex: 1;
+            min-height: 44px;
+        }
+
+        .filter-btn {
+            min-height: 40px;
+            padding: 8px 14px;
+        }
+
+        .notification-filters {
+            gap: 6px;
         }
     }
 </style>
@@ -193,13 +220,13 @@
 {% block content %}
 <div class="notifications-header">
     <div>
-        <span id="unread-count" style="font-size: 14px; color: var(--text-muted);">Loading...</span>
+        <span id="unread-count" style="font-size: 14px; color: var(--text-muted);" aria-live="polite" aria-atomic="true">Loading...</span>
     </div>
     <div class="notifications-actions">
-        <button class="btn btn-secondary" onclick="markAllRead()" id="mark-all-btn" style="padding: 8px 16px;" disabled>
+        <button class="btn btn-secondary" onclick="markAllRead()" id="mark-all-btn" style="padding: 8px 16px;" disabled aria-label="Mark all notifications as read">
             ✓ Mark All Read
         </button>
-        <button class="btn btn-secondary" onclick="loadNotifications()" style="padding: 8px 16px;">
+        <button class="btn btn-secondary" onclick="loadNotifications()" style="padding: 8px 16px;" aria-label="Refresh notifications">
             Refresh
         </button>
     </div>
