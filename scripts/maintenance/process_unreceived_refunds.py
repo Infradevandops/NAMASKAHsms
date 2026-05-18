@@ -1,16 +1,18 @@
 """Process refunds for verifications that were charged but never received SMS."""
 
 
+import argparse
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import and_, or_
+
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

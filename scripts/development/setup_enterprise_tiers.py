@@ -4,6 +4,7 @@
 from app.core.database import SessionLocal
 from app.models.enterprise import EnterpriseTier
 
+
 def setup_default_tiers():
 
     """Create default enterprise tiers."""

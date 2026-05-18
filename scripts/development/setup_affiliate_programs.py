@@ -4,6 +4,7 @@
 
 import os
 import sys
+
 from app.core.database import get_db
 from app.models.affiliate import AffiliateProgram
 

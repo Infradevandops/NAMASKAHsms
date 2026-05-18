@@ -5,6 +5,7 @@ import ast
 import os
 import re
 
+
 def get_model_fields(model_file):
 
     """Extract Column fields from SQLAlchemy model."""

@@ -2,6 +2,7 @@
 
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import get_settings
 
 settings = get_settings()

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Add credits to user account for testing."""
 
-import sys
 import os
+import sys
 from decimal import Decimal
 
 # Add app to path

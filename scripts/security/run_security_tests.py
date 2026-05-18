@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 def run_security_tests():
 
     """Run all security tests."""
