@@ -19,28 +19,57 @@ depends_on = None
 
 def upgrade():
     """Add priority and subject columns to support_tickets table."""
-    # Add priority column with default value
-    op.add_column(
-        "support_tickets",
-        sa.Column("priority", sa.String(), nullable=False, server_default="medium"),
-    )
+    from sqlalchemy import inspect
 
-    # Add subject column with default value for existing rows
-    op.add_column(
-        "support_tickets",
-        sa.Column("subject", sa.String(), nullable=True),  # Nullable first
-    )
+    conn = op.get_bind()
+    inspector = inspect(conn)
 
-    # Update existing rows to have a subject
-    op.execute(
-        "UPDATE support_tickets SET subject = 'Support Request' WHERE subject IS NULL"
-    )
+    # Check if table exists
+    if "support_tickets" not in inspector.get_table_names():
+        return
 
-    # Make subject non-nullable
-    op.alter_column("support_tickets", "subject", nullable=False)
+    # Get existing columns
+    existing_columns = [col["name"] for col in inspector.get_columns("support_tickets")]
+
+    # Add priority column if it doesn't exist
+    if "priority" not in existing_columns:
+        op.add_column(
+            "support_tickets",
+            sa.Column("priority", sa.String(), nullable=False, server_default="medium"),
+        )
+
+    # Add subject column if it doesn't exist
+    if "subject" not in existing_columns:
+        op.add_column(
+            "support_tickets",
+            sa.Column("subject", sa.String(), nullable=True),
+        )
+
+        # Update existing rows to have a subject
+        op.execute(
+            "UPDATE support_tickets SET subject = 'Support Request' WHERE subject IS NULL"
+        )
+
+        # Make subject non-nullable
+        op.alter_column("support_tickets", "subject", nullable=False)
 
 
 def downgrade():
     """Remove priority and subject columns from support_tickets table."""
-    op.drop_column("support_tickets", "subject")
-    op.drop_column("support_tickets", "priority")
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+
+    # Check if table exists
+    if "support_tickets" not in inspector.get_table_names():
+        return
+
+    # Get existing columns
+    existing_columns = [col["name"] for col in inspector.get_columns("support_tickets")]
+
+    # Drop columns only if they exist
+    if "subject" in existing_columns:
+        op.drop_column("support_tickets", "subject")
+    if "priority" in existing_columns:
+        op.drop_column("support_tickets", "priority")

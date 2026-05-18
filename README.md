@@ -482,8 +482,9 @@ graph TB
     style METRICS fill:#2196F3
 ```
 
-### Sentry Integration ✅
+### Monitoring Stack ✅
 
+#### Sentry - Error Tracking
 **Status**: Active in Production
 **Dashboard**: https://dev-vp.sentry.io/issues/
 
@@ -499,6 +500,20 @@ graph TB
 - [Setup Guide](./docs/SENTRY_SETUP.md)
 - [Deployment Checklist](./docs/SENTRY_DEPLOYMENT_CHECKLIST.md)
 - [Quick Reference](./docs/SENTRY_QUICK_REFERENCE.md)
+
+#### Better Stack - Uptime Monitoring
+**Status**: Active in Production
+**Dashboard**: https://uptime.betterstack.com/team/t545038/monitors/4422808
+
+**Features**:
+- ✅ Uptime monitoring (3-minute intervals)
+- ✅ Response time tracking (~200ms)
+- ✅ Europe region monitoring
+- ✅ Incident alerts (0 incidents)
+- ✅ Zero memory footprint (cloud-based)
+
+**Monitored Endpoints**:
+- Primary: https://vrenum.app
 
 ---
 
