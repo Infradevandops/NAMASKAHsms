@@ -28,7 +28,7 @@ def test_sidebar_titles_not_showing_internal_keys():
         "Webhooks",
         "Whitelabel",
         "Telegram",
-        "Push Setup",
+        "Push Notifications",
         "Insights",
         "Analytics",
         "Support",
