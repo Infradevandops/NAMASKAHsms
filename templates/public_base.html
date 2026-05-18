@@ -37,7 +37,7 @@
     </header>
 
     <main class="public-content">
-        {% block public_content %}{% endblock %}
+        {% block public_content %}{% block content %}{% endblock %}{% endblock %}
     </main>
 
     <footer class="public-footer">

@@ -857,6 +857,57 @@ async def admin_disaster_recovery_page(
     )
 
 
+# ============================================
+# SEO CONTENT PAGES (Phase 10)
+# ============================================
+
+
+@router.get("/how-it-works", response_class=HTMLResponse)
+async def how_it_works_page(request: Request):
+    """How It Works - public SEO page."""
+    return templates.TemplateResponse("how_it_works.html", {"request": request})
+
+
+@router.get("/supported-services", response_class=HTMLResponse)
+async def supported_services_page(request: Request):
+    """Supported Services - public SEO page."""
+    return templates.TemplateResponse("supported_services.html", {"request": request})
+
+
+@router.get("/pricing-comparison", response_class=HTMLResponse)
+async def pricing_comparison_page(request: Request):
+    """Pricing Comparison - public SEO page."""
+    return templates.TemplateResponse("pricing_comparison.html", {"request": request})
+
+
+@router.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_page(request: Request, slug: str):
+    """Blog pages - public SEO content."""
+    allowed = {
+        "how-to-verify-whatsapp-without-phone-number",
+        "best-sms-verification-services",
+        "temporary-phone-number-for-telegram",
+        "usa-virtual-phone-numbers",
+        "whatsapp-verification",
+    }
+    if slug not in allowed:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    return templates.TemplateResponse(f"blog/{slug}.html", {"request": request})
+
+
+@router.get("/services/{slug}", response_class=HTMLResponse)
+async def service_detail_page(request: Request, slug: str):
+    """Dynamic service pages — live price from TextVerified Redis cache."""
+    from app.core.seo_services import get_service_for_page
+
+    service = await get_service_for_page(slug)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return templates.TemplateResponse(
+        "service_detail.html", {"request": request, "service": service}
+    )
+
+
 @router.get("/admin/alerts", response_class=HTMLResponse)
 async def admin_alerts_page(
     request: Request,

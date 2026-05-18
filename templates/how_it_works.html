@@ -1,0 +1,83 @@
+{% extends "public_base.html" %}
+{% block title %}How Vrenum SMS Verification Works{% endblock %}
+{% block meta_description %}Learn how Vrenum SMS verification works. Get a temporary phone number, receive your code instantly, and verify any service in under 2 minutes.{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-12 max-w-3xl">
+  <h1 class="text-3xl font-bold mb-4">How Vrenum SMS Verification Works</h1>
+  <p class="text-gray-600 mb-10">Get a temporary phone number, receive your SMS code instantly, and verify any service — in under 2 minutes.</p>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">What Is a Virtual Phone Number?</h2>
+  <p class="mb-6">A virtual phone number is a real mobile number that exists in the cloud — no SIM card required. It can receive SMS messages just like a regular phone number. Vrenum provides these numbers on demand so you can verify any service without exposing your personal number.</p>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">Step-by-Step Walkthrough</h2>
+  <div class="space-y-6 mb-8">
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+      <div>
+        <h3 class="font-semibold">Create a free account</h3>
+        <p class="text-gray-600">Sign up at vrenum.app. No credit card required to register.</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+      <div>
+        <h3 class="font-semibold">Add credits to your wallet</h3>
+        <p class="text-gray-600">Top up with as little as $5. Credits never expire.</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+      <div>
+        <h3 class="font-semibold">Select your service and country</h3>
+        <p class="text-gray-600">Choose from 1,807+ services (WhatsApp, Telegram, Google, etc.) and 200+ countries.</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">4</div>
+      <div>
+        <h3 class="font-semibold">Get your phone number instantly</h3>
+        <p class="text-gray-600">A real mobile number is assigned to you in under 3 seconds.</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">5</div>
+      <div>
+        <h3 class="font-semibold">Enter the number in your service</h3>
+        <p class="text-gray-600">Use the number in WhatsApp, Telegram, Google, or whichever service you're verifying.</p>
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">6</div>
+      <div>
+        <h3 class="font-semibold">Receive your SMS code automatically</h3>
+        <p class="text-gray-600">The verification code appears in your Vrenum dashboard — usually within 60 seconds.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">Automatic Refund Policy</h2>
+  <p class="mb-6">If no SMS is received within 20 minutes, your credits are automatically refunded — no support ticket needed, no questions asked.</p>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">Frequently Asked Questions</h2>
+  <div class="space-y-4 mb-8">
+    <div>
+      <h3 class="font-semibold">Are the numbers real mobile numbers?</h3>
+      <p class="text-gray-600">Yes — Vrenum provides real mobile numbers, not VOIP. They are accepted by WhatsApp, Telegram, Google, and all major services.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">Can I reuse a number?</h3>
+      <p class="text-gray-600">No — each number is single-use to ensure it's fresh and unregistered.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">How long is the number active?</h3>
+      <p class="text-gray-600">20 minutes — more than enough time to receive your verification code.</p>
+    </div>
+  </div>
+
+  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center">
+    <p class="text-lg font-semibold mb-2">Start verifying in 2 minutes</p>
+    <a href="/register" class="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700">Get Started Free →</a>
+  </div>
+</main>
+{% endblock %}

@@ -1,230 +1,174 @@
-# Platform Status - Namaskah SMS Verification
+# Platform Status — VRENUM ACTV8TN
 
-**Version**: v4.7.1
-**Status**: 🟢 Production Deployed
-**Last Updated**: May 12, 2026
-**Readiness**: 95/100
-
----
-
-## 🎯 Current State
-
-### Recent Deployment (v4.7.1)
-- ✅ Email template editor (Pro+ feature)
-- ✅ Navigation improvements (locked features visible)
-- ✅ Upgrade prompts working
-- ✅ Quick access section
-- ✅ Database schema fixed
-- ✅ Test users created
-
-**Deployed**: May 12, 2026
-**Commit**: 4cef16ab
-**Time Invested**: 1h 37min
+**Version**: v4.7.3
+**Status**: 🟢 Production Ready
+**Last Updated**: May 18, 2026
+**Readiness**: 98/100
 
 ---
 
-## 📊 Platform Metrics
+## Current State
+
+### Latest Version (v4.7.3) — May 17, 2026
+- ✅ All 23 sidebar tabs production ready (100%)
+- ✅ Support tab — reply UI, live chat, KB search (14 tests)
+- ✅ Admin Dashboard — auto-refresh, CSV export, filtering (21 tests)
+- ✅ Disputes tab — evidence upload, timeline, resolution (12 tests)
+- ✅ Email Templates — versioning, test email, analytics (17 tests)
+- ✅ GDPR Settings — multi-format export, consent management (6 tests)
+- ✅ 70 new tests added, 9 new API endpoints, 5 new DB tables
+- ✅ Full rebrand to VRENUM ACTV8TN (186 files, 3 commits)
+- ✅ SEO infrastructure — blog pages, service pages, OG tags, GA4, sitemap
+
+### Previous Versions
+- v4.7.2 (May 16): Tab Enhancements Phase 1
+- v4.7.1 (May 12): Area Code Tier Gating & Revenue Optimization
+- v4.6.0 (May 7): Platform Hardening, Rentals & Voice
+- v4.5.0 (May 6): Admin Intelligence & Growth Services
+
+---
+
+## Platform Metrics
 
 ### Codebase
-- **498 API endpoints** (actual count)
-- **361 Python files**
-- **92 HTML templates**
-- **102 database tables**
-- **2,338 tests** (collecting cleanly)
+- **Routes**: 839 (678 unique paths)
+- **Python files**: 352
+- **HTML templates**: 92 (+ 9 new SEO templates)
+- **Database tables**: 105
+- **Test files**: 223
+- **Test cases**: 2,400+
+- **Coverage**: 81.48%
 
 ### Services
 - **63 service classes**
-- **Core Business**: Auth, Payment, SMS, Verification
-- **Admin Intelligence**: Analytics, Audit, Monitoring
-- **Growth**: Affiliate, Whitelabel, Reseller
+- Core Business: Auth, Payment, SMS, Verification
+- Admin Intelligence: Analytics, Audit, Monitoring
+- Growth: Affiliate, Whitelabel, Reseller
 
 ### Performance
-- **API Response**: <200ms (p95)
-- **Cache Hit Rate**: 90%
-- **Error Rate**: <0.1%
-- **Uptime**: 99.9%+
+- API Response: <200ms (p95)
+- Cache Hit Rate: 90%
+- Error Rate: <0.1%
+- Uptime: 99.9%+
 
 ---
 
-## ✅ Production Readiness
+## Production Readiness
 
-### Backend (100%)
-- [x] Error handling
-- [x] Critical service tests
-- [x] Database migrations
-- [x] API documentation
-- [x] Security hardening (OWASP)
-- [x] Rate limiting
-- [x] Monitoring (Sentry)
-- [x] Logging
+### Backend ✅ 100%
+- [x] Error handling & unified middleware
+- [x] Database migrations (Alembic, Neon PostgreSQL)
+- [x] API documentation (Swagger + ReDoc)
+- [x] Security hardening (OWASP Top 10)
+- [x] Rate limiting (unified)
+- [x] Monitoring (Sentry active)
+- [x] Audit logging on all admin actions
+- [x] JWT JTI revocation (Redis blacklist)
+- [x] MFA (setup/verify/disable/login enforcement)
 
-### Frontend (95%)
-- [x] Responsive design
-- [x] Error handling
-- [x] Loading states
-- [x] Accessibility
-- [x] i18n support (9 languages)
-- [x] WebSocket real-time updates
-- [x] Email template editor
-- [x] Navigation improvements
-- [x] 18/23 tabs production ready (78%)
-- [x] 5/23 tabs need minor enhancements (22%)
-- [x] History tab (100% complete, 1,823 lines)
-- [x] Analytics tab (100% complete, 1,200+ lines)
+### Frontend ✅ 100%
+- [x] 23/23 tabs production ready
+- [x] Responsive design + mobile UI (Phase 1+2 complete)
+- [x] Glassmorphism design system
+- [x] i18n — 9 languages
+- [x] WebSocket real-time updates (payment + SMS)
+- [x] Tier-aware access control on all features
+- [x] Accessibility (WCAG AA, ARIA labels, keyboard nav)
 
-### Infrastructure (100%)
+### Infrastructure ✅ 100%
+- [x] Render.com hosting (web service)
+- [x] Neon PostgreSQL (production DB, auto-backups)
+- [x] Upstash Redis (cache + session blacklist)
+- [x] CI/CD pipeline (GitHub Actions)
+- [x] SSL/TLS (Let's Encrypt via Render, auto-renew)
+- [x] Health check endpoint (`/health`)
 - [x] Docker configuration
-- [x] CI/CD pipeline
-- [x] Database backups
-- [x] SSL/TLS
-- [x] Environment configs
-- [x] Health checks
 
-### Documentation (95%)
-- [x] API documentation
-- [x] Setup guides
-- [x] Architecture docs
-- [x] Deployment guides
-- [x] Testing guides
-- [x] Security docs
-- [x] Sidebar assessment (SIDEBAR_ASSESSMENT.md)
-- [x] Tab-by-tab status documentation
+### SEO & Analytics ✅ Complete
+- [x] Google Analytics 4 (G-M15PBV1P55)
+- [x] Google Search Console + sitemap submitted
+- [x] robots.txt — vrenum.app domain
+- [x] sitemap.xml — 40 URLs
+- [x] OG + Twitter Card tags on all pages
+- [x] Canonical tags on all pages
+- [x] JSON-LD structured data on service pages
+- [x] 5 blog pages (50K–5K monthly search keywords)
+- [x] 5 static SEO pages
+- [x] 20 dynamic service pages (live Redis pricing)
 
 ---
 
-## 🔄 Active Development
-
-### Phase 8: Growth & Adoption (Planning)
-- 📝 SDK Libraries (Python, JavaScript)
-- 📝 Onboarding Tour
-- 📝 Feature Tooltips
-- 📝 Marketing improvements
-
-### Pending Configuration
-- ⏸️ Telegram SMS forwarding (code complete, needs bot token)
-- ⏸️ Push notifications (deferred - WebSocket active)
-
----
-
-## 📋 Remaining Tasks
-
-### P2 - Optimizations (Triggered by Scale)
-- Fraud metrics rolling averages (>500 verifications)
-- Voice transcription (>50 voice/month)
-
-### P3 - Growth Features
-- SDK Libraries (2-3 weeks) - HIGH PRIORITY
-- Telegram forwarding (1 day)
-- Push notifications (1 week)
-
-### P4 - Enterprise Features
-- Tax collection (>100 users)
-- Reseller program (partner agreement)
-- KYC document storage (user request)
-- Multi-region deployment (Q3 2026)
-
-**See**: `ACTIVE_TASKS.md` for complete task list
-
----
-
-## 🔒 Security Status
+## Security Status
 
 - ✅ OWASP Top 10 compliant
 - ✅ JWT authentication with JTI revocation
-- ✅ MFA support (setup/verify/disable)
-- ✅ Rate limiting
-- ✅ Input validation
-- ✅ SQL injection protection
-- ✅ XSS/CSRF protection
+- ✅ MFA (TOTP via pyotp)
+- ✅ Rate limiting (per-endpoint)
+- ✅ Input validation + XSS/CSRF protection
+- ✅ SQL injection protection (SQLAlchemy ORM)
 - ✅ Secrets management
 - ✅ Audit logging
+- ✅ Fraud scoring with real heuristics
 
 ---
 
-## 🐛 Known Issues
+## Known Issues
 
-**None** - All critical issues resolved ✅
-
----
-
-## 📈 Success Metrics
-
-### Technical
-- 0 critical bugs
-- 498 API endpoints working
-- 94/100 production readiness
-- <200ms API response time
-- 99.9% uptime
-
-### Business (Targets)
-- 100 signups/month
-- 20% conversion to paid
-- $2,000 MRR
-- 90% user satisfaction
+**None** — All critical issues resolved ✅
 
 ---
 
-## 🚀 Deployment Info
+## Deployment Info
 
-**Environment**: Production (Render.com)
-**Database**: PostgreSQL (Neon)
-**Cache**: Redis
-**Monitoring**: Sentry
-**Status**: ✅ Stable
-
-**Recent Deployments**:
-- v4.7.1 (May 12, 2026): Email templates + Navigation
-- v4.6.0 (May 7, 2026): Platform hardening, rentals, voice
-- v4.5.0 (May 6, 2026): Admin intelligence
+| Item | Value |
+|------|-------|
+| Hosting | Render.com |
+| Database | Neon PostgreSQL (Frankfurt) |
+| Cache | Upstash Redis |
+| Monitoring | Sentry + Better Stack |
+| Domain | https://vrenum.app |
+| Start command | `alembic upgrade head && gunicorn main:app` |
 
 ---
 
-## 📞 Support & Resources
+## Pending Configuration (Non-blocking)
 
-**Documentation**:
-- README.md - Platform overview
-- STATUS.md - Current state
-- ACTIVE_TASKS.md - Remaining tasks
-- PLATFORM_STATUS.md - This file
-
-**Monitoring**:
-- Sentry: https://dev-vp.sentry.io/issues/
-- Render: https://dashboard.render.com
-
-**Test Users**:
-- Admin: admin@namaskah.app / admin123
-- Test: test@example.com / testpassword123
-
-**Endpoints**:
-- Health: `/health`
-- API Docs: `/api/docs`
-- Admin: `/admin`
+- ⏸️ Telegram SMS forwarding — code complete, needs `TELEGRAM_BOT_TOKEN` set
+- ⏸️ Push notifications — deferred, WebSocket active and sufficient
 
 ---
 
-## 🎯 Next Steps
+## Remaining Tasks by Priority
 
-### Immediate (This Week)
-1. Monitor deployment (48 hours)
-2. Collect user feedback
-3. Fix any critical bugs
-4. Choose Phase 8 or Quick Wins
+### P2 — Triggered by Scale
+- Fraud metrics rolling averages (>500 verifications)
+- Voice transcription improvements (>50 voice/month)
 
-### Short-term (2-3 weeks)
-- SDK Libraries development
-- Onboarding tour implementation
-- Marketing improvements
+### P3 — Growth Features
+- SDK Libraries (Python, JavaScript) — 2-3 weeks
+- Onboarding tour (6-step walkthrough)
+- Mobile UI Phase 3
 
-### Long-term (Q3 2026)
-- Multi-region deployment
-- Enterprise features
-- Tax collection
-- Reseller program
+### P4 — Enterprise (Demand-triggered)
+- Tax collection (>100 users)
+- Reseller program (partner agreement)
+- Multi-region deployment (Q3 2026)
 
 ---
 
-**Platform Status**: 🟢 PRODUCTION DEPLOYED
-**Confidence Level**: VERY HIGH
-**Next Review**: After Phase 8 completion
+## Support & Resources
 
-🚀 **Platform is live and ready for growth!**
+| Resource | Location |
+|----------|----------|
+| Sentry | https://dev-vp.sentry.io/issues/ |
+| Better Stack | https://uptime.betterstack.com/team/t545038/monitors/4422808 |
+| Render | https://dashboard.render.com |
+| GitHub | https://github.com/Infradevandops/NAMASKAHsms |
+| API Docs | https://vrenum.app/docs |
+| Admin | https://vrenum.app/admin |
+
+---
+
+**Platform Status**: 🟢 PRODUCTION READY
+**Confidence**: 98%
+**Next Review**: Post-launch (30 days)

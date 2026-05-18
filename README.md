@@ -1,18 +1,18 @@
-# Namaskah SMS Verification Platform
+# VRENUM ACTV8TN — SMS Verification Platform
 
 **Version**: 4.7.3 - Production Ready 🚀
 **Status**: Ready to Deploy
-**Updated**: May 17, 2026
+**Updated**: May 18, 2026
 
-![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/namaskah-sms/ci.yml?branch=main)
-![Coverage](https://img.shields.io/codecov/c/github/yourusername/namaskah-sms)
-![Python Version](https://img.shields.io/badge/python-3.11-blue)
+![Build Status](https://img.shields.io/github/actions/workflow/status/Infradevandops/NAMASKAHsms/ci.yml?branch=main)
+![Coverage](https://img.shields.io/badge/coverage-81.48%25-yellow)
+![Python Version](https://img.shields.io/badge/python-3.9-blue)
 
 ---
 
 ## 🏗️ Architecture Overview
 
-Namaskah follows a **Modular Monolith** architecture pattern, providing the benefits of microservices organization while maintaining the simplicity of a monolithic deployment.
+VRENUM ACTV8TN follows a **Modular Monolith** architecture pattern, providing the benefits of microservices organization while maintaining the simplicity of a monolithic deployment.
 
 ```mermaid
 graph TB
@@ -309,7 +309,7 @@ Node.js 18+ (for frontend build)
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/namaskah-sms.git
+git clone https://github.com/Infradevandops/NAMASKAHsms.git
 cd namaskah-sms
 
 # 2. Create virtual environment
@@ -340,7 +340,7 @@ uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 **Total Routes**: 839 (678 unique paths)
 **API Endpoints**: 750+
-**HTML Routes**: 86
+**HTML Routes**: 89 (including SEO pages)
 
 ### Authentication
 ```http
@@ -497,9 +497,7 @@ graph TB
 - ✅ Redis, SQLAlchemy, FastAPI integrations
 
 **Documentation**:
-- [Setup Guide](./docs/SENTRY_SETUP.md)
-- [Deployment Checklist](./docs/SENTRY_DEPLOYMENT_CHECKLIST.md)
-- [Quick Reference](./docs/SENTRY_QUICK_REFERENCE.md)
+- [Sentry Dashboard](https://dev-vp.sentry.io/issues/)
 
 #### Better Stack - Uptime Monitoring
 **Status**: Active in Production
@@ -618,18 +616,14 @@ services:
 ## 📚 Documentation
 
 ### 🚀 Getting Started
-- **[SETUP.md](./SETUP.md)** - Complete setup and deployment guide
-- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and releases
-
-### 🎯 Carrier & Area Code Alignment
-- **[docs/fixes/CARRIER_LOOKUP_IMPLEMENTATION.md](./docs/fixes/CARRIER_LOOKUP_IMPLEMENTATION.md)** - Carrier lookup system (Phase 1-4)
-- **[docs/fixes/TEXTVERIFIED_CARRIER_IMPLEMENTATION.md](./docs/fixes/TEXTVERIFIED_CARRIER_IMPLEMENTATION.md)** - 7 issues fixed, 8 features, 10 manual tests
-- **[docs/tasks/CARRIER_LOOKUP_STRATEGY.md](./docs/tasks/CARRIER_LOOKUP_STRATEGY.md)** - Google libphonenumber recommendation
-- **[docs/tasks/TEXTVERIFIED_ALIGNMENT_ROADMAP.md](./docs/tasks/TEXTVERIFIED_ALIGNMENT_ROADMAP.md)** - 5 milestones, 15 tasks
+- **[CHANGELOG.md](./CHANGELOG.md)** — Version history and releases
+- **[PLATFORM_STATUS.md](./PLATFORM_STATUS.md)** — Current platform status
+- **[PRODUCTION_SETUP_CHECKLIST.md](./PRODUCTION_SETUP_CHECKLIST.md)** — Launch checklist
 
 ### 📋 Reference
-- **[DOCUMENTATION_ORGANIZATION.md](./DOCUMENTATION_ORGANIZATION.md)** - Documentation structure guide
-- **[CLEANUP_COMPLETE.md](./CLEANUP_COMPLETE.md)** - Archive organization summary
+- **[PRICING_REFERENCE.md](./PRICING_REFERENCE.md)** — Definitive pricing guide
+- **[docs/INDEX.md](./docs/INDEX.md)** — Full documentation index
+- **[docs/PLATFORM_ASSESSMENT.md](./docs/PLATFORM_ASSESSMENT.md)** — Technical scorecard
 
 ---
 
@@ -752,13 +746,13 @@ MIT License - See [LICENSE](./LICENSE) file
 
 ## 📞 Support
 
-- **Community**: [GitHub Discussions](https://github.com/yourusername/namaskah-sms/discussions)
-- **Email**: support@namaskah.app
-- **Documentation**: https://docs.namaskah.app
-- **Status Page**: https://status.namaskah.app
+- **Community**: [GitHub Discussions](https://github.com/Infradevandops/NAMASKAHsms/discussions)
+- **Email**: support@vrenum.app
+- **Documentation**: https://vrenum.app/docs
+- **Status Page**: https://status.vrenum.app
 
 ---
 
-**Built with ❤️ by the Namaskah Team**
+**Built with ❤️ by the Vrenum Team**
 
-**Ready to verify? [Get Started →](https://namaskah.app)**
+**Ready to verify? [Get Started →](https://vrenum.app)**

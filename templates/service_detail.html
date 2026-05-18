@@ -1,0 +1,117 @@
+{% extends "public_base.html" %}
+{% block title %}{{ service.name }} SMS Verification - Get Code Instantly | Vrenum{% endblock %}
+{% block meta_description %}Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries. Instant delivery, automatic refund guarantee.{% endblock %}
+{% block og_title %}{{ service.name }} SMS Verification - Get Code Instantly | Vrenum{% endblock %}
+{% block og_description %}Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries. Instant delivery, automatic refund.{% endblock %}
+{% block twitter_title %}{{ service.name }} SMS Verification | Vrenum{% endblock %}
+{% block twitter_description %}Get a temporary phone number for {{ service.name }} verification. {{ service.country_count }}+ countries. Auto-refund guaranteed.{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-12 max-w-3xl">
+  <h1 class="text-3xl font-bold mb-4">{{ service.name }} SMS Verification</h1>
+  <p class="text-gray-600 mb-6">
+    Get a temporary phone number to verify {{ service.name }} instantly.
+    Available in {{ service.country_count }}+ countries. Starting at ${{ "%.2f"|format(service.price) }}.
+    Automatic refund if SMS not received.
+  </p>
+
+  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center mb-10">
+    <a href="/register" class="inline-block bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-pink-700 text-lg">
+      Get {{ service.name }} Number →
+    </a>
+    <p class="text-sm text-gray-500 mt-2">No subscription. Pay per verification. From ${{ "%.2f"|format(service.price) }}.</p>
+  </div>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">How to Verify {{ service.name }}</h2>
+  <ol class="list-decimal pl-6 space-y-2 mb-8">
+    <li>Sign up at <a href="/register" class="text-pink-600 hover:underline">vrenum.app</a> (free)</li>
+    <li>Select <strong>{{ service.name }}</strong> from the service list</li>
+    <li>Choose your country</li>
+    <li>Click "Get Number" — receive a phone number instantly</li>
+    <li>Enter the number in {{ service.name }}'s verification screen</li>
+    <li>Return to Vrenum — your SMS code appears automatically</li>
+    <li>Enter the code in {{ service.name }} — verified!</li>
+  </ol>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">{{ service.name }} Verification Pricing</h2>
+  <div class="overflow-x-auto mb-8">
+    <table class="w-full border-collapse text-sm">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="border px-4 py-2 text-left">Country</th>
+          <th class="border px-4 py-2">Price</th>
+          <th class="border px-4 py-2">Success Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if service.countries %}
+          {% for country in service.countries[:10] %}
+          <tr>
+            <td class="border px-4 py-2">{{ country.flag }} {{ country.name }}</td>
+            <td class="border px-4 py-2 text-center">${{ "%.2f"|format(country.price) }}</td>
+            <td class="border px-4 py-2 text-center">{{ country.success_rate }}%</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td class="border px-4 py-2">🇺🇸 USA</td>
+            <td class="border px-4 py-2 text-center">${{ "%.2f"|format(service.price) }}</td>
+            <td class="border px-4 py-2 text-center">95%</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">Why Use Vrenum for {{ service.name }}?</h2>
+  <ul class="list-disc pl-6 space-y-2 mb-8">
+    <li>✅ Real mobile numbers — accepted by {{ service.name }}</li>
+    <li>✅ Automatic refund if no SMS received</li>
+    <li>✅ {{ service.country_count }}+ countries available</li>
+    <li>✅ Instant delivery — code in under 60 seconds</li>
+    <li>✅ API available for bulk verifications (Pro plan)</li>
+  </ul>
+
+  <h2 class="text-2xl font-semibold mt-8 mb-4">Frequently Asked Questions</h2>
+  <div class="space-y-4 mb-8">
+    <div>
+      <h3 class="font-semibold">Does {{ service.name }} accept virtual numbers?</h3>
+      <p class="text-gray-600">Yes — Vrenum provides real mobile numbers (not VOIP), which {{ service.name }} accepts.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">How long does {{ service.name }} verification take?</h3>
+      <p class="text-gray-600">Usually under 60 seconds. The code appears automatically in your dashboard.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">What if I don't receive the {{ service.name }} code?</h3>
+      <p class="text-gray-600">Your credits are automatically refunded — no questions asked.</p>
+    </div>
+    <div>
+      <h3 class="font-semibold">Can I use the API for bulk {{ service.name }} verifications?</h3>
+      <p class="text-gray-600">Yes — available on the Pro plan. See <a href="/api-documentation" class="text-pink-600 hover:underline">API docs</a>.</p>
+    </div>
+  </div>
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "{{ service.name }} SMS Verification",
+    "provider": {"@type": "Organization", "name": "Vrenum", "url": "https://vrenum.app"},
+    "description": "Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries.",
+    "url": "https://vrenum.app/services/{{ service.slug }}",
+    "offers": {
+      "@type": "Offer",
+      "price": "{{ service.price }}",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center">
+    <p class="text-lg font-semibold mb-2">Ready to verify {{ service.name }}?</p>
+    <a href="/register" class="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700">Get Started Free →</a>
+  </div>
+</main>
+{% endblock %}

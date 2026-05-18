@@ -1,7 +1,7 @@
 # PRICING REFERENCE - DEFINITIVE GUIDE
 
-**Version**: 4.7.1
-**Last Updated**: May 12, 2026
+**Version**: 4.7.3
+**Last Updated**: May 18, 2026
 **Status**: ✅ OFFICIAL PRICING
 **Currency**: USD (with NGN equivalent)
 
@@ -9,7 +9,7 @@
 
 ## 🎯 NEVER GET THIS WRONG AGAIN
 
-This is the **SINGLE SOURCE OF TRUTH** for all Namaskah pricing.
+This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 
 ---
 
@@ -389,13 +389,12 @@ ngn_price = usd_price × 1650
 
 ## 📝 IMPLEMENTATION CHECKLIST
 
-### Code Files to Update
-- [x] `app/core/tier_config.py` - Base SMS cost: 2.12 → 2.63
-- [x] `app/services/pricing_calculator.py` - Verify markup calculation
-- [x] `.env.production` - PRICE_MARKUP=1.8, NGN_USD_RATE=1650
-- [ ] `templates/pricing.html` - Display correct prices
-- [ ] `README.md` - Update pricing section
-- [ ] All assessment documents - Correct pricing references
+### Code Files Updated
+- [x] `app/core/tier_config.py` — Base SMS cost: 2.12 → 2.63
+- [x] `app/services/pricing_calculator.py` — Markup calculation verified
+- [x] `.env.production` — PRICE_MARKUP=1.8, NGN_USD_RATE=1650
+- [x] `templates/pricing.html` — Displays correct prices
+- [x] `README.md` — Pricing section updated
 
 ### Database Updates
 ```sql
@@ -427,6 +426,7 @@ UPDATE subscription_tiers SET overage_rate = 0.20 WHERE tier = 'custom';
 |---------|------|---------|
 | 1.0 | May 12, 2026 | Initial pricing reference |
 | 1.1 | May 12, 2026 | Corrected base rate from $2.12 to $2.63 |
+| 1.2 | May 18, 2026 | Updated to v4.7.3, marked all items complete |
 
 ---
 

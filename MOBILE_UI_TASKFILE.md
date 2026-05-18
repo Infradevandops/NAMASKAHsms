@@ -2,6 +2,7 @@
 **Version**: 1.0.0
 **Created**: May 18, 2026
 **Status**: Phase 1 Complete — Phase 2 Complete — Phase 3 In Progress
+**Related**: See [docs/MOBILE_UI_AUDIT.md](./docs/MOBILE_UI_AUDIT.md) for full audit and glassmorphism integration plan
 
 ## 🎯 Overview
 Comprehensive mobile UI enhancement plan with glassmorphism design system integration across all platform pages.

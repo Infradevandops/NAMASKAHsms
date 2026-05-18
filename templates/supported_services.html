@@ -1,0 +1,78 @@
+{% extends "public_base.html" %}
+{% block title %}1,807+ Supported Services for SMS Verification | Vrenum{% endblock %}
+{% block meta_description %}Vrenum supports 1,807+ services for SMS verification including WhatsApp, Telegram, Google, Discord, Facebook, Instagram and more. 200+ countries.{% endblock %}
+
+{% block content %}
+<main class="container mx-auto px-4 py-12 max-w-4xl">
+  <h1 class="text-3xl font-bold mb-4">1,807+ Services Supported</h1>
+  <p class="text-gray-600 mb-10">Vrenum supports SMS verification for over 1,807 services across 200+ countries. Find your service below.</p>
+
+  <!-- Popular Services Grid -->
+  <h2 class="text-2xl font-semibold mb-6">Most Popular Services</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-12">
+    {% set popular = [
+      ("WhatsApp", "whatsapp", "💬"),
+      ("Telegram", "telegram", "✈️"),
+      ("Google", "google", "🔍"),
+      ("Discord", "discord", "🎮"),
+      ("Facebook", "facebook", "👤"),
+      ("Instagram", "instagram", "📸"),
+      ("Twitter / X", "twitter", "🐦"),
+      ("TikTok", "tiktok", "🎵"),
+      ("Uber", "uber", "🚗"),
+      ("Amazon", "amazon", "📦"),
+      ("Netflix", "netflix", "🎬"),
+      ("PayPal", "paypal", "💳"),
+      ("Snapchat", "snapchat", "👻"),
+      ("LinkedIn", "linkedin", "💼"),
+      ("Microsoft", "microsoft", "🪟"),
+      ("Apple", "apple", "🍎"),
+      ("Coinbase", "coinbase", "₿"),
+      ("Binance", "binance", "📈"),
+      ("Airbnb", "airbnb", "🏠"),
+      ("DoorDash", "doordash", "🍕")
+    ] %}
+    {% for name, slug, icon in popular %}
+    <a href="/services/{{ slug }}" class="flex flex-col items-center p-4 border rounded-xl hover:border-pink-400 hover:shadow-md transition-all text-center">
+      <span class="text-3xl mb-2">{{ icon }}</span>
+      <span class="text-sm font-medium">{{ name }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Categories -->
+  <h2 class="text-2xl font-semibold mb-6">Browse by Category</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">💬 Messaging</h3>
+      <p class="text-sm text-gray-600">WhatsApp, Telegram, Signal, Viber, Line, WeChat</p>
+    </div>
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">📱 Social Media</h3>
+      <p class="text-sm text-gray-600">Facebook, Instagram, Twitter/X, TikTok, Snapchat, LinkedIn</p>
+    </div>
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">🔧 Tech & Developer</h3>
+      <p class="text-sm text-gray-600">Google, Microsoft, Apple, GitHub, AWS, Cloudflare</p>
+    </div>
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">💰 Finance & Crypto</h3>
+      <p class="text-sm text-gray-600">PayPal, Coinbase, Binance, Kraken, Cash App, Venmo</p>
+    </div>
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">🛒 Shopping & Delivery</h3>
+      <p class="text-sm text-gray-600">Amazon, eBay, Uber, DoorDash, Airbnb, Lyft</p>
+    </div>
+    <div class="border rounded-xl p-4">
+      <h3 class="font-semibold mb-2">🎮 Gaming</h3>
+      <p class="text-sm text-gray-600">Discord, Steam, Epic Games, PlayStation, Xbox</p>
+    </div>
+  </div>
+
+  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center">
+    <p class="text-lg font-semibold mb-2">Don't see your service? We likely support it.</p>
+    <p class="text-gray-600 mb-4">1,807+ services available in the dashboard.</p>
+    <a href="/register" class="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700">Get Started Free →</a>
+  </div>
+</main>
+{% endblock %}

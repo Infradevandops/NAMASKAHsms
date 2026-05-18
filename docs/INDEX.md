@@ -1,7 +1,7 @@
 # Namaskah Documentation Index
 
-**Version**: 4.7.1
-**Last Updated**: May 17, 2026
+**Version**: 4.7.3
+**Last Updated**: May 18, 2026
 **Total Documents**: ~40 (consolidated from 104)
 
 ---
@@ -9,19 +9,18 @@
 ## 📚 Quick Navigation
 
 ### 🎯 Start Here
-- **[Platform Assessment](./PLATFORM_ASSESSMENT.md)** - System overview and status
-- **[Platform Assessment (Detailed)](./PLATFORM_ASSESSMENT_DETAILED.md)** - Deep technical analysis
-- **[Strict Refund Policy](./STRICT_REFUND_POLICY.md)** - Business policy
+- **[Platform Status](../PLATFORM_STATUS.md)** — Current version, metrics, readiness
+- **[Platform Assessment](./PLATFORM_ASSESSMENT.md)** — Technical scorecard
+- **[Changelog](../CHANGELOG.md)** — Version history
 
 ### 🚀 Recent Implementations
-- **[Error Tracking Complete](./ERROR_TRACKING_COMPLETE.md)** - Error tracking system (v4.7.2)
-- **[Voice UI Complete](./VOICE_UI_COMPLETE.md)** - Voice verification system
-- **[Whitelabel Complete](./WHITELABEL_COMPLETE.md)** - Partner whitelabel system
-- **[Area Code Implementation](./tasks/AREA_CODE_IMPLEMENTATION.md)** - Tier-gated area code selection
+- **[Mobile UI Taskfile](../MOBILE_UI_TASKFILE.md)** — Mobile UI + glassmorphism (Phase 1+2 complete)
+- **[Branding Audit](../BRANDING_AUDIT_VRENUM.md)** — Rebrand to VRENUM ACTV8TN (186 files)
+- **[Production Setup Checklist](../PRODUCTION_SETUP_CHECKLIST.md)** — Launch checklist
 
 ### 🧪 Testing & Verification
-- **[TextVerified Area Code Test Guide](./TEXTVERIFIED_AREA_CODE_TEST_GUIDE.md)** - Provider testing
-- **[UI/UX Assessment](./UI_UX_ASSESSMENT.md)** - Interface evaluation
+- **[UI/UX Assessment](./UI_UX_ASSESSMENT.md)** — Interface evaluation (May 10)
+- **[UI/UX Assessment Update](./UI_UX_ASSESSMENT_UPDATE.md)** — Current state (May 17)
 
 ---
 
@@ -191,5 +190,5 @@ Links and resources
 
 ---
 
-**Last Consolidated**: May 17, 2026
-**Consolidation**: Reduced from 104 to ~40 documents (60% reduction)
+**Last Consolidated**: May 18, 2026
+**Consolidation**: Reduced from 141 to ~80 documents (43% reduction)
