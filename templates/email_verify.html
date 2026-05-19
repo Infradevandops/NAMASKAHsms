@@ -6,8 +6,8 @@
   <meta name="description" content="Verify your email address for vrenum.app">
   <title>Email Verification - VRENUM ACTV8TN</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', path='css/design-tokens.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
+  <link rel="stylesheet" href="/static/css/vrenum-ui.css">
+  <link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     .auth-container {
@@ -167,7 +167,7 @@
   </div>
 
 
-  <script src="{{ url_for('static', path='js/design-system.js') }}"></script>
+  <script src="/static/js/main.js"></script>
   <script nonce="{{ request.state.csp_nonce }}">
     const codeInputs = document.querySelectorAll('.code-input');
     const timerValue = document.getElementById('timerValue');
