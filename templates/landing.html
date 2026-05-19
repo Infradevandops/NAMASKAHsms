@@ -6,10 +6,8 @@
   <title>VRENUM ACTV8TN - Keep Your Real Number Private</title>
   <meta name="description" content="Register on any website without exposing your phone number. No spam. No data brokers. Get verification codes instantly.">
 
-  <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-  <script src="https://cdn.tailwindcss.com" nonce="{{ request.state.csp_nonce }}"></script>
   <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
       theme: {
@@ -21,7 +19,6 @@
       }
     }
   </script>
-  <script src="https://unpkg.com/@phosphor-icons/web" nonce="{{ request.state.csp_nonce }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer nonce="{{ request.state.csp_nonce }}"></script>
   <link rel="stylesheet" href="/static/css/glassmorphism.css">
 
@@ -45,21 +42,21 @@
   <nav x-data="{ open: false }" class="glass-nav fixed top-0 w-full z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <a href="/" class="flex items-center gap-2">
-        <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
-        <span class="font-bold text-xl tracking-tight">VRENUM ACTV8TN</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF6B9D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        <span class="font-bold text-xl tracking-tight text-white">VRENUM ACTV8TN</span>
       </a>
 
       <div class="hidden md:flex gap-8 text-sm">
-        <a href="#how-it-works" class="text-zinc-600 hover:text-[#37352F] transition">How It Works</a>
-        <a href="#pricing" class="text-zinc-600 hover:text-[#37352F] transition">Pricing</a>
-        <a href="/docs" class="text-zinc-600 hover:text-[#37352F] transition">API Docs</a>
+        <a href="#how-it-works" class="text-white/80 hover:text-white transition font-medium">How It Works</a>
+        <a href="#pricing" class="text-white/80 hover:text-white transition font-medium">Pricing</a>
+        <a href="/docs" class="text-white/80 hover:text-white transition font-medium">API Docs</a>
       </div>
 
       <div class="hidden md:flex gap-4 items-center">
         {% if user %}
         <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
         {% else %}
-        <a href="/auth/login" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition">Login</a>
+        <a href="/auth/login" class="px-4 py-2 text-sm text-white/80 hover:text-white transition font-medium">Login</a>
         <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Get Started Free →</a>
         {% endif %}
       </div>
@@ -87,7 +84,7 @@
   <!-- Hero Section -->
   <section class="min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
     <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-block px-4 py-2 bg-brand-500/10 rounded-full text-brand-500 text-sm font-semibold mb-6">
+      <div class="inline-block px-4 py-2 bg-white/95 rounded-full text-brand-500 text-sm font-semibold mb-6 shadow-sm">
         <svg class="inline -mt-0.5 mr-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Your Privacy Matters
       </div>
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
@@ -103,24 +100,24 @@
         <a href="/auth/register" class="glass-btn-primary px-8 py-4 rounded-xl text-lg font-semibold transition">
           Get Started Free →
         </a>
-        <a href="#how-it-works" class="glass-btn px-8 py-4 rounded-xl text-lg font-semibold transition">
+        <a href="#how-it-works" class="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-semibold transition border-2 border-white text-white hover:bg-white hover:text-brand-500">
           See How It Works
         </a>
       </div>
 
       <!-- Trust Bar -->
-      <div class="flex flex-wrap justify-center gap-8 text-sm text-zinc-500">
+      <div class="flex flex-wrap justify-center gap-8 text-sm text-white/90">
         <div class="flex items-center gap-2">
-          <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-[#37352F]">Thousands of</strong> verifications completed</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FE3C72"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span><strong class="text-white">Thousands of</strong> verifications completed</span>
         </div>
         <div class="flex items-center gap-2">
-          <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-[#37352F]">50+</strong> countries supported</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FE3C72"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span><strong class="text-white">200+</strong> countries supported</span>
         </div>
         <div class="flex items-center gap-2">
-          <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-[#37352F]">99.9%</strong> uptime</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FE3C72"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span><strong class="text-white">99.9%</strong> uptime</span>
         </div>
       </div>
     </div>
@@ -137,7 +134,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-6">
-            <i class="ph-fill ph-warning text-3xl text-red-500"></i>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Data Brokers Sell Your Number</h3>
           <p class="text-zinc-600 leading-relaxed">Your phone number gets added to marketing databases and sold to the highest bidder. You become a product.</p>
@@ -145,7 +142,7 @@
 
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6">
-            <i class="ph-fill ph-phone-x text-3xl text-orange-500"></i>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7 2 2 0 011.72 2v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.42 19.42 0 013.43 9.19 19.79 19.79 0 01.36 10.56 2 2 0 012 8.38V5.5a2 2 0 011.72-2 12.84 12.84 0 002.81-.7 2 2 0 012.11.45L9.91 4.5a16 16 0 012.6 3.41"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
           </div>
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Endless Spam Calls</h3>
           <p class="text-zinc-600 leading-relaxed">Every signup means more robocalls, scam attempts, and unwanted marketing messages flooding your phone.</p>
@@ -153,7 +150,7 @@
 
         <div class="p-8 bg-white rounded-2xl border border-zinc-200">
           <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6">
-            <i class="ph-fill ph-shield-warning text-3xl text-purple-500"></i>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Exposed in Data Breaches</h3>
           <p class="text-zinc-600 leading-relaxed">When companies get hacked, your number is leaked. Identity theft, SIM swapping, and account takeovers follow.</p>
@@ -176,7 +173,7 @@
             <span class="text-3xl font-bold text-white">1</span>
           </div>
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Pick Your Service</h3>
-          <p class="text-zinc-600 leading-relaxed">Choose from WhatsApp, Telegram, Discord, Facebook, or 100+ other services.</p>
+          <p class="text-zinc-600 leading-relaxed">Choose from WhatsApp, Telegram, Discord, Facebook, or 1,807+ other services.</p>
         </div>
 
         <div class="text-center">
@@ -208,19 +205,25 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
-          <i class="ph-fill ph-device-mobile text-4xl text-brand-400 mb-6"></i>
+          <div class="mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF6B9D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
           <h3 class="text-2xl font-bold mb-4">Real SIM Cards</h3>
           <p class="text-zinc-300 leading-relaxed">Not VoIP numbers that get rejected. We use physical mobile devices with real SIM cards for 100% success rate.</p>
         </div>
 
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
-          <i class="ph-fill ph-arrow-counter-clockwise text-4xl text-brand-400 mb-6"></i>
+          <div class="mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF6B9D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </div>
           <h3 class="text-2xl font-bold mb-4">Auto-Refund Guarantee</h3>
           <p class="text-zinc-300 leading-relaxed">If you don't receive your code, we automatically refund your credits. No questions asked.</p>
         </div>
 
         <div class="p-8 bg-white/5 rounded-2xl border border-white/10">
-          <i class="ph-fill ph-lightning text-4xl text-brand-400 mb-6"></i>
+          <div class="mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF6B9D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
           <h3 class="text-2xl font-bold mb-4">Instant Delivery</h3>
           <p class="text-zinc-300 leading-relaxed">Get your verification code in seconds, not minutes. No waiting around for SMS to arrive.</p>
         </div>
@@ -233,7 +236,7 @@
     <div class="max-w-7xl mx-auto px-6">
       <div class="text-center mb-16">
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#37352F] mb-4">Works with your favorite services</h2>
-        <p class="text-xl text-zinc-600">100+ services supported and growing</p>
+        <p class="text-xl text-zinc-600">1,807+ services supported and growing</p>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -317,7 +320,7 @@
           <div class="text-sm font-bold text-orange-500 mb-2">FLEXIBLE</div>
           <h3 class="text-2xl font-bold text-[#37352F] mb-4">Pay-As-You-Go</h3>
           <div class="mb-6">
-            <span class="text-5xl font-bold text-[#37352F]">$2.50</span>
+            <span class="text-5xl font-bold text-[#37352F]">$2.63</span>
             <span class="text-zinc-500">/SMS</span>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
@@ -381,7 +384,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <i class="ph-fill ph-device-mobile text-2xl text-brand-400"></i>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF6B9D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
             <span class="font-bold text-xl">VRENUM ACTV8TN</span>
           </div>
           <p class="text-zinc-400 text-sm">Keep your real number private. Verify anywhere, anytime.</p>
