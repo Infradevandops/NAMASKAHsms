@@ -186,7 +186,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         db.commit()
         db.refresh(user)
 
-        # Send verification email (non-blocking — don't fail registration if email fails)
+        # Send verification + welcome emails (non-blocking)
         try:
             import uuid
 
@@ -198,15 +198,21 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             base_url = (
                 settings.base_url
                 if hasattr(settings, "base_url") and settings.base_url
-                else "https://vrenum.onrender.com"
+                else "https://vrenum.app"
             )
+            display_name = user.email.split("@")[0]
             asyncio.create_task(
                 email_service.send_verification_email(
                     user.email, verification_token, base_url
                 )
             )
+            asyncio.create_task(
+                email_service.send_welcome_email(
+                    user.email, user_name=display_name, base_url=base_url
+                )
+            )
         except Exception as email_err:
-            logger.warning(f"Verification email failed for {user.email}: {email_err}")
+            logger.warning(f"Registration emails failed for {user.email}: {email_err}")
 
         # Generate JWT token
         token_data = {
