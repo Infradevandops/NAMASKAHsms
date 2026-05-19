@@ -39,6 +39,7 @@ class RegisterRequest(BaseModel):
     password: str
     username: Optional[str] = None
     terms_accepted: bool = False
+    turnstile_token: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -53,6 +54,15 @@ class TokenResponse(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """Login endpoint - consolidated and working."""
+    # Verify Turnstile token
+    from app.core.turnstile import verify_turnstile
+
+    if not await verify_turnstile(login_data.turnstile_token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot verification failed. Please try again.",
+        )
+
     try:
         # Find user by email
         user = db.query(User).filter(User.email == login_data.email).first()
@@ -150,6 +160,15 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/register", response_model=TokenResponse)
 async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
     """Register endpoint - consolidated and working."""
+    # Verify Turnstile token
+    from app.core.turnstile import verify_turnstile
+
+    if not await verify_turnstile(register_data.turnstile_token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot verification failed. Please try again.",
+        )
+
     try:
         # Check if user already exists
         existing_user = db.query(User).filter(User.email == register_data.email).first()

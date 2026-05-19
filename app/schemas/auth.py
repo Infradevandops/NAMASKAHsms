@@ -60,6 +60,7 @@ class LoginRequest(BaseModel):
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., description="User password")
+    turnstile_token: Optional[str] = None
 
     model_config = {
         "json_schema_extra": {

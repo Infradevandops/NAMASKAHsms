@@ -171,6 +171,7 @@
         text-align: right;
     }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
 {% block public_content %}
@@ -217,6 +218,7 @@
             </label>
         </div>
 
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADSm2kHXMiekh0uj" data-theme="light" style="margin-bottom: 16px;"></div>
         <button type="submit" class="btn-auth" id="register-btn">Create Account</button>
     </form>
 
@@ -308,7 +310,8 @@
                     email,
                     password,
                     display_name: displayName || undefined,
-                    terms_accepted: termsAccepted
+                    terms_accepted: termsAccepted,
+                    turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || null
                 })
             });
 

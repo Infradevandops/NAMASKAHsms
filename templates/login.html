@@ -205,6 +205,7 @@
         text-decoration: underline;
     }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
 {% block public_content %}
@@ -252,6 +253,7 @@
             <label for="remember">Remember me</label>
         </div>
 
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADSm2kHXMiekh0uj" data-theme="light" style="margin-bottom: 16px;"></div>
         <button type="submit" class="btn-auth" id="login-btn">Sign In</button>
     </form>
 
@@ -345,7 +347,11 @@
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({
+                    email,
+                    password,
+                    turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || null
+                })
             });
 
             await processLoginResponse(res);
