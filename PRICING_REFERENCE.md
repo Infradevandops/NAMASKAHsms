@@ -50,8 +50,8 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 - ✅ Community support
 
 **Limits**:
-- Daily: 5 verifications
-- Monthly: **20 verifications** (trial limit)
+- Daily: 20 verifications
+- Monthly: 3,000 verifications
 - Countries: 5
 - Retention: 1 day
 

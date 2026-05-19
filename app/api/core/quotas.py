@@ -18,7 +18,7 @@ def get_tier_limits(tier: str):
     """Get quota limits for a tier."""
     limits = {
         "freemium": {
-            "sms_monthly": 20,  # Trial limit — profitable at $2.63/SMS
+            "sms_monthly": 3000,  # High limit — wallet balance is the natural cap
             "api_daily": 0,
             "api_keys": 0,
             "webhooks": 0,
