@@ -240,8 +240,8 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph "Tier Hierarchy"
-        FREEMIUM[Freemium<br/>$0/mo<br/>$2.22/SMS]
-        PAYG[Pay-As-You-Go<br/>$0/mo<br/>$2.50/SMS]
+        FREEMIUM[Freemium<br/>$0/mo<br/>$2.63/SMS]
+        PAYG[Pay-As-You-Go<br/>$0/mo<br/>$2.63/SMS]
         PRO[Pro<br/>$25/mo<br/>$15 quota]
         CUSTOM[Custom<br/>$35/mo<br/>$25 quota]
     end
