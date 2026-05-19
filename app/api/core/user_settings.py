@@ -262,21 +262,10 @@ async def forgot_password(
 
                     settings = get_settings()
                     base_url = settings.base_url or "https://vrenum.onrender.com"
-                    reset_link = f"{base_url}/password-reset?token={token}"
                     import asyncio
 
                     asyncio.create_task(
-                        email_service.send_email(
-                            to_email=user.email,
-                            subject="Password Reset - Vrenum",
-                            html_content=f"""
-                            <h2>Password Reset</h2>
-                            <p>Click the link below to reset your password:</p>
-                            <a href="{reset_link}">{reset_link}</a>
-                            <p>This link expires in 1 hour.</p>
-                            <p>If you didn't request this, ignore this email.</p>
-                            """,
-                        )
+                        email_service.send_password_reset(user.email, token, base_url)
                     )
                 except Exception as email_error:
                     logger.warning(f"Failed to send reset email: {email_error}")
