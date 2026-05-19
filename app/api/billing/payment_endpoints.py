@@ -211,6 +211,7 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
 
                     user = db.query(User).filter(User.id == user_id).first()
                     if user:
+                        old_tier = user.subscription_tier or "freemium"
                         user.subscription_tier = upgrade_to
                         user.tier_upgraded_at = datetime.now(timezone.utc)
                         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(
@@ -220,6 +221,42 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
                         logger.info(
                             f"Tier upgraded to {upgrade_to} for user {user_id} via webhook"
                         )
+
+                        # Send tier upgrade email (non-blocking)
+                        try:
+                            import asyncio
+
+                            from app.services.email_service import email_service
+
+                            _tier_features = {
+                                "pro": [
+                                    "$15 monthly quota (~50 SMS)",
+                                    "10 API keys",
+                                    "All filters included",
+                                    "Priority support",
+                                    "Affiliate program",
+                                ],
+                                "custom": [
+                                    "$25 monthly quota (~125 SMS)",
+                                    "Unlimited API keys",
+                                    "All filters included",
+                                    "Dedicated support",
+                                    "Enhanced affiliate",
+                                ],
+                            }
+                            asyncio.create_task(
+                                email_service.send_tier_upgrade_email(
+                                    user_email=user.email,
+                                    old_tier=old_tier,
+                                    new_tier=upgrade_to,
+                                    new_features=_tier_features.get(upgrade_to, []),
+                                    user_name=user.email.split("@")[0],
+                                )
+                            )
+                        except Exception as _e:
+                            logger.warning(
+                                f"Tier upgrade email failed (non-critical): {_e}"
+                            )
 
         return {"status": "success"}
 

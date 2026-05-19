@@ -101,6 +101,32 @@ async def upgrade_tier(
         if target_tier == "payg":
             user.subscription_tier = target_tier
             db.commit()
+
+            # Send tier upgrade email (non-blocking)
+            try:
+                import asyncio
+
+                from app.services.email_service import email_service
+
+                _features = {
+                    "payg": [
+                        "Location filters (+$0.25)",
+                        "ISP filters (+$0.50)",
+                        "Pay only when you use",
+                    ]
+                }
+                asyncio.create_task(
+                    email_service.send_tier_upgrade_email(
+                        user_email=user.email,
+                        old_tier=current_tier,
+                        new_tier=target_tier,
+                        new_features=_features.get(target_tier, []),
+                        user_name=user.email.split("@")[0],
+                    )
+                )
+            except Exception as _e:
+                logger.warning(f"Tier upgrade email failed (non-critical): {_e}")
+
             return {
                 "message": f"Upgraded to {target_tier}",
                 "current_tier": target_tier,

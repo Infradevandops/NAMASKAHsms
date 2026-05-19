@@ -16,13 +16,12 @@ class NotificationDispatcher:
         self.notification_service = NotificationService(db)
 
     def _broadcast_notification(self, user_id: str, notification):
-        """Broadcast notification via WebSocket."""
+        """Broadcast notification via WebSocket and optionally email."""
         try:
             import asyncio
 
             from app.websocket.manager import manager
 
-            # Serialize ORM object to dict before sending over WebSocket
             payload = (
                 notification.to_dict()
                 if hasattr(notification, "to_dict")
@@ -39,6 +38,26 @@ class NotificationDispatcher:
             )
         except Exception as e:
             logger.error(f"Failed to broadcast notification via WebSocket: {e}")
+
+        # Email notification (non-blocking, best-effort)
+        try:
+            import asyncio
+
+            from app.models.user import User
+            from app.services.email_notification_service import EmailNotificationService
+
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if user and hasattr(notification, "title"):
+                _notif_svc = EmailNotificationService(self.db)
+                asyncio.create_task(
+                    _notif_svc.send_notification_email(
+                        user_email=user.email,
+                        notification=notification,
+                        user_name=user.email.split("@")[0],
+                    )
+                )
+        except Exception as _e:
+            logger.warning(f"Notification email failed (non-critical): {_e}")
 
     async def notify_verification_started(
         self,

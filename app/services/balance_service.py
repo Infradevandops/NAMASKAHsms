@@ -228,6 +228,27 @@ class BalanceService:
             except Exception as e:
                 logger.error(f"Failed to send verification notifications: {e}")
 
+            # Low balance alert email (non-blocking)
+            try:
+                threshold = float(getattr(user, "low_balance_threshold", 1.0) or 1.0)
+                if new_balance <= threshold and getattr(
+                    user, "email_on_low_balance", True
+                ):
+                    from app.services.email_notification_service import (
+                        EmailNotificationService,
+                    )
+
+                    _notif = EmailNotificationService(db)
+                    asyncio.create_task(
+                        _notif.send_low_balance_alert_email(
+                            user_email=user.email,
+                            current_balance=new_balance,
+                            threshold=threshold,
+                            user_name=user.email.split("@")[0],
+                        )
+                    )
+            except Exception as _e:
+                logger.warning(f"Low balance alert email failed (non-critical): {_e}")
             return True, None
 
         except Exception as e:

@@ -261,7 +261,7 @@ async def forgot_password(
                     from app.services.email_service import email_service
 
                     settings = get_settings()
-                    base_url = settings.base_url or "https://vrenum.onrender.com"
+                    base_url = settings.base_url or "https://vrenum.app"
                     import asyncio
 
                     asyncio.create_task(
