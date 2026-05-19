@@ -28,7 +28,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #ffffff;
       color: #37352F;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
@@ -51,9 +51,6 @@
     .nav-scrolled .nav-brand { color: #111827 !important; }
     .nav-scrolled .nav-hamburger { color: #374151 !important; }
 
-    /* Active nav link */
-    .nav-link.active { color: #FE3C72 !important; font-weight: 700; }
-
     /* Section fade-in on scroll */
     .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
@@ -62,29 +59,28 @@
 <body>
 
   <!-- Navigation -->
-  <nav id="main-nav" x-data="{ open: false }" class="glass-nav fixed top-0 w-full z-50 transition-all duration-300">
+  <nav id="main-nav" x-data="{ open: false }" class="bg-white border-b border-zinc-100 fixed top-0 w-full z-50 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="/" class="flex items-center gap-2">
-        <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
-        <span class="nav-brand font-bold text-xl tracking-tight text-white transition-colors duration-300">VRENUM ACTV8TN</span>
+      <a href="/" class="flex items-center">
+        <span class="nav-brand px-4 py-2 bg-brand-500 rounded-lg text-sm font-semibold text-white hover:bg-brand-600 transition">VRENUM ACTV8TN</span>
       </a>
 
       <div class="hidden md:flex gap-8 text-sm">
-        <a href="#how-it-works" class="nav-link text-white/80 hover:text-white transition-colors duration-200 font-medium">How It Works</a>
-        <a href="#pricing" class="nav-link text-white/80 hover:text-white transition-colors duration-200 font-medium">Pricing</a>
-        <a href="/docs" class="nav-link text-white/80 hover:text-white transition-colors duration-200 font-medium">API Docs</a>
+        <a href="#how-it-works" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">How It Works</a>
+        <a href="#pricing" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Pricing</a>
+        <a href="/docs" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">API Docs</a>
       </div>
 
       <div class="hidden md:flex gap-4 items-center">
         {% if user %}
         <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
         {% else %}
-        <a href="/auth/login" class="nav-link px-4 py-2 text-sm text-white/80 hover:text-white transition-colors duration-200 font-medium">Login</a>
+        <a href="/auth/login" class="nav-link px-4 py-2 text-sm text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Login</a>
         <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Get Started Free →</a>
         {% endif %}
       </div>
 
-      <button @click="open = !open" class="nav-hamburger md:hidden text-white transition-colors duration-300">
+      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700">
         <i :class="open ? 'ph ph-x' : 'ph ph-list'" class="text-2xl"></i>
       </button>
     </div>
@@ -105,45 +101,51 @@
   </nav>
 
   <!-- Hero Section -->
-  <section class="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-28 sm:pt-32 pb-16 sm:pb-20">
+  <section class="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-28 sm:pt-32 pb-16 sm:pb-20 bg-white">
     <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-block px-4 py-2 bg-white/95 rounded-full text-brand-500 text-sm font-semibold mb-6 shadow-sm">
-        <svg class="inline -mt-0.5 mr-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Your Privacy Matters
+
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/10 rounded-full text-brand-500 text-sm font-semibold mb-8">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Your Privacy Matters
       </div>
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#111827] mb-6 leading-tight">
         Registering on a website?<br>
-        <span class="text-brand-400">Keep your real number private.</span>
+        <span class="text-brand-500">Keep your real number private.</span>
       </h1>
-      <p class="text-lg sm:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+
+      <p class="text-lg sm:text-xl text-zinc-500 mb-10 max-w-2xl mx-auto leading-relaxed">
         No spam. No data brokers. No exposed phone number.<br>
-        Setup your account in seconds and get verification codes instantly.
+        Get verification codes instantly — without giving out your real number.
       </p>
 
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-        <a href="/auth/register" class="glass-btn-primary px-8 py-4 rounded-xl text-lg font-semibold transition text-white">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-14">
+        <a href="/auth/register" class="px-8 py-4 bg-brand-500 hover:bg-brand-600 rounded-xl text-lg font-semibold transition text-white shadow-lg shadow-brand-500/25">
           Get Started Free →
         </a>
-        <a href="#how-it-works" class="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-semibold transition border-2 border-white text-white hover:bg-white hover:text-brand-500">
+        <a href="#how-it-works" class="px-8 py-4 rounded-xl text-lg font-semibold transition border-2 border-zinc-200 text-zinc-700 hover:border-brand-500 hover:text-brand-500">
           See How It Works
         </a>
       </div>
 
       <!-- Trust Bar -->
-      <div class="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm text-white/90">
+      <div class="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm text-zinc-500">
         <div class="flex items-center gap-2">
           <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-white">Thousands of</strong> verifications completed</span>
+          <span><strong class="text-zinc-700">Thousands of</strong> verifications completed</span>
         </div>
         <div class="flex items-center gap-2">
           <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-white">200+</strong> countries supported</span>
+          <span><strong class="text-zinc-700">200+</strong> countries supported</span>
         </div>
         <div class="flex items-center gap-2">
           <i class="ph-fill ph-check-circle text-brand-500"></i>
-          <span><strong class="text-white">99.9%</strong> uptime</span>
+          <span><strong class="text-zinc-700">99.9%</strong> uptime</span>
         </div>
       </div>
+
     </div>
+  </section>    </div>
   </section>
 
   <!-- The Problem Section -->
@@ -387,11 +389,11 @@
   </section>
 
   <!-- Final CTA -->
-  <section class="py-16 md:py-24 reveal">
+  <section class="py-16 md:py-24 bg-brand-500 reveal">
     <div class="max-w-4xl mx-auto px-6 text-center">
       <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Your number is yours.<br>Keep it that way.</h2>
       <p class="text-xl text-white/80 mb-12">Join thousands who've taken back control of their privacy.</p>
-      <a href="/auth/register" class="inline-block px-12 py-5 bg-brand-500 rounded-xl text-xl font-semibold hover:bg-brand-600 transition text-white shadow-lg shadow-brand-500/20">
+      <a href="/auth/register" class="inline-block px-12 py-5 bg-white rounded-xl text-xl font-semibold hover:bg-zinc-100 transition text-brand-500 shadow-lg">
         Get Started Free →
       </a>
     </div>
@@ -403,8 +405,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <i class="ph-fill ph-device-mobile text-2xl text-brand-400"></i>
-            <span class="font-bold text-xl">VRENUM ACTV8TN</span>
+            <span class="px-3 py-1.5 bg-brand-500 rounded-lg text-sm font-semibold text-white">VRENUM ACTV8TN</span>
           </div>
           <p class="text-zinc-400 text-sm">Keep your real number private. Verify anywhere, anytime.</p>
         </div>
