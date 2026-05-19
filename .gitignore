@@ -77,42 +77,7 @@ static/dist/
 *.map
 
 # Archive (historical docs, kept locally only)
-archive/
-docs/archives/
-
-# Obsolete backup scripts (DB migrated to Neon)
-scripts/backup_render_emergency.*
-scripts/backup_rclone.py
-scripts/backup_free_tier.py
-scripts/backup_render_interactive.py
-scripts/deployment/backup_rclone.sh
-
-# One-off docs (not for repo)
-.render-deploy
-DEPLOYMENT_SUMMARY.md
-FIXES_APPLIED.md
-GET_RENDER_CONNECTION.md
-SENTRY_COMMIT_MESSAGE.txt
-SENTRY_COMPLETE.md
-SUPABASE_MIGRATION_STEPS.md
-URGENT_BACKUP_ACTION.md
-FRONTEND_GAP_ASSESSMENT_V2.md
-PHASE_1_FRONTEND_COMPLETE.md
-PHASE_2_FRONTEND_COMPLETE.md
-FRONTEND_TASKS_PROGRESS.md
-FRONTEND_IMPLEMENTATION_COMPLETE.md
-
-# Docs — empty/stale folders
-docs/design/
-docs/roadmaps/
-docs/status/
-docs/tasks/coverage-initiative/
-
-# Internal docs (not for repo)
-docs/PROJECT_STATUS.md
-docs/tasks/SMSPOOL_INTEGRATION_TASK.md
-docs/tasks/SMSPOOL_FILTERING_SUMMARY.md
-docs/development/SMSPOOL_INTEGRATION.txt
+docs/archive/
 
 # Generated artifacts
 uvicorn_startup*.log
@@ -122,5 +87,3 @@ server.log
 .hypothesis/
 namaskah_fallback.db
 *.db
-# CI fix
-.hypothesis/

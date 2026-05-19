@@ -1,4 +1,4 @@
-# Namaskah SMS Analytics - Development Makefile
+# Vrenum SMS — Development Makefile
 
 .PHONY: install lint format test security-check build clean help \
 	fix-all fix-db fix-middleware fix-broken-files fix-pricing-router \
@@ -237,29 +237,5 @@ health-external:
 ## T11: Install pre-commit hooks
 pre-commit-setup:
 	pip install pre-commit
-	python -c "\
-import textwrap; \
-open('.pre-commit-config.yaml','w').write(textwrap.dedent('''\
-repos:\n\
-  - repo: https://github.com/psf/black\n\
-    rev: 24.1.1\n\
-    hooks:\n\
-      - id: black\n\
-  - repo: https://github.com/pycqa/flake8\n\
-    rev: 7.0.0\n\
-    hooks:\n\
-      - id: flake8\n\
-        args: [--max-line-length=120]\n\
-  - repo: https://github.com/pycqa/isort\n\
-    rev: 5.13.2\n\
-    hooks:\n\
-      - id: isort\n\
-  - repo: https://github.com/pre-commit/pre-commit-hooks\n\
-    rev: v4.5.0\n\
-    hooks:\n\
-      - id: trailing-whitespace\n\
-      - id: end-of-file-fixer\n\
-      - id: check-yaml\n\
-'''))"
 	pre-commit install
 	@echo "✅ Pre-commit hooks installed"

@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.9'
 
 jobs:
   # Stage 1: Fast checks (fail fast)
@@ -312,7 +312,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
       - name: Install dependencies
@@ -325,7 +325,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
         run: |
           psql -h localhost -U postgres -c "CREATE DATABASE vrenum_test;" 2>/dev/null || true
-          python scripts/fix_production_schema.py || true
+          alembic upgrade head || true
 
       - name: Install Playwright
         run: playwright install chromium --with-deps

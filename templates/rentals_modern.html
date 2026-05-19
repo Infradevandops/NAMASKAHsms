@@ -371,7 +371,7 @@ async function loadServices() {
         const data = await res.json();
         const services = data.services || [];
 
-        sel.innerHTML = '<option value="">-- Select a service --</option>' +
+        sel.innerHTML = '<option value=""> Select a service </option>' +
             services.map(s => `<option value="${s.name || s.id}">${s.name || s.id}</option>`).join('');
 
         sel.addEventListener('change', (e) => {
