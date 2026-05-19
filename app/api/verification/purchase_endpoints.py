@@ -562,11 +562,29 @@ async def request_verification(
         )
 
         try:
-
             asyncio.create_task(sms_polling_service.start_polling(verification.id))
             logger.info(f"Started SMS polling for verification {verification.id}")
         except Exception as poll_error:
             logger.warning(f"SMS polling start failed (non-critical): {poll_error}")
+
+        # Send verification initiated email (non-blocking)
+        try:
+            from app.services.email_notification_service import EmailNotificationService
+
+            notif_svc = EmailNotificationService(db)
+            display_name = user.email.split("@")[0]
+            asyncio.create_task(
+                notif_svc.send_verification_initiated_email(
+                    user_email=user.email,
+                    service_name=request.service,
+                    verification_id=str(verification.id),
+                    user_name=display_name,
+                )
+            )
+        except Exception as email_err:
+            logger.warning(
+                f"Verification initiated email failed (non-critical): {email_err}"
+            )
 
         return response
 

@@ -352,13 +352,10 @@ class EmailTemplateService:
                 db, user_id, template_name, test_variables
             )
 
-            # TODO: Integrate with actual email service
-            # For now, just log
-            logger.info(
-                f"Test email sent to {recipient_email}: {subject} (template: {template_name})"
-            )
+            # Send via email service
+            from app.services.email_service import email_service
 
-            return True
+            return await email_service._send(recipient_email, subject, html_content)
         except Exception as e:
             logger.error(f"Failed to send test email: {e}")
             return False

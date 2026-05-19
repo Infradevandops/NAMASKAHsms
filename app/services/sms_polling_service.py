@@ -380,6 +380,28 @@ class SMSPollingService:
             f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
         )
 
+        # Send verification completed email (non-blocking)
+        try:
+            import asyncio as _asyncio
+
+            from app.models.user import User as _User
+            from app.services.email_notification_service import EmailNotificationService
+
+            _user = db.query(_User).filter(_User.id == v.user_id).first()
+            if _user:
+                _notif = EmailNotificationService(db)
+                _asyncio.create_task(
+                    _notif.send_verification_completed_email(
+                        user_email=_user.email,
+                        service_name=v.service_name or "Unknown",
+                        verification_id=str(v.id),
+                        cost=float(v.cost or 0),
+                        user_name=_user.email.split("@")[0],
+                    )
+                )
+        except Exception as _e:
+            logger.warning(f"Verification completed email failed (non-critical): {_e}")
+
     async def _handle_timeout(
         self, verification: Verification, db, reason: str = "timeout"
     ):
