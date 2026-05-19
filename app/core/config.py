@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     smtp_password: Optional[str] = None
     resend_api_key: Optional[str] = None
     smtp_use_tls: bool = True
+    from_email_address: Optional[str] = None
 
     # Backward-compat aliases
     @property
@@ -60,7 +61,7 @@ class Settings(BaseSettings):
 
     @property
     def from_email(self) -> str:
-        return self.smtp_username or "onboarding@resend.dev"
+        return self.from_email_address or self.smtp_username or "onboarding@resend.dev"
 
     # External API settings
     textverified_api_key: Optional[str] = None
