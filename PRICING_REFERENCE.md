@@ -50,8 +50,8 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 - ✅ Community support
 
 **Limits**:
-- Daily: 100 verifications
-- Monthly: 3,000 verifications
+- Daily: 5 verifications
+- Monthly: **20 verifications** (trial limit)
 - Countries: 5
 - Retention: 1 day
 
@@ -112,8 +112,9 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 - **NGN**: ₦4,340 per verification (within quota)
 
 **Overage Rate** (after quota exhausted):
-- **USD**: $0.30 per verification
-- **NGN**: ₦495 per verification
+- **USD**: $1.80 per verification
+- **NGN**: ₦2,970 per verification
+- **Margin**: $1.80 − $1.46 provider cost = $0.34 (23%)
 
 **Area Code Selection**:
 - **Included** (no additional fee)
@@ -164,8 +165,9 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 - **NGN**: ₦4,340 per verification (within quota)
 
 **Overage Rate** (after quota exhausted):
-- **USD**: $0.20 per verification
-- **NGN**: ₦330 per verification
+- **USD**: $1.50 per verification
+- **NGN**: ₦2,475 per verification
+- **Margin**: $1.50 − $1.46 provider cost = $0.04 (2.7%)
 
 **Area Code Selection**:
 - **Included** (no additional fee)
@@ -194,7 +196,7 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 - Monthly fee: $35
 - Quota: $25
 - Net cost: $10/month
-- Better overage rate than Pro ($0.20 vs $0.30)
+- Better overage rate than Pro ($1.50 vs $1.80)
 - **Recommendation**: Upgrade if exceeding Pro quota regularly
 
 ---
@@ -209,7 +211,7 @@ This is the **SINGLE SOURCE OF TRUTH** for all Vrenum pricing.
 | **Carrier Fee** | ❌ N/A | +$0.50 | ✅ Free | ✅ Free |
 | **With Both Filters** | ❌ N/A | $3.38 | $2.63 | $2.63 |
 | **Monthly Quota** | None | None | $15 | $25 |
-| **Overage Rate** | N/A | N/A | $0.30 | $0.20 |
+| **Overage Rate** | N/A | N/A | $1.80 | $1.50 |
 | **API Access** | ❌ | ❌ | ✅ 10 keys | ✅ Unlimited |
 | **Webhooks** | ❌ | ❌ | ✅ | ✅ |
 | **Voice/Rentals** | ❌ | ❌ | ✅ | ✅ |
@@ -241,8 +243,8 @@ NGN: 10 × ₦5,578 = ₦55,780/month
 ```
 Monthly fee: $25
 Quota: $15 (covers ~6 SMS)
-Remaining: 4 SMS × $0.30 = $1.20
-Total: $25 + $1.20 = $26.20/month
+Remaining: 4 SMS × $1.80 = $7.20
+Total: $25 + $7.20 = $32.20/month
 NGN: ₦43,230/month
 
 Savings vs PAYG with filters: $33.80 - $26.20 = $7.60/month
@@ -252,8 +254,8 @@ Savings vs PAYG with filters: $33.80 - $26.20 = $7.60/month
 ```
 Monthly fee: $25
 Quota: $15 (covers ~6 SMS)
-Remaining: 44 SMS × $0.30 = $13.20
-Total: $25 + $13.20 = $38.20/month
+Remaining: 44 SMS × $1.80 = $79.20
+Total: $25 + $79.20 = $104.20/month
 NGN: ₦63,030/month
 
 Savings vs PAYG with filters: (50 × $3.38) - $38.20 = $169 - $38.20 = $130.80/month
@@ -263,11 +265,11 @@ Savings vs PAYG with filters: (50 × $3.38) - $38.20 = $169 - $38.20 = $130.80/m
 ```
 Monthly fee: $35
 Quota: $25 (covers ~10 SMS)
-Remaining: 90 SMS × $0.20 = $18.00
-Total: $35 + $18.00 = $53.00/month
+Remaining: 90 SMS × $1.50 = $135.00
+Total: $35 + $135.00 = $170.00/month
 NGN: ₦87,450/month
 
-Savings vs Pro: (100 × $0.30) - $18 = $30 - $18 = $12/month additional savings
+Savings vs Pro: (100 × $1.80) - $135 = $180 - $135 = $45/month additional savings
 ```
 
 ---
@@ -336,14 +338,14 @@ total_cost = base_cost + area_code_fee + carrier_fee
 # Pro (within quota)
 total_cost = 0  # covered by subscription
 
-# Pro (overage)
-total_cost = overage_verifications × 0.30
+# Pro (overage) — $1.80/SMS, profitable at $0.34 margin
+total_cost = overage_verifications × 1.80
 
 # Custom (within quota)
 total_cost = 0  # covered by subscription
 
-# Custom (overage)
-total_cost = overage_verifications × 0.20
+# Custom (overage) — $1.50/SMS, near break-even at $0.04 margin
+total_cost = overage_verifications × 1.50
 ```
 
 ### Area Code Fee
@@ -426,7 +428,7 @@ UPDATE subscription_tiers SET overage_rate = 0.20 WHERE tier = 'custom';
 |---------|------|---------|
 | 1.0 | May 12, 2026 | Initial pricing reference |
 | 1.1 | May 12, 2026 | Corrected base rate from $2.12 to $2.63 |
-| 1.2 | May 18, 2026 | Updated to v4.7.3, marked all items complete |
+| 1.3 | May 19, 2026 | Overage rates corrected: Pro $0.30→$1.80, Custom $0.20→$1.50 (profitable). Freemium monthly limit set to 20 SMS. |
 
 ---
 

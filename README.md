@@ -281,7 +281,7 @@ graph LR
 | Feature | Freemium | Pay-As-You-Go | Pro | Custom |
 |---------|----------|---------------|-----|--------|
 | **Price** | $0/mo | $0/mo | $25/mo | $35/mo |
-| **SMS Rate** | $2.63/SMS | $2.63/SMS | $0.30 overage | $0.20 overage |
+| **SMS Rate** | $2.63/SMS | $2.63/SMS | $1.80 overage | $1.50 overage |
 | **Monthly Quota** | None | None | $15 | $25 |
 | **API Access** | ❌ | ❌ | ✅ 10 keys | ✅ Unlimited |
 | **Location Filters** | ❌ | ✅ +$0.25 | ✅ Included | ✅ Included |

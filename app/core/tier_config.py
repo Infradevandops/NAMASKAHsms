@@ -140,8 +140,8 @@ class TierConfig:
                 "has_precise_city_filtering": False,
                 "api_key_limit": 0,
                 "support_level": "community",
-                "daily_verification_limit": 100,
-                "monthly_verification_limit": 3000,
+                "daily_verification_limit": 5,
+                "monthly_verification_limit": 20,
                 "country_limit": 5,
                 "sms_retention_days": 1,
                 "rate_limit_per_minute": 10,
@@ -185,7 +185,7 @@ class TierConfig:
                 "price_monthly": 2500,
                 "quota_usd": 15,
                 "base_sms_cost": 2.63,
-                "overage_rate": 0.30,
+                "overage_rate": 1.80,  # Profitable: $1.80 - $1.46 cost = $0.34 margin (23%)
                 "payment_required": True,
                 "has_api_access": True,
                 "has_area_code_selection": True,
@@ -211,7 +211,7 @@ class TierConfig:
                 "price_monthly": 3500,
                 "quota_usd": 25,
                 "base_sms_cost": 2.63,
-                "overage_rate": 0.20,
+                "overage_rate": 1.50,  # Near break-even: $1.50 - $1.46 cost = $0.04 margin (2.7%)
                 "payment_required": True,
                 "has_api_access": True,
                 "has_area_code_selection": True,

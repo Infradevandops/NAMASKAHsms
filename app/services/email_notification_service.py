@@ -63,7 +63,7 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping notification email")
-        return False
+            return False
 
         try:
             subject = f"[{notification.type.upper()}] {notification.title}"
@@ -105,7 +105,7 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
-        return False
+            return False
 
         try:
             subject = "Verification Started - Vrenum"
@@ -150,7 +150,7 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
-        return False
+            return False
 
         try:
             subject = "Verification Completed - Vrenum"
@@ -194,7 +194,7 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping low balance email")
-        return False
+            return False
 
         try:
             subject = "Low Balance Alert - Vrenum"
@@ -233,11 +233,11 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping digest email")
-        return False
+            return False
 
         if not notifications:
             logger.info("No notifications to send in digest")
-        return False
+            return False
 
         try:
             subject = f"Daily Digest - {len(notifications)} Updates - Vrenum"
@@ -279,11 +279,11 @@ class EmailNotificationService:
         """
         if not self.enabled:
             logger.warning("Email service not configured, skipping weekly digest email")
-        return False
+            return False
 
         if not notifications:
             logger.info("No notifications to send in weekly digest")
-        return False
+            return False
 
         try:
             subject = "Weekly Summary - Vrenum"

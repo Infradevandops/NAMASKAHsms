@@ -18,7 +18,7 @@ def get_tier_limits(tier: str):
     """Get quota limits for a tier."""
     limits = {
         "freemium": {
-            "sms_monthly": 10,
+            "sms_monthly": 20,  # Trial limit — profitable at $2.63/SMS
             "api_daily": 0,
             "api_keys": 0,
             "webhooks": 0,
@@ -201,9 +201,9 @@ async def get_overage_charges(
 
     if limits["sms_monthly"] > 0 and sms_used > limits["sms_monthly"]:
         overage = sms_used - limits["sms_monthly"]
-        # Pro tier: $0.30 per overage, Custom: $0.20
-        rate = 0.30 if tier == "pro" else 0.20
-        overage_cost = overage * rate
+        # Pro: $1.80/SMS overage (23% margin), Custom: $1.50/SMS (2.7% margin)
+        rate = 1.80 if tier == "pro" else 1.50
+        overage_cost = round(overage * rate, 2)
 
     return {
         "has_overage": overage > 0,
