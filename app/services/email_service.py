@@ -122,93 +122,286 @@ class EmailService:
         self,
         user_email: str,
         verification_token: str,
-        base_url: str = "https://vrenum.onrender.com",
+        base_url: str = "https://vrenum.app",
     ) -> bool:
         verify_url = f"{base_url}/api/auth/verify-email?token={verification_token}"
         html = f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;">
-        <div style="max-width:600px;margin:0 auto;padding:20px;">
-            <h2 style="color:#667eea;">Verify your email</h2>
-            <p>Click the button below to verify your vrenum.app account.</p>
-            <a href="{verify_url}" style="display:inline-block;padding:12px 24px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px;margin:20px 0;">Verify Email</a>
-            <p style="color:#999;font-size:12px;">Link expires in 24 hours. If you didn't create an account, ignore this email.</p>
-        </div>
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">SMS Verification Platform</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">Verify your email address</h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                    Welcome to Vrenum! Click the button below to verify your email and activate your account.
+                  </p>
+                  <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="{verify_url}" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;">Verify Email →</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;">
+                    <p style="margin:0;color:#166534;font-size:13px;">
+                      ⏱ This link expires in <strong>24 hours</strong>.<br>
+                      If you didn't create a Vrenum account, you can safely ignore this email.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">
+                    © 2026 Vrenum · <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
         </body></html>
         """
-        return await self._send(user_email, "Verify your vrenum.app email", html)
+        return await self._send(user_email, "Verify your Vrenum email", html)
 
     async def send_password_reset(
         self,
         user_email: str,
         reset_token: str,
-        base_url: str = "https://vrenum.onrender.com",
+        base_url: str = "https://vrenum.app",
     ) -> bool:
-        reset_url = f"{base_url}/reset-password?token={reset_token}"
+        reset_url = f"{base_url}/password-reset?token={reset_token}"
         html = f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;">
-        <div style="max-width:600px;margin:0 auto;padding:20px;">
-            <h2 style="color:#667eea;">Reset your password</h2>
-            <p>Click the button below to reset your vrenum.app password.</p>
-            <a href="{reset_url}" style="display:inline-block;padding:12px 24px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px;margin:20px 0;">Reset Password</a>
-            <p style="color:#999;font-size:12px;">Link expires in 1 hour. If you didn't request this, ignore this email.</p>
-        </div>
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <!-- Header -->
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">SMS Verification Platform</p>
+                </td>
+              </tr>
+              <!-- Body -->
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">Reset your password</h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                    We received a request to reset the password for your Vrenum account.
+                    Click the button below to choose a new password.
+                  </p>
+                  <!-- CTA Button -->
+                  <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="{reset_url}" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;">Reset Password →</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <!-- Fallback link -->
+                  <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">Or copy this link into your browser:</p>
+                  <p style="margin:0 0 32px;word-break:break-all;">
+                    <a href="{reset_url}" style="color:#FE3C72;font-size:13px;">{reset_url}</a>
+                  </p>
+                  <!-- Warning box -->
+                  <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:16px 20px;">
+                    <p style="margin:0;color:#92400e;font-size:13px;line-height:1.5;">
+                      ⏱ This link expires in <strong>1 hour</strong>.<br>
+                      If you didn't request a password reset, you can safely ignore this email.
+                      Your password will not change.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">
+                    © 2026 Vrenum · <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a> ·
+                    <a href="https://vrenum.app/privacy" style="color:#9ca3af;">Privacy Policy</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
         </body></html>
         """
-        return await self._send(user_email, "Reset your vrenum.app password", html)
+        return await self._send(user_email, "Reset your Vrenum password", html)
 
     # ── HTML templates ────────────────────────────────────────────────────────
 
     def _receipt_html(self, d: Dict[str, Any]) -> str:
         return f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;">
-        <div style="max-width:600px;margin:0 auto;padding:20px;">
-            <h2 style="color:#667eea;">Payment Receipt</h2>
-            <p>Your account has been credited successfully.</p>
-            <div style="background:#f9fafb;padding:20px;border-radius:8px;margin:20px 0;">
-                <table style="width:100%;border-collapse:collapse;">
-                    <tr><td><strong>Reference:</strong></td><td>{d.get('reference','N/A')}</td></tr>
-                    <tr><td><strong>Amount Paid:</strong></td><td>${d.get('amount_usd',0):.2f}</td></tr>
-                    <tr><td><strong>Credits Added:</strong></td><td>{d.get('credits_added',0):.2f}</td></tr>
-                    <tr><td><strong>New Balance:</strong></td><td><strong>{d.get('new_balance',0):.2f}</strong></td></tr>
-                    <tr><td><strong>Date:</strong></td><td>{d.get('timestamp', datetime.now(timezone.utc).isoformat())}</td></tr>
-                </table>
-            </div>
-        </div></body></html>
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">Payment Receipt</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">✅ Payment Successful</h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Your account has been credited successfully.</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Reference</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;font-weight:600;text-align:right;">{d.get('reference','N/A')}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Amount Paid</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;font-weight:600;text-align:right;">${d.get('amount_usd',0):.2f}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Credits Added</td>
+                      <td style="padding:14px 20px;color:#10b981;font-size:14px;font-weight:700;text-align:right;">+{d.get('credits_added',0):.2f}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">New Balance</td>
+                      <td style="padding:14px 20px;color:#FE3C72;font-size:16px;font-weight:800;text-align:right;">${d.get('new_balance',0):.2f}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Date</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;text-align:right;">{d.get('timestamp', datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'))}</td>
+                    </tr>
+                  </table>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="https://vrenum.app/verify" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Start Verifying →</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">© 2026 Vrenum · <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a></p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
         """
 
     def _failed_html(self, d: Dict[str, Any]) -> str:
         return f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;">
-        <div style="max-width:600px;margin:0 auto;padding:20px;">
-            <h2 style="color:#ef4444;">Payment Failed</h2>
-            <p>Your payment could not be processed.</p>
-            <div style="background:#fef2f2;padding:20px;border-radius:8px;margin:20px 0;">
-                <table style="width:100%;border-collapse:collapse;">
-                    <tr><td><strong>Reference:</strong></td><td>{d.get('reference','N/A')}</td></tr>
-                    <tr><td><strong>Amount:</strong></td><td>${d.get('amount_usd',0):.2f}</td></tr>
-                    <tr><td><strong>Reason:</strong></td><td>{d.get('reason','Unknown')}</td></tr>
-                    <tr><td><strong>Date:</strong></td><td>{d.get('timestamp', datetime.now(timezone.utc).isoformat())}</td></tr>
-                </table>
-            </div>
-        </div></body></html>
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">❌ Payment Failed</h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Your payment could not be processed.</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                    <tr style="border-bottom:1px solid #fecaca;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Reference</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;font-weight:600;text-align:right;">{d.get('reference','N/A')}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #fecaca;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Amount</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;font-weight:600;text-align:right;">${d.get('amount_usd',0):.2f}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Reason</td>
+                      <td style="padding:14px 20px;color:#ef4444;font-size:14px;font-weight:600;text-align:right;">{d.get('reason','Unknown')}</td>
+                    </tr>
+                  </table>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="https://vrenum.app/wallet" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Try Again →</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">© 2026 Vrenum · <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a></p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
         """
 
     def _refund_html(self, d: Dict[str, Any]) -> str:
         return f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;">
-        <div style="max-width:600px;margin:0 auto;padding:20px;">
-            <h2 style="color:#10b981;">Refund Processed</h2>
-            <p>Your refund has been successfully processed.</p>
-            <div style="background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;">
-                <table style="width:100%;border-collapse:collapse;">
-                    <tr><td><strong>Reference:</strong></td><td>{d.get('reference','N/A')}</td></tr>
-                    <tr><td><strong>Refund Amount:</strong></td><td>${d.get('amount',0):.2f}</td></tr>
-                    <tr><td><strong>Reason:</strong></td><td>{d.get('reason','Refund processed')}</td></tr>
-                    <tr><td><strong>New Balance:</strong></td><td><strong>{d.get('new_balance',0):.2f}</strong></td></tr>
-                    <tr><td><strong>Date:</strong></td><td>{d.get('timestamp', datetime.now(timezone.utc).isoformat())}</td></tr>
-                </table>
-            </div>
-        </div></body></html>
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">🔄 Refund Processed</h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Your refund has been successfully processed and credited to your wallet.</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+                    <tr style="border-bottom:1px solid #bbf7d0;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Reference</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;font-weight:600;text-align:right;">{d.get('reference','N/A')}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #bbf7d0;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Refund Amount</td>
+                      <td style="padding:14px 20px;color:#10b981;font-size:16px;font-weight:800;text-align:right;">+${d.get('amount',0):.2f}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #bbf7d0;">
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Reason</td>
+                      <td style="padding:14px 20px;color:#111827;font-size:14px;text-align:right;">{d.get('reason','Refund processed')}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:14px 20px;color:#6b7280;font-size:14px;">New Balance</td>
+                      <td style="padding:14px 20px;color:#FE3C72;font-size:16px;font-weight:800;text-align:right;">${d.get('new_balance',0):.2f}</td>
+                    </tr>
+                  </table>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="https://vrenum.app/verify" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Start New Verification →</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">© 2026 Vrenum · <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a></p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
         """
 
 
