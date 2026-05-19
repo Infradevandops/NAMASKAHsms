@@ -10,107 +10,358 @@
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+    .progress-dot { transition: background 0.3s; }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-  <div class="w-full max-w-md">
+  <div class="w-full max-w-md" id="wizard">
+
+    <!-- Progress bar -->
+    <div class="flex items-center justify-between mb-6 px-1">
+      <span id="step-label" class="text-zinc-400 text-sm">Step 1 of 6</span>
+      <div class="flex gap-2" id="progress-dots">
+        <!-- dots injected by JS -->
+      </div>
+      <button onclick="skipOnboarding()" class="text-zinc-500 text-sm hover:text-white transition" id="skip-btn">
+        Skip →
+      </button>
+    </div>
+
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
 
-      <div class="text-center mb-6">
-        <div class="text-5xl mb-3">🌍</div>
-        <h1 class="text-3xl font-bold text-white mb-2">Welcome to VRENUM ACTV8TN</h1>
-        <p class="text-zinc-400">Select your language and currency <span class="text-red-400">*</span></p>
+      <!-- Step 1: Language & Currency -->
+      <div class="step-panel active" id="step-1">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">🌍</div>
+          <h1 class="text-2xl font-bold text-white mb-2">Welcome to VRENUM ACTV8TN</h1>
+          <p class="text-zinc-400 text-sm">Choose your language and currency to get started</p>
+        </div>
+        <form id="welcomeForm" onsubmit="savePreferencesAndAdvance(event)">
+          <div class="mb-4">
+            <label class="block text-white font-semibold mb-2">Language <span class="text-red-400">*</span></label>
+            <select id="language" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
+              <option value="">Choose language...</option>
+              <option value="en">🇺🇸 English</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="pt">🇵🇹 Português</option>
+              <option value="zh">🇨🇳 中文</option>
+              <option value="ja">🇯🇵 日本語</option>
+              <option value="ar">🇸🇦 العربية</option>
+              <option value="hi">🇮🇳 हिन्दी</option>
+              <option value="yo">🇳🇬 Yorùbá</option>
+            </select>
+          </div>
+          <div class="mb-6">
+            <label class="block text-white font-semibold mb-2">Currency <span class="text-red-400">*</span></label>
+            <select id="currency" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
+              <option value="">Choose currency...</option>
+              <option value="USD">🇺🇸 USD - US Dollar ($)</option>
+              <option value="EUR">🇪🇺 EUR - Euro (€)</option>
+              <option value="GBP">🇬🇧 GBP - British Pound (£)</option>
+              <option value="NGN">🇳🇬 NGN - Nigerian Naira (₦)</option>
+              <option value="INR">🇮🇳 INR - Indian Rupee (₹)</option>
+              <option value="CNY">🇨🇳 CNY - Chinese Yuan (¥)</option>
+              <option value="JPY">🇯🇵 JPY - Japanese Yen (¥)</option>
+              <option value="BRL">🇧🇷 BRL - Brazilian Real (R$)</option>
+              <option value="CAD">🇨🇦 CAD - Canadian Dollar (C$)</option>
+              <option value="AUD">🇦🇺 AUD - Australian Dollar (A$)</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+            Continue →
+          </button>
+        </form>
       </div>
 
-        <form id="welcomeForm" onsubmit="savePreferences(event)">
-        <div class="mb-4">
-          <label class="block text-white font-semibold mb-2">Language <span class="text-red-400">*</span></label>
-          <select id="language" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
-            <option value="">Choose language...</option>
-            <option value="en">🇺🇸 English</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="hi">🇮🇳 हिन्दी</option>
-            <option value="yo">🇳🇬 Yorùbá</option>
-          </select>
+      <!-- Step 2: Add Credits -->
+      <div class="step-panel" id="step-2">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">💳</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Add Credits</h2>
+          <p class="text-zinc-400 text-sm">Fund your wallet to start purchasing verifications. Credits never expire.</p>
         </div>
-
-        <div class="mb-6">
-          <label class="block text-white font-semibold mb-2">Currency <span class="text-red-400">*</span></label>
-          <select id="currency" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
-            <option value="">Choose currency...</option>
-            <option value="USD">🇺🇸 USD - US Dollar ($)</option>
-            <option value="EUR">🇪🇺 EUR - Euro (€)</option>
-            <option value="GBP">🇬🇧 GBP - British Pound (£)</option>
-            <option value="NGN">🇳🇬 NGN - Nigerian Naira (₦)</option>
-            <option value="INR">🇮🇳 INR - Indian Rupee (₹)</option>
-            <option value="CNY">🇨🇳 CNY - Chinese Yuan (¥)</option>
-            <option value="JPY">🇯🇵 JPY - Japanese Yen (¥)</option>
-            <option value="BRL">🇧🇷 BRL - Brazilian Real (R$)</option>
-            <option value="CAD">🇨🇦 CAD - Canadian Dollar (C$)</option>
-            <option value="AUD">🇦🇺 AUD - Australian Dollar (A$)</option>
-          </select>
+        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
+          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Wallet</strong> → "Add Credits" button</p>
         </div>
-
-        <button type="submit" class="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
-          Continue →
-        </button>
-      </form>
-
-      <div class="text-center mt-4">
-        <p class="text-zinc-500 text-xs">* Required fields</p>
+        <div class="flex gap-3">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+            ← Back
+          </button>
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+            Next →
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
 
-    <script nonce="{{ request.state.csp_nonce }}">
-    async function savePreferences(e) {
+      <!-- Step 3: Create Verification -->
+      <div class="step-panel" id="step-3">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">📱</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Create a Verification</h2>
+          <p class="text-zinc-400 text-sm">Pick a service, get a temporary number, and receive the SMS code instantly.</p>
+        </div>
+        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
+          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Verify</strong> → choose a service → "Get Number"</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+            ← Back
+          </button>
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: View History -->
+      <div class="step-panel" id="step-4">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">📋</div>
+          <h2 class="text-2xl font-bold text-white mb-2">View Your History</h2>
+          <p class="text-zinc-400 text-sm">All past verifications, codes received, and spending are logged here.</p>
+        </div>
+        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
+          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">History</strong> tab in the sidebar</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+            ← Back
+          </button>
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 5: API Keys (tier-aware) -->
+      <div class="step-panel" id="step-5">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">🔑</div>
+          <h2 class="text-2xl font-bold text-white mb-2">API Keys</h2>
+          <p class="text-zinc-400 text-sm">Integrate verifications directly into your app with our REST API.</p>
+        </div>
+        <div id="step5-pro" class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30 hidden">
+          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">API Keys</strong> → "Generate Key"</p>
+        </div>
+        <div id="step5-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-6 border border-amber-500/30 hidden">
+          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Pro feature</p>
+          <p class="text-zinc-300 text-sm">Upgrade to <strong class="text-white">Pro</strong> to unlock API access and generate up to 10 keys.</p>
+          <a href="/pricing" class="mt-2 inline-block text-amber-300 text-sm underline hover:text-amber-200">View plans →</a>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+            ← Back
+          </button>
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 6: Webhooks (tier-aware) -->
+      <div class="step-panel" id="step-6">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-3">🔔</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Webhooks</h2>
+          <p class="text-zinc-400 text-sm">Get real-time HTTP callbacks when SMS codes arrive — no polling needed.</p>
+        </div>
+        <div id="step6-pro" class="bg-white/5 rounded-xl p-4 mb-4 border border-cyan-500/30 hidden">
+          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Webhooks</strong> → "Add Endpoint"</p>
+        </div>
+        <div id="step6-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-4 border border-amber-500/30 hidden">
+          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Pro feature</p>
+          <p class="text-zinc-300 text-sm">Upgrade to <strong class="text-white">Pro</strong> to unlock webhooks and real-time delivery.</p>
+          <a href="/pricing" class="mt-2 inline-block text-amber-300 text-sm underline hover:text-amber-200">View plans →</a>
+        </div>
+        <div class="bg-green-500/10 rounded-xl p-4 mb-6 border border-green-500/30">
+          <p class="text-green-300 text-sm font-semibold">🎉 You're all set!</p>
+          <p class="text-zinc-300 text-sm mt-1">Head to your dashboard to start verifying.</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+            ← Back
+          </button>
+          <button onclick="finishOnboarding()" class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 text-white font-bold transition">
+            Go to Dashboard 🚀
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /card -->
+  </div><!-- /wizard -->
+
+  <script nonce="{{ request.state.csp_nonce }}">
+    const TOTAL_STEPS = 6;
+    let currentStep = 1;
+
+    // Tier-aware steps: populated after auth check
+    let userTier = 'freemium';
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      restorePreferences();
+      renderDots();
+
+      // Restore step from backend if authenticated
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          const res = await fetch('/api/auth/onboarding-status', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.completed) {
+              window.location.href = '/dashboard';
+              return;
+            }
+            if (data.step > 0 && data.step < TOTAL_STEPS) {
+              currentStep = data.step + 1;
+            }
+          }
+          // Fetch tier for steps 5 & 6
+          const meRes = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (meRes.ok) {
+            const me = await meRes.json();
+            userTier = me.tier || 'freemium';
+          }
+        } catch (_) { /* offline / unauthenticated — continue as guest */ }
+      }
+
+      showStep(currentStep);
+    });
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    function showStep(n) {
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`step-${n}`).classList.add('active');
+      document.getElementById('step-label').textContent = `Step ${n} of ${TOTAL_STEPS}`;
+      renderDots();
+      applyTierContent(n);
+    }
+
+    function nextStep() {
+      if (currentStep < TOTAL_STEPS) {
+        currentStep++;
+        persistStep(currentStep);
+        showStep(currentStep);
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+
+    // ── Step 1 form ───────────────────────────────────────────────────────────
+
+    async function savePreferencesAndAdvance(e) {
       e.preventDefault();
       const language = document.getElementById('language').value;
       const currency = document.getElementById('currency').value;
 
-      // Save to localStorage
       localStorage.setItem('language', language);
       localStorage.setItem('currency', currency);
-      if (window.pushPreferencesToBackend) pushPreferencesToBackend();
-
-      // Set cookie for non-authenticated users
-      document.cookie = `preferences_set=true; path=/; max-age=31536000`;
       document.cookie = `language=${language}; path=/; max-age=31536000`;
       document.cookie = `currency=${currency}; path=/; max-age=31536000`;
 
-      // Try to save to user account if authenticated
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
           await fetch('/api/user/preferences', {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ language, currency })
           });
-        } catch (error) {
-          // Ignore if fails
-        }
+        } catch (_) {}
       }
 
-      window.location.href = '/landing';
+      nextStep();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // ── Tier-aware content ────────────────────────────────────────────────────
+
+    function applyTierContent(step) {
+      const isPro = ['pro', 'custom'].includes(userTier);
+      if (step === 5) {
+        document.getElementById('step5-pro').classList.toggle('hidden', !isPro);
+        document.getElementById('step5-upgrade').classList.toggle('hidden', isPro);
+      }
+      if (step === 6) {
+        document.getElementById('step6-pro').classList.toggle('hidden', !isPro);
+        document.getElementById('step6-upgrade').classList.toggle('hidden', isPro);
+      }
+    }
+
+    // ── Completion ────────────────────────────────────────────────────────────
+
+    async function finishOnboarding() {
+      await markComplete();
+      window.location.href = '/dashboard';
+    }
+
+    async function skipOnboarding() {
+      await markComplete();
+      window.location.href = '/dashboard';
+    }
+
+    async function markComplete() {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      try {
+        await fetch('/api/auth/onboarding-complete', {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (_) {}
+    }
+
+    async function persistStep(step) {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      try {
+        await fetch('/api/auth/onboarding-status', {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step })
+        });
+      } catch (_) {}
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+
+    function renderDots() {
+      const container = document.getElementById('progress-dots');
+      container.innerHTML = '';
+      for (let i = 1; i <= TOTAL_STEPS; i++) {
+        const dot = document.createElement('div');
+        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-cyan-400' : i < currentStep ? 'bg-cyan-700' : 'bg-white/20'}`;
+        container.appendChild(dot);
+      }
+    }
+
+    function restorePreferences() {
       const savedLang = localStorage.getItem('language');
       const savedCurr = localStorage.getItem('currency');
       if (savedLang) document.getElementById('language').value = savedLang;
       if (savedCurr) document.getElementById('currency').value = savedCurr;
-    });
+    }
   </script>
 
 </body>

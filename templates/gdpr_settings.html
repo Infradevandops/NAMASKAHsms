@@ -237,17 +237,19 @@
     </div>
 
     <div class="info-box">
-        <p>Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format. Click below to download all your data.</p>
+        <p>Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format. Choose a format below to download all your data.</p>
     </div>
 
     <div class="privacy-item">
         <div class="privacy-info">
             <h4>Download Your Data</h4>
-            <p>Export all your personal data including profile, verifications, and transaction history (JSON format)</p>
+            <p>Export all your personal data including profile, verifications, and transaction history</p>
         </div>
-        <button class="btn btn-primary" onclick="exportData()" id="export-btn">
-            Export Data
-        </button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="exportData('json')" id="export-btn-json">JSON</button>
+            <button class="btn btn-primary" onclick="exportData('csv')" id="export-btn-csv">CSV</button>
+            <button class="btn btn-primary" onclick="exportData('pdf')" id="export-btn-pdf">PDF</button>
+        </div>
     </div>
 
     <div class="privacy-item">
@@ -255,6 +257,16 @@
             <h4>Last Export</h4>
             <p id="last-export-date">Never exported</p>
         </div>
+    </div>
+</div>
+
+<!-- Data Retention Policy Section -->
+<div class="privacy-section">
+    <div class="section-header">
+        <h2 class="section-title">Data Retention Policy</h2>
+    </div>
+    <div id="retention-policy-content">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading policy...</div>
     </div>
 </div>
 
@@ -277,33 +289,33 @@
 
     <div class="consent-toggle">
         <div class="consent-label">
-            <strong>Analytics</strong>
+            <strong>Analytics Tracking</strong>
             <span>Help us understand how you use our service</span>
         </div>
         <label class="switch">
-            <input type="checkbox" id="consent-analytics" onchange="savePreferences()">
+            <input type="checkbox" id="consent-analytics" onchange="saveConsent()">
             <span class="slider"></span>
         </label>
     </div>
 
     <div class="consent-toggle">
         <div class="consent-label">
-            <strong>Marketing Communications</strong>
+            <strong>Marketing Emails</strong>
             <span>Receive updates about new features and promotions</span>
         </div>
         <label class="switch">
-            <input type="checkbox" id="consent-marketing" onchange="savePreferences()">
+            <input type="checkbox" id="consent-marketing" onchange="saveConsent()">
             <span class="slider"></span>
         </label>
     </div>
 
     <div class="consent-toggle">
         <div class="consent-label">
-            <strong>Email Notifications</strong>
-            <span>Receive important account notifications via email</span>
+            <strong>Data Sharing</strong>
+            <span>Allow anonymised usage data to improve the platform</span>
         </div>
         <label class="switch">
-            <input type="checkbox" id="consent-email" onchange="savePreferences()">
+            <input type="checkbox" id="consent-data-sharing" onchange="saveConsent()">
             <span class="slider"></span>
         </label>
     </div>
@@ -385,95 +397,132 @@
         if (!token) return;
 
         try {
-            const response = await ApiRetry.fetchWithRetry('/api/user/settings', {
+            const response = await ApiRetry.fetchWithRetry('/api/gdpr/consent', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('consent-analytics').checked = data.analytics_consent || false;
-                document.getElementById('consent-marketing').checked = data.marketing_consent || false;
-                document.getElementById('consent-email').checked = data.email_notifications || false;
+                document.getElementById('consent-analytics').checked = data.analytics_tracking || false;
+                document.getElementById('consent-marketing').checked = data.marketing_emails || false;
+                document.getElementById('consent-data-sharing').checked = data.data_sharing || false;
             }
         } catch (error) {
             console.error('[GDPR] Failed to load preferences:', error);
         }
     }
 
-    // Save preferences
-    async function savePreferences() {
+    // Save consent via dedicated consent endpoint
+    async function saveConsent() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
-        const preferences = {
-            analytics_consent: document.getElementById('consent-analytics').checked,
-            marketing_consent: document.getElementById('consent-marketing').checked,
-            email_notifications: document.getElementById('consent-email').checked
+        const payload = {
+            analytics_tracking: document.getElementById('consent-analytics').checked,
+            marketing_emails: document.getElementById('consent-marketing').checked,
+            data_sharing: document.getElementById('consent-data-sharing').checked
         };
 
         try {
-            const response = await fetch('/api/user/settings', {
+            const response = await fetch('/api/gdpr/consent', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(preferences)
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 showToast('Preferences saved');
+            } else {
+                showToast('Failed to save preferences', 'error');
             }
         } catch (error) {
-            console.error('[GDPR] Failed to save preferences:', error);
+            console.error('[GDPR] Failed to save consent:', error);
             showToast('Failed to save preferences', 'error');
         }
     }
 
-    // Export user data
-    async function exportData() {
+    // Export user data — supports json / csv / pdf
+    async function exportData(format = 'json') {
         const token = localStorage.getItem('access_token');
         if (!token) {
             showToast('Please log in to export your data', 'error');
             return;
         }
 
-        const btn = document.getElementById('export-btn');
+        const btn = document.getElementById(`export-btn-${format}`);
+        const origText = btn.textContent;
         btn.disabled = true;
-        btn.textContent = '⏳ Exporting...';
+        btn.textContent = '⏳';
 
         try {
-            const response = await fetch('/gdpr/export', {
+            const response = await fetch(`/api/gdpr/export?format=${format}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            if (format === 'json') {
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                _downloadBlob(blob, `vrenum-data-${_today()}.json`);
+            } else {
+                const blob = await response.blob();
+                _downloadBlob(blob, `vrenum-data-${_today()}.${format}`);
             }
 
-            const data = await response.json();
-
-            // Download as JSON file
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `vrenum-data-export-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            // Update last export date
             document.getElementById('last-export-date').textContent = new Date().toLocaleString();
-            showToast('Data exported successfully');
+            showToast(`Data exported as ${format.toUpperCase()}`);
 
         } catch (error) {
             console.error('[GDPR] Export failed:', error);
             showToast('Failed to export data. Please try again.', 'error');
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Export Data';
+            btn.textContent = origText;
+        }
+    }
+
+    function _downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function _today() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    // Load data retention policy
+    async function loadRetentionPolicy() {
+        const container = document.getElementById('retention-policy-content');
+        try {
+            const response = await fetch('/api/gdpr/retention-policy');
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            const policy = data.policy || {};
+            let html = '<div style="display:grid;gap:12px;">';
+            for (const [key, val] of Object.entries(policy)) {
+                const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const cats = (val.categories || []).map(c => `<li style="font-size:13px;color:var(--text-muted);">${escapeHtml(c)}</li>`).join('');
+                html += `
+                    <div style="background:var(--bg-body);border-radius:8px;padding:16px;">
+                        <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(label)}</div>
+                        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Retention: <strong>${escapeHtml(val.retention_period || 'N/A')}</strong></div>
+                        <ul style="margin:0;padding-left:18px;">${cats}</ul>
+                    </div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch {
+            container.innerHTML = '<div style="padding:16px;color:var(--text-muted);">Unable to load retention policy.</div>';
         }
     }
 
@@ -563,7 +612,7 @@
         btn.textContent = '⏳ Deleting...';
 
         try {
-            const response = await fetch('/gdpr/account', {
+            const response = await fetch('/api/gdpr/account', {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -619,6 +668,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadPreferences();
         loadActivityLog();
+        loadRetentionPolicy();
     });
 
     // Close modal on outside click

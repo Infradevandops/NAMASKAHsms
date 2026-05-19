@@ -5,7 +5,7 @@ import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -403,6 +403,206 @@ class EmailService:
         </table>
         </body></html>
         """
+
+    # ── Shared helpers ─────────────────────────────────────────────────────────
+
+    def _unsub_footer(self) -> str:
+        return (
+            '<p style="margin:24px 0 0;color:#9ca3af;font-size:12px;">'
+            "You received this because you have an account on Vrenum. "
+            '<a href="https://vrenum.app/settings?tab=notifications" '
+            'style="color:#9ca3af;">Manage preferences</a></p>'
+        )
+
+    def _greeting(self, user_name: Optional[str]) -> str:
+        return (
+            f'<p style="margin:0 0 8px;color:#6b7280;font-size:15px;">Hi {user_name},</p>'
+            if user_name
+            else ""
+        )
+
+    # ── Welcome email (Phase 8) ───────────────────────────────────────────────
+
+    async def send_welcome_email(
+        self,
+        user_email: str,
+        user_name: Optional[str] = None,
+        base_url: str = "https://vrenum.app",
+    ) -> bool:
+        greeting = self._greeting(user_name)
+        unsub = self._unsub_footer()
+        html = f"""
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff;border-radius:16px;overflow:hidden;
+                          box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);
+                           padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                    SMS Verification Platform
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  {greeting}
+                  <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+                    Welcome to Vrenum! 🎉
+                  </h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                    You're all set. Vrenum gives you instant phone numbers for SMS
+                    verification across 1,800+ services in 200+ countries.
+                  </p>
+                  <div style="background:#f9fafb;border-radius:12px;padding:20px;margin-bottom:24px;">
+                    <p style="margin:0 0 12px;font-weight:700;color:#111827;">Get started in 3 steps:</p>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:8px 0;color:#6b7280;font-size:14px;">
+                          <span style="color:#FE3C72;font-weight:700;">1.</span>
+                          Add credits to your wallet
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;color:#6b7280;font-size:14px;">
+                          <span style="color:#FE3C72;font-weight:700;">2.</span>
+                          Select the service you want to verify
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;color:#6b7280;font-size:14px;">
+                          <span style="color:#FE3C72;font-weight:700;">3.</span>
+                          Receive your SMS code instantly
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="{base_url}/verify"
+                           style="display:inline-block;padding:14px 32px;color:#ffffff;
+                                  font-size:16px;font-weight:700;text-decoration:none;">
+                          Start Verifying →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                  {unsub}
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;
+                           border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">
+                    © 2026 Vrenum ·
+                    <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a> ·
+                    <a href="https://vrenum.app/privacy" style="color:#9ca3af;">Privacy Policy</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
+        """
+        return await self._send(user_email, "Welcome to Vrenum 🎉", html)
+
+    # ── Tier upgrade email (Phase 9) ──────────────────────────────────────────
+
+    async def send_tier_upgrade_email(
+        self,
+        user_email: str,
+        old_tier: str,
+        new_tier: str,
+        new_features: list,
+        user_name: Optional[str] = None,
+    ) -> bool:
+        greeting = self._greeting(user_name)
+        unsub = self._unsub_footer()
+        features_html = "".join(
+            f'<tr><td style="padding:8px 0;color:#6b7280;font-size:14px;">'
+            f'<span style="color:#10b981;font-weight:700;">&#10003;</span> {f}</td></tr>'
+            for f in new_features
+        )
+        tier_names = {
+            "freemium": "Freemium",
+            "payg": "Pay-As-You-Go",
+            "pro": "Pro",
+            "custom": "Custom",
+        }
+        old_display = tier_names.get(old_tier.lower(), old_tier.title())
+        new_display = tier_names.get(new_tier.lower(), new_tier.title())
+        html = f"""
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff;border-radius:16px;overflow:hidden;
+                          box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);
+                           padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                    Plan Upgrade
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;">
+                  {greeting}
+                  <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+                    You've upgraded to {new_display}! ⭐
+                  </h2>
+                  <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+                    Your plan has been upgraded from
+                    <strong>{old_display}</strong> to <strong>{new_display}</strong>.
+                    Here's what you've unlocked:
+                  </p>
+                  <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin-bottom:24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      {features_html}
+                    </table>
+                  </div>
+                  <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);border-radius:8px;">
+                        <a href="https://vrenum.app/dashboard"
+                           style="display:inline-block;padding:14px 32px;color:#ffffff;
+                                  font-size:16px;font-weight:700;text-decoration:none;">
+                          Go to Dashboard →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                  {unsub}
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;
+                           border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">
+                    © 2026 Vrenum ·
+                    <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
+        """
+        return await self._send(
+            user_email,
+            f"You've upgraded to {new_display} — Vrenum",
+            html,
+        )
 
 
 email_service = EmailService()

@@ -15,6 +15,67 @@ from app.models.notification import Notification
 
 logger = get_logger(__name__)
 
+# Shared branded email wrapper
+_HEADER = """
+<html>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0"
+           style="background:#ffffff;border-radius:16px;overflow:hidden;
+                  box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <tr>
+        <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);
+                   padding:32px 40px;text-align:center;">
+          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+            SMS Verification Platform
+          </p>
+        </td>
+      </tr>
+      <tr><td style="padding:40px;">
+"""
+
+_FOOTER = """
+      </td></tr>
+      <tr>
+        <td style="background:#f9fafb;padding:24px 40px;
+                   border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;">
+            &copy; 2026 Vrenum &middot;
+            <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a>
+            &middot;
+            <a href="https://vrenum.app/privacy" style="color:#9ca3af;">Privacy Policy</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>
+"""
+
+_PINK_BTN = (
+    '<table cellpadding="0" cellspacing="0" style="margin:24px 0;">'
+    '<tr><td style="background:linear-gradient(135deg,#FE3C72,#E0245E);'
+    'border-radius:8px;">'
+    '<a href="{url}" style="display:inline-block;padding:13px 28px;'
+    'color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">'
+    "{label}</a></td></tr></table>"
+)
+
+_UNSUB = (
+    '<p style="margin:24px 0 0;color:#9ca3af;font-size:12px;">'
+    "You received this because you have email notifications enabled. "
+    '<a href="{link}" style="color:#9ca3af;">Manage preferences</a></p>'
+)
+
+
+def _unsub_link(token: Optional[str]) -> str:
+    if token:
+        return f"https://vrenum.app/unsubscribe?token={token}"
+    return "https://vrenum.app/settings?tab=notifications"
+
 
 class EmailNotificationService:
     """Service for sending notification emails."""
@@ -45,42 +106,32 @@ class EmailNotificationService:
             self._mode = None
             logger.warning("Email notification service not configured")
 
+    # ── Public send methods ───────────────────────────────────────────────────
+
     async def send_notification_email(
         self,
         user_email: str,
         notification: Notification,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send notification email to user.
-
-        Args:
-            user_email: Recipient email address
-            notification: Notification object
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping notification email")
             return False
-
         try:
             subject = f"[{notification.type.upper()}] {notification.title}"
             html_body = self._create_notification_html(
                 notification=notification,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(
                 f"Notification email sent to {user_email} (type: {notification.type})"
             )
             return True
-
         except Exception as e:
             logger.error(f"Failed to send notification email: {str(e)}")
             return False
@@ -90,40 +141,27 @@ class EmailNotificationService:
         user_email: str,
         service_name: str,
         verification_id: str,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send verification initiated email.
-
-        Args:
-            user_email: Recipient email address
-            service_name: Name of service being verified
-            verification_id: ID of verification
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
             return False
-
         try:
-            subject = "Verification Started - Vrenum"
+            subject = f"Your {service_name} verification has started — Vrenum"
             html_body = self._create_verification_initiated_html(
                 service_name=service_name,
                 verification_id=verification_id,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(
                 f"Verification initiated email sent to {user_email} for {service_name}"
             )
             return True
-
         except Exception as e:
             logger.error(f"Failed to send verification initiated email: {str(e)}")
             return False
@@ -134,42 +172,28 @@ class EmailNotificationService:
         service_name: str,
         verification_id: str,
         cost: float,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send verification completed email.
-
-        Args:
-            user_email: Recipient email address
-            service_name: Name of service verified
-            verification_id: ID of verification
-            cost: Cost of verification
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
             return False
-
         try:
-            subject = "Verification Completed - Vrenum"
+            subject = f"✅ {service_name} verification complete — Vrenum"
             html_body = self._create_verification_completed_html(
                 service_name=service_name,
                 verification_id=verification_id,
                 cost=cost,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(
                 f"Verification completed email sent to {user_email} for {service_name}"
             )
             return True
-
         except Exception as e:
             logger.error(f"Failed to send verification completed email: {str(e)}")
             return False
@@ -179,38 +203,25 @@ class EmailNotificationService:
         user_email: str,
         current_balance: float,
         threshold: float,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send low balance alert email.
-
-        Args:
-            user_email: Recipient email address
-            current_balance: Current account balance
-            threshold: Low balance threshold
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping low balance email")
             return False
-
         try:
-            subject = "Low Balance Alert - Vrenum"
+            subject = "⚠️ Your Vrenum balance is running low"
             html_body = self._create_low_balance_alert_html(
                 current_balance=current_balance,
                 threshold=threshold,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(f"Low balance alert sent to {user_email}")
             return True
-
         except Exception as e:
             logger.error(f"Failed to send low balance alert: {str(e)}")
             return False
@@ -219,42 +230,29 @@ class EmailNotificationService:
         self,
         user_email: str,
         notifications: List[Notification],
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send daily digest email with multiple notifications.
-
-        Args:
-            user_email: Recipient email address
-            notifications: List of notifications
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping digest email")
             return False
-
         if not notifications:
             logger.info("No notifications to send in digest")
             return False
-
         try:
-            subject = f"Daily Digest - {len(notifications)} Updates - Vrenum"
+            subject = f"📬 Your daily digest — {len(notifications)} update{'s' if len(notifications) != 1 else ''}"
             html_body = self._create_daily_digest_html(
                 notifications=notifications,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(
                 f"Daily digest sent to {user_email} with {len(notifications)} notifications"
             )
             return True
-
         except Exception as e:
             logger.error(f"Failed to send daily digest: {str(e)}")
             return False
@@ -264,48 +262,35 @@ class EmailNotificationService:
         user_email: str,
         notifications: List[Notification],
         stats: Dict[str, Any],
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> bool:
-        """Send weekly digest email with statistics.
-
-        Args:
-            user_email: Recipient email address
-            notifications: List of notifications
-            stats: Weekly statistics
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
         if not self.enabled:
             logger.warning("Email service not configured, skipping weekly digest email")
             return False
-
         if not notifications:
             logger.info("No notifications to send in weekly digest")
             return False
-
         try:
-            subject = "Weekly Summary - Vrenum"
+            subject = "📊 Your weekly Vrenum summary"
             html_body = self._create_weekly_digest_html(
                 notifications=notifications,
                 stats=stats,
+                user_name=user_name,
                 unsubscribe_token=unsubscribe_token,
             )
-
             await self._send_email(
                 to_email=user_email, subject=subject, html_body=html_body
             )
-
             logger.info(f"Weekly digest sent to {user_email}")
             return True
-
         except Exception as e:
             logger.error(f"Failed to send weekly digest: {str(e)}")
             return False
 
+    # ── Transport ─────────────────────────────────────────────────────────────
+
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
-        """Send email via Resend or SMTP."""
         try:
             if self._mode == "resend":
                 import resend
@@ -324,7 +309,6 @@ class EmailNotificationService:
                 )
                 return True
 
-            # SMTP fallback
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
             message["From"] = self.from_email
@@ -341,12 +325,6 @@ class EmailNotificationService:
             return False
 
     def _send_smtp(self, to_email: str, message: str) -> None:
-        """Send email via SMTP (blocking operation).
-
-        Args:
-            to_email: Recipient email address
-            message: Email message
-        """
         try:
             with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
@@ -356,362 +334,252 @@ class EmailNotificationService:
             logger.error(f"SMTP error: {str(e)}")
             raise
 
+    # ── HTML builders ─────────────────────────────────────────────────────────
+
     def _create_notification_html(
         self,
         notification: Notification,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for notification email.
-
-        Args:
-            notification: Notification object
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
-        """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        link_html = (
+            _PINK_BTN.format(url=notification.link, label="View Details →")
+            if notification.link
+            else ""
         )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #667eea;">{notification.title}</h2>
-
-                    <p>{notification.message}</p>
-
-                    {f'<p><a href="{notification.link}" style="color: #667eea; text-decoration: none;"><strong>View Details →</strong></a></p>' if notification.link else ''}
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        You received this email because you have notifications enabled for {notification.type}.
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
-    """
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            {notification.title}
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+            {notification.message}
+          </p>
+          {link_html}
+          {unsub}
+        """
+        return _HEADER + body + _FOOTER
 
     def _create_verification_initiated_html(
         self,
         service_name: str,
         verification_id: str,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for verification initiated email.
-
-        Args:
-            service_name: Name of service
-            verification_id: ID of verification
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        status_url = f"https://vrenum.app/verify?id={verification_id}"
+        btn = _PINK_BTN.format(url=status_url, label="View Verification Status →")
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            🚀 Verification Started
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+            Your <strong>{service_name}</strong> verification has been initiated.
+            We're scanning for your SMS code now.
+          </p>
+          <div style="background:#f9fafb;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <p style="margin:0 0 12px;font-weight:700;color:#111827;">What happens next?</p>
+            <ul style="margin:0;padding-left:20px;color:#6b7280;font-size:14px;line-height:1.8;">
+              <li>You'll receive an SMS code on the assigned number</li>
+              <li>Enter the code on the service you're verifying</li>
+              <li>Verification typically completes within 2–5 minutes</li>
+            </ul>
+          </div>
+          {btn}
+          {unsub}
         """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
-        )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #667eea;">🚀 Verification Started</h2>
-
-                    <p>Your verification for <strong>{service_name}</strong> has been initiated.</p>
-
-                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <p><strong>What's next?</strong></p>
-                        <ul>
-                            <li>You will receive an SMS code shortly</li>
-                            <li>Enter the code in the Vrenum app to complete verification</li>
-                            <li>Verification typically completes within 2-5 minutes</li>
-                        </ul>
-                    </div>
-
-                    <p>
-                        <a href="https://vrenum.app/verify?id={verification_id}" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
-                            View Verification Status
-                        </a>
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage notification preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
-    """
+        return _HEADER + body + _FOOTER
 
     def _create_verification_completed_html(
         self,
         service_name: str,
         verification_id: str,
         cost: float,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for verification completed email.
-
-        Args:
-            service_name: Name of service
-            verification_id: ID of verification
-            cost: Cost of verification
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
-        """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        completed_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        btn = _PINK_BTN.format(
+            url="https://vrenum.app/verify", label="Start New Verification →"
         )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #10b981;">✅ Verification Completed</h2>
-
-                    <p>Your verification for <strong>{service_name}</strong> has been completed successfully!</p>
-
-                    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 10px;"><strong>Service:</strong></td>
-                                <td style="padding: 10px;">{service_name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px;"><strong>Cost:</strong></td>
-                                <td style="padding: 10px;">${cost:.2f}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px;"><strong>Date:</strong></td>
-                                <td style="padding: 10px;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <p>You can now use this verified account on {service_name}.</p>
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage notification preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
-    """
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            ✅ Verification Complete
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+            Your <strong>{service_name}</strong> verification was successful.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f0fdf4;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+            <tr style="border-bottom:1px solid #bbf7d0;">
+              <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Service</td>
+              <td style="padding:14px 20px;color:#111827;font-size:14px;
+                         font-weight:600;text-align:right;">{service_name}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #bbf7d0;">
+              <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Cost</td>
+              <td style="padding:14px 20px;color:#FE3C72;font-size:14px;
+                         font-weight:700;text-align:right;">${cost:.2f}</td>
+            </tr>
+            <tr>
+              <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Completed</td>
+              <td style="padding:14px 20px;color:#111827;font-size:14px;
+                         text-align:right;">{completed_at}</td>
+            </tr>
+          </table>
+          {btn}
+          {unsub}
+        """
+        return _HEADER + body + _FOOTER
 
     def _create_low_balance_alert_html(
         self,
         current_balance: float,
         threshold: float,
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for low balance alert email.
-
-        Args:
-            current_balance: Current balance
-            threshold: Low balance threshold
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        btn = _PINK_BTN.format(url="https://vrenum.app/wallet", label="Add Credits →")
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            ⚠️ Low Balance Alert
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
+            Your Vrenum account balance is running low. Top up now to keep
+            verifying without interruption.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#fffbeb;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+            <tr style="border-bottom:1px solid #fde68a;">
+              <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Current Balance</td>
+              <td style="padding:14px 20px;color:#f59e0b;font-size:16px;
+                         font-weight:800;text-align:right;">${current_balance:.2f}</td>
+            </tr>
+            <tr>
+              <td style="padding:14px 20px;color:#6b7280;font-size:14px;">Alert Threshold</td>
+              <td style="padding:14px 20px;color:#111827;font-size:14px;
+                         text-align:right;">${threshold:.2f}</td>
+            </tr>
+          </table>
+          {btn}
+          {unsub}
         """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
-        )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #f59e0b;">⚠️ Low Balance Alert</h2>
-
-                    <p>Your account balance is running low.</p>
-
-                    <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 10px;"><strong>Current Balance:</strong></td>
-                                <td style="padding: 10px; color: #f59e0b;"><strong>${current_balance:.2f}</strong></td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px;"><strong>Alert Threshold:</strong></td>
-                                <td style="padding: 10px;">${threshold:.2f}</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <p>
-                        <a href="https://vrenum.app/wallet" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
-                            Add Credits
-                        </a>
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage notification preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
-    """
+        return _HEADER + body + _FOOTER
 
     def _create_daily_digest_html(
         self,
         notifications: List[Notification],
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for daily digest email.
-
-        Args:
-            notifications: List of notifications
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
-        """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
-        )
-
-        notifications_html = "".join(
-            [
-                """
-            <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 8px 0; color: #667eea;">{n.title}</h4>
-                <p style="margin: 0; color: #6b7280; font-size: 14px;">{n.message}</p>
-                <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">{n.created_at.strftime('%Y-%m-%d %H:%M:%S') if n.created_at else 'N/A'}</p>
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        items_html = "".join(
+            f"""
+            <div style="background:#f9fafb;border-radius:10px;padding:16px;
+                        margin-bottom:12px;border-left:4px solid #FE3C72;">
+              <p style="margin:0 0 4px;font-weight:700;color:#111827;font-size:14px;">
+                {n.title}
+              </p>
+              <p style="margin:0 0 6px;color:#6b7280;font-size:13px;line-height:1.5;">
+                {n.message}
+              </p>
+              <p style="margin:0;color:#9ca3af;font-size:11px;">
+                {n.created_at.strftime('%Y-%m-%d %H:%M UTC') if n.created_at else ''}
+              </p>
             </div>
             """
-                for n in notifications
-            ]
+            for n in notifications
         )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #667eea;">📬 Daily Digest</h2>
-
-                    <p>Here's a summary of your notifications from today:</p>
-
-                    <div style="margin: 20px 0;">
-                        {notifications_html}
-                    </div>
-
-                    <p>
-                        <a href="https://vrenum.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
-                            View All Notifications
-                        </a>
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage notification preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
-    """
+        btn = _PINK_BTN.format(
+            url="https://vrenum.app/notifications", label="View All Notifications →"
+        )
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            📬 Your Daily Digest
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">
+            You have <strong>{len(notifications)}</strong>
+            update{'s' if len(notifications) != 1 else ''} from today.
+          </p>
+          {items_html}
+          {btn}
+          {unsub}
+        """
+        return _HEADER + body + _FOOTER
 
     def _create_weekly_digest_html(
         self,
         notifications: List[Notification],
         stats: Dict[str, Any],
+        user_name: Optional[str] = None,
         unsubscribe_token: Optional[str] = None,
     ) -> str:
-        """Create HTML for weekly digest email.
-
-        Args:
-            notifications: List of notifications
-            stats: Weekly statistics
-            unsubscribe_token: Token for unsubscribe link
-
-        Returns:
-            HTML email body
-        """
-        unsubscribe_link = (
-            f"https://vrenum.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
-            else "https://vrenum.app/preferences"
-        )
-
-        notifications_html = "".join(
-            [
-                """
-            <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 8px 0; color: #667eea;">{n.title}</h4>
-                <p style="margin: 0; color: #6b7280; font-size: 14px;">{n.message}</p>
-            </div>
-            """
-                for n in notifications[:10]
-            ]
-        )
-
-        stats_html = "".join(
-            [
-                """
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>{key.replace('_', ' ').title()}:</strong></td>
-                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{value}</td>
+        greeting = f"Hi {user_name}," if user_name else "Hi there,"
+        stats_rows = "".join(
+            f"""
+            <tr style="border-bottom:1px solid #e5e7eb;">
+              <td style="padding:12px 20px;color:#6b7280;font-size:14px;">
+                {k.replace('_', ' ').title()}
+              </td>
+              <td style="padding:12px 20px;color:#111827;font-size:14px;
+                         font-weight:600;text-align:right;">{v}</td>
             </tr>
             """
-                for key, value in stats.items()
-            ]
+            for k, v in stats.items()
         )
-
-        return """
-        <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #667eea;">📊 Weekly Summary</h2>
-
-                    <p>Here's your weekly activity summary:</p>
-
-                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="margin-top: 0;">Statistics</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            {stats_html}
-                        </table>
-                    </div>
-
-                    <div style="margin: 20px 0;">
-                        <h3>Recent Notifications</h3>
-                        {notifications_html}
-                        {f'<p style="color: #6b7280; font-size: 12px;">... and {len(notifications) - 10} more</p>' if len(notifications) > 10 else ''}
-                    </div>
-
-                    <p>
-                        <a href="https://vrenum.app/notifications" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
-                            View All Notifications
-                        </a>
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-
-                    <p style="color: #6b7280; font-size: 12px;">
-                        <a href="{unsubscribe_link}" style="color: #667eea; text-decoration: none;">Manage notification preferences</a>
-                    </p>
-                </div>
-            </body>
-        </html>
+        notif_items = "".join(
+            f"""
+            <div style="background:#f9fafb;border-radius:10px;padding:14px;
+                        margin-bottom:10px;border-left:4px solid #FE3C72;">
+              <p style="margin:0 0 4px;font-weight:700;color:#111827;font-size:14px;">
+                {n.title}
+              </p>
+              <p style="margin:0;color:#6b7280;font-size:13px;">{n.message}</p>
+            </div>
+            """
+            for n in notifications[:10]
+        )
+        overflow = (
+            f'<p style="color:#9ca3af;font-size:12px;margin:8px 0 0;">... and {len(notifications) - 10} more</p>'
+            if len(notifications) > 10
+            else ""
+        )
+        btn = _PINK_BTN.format(
+            url="https://vrenum.app/notifications", label="View All Notifications →"
+        )
+        unsub = _UNSUB.format(link=_unsub_link(unsubscribe_token))
+        body = f"""
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">{greeting}</p>
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">
+            📊 Your Weekly Summary
+          </h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">
+            Here's what happened on Vrenum this week.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#f9fafb;border-radius:12px;
+                        overflow:hidden;margin-bottom:24px;">
+            {stats_rows}
+          </table>
+          <h3 style="margin:0 0 16px;color:#111827;font-size:16px;font-weight:700;">
+            Recent Notifications
+          </h3>
+          {notif_items}
+          {overflow}
+          {btn}
+          {unsub}
         """
+        return _HEADER + body + _FOOTER

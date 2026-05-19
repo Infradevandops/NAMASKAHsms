@@ -707,6 +707,18 @@ async def status_page(request: Request):
     return templates.TemplateResponse("status.html", {"request": request})
 
 
+@router.get("/reviews", response_class=HTMLResponse)
+async def reviews_page(request: Request):
+    """Customer reviews page."""
+    return templates.TemplateResponse("reviews.html", {"request": request})
+
+
+@router.get("/services", response_class=HTMLResponse)
+async def services_page(request: Request):
+    """Services overview page."""
+    return templates.TemplateResponse("services.html", {"request": request})
+
+
 @router.get("/password-reset", response_class=HTMLResponse)
 async def password_reset_page(request: Request):
     return templates.TemplateResponse("password_reset.html", {"request": request})
@@ -750,6 +762,12 @@ async def forgot_password_redirect():
 async def waitlist_page(request: Request):
     """Waitlist signup page."""
     return templates.TemplateResponse("waitlist.html", {"request": request})
+
+
+@router.get("/welcome", response_class=HTMLResponse)
+async def welcome_page(request: Request):
+    """Onboarding wizard — language/currency + 6-step guided tour."""
+    return templates.TemplateResponse("welcome.html", {"request": request})
 
 
 @router.get("/billing-history", response_class=HTMLResponse)

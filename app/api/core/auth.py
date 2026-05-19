@@ -91,6 +91,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
             tier=getattr(user, "tier", "freemium"),
             credits=user.credits or 0.0,
             created_at=user.created_at,
+            redirect="/welcome",
         )
 
     except HTTPException:

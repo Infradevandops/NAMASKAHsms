@@ -11,6 +11,8 @@
   <url><loc>https://vrenum.app/supported-services</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://vrenum.app/pricing-comparison</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://vrenum.app/faq</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vrenum.app/reviews</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vrenum.app/services</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://vrenum.app/api-documentation</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 
   <!-- Blog Pages -->

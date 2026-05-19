@@ -47,6 +47,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: dict
+    redirect: Optional[str] = None
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -224,6 +225,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         return {
             "access_token": access_token,
             "token_type": "bearer",
+            "redirect": "/welcome",
             "user": {
                 "id": str(user.id),
                 "email": user.email,
@@ -306,3 +308,54 @@ async def logout(
     auth_service = AuthService(db)
     auth_service.revoke_token(credentials.credentials)
     return {"message": "Successfully logged out"}
+
+
+def _get_user_from_token(token: str, db: Session) -> User:
+    """Decode JWT and return the User, raising 401/404 on failure."""
+    try:
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+            )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
+
+
+@router.get("/onboarding-status")
+async def get_onboarding_status(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    """Return current onboarding progress for the authenticated user."""
+    user = _get_user_from_token(credentials.credentials, db)
+    return {
+        "completed": bool(user.onboarding_completed),
+        "step": int(user.onboarding_step or 0),
+    }
+
+
+@router.put("/onboarding-complete")
+async def complete_onboarding(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    """Mark onboarding as complete (idempotent)."""
+    user = _get_user_from_token(credentials.credentials, db)
+    user.onboarding_completed = True
+    user.onboarding_step = 6
+    db.commit()
+    return {"status": "completed"}

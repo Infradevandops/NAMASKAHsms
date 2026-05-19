@@ -58,14 +58,14 @@
                     <!-- Actions -->
                     <div class="flex justify-between">
                         <div class="space-x-2">
-                            <button onclick="viewVersions()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                View Versions
+                            <button onclick="toggleVersionsPanel()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                📋 Versions
                             </button>
-                            <button onclick="sendTestEmail()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                Send Test Email
+                            <button onclick="toggleTestPanel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                ✉️ Test Email
                             </button>
-                            <button onclick="viewAnalytics()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                                View Analytics
+                            <button onclick="toggleAnalyticsPanel()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                📊 Analytics
                             </button>
                         </div>
                         <div class="space-x-2">
@@ -80,6 +80,31 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Versions Panel -->
+                    <div id="versions-panel" class="hidden mt-6 border-t pt-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Version History</h3>
+                        <div id="versions-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+
+                    <!-- Test Email Panel -->
+                    <div id="test-panel" class="hidden mt-6 border-t pt-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Send Test Email</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="test-email-input" placeholder="recipient@example.com"
+                                class="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                            <button onclick="sendTestEmailInline()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Send
+                            </button>
+                        </div>
+                        <p id="test-email-status" class="mt-2 text-sm"></p>
+                    </div>
+
+                    <!-- Analytics Panel -->
+                    <div id="analytics-panel" class="hidden mt-6 border-t pt-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Template Analytics</h3>
+                        <div id="analytics-content" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -88,37 +113,33 @@
     <script>
         let currentTemplate = null;
         let templates = [];
+        const TOKEN = () => localStorage.getItem('access_token') || localStorage.getItem('token');
 
         async function loadTemplates() {
             try {
                 const response = await fetch('/api/whitelabel/email-templates', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
                 if (!response.ok) throw new Error('Failed to load templates');
-
                 templates = await response.json();
                 renderTemplateList();
             } catch (error) {
                 console.error('Error loading templates:', error);
-                alert('Failed to load templates');
             }
         }
 
         function renderTemplateList() {
             const container = document.getElementById('template-list');
-            container.innerHTML = templates.map(template => `
-                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer" onclick="editTemplate('${template.template_name}')">
+            container.innerHTML = templates.map(t => `
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer" onclick="editTemplate('${t.template_name}')">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-lg font-semibold capitalize">${template.template_name.replace(/_/g, ' ')}</h3>
-                        ${template.has_custom ? '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Custom</span>' : '<span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Default</span>'}
+                        <h3 class="text-lg font-semibold capitalize">${t.template_name.replace(/_/g, ' ')}</h3>
+                        ${t.has_custom
+                            ? '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Custom</span>'
+                            : '<span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Default</span>'}
                     </div>
-                    <p class="text-sm text-gray-600 mb-4">${template.default_subject}</p>
-                    <div class="text-xs text-gray-500">
-                        ${template.available_variables.length} variables available
-                    </div>
+                    <p class="text-sm text-gray-600 mb-4">${t.default_subject}</p>
+                    <div class="text-xs text-gray-500">${t.available_variables.length} variables available</div>
                 </div>
             `).join('');
         }
@@ -126,13 +147,9 @@
         async function editTemplate(templateName) {
             try {
                 const response = await fetch(`/api/whitelabel/email-template/${templateName}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
                 if (!response.ok) throw new Error('Failed to load template');
-
                 currentTemplate = await response.json();
 
                 document.getElementById('editor-title').textContent = `Edit ${templateName.replace(/_/g, ' ')}`;
@@ -140,14 +157,16 @@
                 document.getElementById('template-html').value = currentTemplate.html_content;
                 document.getElementById('template-text').value = currentTemplate.text_content;
 
-                // Show available variables
                 const varsContainer = document.getElementById('available-variables');
                 varsContainer.innerHTML = currentTemplate.available_variables.map(v =>
                     `<span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded cursor-pointer hover:bg-blue-200" onclick="insertVariable('${v}')">{{ ${v} }}</span>`
                 ).join('');
 
-                // Show/hide delete button
                 document.getElementById('delete-btn').style.display = currentTemplate.active ? 'block' : 'none';
+
+                // Reset sub-panels
+                ['versions-panel','test-panel','analytics-panel'].forEach(id =>
+                    document.getElementById(id).classList.add('hidden'));
 
                 document.getElementById('editor-modal').classList.remove('hidden');
             } catch (error) {
@@ -158,22 +177,16 @@
 
         function insertVariable(varName) {
             const textarea = document.getElementById('template-html');
-            const cursorPos = textarea.selectionStart;
-            const textBefore = textarea.value.substring(0, cursorPos);
-            const textAfter = textarea.value.substring(cursorPos);
-            textarea.value = textBefore + `{{ ${varName} }}` + textAfter;
+            const pos = textarea.selectionStart;
+            textarea.value = textarea.value.substring(0, pos) + `{{ ${varName} }}` + textarea.value.substring(pos);
             textarea.focus();
-            textarea.setSelectionRange(cursorPos + varName.length + 6, cursorPos + varName.length + 6);
         }
 
         async function saveTemplate() {
             try {
                 const response = await fetch('/api/whitelabel/email-template', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${TOKEN()}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         template_name: currentTemplate.template_name,
                         subject: document.getElementById('template-subject').value,
@@ -181,39 +194,25 @@
                         text_content: document.getElementById('template-text').value || null
                     })
                 });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to save template');
-                }
-
-                alert('Template saved successfully!');
+                if (!response.ok) throw new Error((await response.json()).detail || 'Failed to save');
                 closeEditor();
                 loadTemplates();
             } catch (error) {
-                console.error('Error saving template:', error);
                 alert(error.message);
             }
         }
 
         async function deleteTemplate() {
             if (!confirm('Delete custom template and revert to default?')) return;
-
             try {
                 const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
-                if (!response.ok) throw new Error('Failed to delete template');
-
-                alert('Template deleted, reverted to default');
+                if (!response.ok) throw new Error('Failed to delete');
                 closeEditor();
                 loadTemplates();
             } catch (error) {
-                console.error('Error deleting template:', error);
                 alert('Failed to delete template');
             }
         }
@@ -223,130 +222,116 @@
             currentTemplate = null;
         }
 
-        async function viewVersions() {
-            if (!currentTemplate || !currentTemplate.active) {
-                alert('No version history for default templates');
+        // ── Versions panel ────────────────────────────────────────────────────
+        async function toggleVersionsPanel() {
+            const panel = document.getElementById('versions-panel');
+            if (!panel.classList.toggle('hidden')) return; // closing
+            ['test-panel','analytics-panel'].forEach(id => document.getElementById(id).classList.add('hidden'));
+
+            if (!currentTemplate?.active) {
+                document.getElementById('versions-list').innerHTML = '<p class="text-sm text-gray-500">No version history for default templates.</p>';
                 return;
             }
-
             try {
-                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/versions`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                const res = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/versions`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
-                if (!response.ok) throw new Error('Failed to load versions');
-
-                const versions = await response.json();
-
-                if (versions.length === 0) {
-                    alert('No version history available');
+                const versions = await res.json();
+                if (!versions.length) {
+                    document.getElementById('versions-list').innerHTML = '<p class="text-sm text-gray-500">No versions saved yet.</p>';
                     return;
                 }
-
-                const versionList = versions.map((v, i) =>
-                    `${i + 1}. Version ${v.version_number} - ${v.version_note} (${new Date(v.created_at).toLocaleString()})`
-                ).join('\n');
-
-                const versionNum = prompt(`Version History:\n\n${versionList}\n\nEnter version number to revert to (or cancel):`);
-
-                if (versionNum) {
-                    await revertToVersion(parseInt(versionNum));
-                }
-            } catch (error) {
-                console.error('Error loading versions:', error);
-                alert('Failed to load version history');
+                document.getElementById('versions-list').innerHTML = versions.map(v => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <span class="font-medium text-sm">v${v.version_number}</span>
+                            <span class="text-gray-500 text-xs ml-2">${v.version_note}</span>
+                            <div class="text-xs text-gray-400">${new Date(v.created_at).toLocaleString()}</div>
+                        </div>
+                        <button onclick="revertToVersion(${v.version_number})" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Revert</button>
+                    </div>
+                `).join('');
+            } catch {
+                document.getElementById('versions-list').innerHTML = '<p class="text-sm text-red-500">Failed to load versions.</p>';
             }
         }
 
         async function revertToVersion(versionNumber) {
-            if (!confirm(`Revert to version ${versionNumber}? This will create a new version.`)) return;
-
+            if (!confirm(`Revert to version ${versionNumber}?`)) return;
             try {
-                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/revert/${versionNumber}`, {
+                const res = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/revert/${versionNumber}`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
-                if (!response.ok) throw new Error('Failed to revert version');
-
-                alert('Template reverted successfully!');
+                if (!res.ok) throw new Error();
                 closeEditor();
                 loadTemplates();
-            } catch (error) {
-                console.error('Error reverting version:', error);
-                alert('Failed to revert to version');
+            } catch {
+                alert('Failed to revert version');
             }
         }
 
-        async function sendTestEmail() {
-            const email = prompt('Enter email address to send test email:');
-            if (!email) return;
+        // ── Test email panel ──────────────────────────────────────────────────
+        function toggleTestPanel() {
+            const panel = document.getElementById('test-panel');
+            panel.classList.toggle('hidden');
+            ['versions-panel','analytics-panel'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('test-email-status').textContent = '';
+        }
 
-            // Basic email validation
+        async function sendTestEmailInline() {
+            const email = document.getElementById('test-email-input').value.trim();
+            const status = document.getElementById('test-email-status');
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Invalid email address');
+                status.textContent = 'Enter a valid email address.';
+                status.className = 'mt-2 text-sm text-red-600';
                 return;
             }
-
+            status.textContent = 'Sending…';
+            status.className = 'mt-2 text-sm text-gray-500';
             try {
-                const response = await fetch('/api/whitelabel/email-template/test', {
+                const res = await fetch('/api/whitelabel/email-template/test', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        template_name: currentTemplate.template_name,
-                        recipient_email: email
-                    })
+                    headers: { 'Authorization': `Bearer ${TOKEN()}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ template_name: currentTemplate.template_name, recipient_email: email })
                 });
-
-                if (!response.ok) throw new Error('Failed to send test email');
-
-                alert(`Test email sent to ${email}!`);
-            } catch (error) {
-                console.error('Error sending test email:', error);
-                alert('Failed to send test email');
+                if (!res.ok) throw new Error();
+                status.textContent = `✅ Test email sent to ${email}`;
+                status.className = 'mt-2 text-sm text-green-600';
+            } catch {
+                status.textContent = '❌ Failed to send test email.';
+                status.className = 'mt-2 text-sm text-red-600';
             }
         }
 
-        async function viewAnalytics() {
-            if (!currentTemplate || !currentTemplate.active) {
-                alert('No analytics for default templates');
+        // ── Analytics panel ───────────────────────────────────────────────────
+        async function toggleAnalyticsPanel() {
+            const panel = document.getElementById('analytics-panel');
+            if (!panel.classList.toggle('hidden')) return;
+            ['versions-panel','test-panel'].forEach(id => document.getElementById(id).classList.add('hidden'));
+
+            if (!currentTemplate?.active) {
+                document.getElementById('analytics-content').innerHTML = '<p class="text-sm text-gray-500 col-span-4">No analytics for default templates.</p>';
                 return;
             }
-
             try {
-                const response = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/analytics`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                const res = await fetch(`/api/whitelabel/email-template/${currentTemplate.template_name}/analytics`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN()}` }
                 });
-
-                if (!response.ok) throw new Error('Failed to load analytics');
-
-                const analytics = await response.json();
-
-                const message = `
-Email Template Analytics
-========================
-
-Sent: ${analytics.sent_count}
-Opened: ${analytics.opened_count} (${analytics.open_rate}%)
-Clicked: ${analytics.clicked_count} (${analytics.click_rate}%)
-Bounced: ${analytics.bounced_count} (${analytics.bounce_rate}%)
-
-Last Sent: ${analytics.last_sent_at ? new Date(analytics.last_sent_at).toLocaleString() : 'Never'}
-                `.trim();
-
-                alert(message);
-            } catch (error) {
-                console.error('Error loading analytics:', error);
-                alert('Failed to load analytics');
+                const a = await res.json();
+                document.getElementById('analytics-content').innerHTML = [
+                    ['Sent', a.sent_count],
+                    [`Opened (${a.open_rate}%)`, a.opened_count],
+                    [`Clicked (${a.click_rate}%)`, a.clicked_count],
+                    [`Bounced (${a.bounce_rate}%)`, a.bounced_count],
+                ].map(([label, val]) => `
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-gray-800">${val ?? 0}</div>
+                        <div class="text-xs text-gray-500 mt-1">${label}</div>
+                    </div>
+                `).join('');
+            } catch {
+                document.getElementById('analytics-content').innerHTML = '<p class="text-sm text-red-500 col-span-4">Failed to load analytics.</p>';
             }
         }
 

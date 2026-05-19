@@ -66,6 +66,10 @@ class User(BaseModel):
     language = Column(String(10), default="en", nullable=False)
     currency = Column(String(10), default="USD", nullable=False)
 
+    # Onboarding wizard
+    onboarding_completed = Column(Boolean, default=False, nullable=False)
+    onboarding_step = Column(Integer, default=0, nullable=False)
+
     # Affiliate fields
     affiliate_id = Column(String(50), nullable=True)
     partner_type = Column(String(50), nullable=True)

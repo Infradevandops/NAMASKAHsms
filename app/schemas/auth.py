@@ -90,6 +90,7 @@ class UserResponse(BaseModel):
     tier: str = Field(..., description="User tier")
     credits: float = Field(..., description="User credits")
     created_at: datetime = Field(..., description="Account creation date")
+    redirect: Optional[str] = Field(None, description="Post-action redirect URL")
 
     model_config = {
         "from_attributes": True,
