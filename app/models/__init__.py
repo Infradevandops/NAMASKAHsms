@@ -74,11 +74,19 @@ from .tax_report import (
     TaxReport,
     WithholdingTaxRecord,
 )
+from .telegram import TelegramConnection, TelegramForwardingRule
 from .transaction import PaymentLog, Transaction
 from .user import NotificationSettings, Referral, Subscription, User, Webhook
 from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
+from .whitelabel_models import (
+    EmailTemplateAnalytics,
+    EmailTemplateVersion,
+    WhitelabelBranding,
+    WhitelabelDomain,
+    WhitelabelEmailTemplate,
+)
 
 # OLD whitelabel models removed - using whitelabel_models.py
 # from .whitelabel import WhiteLabelConfig
@@ -181,4 +189,11 @@ __all__ = [
     "UserPricingAssignment",
     "MonthlyTarget",
     "DailyUserSnapshot",
+    "TelegramConnection",
+    "TelegramForwardingRule",
+    "WhitelabelDomain",
+    "WhitelabelBranding",
+    "WhitelabelEmailTemplate",
+    "EmailTemplateVersion",
+    "EmailTemplateAnalytics",
 ]
