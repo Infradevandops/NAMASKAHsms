@@ -87,3 +87,4 @@ server.log
 .hypothesis/
 namaskah_fallback.db
 *.db
+*.html filter=export-ignore
