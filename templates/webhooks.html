@@ -78,7 +78,7 @@
     .event-tag {
         font-size: 11px;
         background: var(--bg-body);
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         padding: 2px 8px;
         border-radius: 12px;
         border: 1px solid var(--border-color);
@@ -88,7 +88,7 @@
         display: flex;
         gap: 24px;
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         margin-top: 16px;
         padding-top: 16px;
         border-top: 1px solid var(--border-color);
@@ -116,7 +116,7 @@
 
     .secret-value {
         font-family: monospace;
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
         filter: blur(4px);
         transition: filter 0.3s;
         cursor: pointer;
@@ -168,7 +168,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
     <div>
         <h1 style="margin: 0;">Webhook Builder</h1>
-        <p style="color: var(--text-muted); margin: 4px 0 0 0;">Build custom real-time integrations for your business
+        <p style="color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">Build custom real-time integrations for your business
         </p>
     </div>
     <button class="btn btn-primary" onclick="showAddModal()">
@@ -185,7 +185,7 @@
 <div id="empty-state" style="display: none; text-align: center; padding: 80px 20px;">
     <div style="font-size: 64px; margin-bottom: 24px;">🔗</div>
     <h2>No Webhooks Configured</h2>
-    <p style="color: var(--text-muted); max-width: 400px; margin: 12px auto;">
+    <p style="color: var(--text-muted, #9CA3AF); max-width: 400px; margin: 12px auto;">
         Connect your apps to vrenum.app and receive real-time updates for SMS, orders, and more.
     </p>
     <button class="btn btn-primary" onclick="showAddModal()" style="margin-top: 24px;">
@@ -276,7 +276,7 @@
                     </div>
 
                     <div class="secret-container">
-                        <span style="color: var(--text-muted);">Signing Secret:</span>
+                        <span style="color: var(--text-muted, #9CA3AF);">Signing Secret:</span>
                         <span class="secret-value" title="Click to copy" onclick="copyToClipboard('${w.secret}')">${w.secret}</span>
                     </div>
 

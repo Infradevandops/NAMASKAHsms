@@ -62,13 +62,13 @@
     <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
         <thead style="background: #f8fafc;">
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th onclick="sortHistory('service_name')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('service_name')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 140px; cursor: pointer; user-select: none;">SERVICE / COUNTRY <span id="sort-service_name" class="sort-indicator" aria-hidden="true"></span></th>
-                <th onclick="sortHistory('phone_number')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('phone_number')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">NUMBER / CARRIER <span id="sort-phone_number" class="sort-indicator" aria-hidden="true"></span></th>
-                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">TX ID</th>
-                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 100px;">SMS CODE</th>
-                <th onclick="sortHistory('status')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('status')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted); width: 150px; cursor: pointer; user-select: none;">STATUS / STATE <span id="sort-status" class="sort-indicator" aria-hidden="true"></span></th>
-                <th onclick="sortHistory('cost')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('cost')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 80px; cursor: pointer; user-select: none;">NET COST <span id="sort-cost" class="sort-indicator" aria-hidden="true"></span></th>
-                <th onclick="sortHistory('created_at')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('created_at')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted); width: 120px; cursor: pointer; user-select: none;">DATE <span id="sort-created_at" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('service_name')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('service_name')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 140px; cursor: pointer; user-select: none;">SERVICE / COUNTRY <span id="sort-service_name" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('phone_number')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('phone_number')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 150px; cursor: pointer; user-select: none;">NUMBER / CARRIER <span id="sort-phone_number" class="sort-indicator" aria-hidden="true"></span></th>
+                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 100px;">TX ID</th>
+                <th scope="col" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 100px;">SMS CODE</th>
+                <th onclick="sortHistory('status')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('status')" style="text-align: left; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 150px; cursor: pointer; user-select: none;">STATUS / STATE <span id="sort-status" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('cost')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('cost')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 80px; cursor: pointer; user-select: none;">NET COST <span id="sort-cost" class="sort-indicator" aria-hidden="true"></span></th>
+                <th onclick="sortHistory('created_at')" scope="col" role="columnheader" aria-sort="none" tabindex="0" onkeydown="if(event.key==='Enter')sortHistory('created_at')" style="text-align: right; padding: 12px; font-size: 11px; color: var(--text-muted, #9CA3AF); width: 120px; cursor: pointer; user-select: none;">DATE <span id="sort-created_at" class="sort-indicator" aria-hidden="true"></span></th>
             </tr>
         </thead>
         <tbody id="history-body">
@@ -83,7 +83,7 @@
 
 <div id="history-pagination" style="margin-top: 0;"></div>
 
-<div id="empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
+<div id="empty-state" style="text-align: center; padding: 60px; color: var(--text-muted, #9CA3AF); display: none;">
     <h3 style="margin-bottom: 8px;">No verification history</h3>
     <p style="margin-bottom: 24px;">Start your first verification to see it here</p>
     <button class="btn" onclick="window.location.href='/verify'">Get SMS Code</button>
@@ -180,7 +180,7 @@ function formatPhone(raw) {
         const timeoutId = setTimeout(() => {
             const tbody = document.getElementById('history-body');
             if (tbody.querySelector('.skeleton-row')) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted);">
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--text-muted, #9CA3AF);">
                     Taking longer than expected...
                     <button onclick="loadHistory()" style="margin-left:8px; padding:4px 12px; background:var(--primary,#FE3C72); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px;">Retry</button>
                 </td></tr>`;
@@ -235,7 +235,7 @@ function formatPhone(raw) {
 
         let html = '<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:16px 0;">';
         html += `<button onclick="loadHistory(${historyPage - 1})" ${historyPage <= 1 ? 'disabled' : ''} style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;${historyPage <= 1 ? 'opacity:0.4;cursor:not-allowed;' : ''}">← Prev</button>`;
-        html += `<span style="font-size:13px;color:var(--text-muted);">Page ${historyPage} of ${totalPages} (${historyTotal} records)</span>`;
+        html += `<span style="font-size:13px;color:var(--text-muted, #9CA3AF);">Page ${historyPage} of ${totalPages} (${historyTotal} records)</span>`;
         html += `<button onclick="loadHistory(${historyPage + 1})" ${historyPage >= totalPages ? 'disabled' : ''} style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;${historyPage >= totalPages ? 'opacity:0.4;cursor:not-allowed;' : ''}">Next →</button>`;
         html += '</div>';
         document.getElementById('history-pagination').innerHTML = html;
@@ -300,7 +300,7 @@ function formatPhone(raw) {
                 ${item.sms_text ? `<div style="grid-column:1/-1;"><span style="font-size:11px;color:#94a3b8;display:block;">SMS TEXT</span><div style="font-size:13px;background:#f1f5f9;padding:8px;border-radius:6px;margin-top:4px;">${escapeHtml(item.sms_text)}</div></div>` : ''}
             </div>
             <div style="margin-top:10px;text-align:right;">
-                <button onclick="event.stopPropagation(); viewDetails('${item.id}')" style="font-size:11px;padding:4px 10px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">Full Audit →</button>
+                <button onclick="event.stopPropagation(); viewDetails('${item.id}')" style="font-size:11px;padding:4px 10px;background:var(--primary, #FE3C72);color:white;border:none;border-radius:4px;cursor:pointer;">Full Audit →</button>
             </div>
         </div>`;
     }
@@ -351,12 +351,12 @@ function formatPhone(raw) {
                     <span id="toggle-${item.id}" class="expand-toggle${isExpanded ? ' open' : ''}" onclick="toggleExpand(event,'${item.id}')">▶</span>
                     <div style="display:inline-block;vertical-align:middle;">
                         <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}${retryBadge}</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                        <div style="font-size: 11px; color: var(--text-muted, #9CA3AF);">${item.country || 'US'}</div>
                     </div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <div style="font-family: monospace; font-size: 13px;">${formatPhone(item.phone_number)}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">${carrier}</div>
+                    <div style="font-size: 11px; color: var(--text-muted, #9CA3AF);">${carrier}</div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <div style="font-family: monospace; font-size: 11px; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; display: inline-block;" title="${item.debit_transaction_id}">
@@ -364,23 +364,23 @@ function formatPhone(raw) {
                     </div>
                 </td>
                 <td style="padding: 10px 12px;">
-                    <div style="font-family: monospace; font-weight: bold; color: var(--primary);">${item.sms_code || '-'}</div>
+                    <div style="font-family: monospace; font-weight: bold; color: var(--primary, #FE3C72);">${item.sms_code || '-'}</div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${statusColor}; color: ${statusText}; display: inline-block;">
                         ${stateLabel}
                     </span>
-                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${item.failure_category || ''}</div>
+                    <div style="font-size: 10px; color: var(--text-muted, #9CA3AF); margin-top: 2px;">${item.failure_category || ''}</div>
                 </td>
                 <td style="padding: 10px 12px; text-align: right; font-weight: 600;">
                     ${formatMoney(item.cost || 0)}
                 </td>
                 <td style="padding: 10px 12px; text-align: right;">
                     <div style="font-size: 12px;" title="${dateObj.toLocaleString()}">${relativeTime(item.created_at)}</div>
-                    <div style="font-size: 10px; color: var(--text-muted);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style="font-size: 10px; color: var(--text-muted, #9CA3AF);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     ${latencyBadge(item.latency)}
                     <button onclick="event.stopPropagation(); reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
-                        style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
+                        style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary, #FE3C72); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
                 </td>
             </tr>
             <tr id="expand-${item.id}" class="expand-row" style="display:${isExpanded ? 'table-row' : 'none'};">
@@ -461,12 +461,12 @@ function formatPhone(raw) {
                     <span id="toggle-${item.id}" class="expand-toggle${isExpanded ? ' open' : ''}" onclick="toggleExpand(event,'${item.id}')">▶</span>
                     <div style="display:inline-block;vertical-align:middle;">
                         <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); text-transform: capitalize;">${item.service_name || '-'}${retryBadge}</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">${item.country || 'US'}</div>
+                        <div style="font-size: 11px; color: var(--text-muted, #9CA3AF);">${item.country || 'US'}</div>
                     </div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <div style="font-family: monospace; font-size: 13px;">${formatPhone(item.phone_number)}</div>
-                    <div style="font-size: 11px; color: var(--text-muted);">${carrier}</div>
+                    <div style="font-size: 11px; color: var(--text-muted, #9CA3AF);">${carrier}</div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <div style="font-family: monospace; font-size: 11px; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; display: inline-block;" title="${item.debit_transaction_id}">
@@ -474,23 +474,23 @@ function formatPhone(raw) {
                     </div>
                 </td>
                 <td style="padding: 10px 12px;">
-                    <div style="font-family: monospace; font-weight: bold; color: var(--primary);">${item.sms_code || '-'}</div>
+                    <div style="font-family: monospace; font-weight: bold; color: var(--primary, #FE3C72);">${item.sms_code || '-'}</div>
                 </td>
                 <td style="padding: 10px 12px;">
                     <span style="padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${statusColor}; color: ${statusText}; display: inline-block;">
                         ${stateLabel}
                     </span>
-                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${item.failure_category || ''}</div>
+                    <div style="font-size: 10px; color: var(--text-muted, #9CA3AF); margin-top: 2px;">${item.failure_category || ''}</div>
                 </td>
                 <td style="padding: 10px 12px; text-align: right; font-weight: 600;">
                     ${formatMoney(item.cost || 0)}
                 </td>
                 <td style="padding: 10px 12px; text-align: right;">
                     <div style="font-size: 12px;" title="${dateObj.toLocaleString()}">${relativeTime(item.created_at)}</div>
-                    <div style="font-size: 10px; color: var(--text-muted);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style="font-size: 10px; color: var(--text-muted, #9CA3AF);">${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     ${latencyBadge(item.latency)}
                     <button onclick="event.stopPropagation(); reuseVerification('${(item.service_name||'').replace(/'/g,\"\\'\")}')"
-                        style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
+                        style="margin-top:4px; font-size:10px; padding:2px 8px; background:var(--primary, #FE3C72); color:white; border:none; border-radius:4px; cursor:pointer;">Reuse</button>
                 </td>
             </tr>
             <tr id="expand-${item.id}" class="expand-row" style="display:${isExpanded ? 'table-row' : 'none'};">
@@ -523,7 +523,7 @@ function formatPhone(raw) {
         <!-- Modal Footer -->
         <div style="padding: 20px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px;">
             <button class="btn-secondary" onclick="closeAudit()" style="padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; background: white; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s;">Close Audit</button>
-            <button class="btn-primary" id="copy-audit-btn" onclick="copyAuditId()" style="padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <button class="btn-primary" id="copy-audit-btn" onclick="copyAuditId()" style="padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; background: var(--primary, #FE3C72); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                 <i class="far fa-copy"></i> Copy Audit ID
             </button>
         </div>
@@ -580,7 +580,7 @@ function formatPhone(raw) {
             <!-- SMS / Voice Content Section -->
             <div style="margin-bottom: 24px;">
                 <div class="audit-label">Message Payload</div>
-                <div style="padding: 16px; background: #f1f5f9; border-radius: 16px; border-left: 5px solid var(--primary); position: relative;">
+                <div style="padding: 16px; background: #f1f5f9; border-radius: 16px; border-left: 5px solid var(--primary, #FE3C72); position: relative;">
                     ${item.sms_text ? `
                         <div style="font-family: inherit; font-size: 14px; line-height: 1.6; color: #334155; word-break: break-all;">
                             ${escapeHtml(item.sms_text)}
@@ -731,7 +731,7 @@ function formatPhone(raw) {
             btn.style.background = '#10b981';
             setTimeout(() => {
                 btn.innerHTML = originalHtml;
-                btn.style.background = 'var(--primary)';
+                btn.style.background = 'var(--primary, #FE3C72)';
             }, 2000);
         });
     }

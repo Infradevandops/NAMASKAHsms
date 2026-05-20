@@ -26,15 +26,17 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer nonce="{{ request.state.csp_nonce }}"></script>
   <link rel="stylesheet" href="/static/css/glassmorphism.css">
   <link rel="stylesheet" href="/static/css/pwa-mobile.css">
+  <script src="/static/js/theme-toggle.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #ffffff;
-      color: #37352F;
+      background: var(--bg-body, #ffffff);
+      color: var(--text-primary, #37352F);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
       min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
     }
     html { scroll-behavior: smooth; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -42,20 +44,55 @@
 
     /* Nav scroll transition */
     .nav-scrolled {
-      background: rgba(255, 255, 255, 0.97) !important;
+      background: var(--nav-bg, rgba(255, 255, 255, 0.97)) !important;
       backdrop-filter: blur(20px) !important;
       -webkit-backdrop-filter: blur(20px) !important;
-      border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+      border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.08)) !important;
       box-shadow: 0 2px 20px rgba(0,0,0,0.08);
     }
-    .nav-scrolled .nav-link { color: #374151 !important; }
+    .nav-scrolled .nav-link { color: var(--text-primary, #374151) !important; }
     .nav-scrolled .nav-link:hover { color: #FE3C72 !important; }
-    .nav-scrolled .nav-brand { color: #111827 !important; }
-    .nav-scrolled .nav-hamburger { color: #374151 !important; }
+    .nav-scrolled .nav-brand { color: var(--text-primary, #111827) !important; }
+    .nav-scrolled .nav-hamburger { color: var(--text-primary, #374151) !important; }
+    
+    /* Hamburger button - mobile only */
+    .nav-hamburger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+    }
+    
+    /* Force desktop menu to show on desktop */
+    @media (min-width: 768px) {
+      .hidden.md\:flex {
+        display: flex !important;
+      }
+    }
 
     /* Section fade-in on scroll */
     .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
+    
+    /* Dark mode styles */
+    [data-theme="dark"] {
+      --bg-body: #0f172a;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --border-color: rgba(255,255,255,0.1);
+      --nav-bg: rgba(15, 23, 42, 0.97);
+    }
+    [data-theme="dark"] body { background: var(--bg-body); color: var(--text-primary); }
+    [data-theme="dark"] #main-nav { background: var(--nav-bg); border-bottom-color: var(--border-color); }
+    [data-theme="dark"] .nav-link { color: var(--text-secondary) !important; }
+    [data-theme="dark"] .nav-link:hover { color: #FE3C72 !important; }
+    [data-theme="dark"] section { background: var(--bg-body) !important; }
+    [data-theme="dark"] .bg-zinc-50 { background: #1e293b !important; }
+    [data-theme="dark"] .bg-white { background: #1e293b !important; }
+    [data-theme="dark"] .card, [data-theme="dark"] .p-6, [data-theme="dark"] .p-8 { background: #1e293b !important; border-color: #334155 !important; }
+    [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: var(--text-primary) !important; }
+    [data-theme="dark"] p, [data-theme="dark"] .text-zinc-600, [data-theme="dark"] .text-zinc-500 { color: var(--text-secondary) !important; }
   </style>
 </head>
 <body>
@@ -72,9 +109,15 @@
         <a href="/services" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Services</a>
         <a href="#pricing" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Pricing</a>
         <a href="/docs" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">API Docs</a>
+        <a href="/faq" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">FAQ</a>
       </div>
 
       <div class="hidden md:flex gap-4 items-center">
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" style="background: transparent; border: 1px solid rgba(0,0,0,0.1); color: #374151; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode">
+          <span id="theme-icon">🌙</span>
+        </button>
+        
         {% if user %}
         <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
         {% else %}
@@ -83,23 +126,26 @@
         {% endif %}
       </div>
 
-      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700">
-        <i :class="open ? 'ph ph-x' : 'ph ph-list'" class="text-2xl"></i>
+      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700 p-2 hover:bg-zinc-100 rounded-lg transition border border-zinc-200" aria-label="Toggle menu">
+        <i :class="open ? 'ph ph-x' : 'ph ph-list'" class="text-3xl"></i>
       </button>
     </div>
 
-    <div x-show="open" x-transition class="md:hidden border-t border-black/5 bg-white">
-      <div class="px-6 py-4 space-y-4">
-        <a href="#how-it-works" @click="open=false" class="block text-zinc-600 hover:text-brand-500 font-medium">How It Works</a>
-        <a href="/services" @click="open=false" class="block text-zinc-600 hover:text-brand-500 font-medium">Services</a>
-        <a href="#pricing" @click="open=false" class="block text-zinc-600 hover:text-brand-500 font-medium">Pricing</a>
-        <a href="/docs" class="block text-zinc-600 hover:text-brand-500 font-medium">API Docs</a>
+    <div x-show="open" x-transition class="md:hidden border-t border-black/5 bg-white shadow-lg">
+      <div class="px-6 py-6 space-y-4">
+        <a href="#how-it-works" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">How It Works</a>
+        <a href="/services" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Services</a>
+        <a href="#pricing" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Pricing</a>
+        <a href="/docs" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">API Docs</a>
+        <a href="/faq" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">FAQ</a>
+        <div class="pt-4 border-t border-zinc-200 space-y-3">
         {% if user %}
-        <a href="/dashboard" class="block px-6 py-2 bg-brand-500 rounded-lg text-center text-white">Dashboard</a>
+        <a href="/dashboard" class="block px-6 py-3 bg-brand-500 rounded-lg text-center text-white font-semibold">Dashboard →</a>
         {% else %}
-        <a href="/auth/login" class="block text-zinc-600 hover:text-brand-500 font-medium">Login</a>
-        <a href="/auth/register" class="block px-6 py-2 bg-brand-500 rounded-lg text-center text-white font-semibold">Get Started Free</a>
+        <a href="/auth/login" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Login</a>
+        <a href="/auth/register" class="block px-6 py-3 bg-brand-500 rounded-lg text-center text-white font-semibold">Get Started Free →</a>
         {% endif %}
+        </div>
       </div>
     </div>
   </nav>
@@ -430,7 +476,7 @@
           <h4 class="font-bold mb-4">Platform</h4>
           <ul class="space-y-2 text-sm text-zinc-400">
             <li><a href="/services" class="hover:text-white transition">Services</a></li>
-            <li><a href="/verify" class="hover:text-white transition">SMS Verification</a></li>
+            <li><a href="/affiliate-program" class="hover:text-white transition">Affiliate Program</a></li>
             <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
             <li><a href="/docs" class="hover:text-white transition">API Docs</a></li>
           </ul>
@@ -439,6 +485,7 @@
         <div>
           <h4 class="font-bold mb-4">Support</h4>
           <ul class="space-y-2 text-sm text-zinc-400">
+            <li><a href="/faq" class="hover:text-white transition">FAQ</a></li>
             <li><a href="/contact" class="hover:text-white transition">Contact</a></li>
             <li><a href="/status" class="hover:text-white transition">Status</a></li>
           </ul>

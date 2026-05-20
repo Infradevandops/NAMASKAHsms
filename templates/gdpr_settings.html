@@ -55,7 +55,7 @@
     .privacy-info p {
         margin: 0;
         font-size: 13px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .warning-box {
@@ -118,7 +118,7 @@
 
     .consent-label span {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .switch {
@@ -159,7 +159,7 @@
     }
 
     input:checked + .slider {
-        background-color: var(--primary);
+        background-color: var(--primary, #FE3C72);
     }
 
     input:checked + .slider:before {
@@ -195,13 +195,13 @@
 
     .activity-details {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         margin-top: 2px;
     }
 
     .activity-time {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         white-space: nowrap;
     }
 
@@ -266,7 +266,7 @@
         <h2 class="section-title">Data Retention Policy</h2>
     </div>
     <div id="retention-policy-content">
-        <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading policy...</div>
+        <div style="text-align:center;padding:20px;color:var(--text-muted, #9CA3AF);">Loading policy...</div>
     </div>
 </div>
 
@@ -328,7 +328,7 @@
     </div>
 
     <div class="activity-log" id="activity-log">
-        <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+        <div style="text-align: center; padding: 20px; color: var(--text-muted, #9CA3AF);">
             <span class="loading-spinner"></span> Loading activity...
         </div>
     </div>
@@ -511,7 +511,7 @@
             let html = '<div style="display:grid;gap:12px;">';
             for (const [key, val] of Object.entries(policy)) {
                 const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                const cats = (val.categories || []).map(c => `<li style="font-size:13px;color:var(--text-muted);">${escapeHtml(c)}</li>`).join('');
+                const cats = (val.categories || []).map(c => `<li style="font-size:13px;color:var(--text-muted, #9CA3AF);">${escapeHtml(c)}</li>`).join('');
                 html += `
                     <div style="background:var(--bg-body);border-radius:8px;padding:16px;">
                         <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(label)}</div>
@@ -522,7 +522,7 @@
             html += '</div>';
             container.innerHTML = html;
         } catch {
-            container.innerHTML = '<div style="padding:16px;color:var(--text-muted);">Unable to load retention policy.</div>';
+            container.innerHTML = '<div style="padding:16px;color:var(--text-muted, #9CA3AF);">Unable to load retention policy.</div>';
         }
     }
 
@@ -544,7 +544,7 @@
                 const activities = data.activities || [];
 
                 if (activities.length === 0) {
-                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">No activity recorded yet</div>';
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted, #9CA3AF);">No activity recorded yet</div>';
                     return;
                 }
 
@@ -575,7 +575,7 @@
             }
         } catch (error) {
             console.error('[GDPR] Failed to load activity:', error);
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Unable to load activity log</div>';
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted, #9CA3AF);">Unable to load activity log</div>';
         }
     }
 

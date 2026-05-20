@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
 
@@ -47,6 +48,7 @@ class TokenResponse(BaseModel):
     """Token response model."""
 
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
     user: dict
     redirect: Optional[str] = None
@@ -83,9 +85,15 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
                 detail="Invalid email or password",
             )
 
-        if not bcrypt.checkpw(
-            login_data.password.encode("utf-8"), user.password_hash.encode("utf-8")
-        ):
+        try:
+            password_match = bcrypt.checkpw(
+                login_data.password.encode("utf-8"), user.password_hash.encode("utf-8")
+            )
+        except (ValueError, Exception) as e:
+            logger.warning(f"Password verification error for {user.email}: {e}")
+            password_match = False
+
+        if not password_match:
             logger.warning(f"Invalid password for user: {user.email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,6 +138,19 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
         )
 
+        # Generate refresh token
+        refresh_token_data = {
+            "user_id": str(user.id),
+            "email": user.email,
+            "iat": datetime.now(timezone.utc),
+            "jti": str(uuid.uuid4()),
+            "exp": datetime.now(timezone.utc) + timedelta(days=30),
+            "type": "refresh",
+        }
+        refresh_token = jwt.encode(
+            refresh_token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+        )
+
         # Update last login
         user.last_login = datetime.now(timezone.utc)
         db.commit()
@@ -138,6 +159,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
         return {
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "user": {
                 "id": str(user.id),
@@ -274,24 +296,11 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
 
 @router.get("/me")
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Get current user info."""
     try:
-        # Decode token
-        payload = jwt.decode(
-            credentials.credentials,
-            settings.jwt_secret_key,
-            algorithms=[settings.jwt_algorithm],
-        )
-
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-            )
-
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
@@ -304,17 +313,12 @@ async def get_current_user(
             "email": user.email,
             "username": user.email.split("@")[0],
             "credits": float(user.credits) if user.credits else 0.0,
+            "free_verifications": int(user.free_verifications) if hasattr(user, 'free_verifications') and user.free_verifications else 0,
             "is_active": user.is_active,
         }
 
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
-        )
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Get user error: {str(e)}")
         raise HTTPException(

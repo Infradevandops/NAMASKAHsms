@@ -1,38 +1,71 @@
 {% extends "public_base.html" %}
-{% block title %}FAQ — VRENUM ACTV8TN{% endblock %}
+{% block title %}FAQ - VRENUM ACTV8TN{% endblock %}
 {% block meta_description %}Frequently asked questions about Vrenum SMS verification. Pricing, refunds, how it works, API access and more.{% endblock %}
+
+{% block head_extra %}
+<style>
+[data-theme="dark"] .faq-item {
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .faq-q {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .faq-a {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] #faq-search {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2 {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] p {
+  color: #cbd5e1 !important;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
 
   <!-- Header -->
   <div class="text-center mb-10">
-    <h1 class="text-3xl font-bold mb-3" style="color:var(--text-main);">Frequently Asked Questions</h1>
-    <p style="color:var(--text-muted);">Everything you need to know about Vrenum SMS verification</p>
+    <h1 class="text-3xl font-bold mb-3" style="color:var(--text-primary, #21262D);">Frequently Asked Questions</h1>
+    <p style="color:var(--text-muted, #9CA3AF);">Everything you need to know about Vrenum SMS verification</p>
   </div>
 
   <!-- Search -->
   <input type="text" id="faq-search" placeholder="Search questions…"
     oninput="filterFAQ()"
     style="width:100%;padding:12px 16px;border:1px solid rgba(0,0,0,0.12);border-radius:10px;font-size:15px;margin-bottom:32px;outline:none;font-family:inherit;"
-    onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(0,0,0,0.12)'">
+    onfocus="this.style.borderColor='var(--primary, #FE3C72)'" onblur="this.style.borderColor='rgba(0,0,0,0.12)'">
 
   {% set sections = [
     ("Getting Started", [
-      ("How do I create an account?", "Sign up at vrenum.app — enter your email, create a password, accept the terms. You get instant access on the Freemium tier. No credit card required."),
-      ("Is there a free trial?", "Yes. New accounts start on Freemium — up to 20 verifications at no cost. When you need more, upgrade to Pay-As-You-Go or a monthly plan."),
+      ("How do I create an account?", "Sign up at vrenum.app - enter your email, create a password, accept the terms. You get instant access on the Freemium tier. No credit card required."),
+      ("Is there a free trial?", "Yes. New accounts start on Freemium - up to 20 verifications at no cost. When you need more, upgrade to Pay-As-You-Go or a monthly plan."),
       ("What payment methods do you accept?", "Card payments (Visa, Mastercard) and bank transfers, processed securely through Paystack."),
     ]),
     ("SMS Verification", [
       ("How long does it take to receive an SMS?", "Most codes arrive within 5–30 seconds. If no code arrives within 2 minutes, your credits are automatically refunded."),
-      ("Which services are supported?", "1,807+ services — WhatsApp, Telegram, Signal, Google, Discord, Facebook, Instagram, TikTok, and many more. See the full list on the dashboard."),
-      ("Can I use the same number multiple times?", "No — each number is single-use to ensure it's fresh and unregistered with the target service."),
-      ("What if I don't receive the SMS?", "Credits are automatically refunded — no support ticket needed, no questions asked. Refund appears in your wallet immediately."),
+      ("Which services are supported?", "1,807+ services - WhatsApp, Telegram, Signal, Google, Discord, Facebook, Instagram, TikTok, and many more. See the full list on the dashboard."),
+      ("Can I use the same number multiple times?", "No - each number is single-use to ensure it's fresh and unregistered with the target service."),
+      ("What if I don't receive the SMS?", "Credits are automatically refunded - no support ticket needed, no questions asked. Refund appears in your wallet immediately."),
       ("Does Signal accept virtual numbers?", "Signal is known for rejecting VOIP numbers. Vrenum provides real mobile numbers (not VOIP), which Signal accepts."),
     ]),
     ("Pricing & Billing", [
       ("How much does each verification cost?", "Verifications start at $2.63 on Freemium and Pay-As-You-Go. Pro ($25/mo) and Custom ($35/mo) plans include a monthly quota with lower overage rates ($1.80 and $1.50). See the pricing page for the full breakdown."),
-      ("Do you offer volume discounts?", "Yes — through our tier system. Pro and Custom plans give you a monthly quota and lower per-verification rates the more you use."),
+      ("Do you offer volume discounts?", "Yes - through our tier system. Pro and Custom plans give you a monthly quota and lower per-verification rates the more you use."),
       ("Can I get a refund?", "Automatic refund if no SMS received. Credits appear in your wallet instantly."),
     ]),
     ("Security & Privacy", [
@@ -41,7 +74,7 @@
       ("Is vrenum.app GDPR compliant?", "Yes. Export or delete your data any time from account settings. See our Privacy Policy for details."),
     ]),
     ("API & Integration", [
-      ("Do you have an API?", "Yes — a full REST API with documentation at /docs. Available on Pro and Custom plans."),
+      ("Do you have an API?", "Yes - a full REST API with documentation at /docs. Available on Pro and Custom plans."),
       ("What's the API rate limit?", "100 requests per minute on standard plans. Higher limits available on Custom."),
       ("Is there webhook support?", "Yes. Configure webhooks in your dashboard to receive real-time HTTP callbacks when SMS codes arrive."),
     ]),
@@ -53,16 +86,16 @@
 
   {% for section_title, items in sections %}
   <div class="faq-section mb-8" data-section>
-    <h2 class="text-lg font-bold mb-4 pb-2" style="color:var(--primary);border-bottom:2px solid var(--primary-light);">{{ section_title }}</h2>
+    <h2 class="text-lg font-bold mb-4 pb-2" style="color:var(--primary, #FE3C72);border-bottom:2px solid var(--primary-light);">{{ section_title }}</h2>
     {% for question, answer in items %}
     <div class="faq-item mb-2 rounded-xl overflow-hidden" style="border:1px solid rgba(0,0,0,0.08);" data-faq>
       <button class="faq-q w-full text-left px-5 py-4 flex justify-between items-center font-semibold"
-        style="background:white;color:var(--text-main);font-size:15px;cursor:pointer;border:none;font-family:inherit;"
+        style="background:white;color:var(--text-primary, #21262D);font-size:15px;cursor:pointer;border:none;font-family:inherit;"
         onclick="toggleFAQ(this)">
         <span>{{ question }}</span>
-        <span class="faq-icon" style="color:var(--primary);font-size:18px;transition:transform 0.2s;flex-shrink:0;margin-left:12px;">+</span>
+        <span class="faq-icon" style="color:var(--primary, #FE3C72);font-size:18px;transition:transform 0.2s;flex-shrink:0;margin-left:12px;">+</span>
       </button>
-      <div class="faq-a" style="display:none;padding:0 20px 16px;color:var(--text-muted);font-size:14px;line-height:1.7;background:white;">
+      <div class="faq-a" style="display:none;padding:0 20px 16px;color:var(--text-muted, #9CA3AF);font-size:14px;line-height:1.7;background:white;">
         {{ answer }}
       </div>
     </div>
@@ -72,9 +105,9 @@
 
   <!-- CTA -->
   <div class="text-center mt-12 p-8 rounded-2xl" style="background:var(--primary-light);">
-    <p class="font-semibold text-lg mb-2" style="color:var(--text-main);">Still have questions?</p>
-    <p style="color:var(--text-muted);margin-bottom:16px;">Our support team responds within 2 hours.</p>
-    <a href="/contact" style="display:inline-block;background:var(--primary);color:white;padding:10px 28px;border-radius:8px;font-weight:600;text-decoration:none;">Contact Support →</a>
+    <p class="font-semibold text-lg mb-2" style="color:var(--text-primary, #21262D);">Still have questions?</p>
+    <p style="color:var(--text-muted, #9CA3AF);margin-bottom:16px;">Our support team responds within 2 hours.</p>
+    <a href="/contact" style="display:inline-block;background:var(--primary, #FE3C72);color:white;padding:10px 28px;border-radius:8px;font-weight:600;text-decoration:none;">Contact Support →</a>
   </div>
 
 </div>

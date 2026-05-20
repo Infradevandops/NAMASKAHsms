@@ -5,8 +5,11 @@ import pytest
 from app.core.pydantic_compat import PYDANTIC_V2, BaseModel, field_validator
 
 
-class TestModel(BaseModel):
-    """Test model for compatibility testing."""
+class PydanticCompatTestModel(BaseModel):
+    """Test model for Pydantic compatibility testing.
+    
+    Note: Not a test class - renamed to avoid pytest collection.
+    """
 
     email: str
     age: int
@@ -27,15 +30,15 @@ class TestModel(BaseModel):
 
 
 def test_pydantic_compatibility():
-    model = TestModel(email="test@example.com", age=25)
+    model = PydanticCompatTestModel(email="test@example.com", age=25)
     assert model.email == "test@example.com"
     assert model.age == 25
 
     with pytest.raises(ValueError, match="Invalid email"):
-        TestModel(email="invalid-email", age=25)
+        PydanticCompatTestModel(email="invalid-email", age=25)
 
     with pytest.raises(ValueError, match="Age must be positive"):
-        TestModel(email="test@example.com", age=-1)
+        PydanticCompatTestModel(email="test@example.com", age=-1)
 
 
 def test_pydantic_version_detection():

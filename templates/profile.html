@@ -26,7 +26,7 @@
         left: 0;
         right: 0;
         height: 120px;
-        background: linear-gradient(90deg, var(--primary) 0%, #a29bfe 100%);
+        background: linear-gradient(90deg, var(--primary, #FE3C72) 0%, #a29bfe 100%);
         opacity: 0.2;
         z-index: 0;
     }
@@ -127,12 +127,12 @@
     .stat-value {
         font-size: 24px;
         font-weight: 700;
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
     }
 
     .stat-label {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         margin-top: 4px;
     }
 
@@ -255,7 +255,7 @@
             <span id="display-email">...</span>
             <span class="badge badge-success" id="email-verified-badge" style="display:none; font-size: 10px;">✓ Verified</span>
         </div>
-        <div style="margin-top: 12px; font-size: 14px; color: var(--text-muted);">
+        <div style="margin-top: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">
             Member since <span id="member-since">...</span>
         </div>
     </div>
@@ -295,7 +295,7 @@
         <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" class="form-input" id="profile-email-input" readonly>
-            <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Contact support to change email.</p>
+            <p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin-top: 6px;">Contact support to change email.</p>
         </div>
 
         <div class="form-group">

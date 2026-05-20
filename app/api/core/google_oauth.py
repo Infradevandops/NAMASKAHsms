@@ -8,6 +8,7 @@ import jwt
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -18,6 +19,24 @@ from app.models.user import User
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["Google OAuth"])
 settings = get_settings()
+
+
+class GoogleTokenRequest(BaseModel):
+    """Google token request model."""
+    token: str
+
+
+@router.get("/google/config")
+async def google_config():
+    """Get Google OAuth configuration."""
+    return {
+        "client_id": settings.google_client_id if hasattr(settings, 'google_client_id') else "",
+        "features": {
+            "enabled": bool(hasattr(settings, 'google_client_id') and settings.google_client_id),
+            "auto_create_account": True,
+            "email_verification_required": False,
+        },
+    }
 
 
 @router.get("/google")
@@ -57,6 +76,95 @@ async def google_login(request: Request):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to initiate Google login",
+        )
+
+
+@router.post("/google")
+async def google_auth(token_request: GoogleTokenRequest, db: Session = Depends(get_db)):
+    """Authenticate with Google ID token."""
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+
+        # Verify the token
+        idinfo = id_token.verify_oauth2_token(
+            token_request.token,
+            google_requests.Request(),
+            settings.google_client_id if hasattr(settings, 'google_client_id') else None
+        )
+
+        google_id = idinfo.get("sub")
+        email = idinfo.get("email")
+        name = idinfo.get("name")
+
+        if not email or not google_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email not provided by Google",
+            )
+
+        # Check if user exists
+        user = db.query(User).filter(
+            (User.email == email) | (User.google_id == google_id)
+        ).first()
+
+        if user:
+            if not user.google_id:
+                user.google_id = google_id
+            user.last_login = datetime.now(timezone.utc)
+            db.commit()
+            logger.info(f"Google OAuth login: {email}")
+        else:
+            user = User(
+                email=email,
+                google_id=google_id,
+                is_active=True,
+                email_verified=True,
+                credits=0.0,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            logger.info(f"New user via Google OAuth: {email}")
+
+        # Generate JWT
+        import uuid
+        token_data = {
+            "user_id": str(user.id),
+            "email": user.email,
+            "iat": datetime.now(timezone.utc),
+            "jti": str(uuid.uuid4()),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours),
+        }
+        access_token = jwt.encode(
+            token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "username": user.email.split("@")[0],
+                "credits": float(user.credits) if user.credits else 0.0,
+                "is_active": user.is_active,
+            },
+        }
+
+    except ValueError as e:
+        logger.error(f"Invalid Google token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google token",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Google auth error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google authentication failed",
         )
 
 

@@ -29,7 +29,7 @@
 
     .status-card-label {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -104,7 +104,7 @@
 
     .metric-label {
         font-size: 11px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .uptime-bar {
@@ -147,7 +147,7 @@
 
     .incident-time {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .incident-description {
@@ -173,7 +173,7 @@
     }
 
     .toggle-switch.active {
-        background: var(--primary);
+        background: var(--primary, #FE3C72);
     }
 
     .toggle-switch::after {
@@ -210,7 +210,7 @@
 <!-- Header with auto-refresh toggle -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div>
-        <span id="last-updated" style="font-size: 14px; color: var(--text-muted);">Last updated: --</span>
+        <span id="last-updated" style="font-size: 14px; color: var(--text-muted, #9CA3AF);">Last updated: --</span>
     </div>
     <div class="auto-refresh-toggle">
         <span>Auto-refresh</span>
@@ -221,7 +221,7 @@
 <!-- Summary Cards -->
 <div class="status-summary">
     <div class="status-card">
-        <div class="status-card-value" id="total-providers" style="color: var(--primary);">--</div>
+        <div class="status-card-value" id="total-providers" style="color: var(--primary, #FE3C72);">--</div>
         <div class="status-card-label">Total Providers</div>
     </div>
     <div class="status-card">
@@ -257,7 +257,7 @@
 <div class="card incident-list" style="margin-top: 24px;">
     <h3 style="margin-bottom: 16px;">Recent Incidents</h3>
     <div id="incident-list">
-        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <div style="text-align: center; padding: 40px; color: var(--text-muted, #9CA3AF);">
             Loading incidents...
         </div>
     </div>
@@ -299,7 +299,7 @@
 
         if (providers.length === 0) {
             grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted);">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted, #9CA3AF);">
                     <div style="font-size: 48px; margin-bottom: 16px;">📡</div>
                     <div>No provider data available</div>
                 </div>
@@ -386,7 +386,7 @@
     function showError(message) {
         const grid = document.getElementById('provider-grid');
         grid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted);">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted, #9CA3AF);">
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                 <div>${escapeHtml(message)}</div>
                 <button onclick="loadProviderStatus()" class="btn" style="margin-top: 16px;">Retry</button>
@@ -409,7 +409,7 @@
 
         if (incidents.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted, #9CA3AF);">
                     <div style="font-size: 32px; margin-bottom: 8px;">✅</div>
                     <div>No incidents reported</div>
                 </div>

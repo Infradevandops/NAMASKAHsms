@@ -27,7 +27,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="loading" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading insights...</div>
+<div id="loading" style="text-align: center; padding: 40px; color: var(--text-muted, #9CA3AF);">Loading insights...</div>
 <div id="content" style="display: none;">
 
     <!-- Recommendations -->
@@ -131,14 +131,14 @@
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 2px solid rgba(0,0,0,0.05);">
-                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Amount</th>
-                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Reason</th>
-                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
-                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
+                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Amount</th>
+                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Reason</th>
+                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Status</th>
+                    <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Date</th>
                 </tr>
             </thead>
             <tbody id="refunds-table">
-                <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No refunds yet</td></tr>
+                <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted, #9CA3AF);">No refunds yet</td></tr>
             </tbody>
         </table>
     </div>

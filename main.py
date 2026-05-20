@@ -21,6 +21,7 @@ from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
 from app.api.compatibility_routes import router as compatibility_router
+from app.api.core.analytics import router as analytics_router
 from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.balance_sync import router as balance_sync_router
 from app.api.core.blacklist import router as blacklist_router
@@ -203,6 +204,9 @@ def create_app() -> FastAPI:
 
     # Dashboard APIs
     fastapi_app.include_router(dashboard_router)
+    
+    # Analytics endpoints
+    fastapi_app.include_router(analytics_router)
 
     # WebSocket endpoints (real-time notifications)
     fastapi_app.include_router(websocket_router)

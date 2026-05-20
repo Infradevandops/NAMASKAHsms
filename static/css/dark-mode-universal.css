@@ -1,0 +1,130 @@
+/**
+ * Universal Dark Mode Styles
+ * Applied to all pages via public_base.html and dashboard_base.html
+ */
+
+/* Base dark mode colors */
+[data-theme="dark"] {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+}
+
+/* Body and layout */
+[data-theme="dark"] body {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+/* Typography */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] li,
+[data-theme="dark"] span,
+[data-theme="dark"] div {
+    color: var(--text-secondary);
+}
+
+/* Links */
+[data-theme="dark"] a {
+    color: #FE3C72;
+}
+
+[data-theme="dark"] a:hover {
+    color: #FF6B9D;
+}
+
+/* Cards and containers */
+[data-theme="dark"] .card,
+[data-theme="dark"] .container,
+[data-theme="dark"] .box {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+/* Forms */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: var(--bg-body);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+    border-color: #FE3C72;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--text-muted);
+}
+
+/* Buttons */
+[data-theme="dark"] button:not(.btn-primary) {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Tables */
+[data-theme="dark"] table {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] tr:hover {
+    background: var(--bg-body);
+}
+
+/* Modals */
+[data-theme="dark"] .modal,
+[data-theme="dark"] .dialog {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+/* Dividers */
+[data-theme="dark"] hr {
+    border-color: var(--border-color);
+}
+
+/* Code blocks */
+[data-theme="dark"] code,
+[data-theme="dark"] pre {
+    background: var(--bg-body);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Badges */
+[data-theme="dark"] .badge {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+/* Alerts */
+[data-theme="dark"] .alert {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}

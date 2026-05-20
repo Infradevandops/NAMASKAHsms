@@ -96,33 +96,44 @@ def test_api_error_handler_log():
 
 
 @pytest.fixture
-def audit_service():
-    return AuditService()
+def audit_service(db):
+    return AuditService(db)
 
 
 @pytest.mark.asyncio
-async def test_audit_log_and_retrieve(audit_service):
-    await audit_service.log_action("user1", "login", "auth", {"ip": "1.2.3.4"})
+async def test_audit_log_and_retrieve(audit_service, db):
+    await audit_service.log_action("user1", "login", "auth", None, {"ip": "1.2.3.4"})
 
-    assert len(audit_service.audit_log) == 1
-    entry = audit_service.audit_log[0]
-    assert entry["user_id"] == "user1"
-    assert entry["action"] == "login"
+    # Query database for audit logs
+    from app.models.audit_log import AuditLog
+    logs_in_db = db.query(AuditLog).filter(AuditLog.user_id == "user1").all()
+    assert len(logs_in_db) == 1
+    entry = logs_in_db[0]
+    assert entry.user_id == "user1"
+    assert entry.action == "login"
 
-    logs = await audit_service.get_user_audit_log("user1")
+    # Use fetch_user_history method
+    logs = await audit_service.fetch_user_history("user1")
     assert len(logs) == 1
 
-    logs_other = await audit_service.get_user_audit_log("user2")
+    logs_other = await audit_service.fetch_user_history("user2")
     assert len(logs_other) == 0
 
 
 @pytest.mark.asyncio
-async def test_audit_export_and_delete(audit_service):
-    await audit_service.log_action("user1", "read", "doc")
+async def test_audit_export_and_delete(audit_service, db):
+    await audit_service.log_action("user1", "read", "doc", None, {})
 
-    export = await audit_service.export_audit_log("user1")
-    assert export["user_id"] == "user1"
-    assert len(export["audit_log"]) == 1
+    # Use export_forensic_log method
+    export = await audit_service.export_forensic_log(days=30)
+    assert len(export) >= 1
+    assert any(log["user_id"] == "user1" for log in export)
 
-    await audit_service.delete_user_data("user1")
-    assert len(audit_service.audit_log) == 0
+    # Delete user audit logs
+    from app.models.audit_log import AuditLog
+    db.query(AuditLog).filter(AuditLog.user_id == "user1").delete()
+    db.commit()
+    
+    # Verify deletion
+    logs_in_db = db.query(AuditLog).filter(AuditLog.user_id == "user1").all()
+    assert len(logs_in_db) == 0

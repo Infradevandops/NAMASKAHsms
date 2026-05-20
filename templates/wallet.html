@@ -101,7 +101,7 @@
     .stat-label {
         font-size: 13px;
         font-weight: 600;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 8px;
@@ -110,7 +110,7 @@
     .stat-value {
         font-size: 28px;
         font-weight: 800;
-        color: var(--text-main);
+        color: var(--text-primary, #21262D);
         display: flex;
         align-items: baseline;
         gap: 4px;
@@ -143,13 +143,13 @@
     }
 
     .payment-tab:hover {
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
         background: rgba(254, 60, 114, 0.05);
     }
 
     .payment-tab.active {
         background: white;
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         border-color: rgba(254, 60, 114, 0.15);
     }
@@ -178,8 +178,8 @@
 
     .preset-btn:hover {
         background: #f8fafc;
-        border-color: var(--primary);
-        color: var(--primary);
+        border-color: var(--primary, #FE3C72);
+        color: var(--primary, #FE3C72);
     }
 
     .preset-btn .bonus {
@@ -206,7 +206,7 @@
     }
 
     .premium-input:focus {
-        border-color: var(--primary);
+        border-color: var(--primary, #FE3C72);
     }
 
     .crypto-selector {
@@ -263,7 +263,7 @@
         padding: 14px;
         font-size: 12px;
         font-weight: 600;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         text-transform: uppercase;
         border-bottom: 2px solid #F1F5F9;
     }
@@ -359,7 +359,7 @@
                         <div class="input-group" style="margin-bottom: 16px;">
                             <input type="number" id="crypto-usd" class="premium-input" placeholder="USD Amount" oninput="calculateCrypto()">
                         </div>
-                        <div id="exchange-rate-display" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                        <div id="exchange-rate-display" style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin-bottom: 12px;">
                             Loading exchange rates...
                         </div>
                         <div id="crypto-intent-panel" style="display: none;">
@@ -455,16 +455,16 @@
 
             <div style="background: #F8FAFC; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted); font-size: 13px;">Reference ID</span>
+                    <span style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Reference ID</span>
                     <span id="modal-ref" style="font-family: monospace; font-weight: 600; font-size: 13px;">-</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted); font-size: 13px;">Settled At</span>
+                    <span style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Settled At</span>
                     <span id="modal-date" style="font-weight: 600; font-size: 13px;">-</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted); font-size: 13px;">Post-Balance</span>
-                    <span id="modal-balance" style="font-weight: 700; font-size: 13px; color: var(--primary);">$0.00</span>
+                    <span style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Post-Balance</span>
+                    <span id="modal-balance" style="font-weight: 700; font-size: 13px; color: var(--primary, #FE3C72);">$0.00</span>
                 </div>
                 <div id="modal-telemetry" style="border-top: 1px solid #E2E8F0; padding-top: 12px; display: none;">
                     <div class="stat-label" style="font-size: 11px;">Provider Logic</div>
@@ -774,7 +774,7 @@
                 const txs = data.transactions || [];
 
                 if (txs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">No institutional audit records found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted, #9CA3AF);">No institutional audit records found.</td></tr>`;
                     return;
                 }
 
@@ -784,11 +784,11 @@
                     return `
                         <tr onclick='openAuditModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' style="cursor: pointer;">
                             <td style="font-weight: 600;">${tx.description || tx.type}</td>
-                            <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${tx.id.substring(0, 8)}</td>
+                            <td style="font-family: monospace; font-size: 12px; color: var(--text-muted, #9CA3AF);">${tx.id.substring(0, 8)}</td>
                             <td style="color: ${amountColor}; font-weight: 700;">${tx.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(tx.amount))}</td>
                             <td style="font-weight: 500;">${formatMoney(tx.balance_after || 0)}</td>
                             <td><span class="status-badge ${statusClass}">${tx.status || 'Completed'}</span></td>
-                            <td style="font-size: 12px; color: var(--text-muted);">${new Date(tx.created_at).toLocaleString()}</td>
+                            <td style="font-size: 12px; color: var(--text-muted, #9CA3AF);">${new Date(tx.created_at).toLocaleString()}</td>
                         </tr>
                     `;
                 }).join('');

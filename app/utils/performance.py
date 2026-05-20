@@ -3,7 +3,7 @@
 import asyncio
 from functools import wraps
 
-from app.core.cache import cache
+from app.core.cache import cache_manager as cache
 
 
 def async_cache(ttl: int = 300):

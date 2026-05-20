@@ -692,3 +692,60 @@ a:hover {
     border-color: rgba(255, 255, 255, 0.2);
     border-top-color: var(--color-primary);
 }
+
+[data-theme="dark"] .public-header {
+    background: var(--bg-card);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .public-footer {
+    background: var(--bg-sidebar);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .mobile-menu {
+    background: var(--bg-card);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .mobile-menu a {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .mobile-menu a:hover {
+    background: var(--bg-sidebar);
+}
+
+[data-theme="dark"] .logo,
+[data-theme="dark"] .nav-links a {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .public-content {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] li,
+[data-theme="dark"] span {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] a {
+    color: #FE3C72;
+}
+
+[data-theme="dark"] a:hover {
+    color: #FF6B9D;
+}

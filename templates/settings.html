@@ -147,7 +147,7 @@
     }
 
     .form-input:focus {
-        border-color: var(--primary);
+        border-color: var(--primary, #FE3C72);
         outline: none;
     }
 
@@ -208,7 +208,7 @@
     }
 
     input:checked+.slider {
-        background-color: var(--primary);
+        background-color: var(--primary, #FE3C72);
     }
 
     input:checked+.slider:before {
@@ -227,7 +227,7 @@
 
     .api-key-value {
         font-family: monospace;
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
         background: rgba(var(--primary-rgb), 0.1);
         padding: 4px 8px;
         border-radius: 4px;
@@ -297,7 +297,7 @@
 
                 <div class="form-group">
                     <button class="btn btn-primary" onclick="requestPasswordReset()">Request Password Reset Email</button>
-                    <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">We will send a secure link to your email address.</p>
+                    <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted, #9CA3AF);">We will send a secure link to your email address.</p>
                 </div>
 
                 <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
@@ -309,7 +309,7 @@
 
                 <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
                     <h3 style="margin-bottom: 8px;">Two-Factor Authentication (2FA)</h3>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Add an extra layer of security using an authenticator app (Google Authenticator, Authy, etc.).</p>
+                    <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-bottom: 16px;">Add an extra layer of security using an authenticator app (Google Authenticator, Authy, etc.).</p>
                     <div id="mfa-status-section">
                         <div id="mfa-disabled-view">
                             <button class="btn btn-primary" onclick="setupMFA()">Enable 2FA</button>
@@ -336,13 +336,13 @@
 
                 <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
                     <h3 style="margin-bottom: 8px;">Sessions</h3>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Sign out from all other devices and sessions.</p>
+                    <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-bottom: 12px;">Sign out from all other devices and sessions.</p>
                     <button class="btn btn-secondary" onclick="logoutAll()">Logout All Devices</button>
                 </div>
 
                 <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
                     <h3 style="margin-bottom: 8px; color: #ef4444;">Danger Zone</h3>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Permanently delete your account and all data. This cannot be undone.</p>
+                    <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-bottom: 12px;">Permanently delete your account and all data. This cannot be undone.</p>
                     <button class="btn" style="background: #ef4444; color: white;" onclick="deleteAccount()">Delete Account</button>
                 </div>
             </div>
@@ -369,7 +369,7 @@
             </div>
             <div class="card" style="margin-top: 16px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <h2 style="margin:0;">Notifications <span id="notif-unread-count" style="font-size:13px; font-weight:400; color:var(--text-muted);"></span></h2>
+                    <h2 style="margin:0;">Notifications <span id="notif-unread-count" style="font-size:13px; font-weight:400; color:var(--text-muted, #9CA3AF);"></span></h2>
                     <button id="mark-all-btn" onclick="markAllRead()" class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" disabled>Mark all read</button>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
@@ -380,14 +380,14 @@
                     <button class="btn filter-btn" data-filter="verification" onclick="setNotifFilter('verification')">Verification <span id="notif-count-verification">0</span></button>
                 </div>
                 <div id="notif-list" role="list"></div>
-                <div id="notif-empty-state" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">No notifications</div>
+                <div id="notif-empty-state" style="display:none; text-align:center; padding:40px; color:var(--text-muted, #9CA3AF);">No notifications</div>
             </div>
         </div>
 
         <!-- API Keys Tab -->
         <div id="api-keys-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div id="api-keys-no-card-banner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:14px;">
-                <strong>No payment method on file.</strong> Add a card in the <a href="#" onclick="switchTab('billing', event)" style="color:var(--primary);">Billing tab</a> to keep your API access uninterrupted.
+                <strong>No payment method on file.</strong> Add a card in the <a href="#" onclick="switchTab('billing', event)" style="color:var(--primary, #FE3C72);">Billing tab</a> to keep your API access uninterrupted.
             </div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -395,7 +395,7 @@
                     <button class="btn btn-primary" onclick="generateApiKey()">Generate New Key</button>
                 </div>
                 <div id="api-keys-list">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span
+                    <div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;"><span
                             class="loading-spinner"></span> Loading keys...</div>
                 </div>
             </div>
@@ -405,14 +405,14 @@
         <div id="forwarding-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div class="card">
                 <h2>SMS Forwarding</h2>
-                <p style="color: var(--text-muted); margin-bottom: 24px;">
+                <p style="color: var(--text-muted, #9CA3AF); margin-bottom: 24px;">
                     Forward incoming SMS messages to your email or webhook endpoint in real-time.
                 </p>
 
                 <div class="toggle-switch">
                     <div>
                         <span class="toggle-label">Email Forwarding</span>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Receive SMS messages
+                        <p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">Receive SMS messages
                             via email</p>
                     </div>
                     <label class="switch">
@@ -432,7 +432,7 @@
                 <div class="toggle-switch">
                     <div>
                         <span class="toggle-label">Webhook Forwarding</span>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">POST SMS data to your
+                        <p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">POST SMS data to your
                             endpoint</p>
                     </div>
                     <label class="switch">
@@ -457,7 +457,7 @@
                             <button class="btn btn-secondary" onclick="generateWebhookSecret()"
                                 style="padding: 8px 16px;">Generate</button>
                         </div>
-                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Used to verify webhook
+                        <p style="font-size: 11px; color: var(--text-muted, #9CA3AF); margin-top: 4px;">Used to verify webhook
                             authenticity via HMAC signature</p>
                     </div>
                 </div>
@@ -465,7 +465,7 @@
                 <div class="toggle-switch">
                     <div>
                         <span class="toggle-label">Forward All Messages</span>
-                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Forward all SMS or only
+                        <p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">Forward all SMS or only
                             verification codes</p>
                     </div>
                     <label class="switch">
@@ -489,8 +489,8 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); margin-bottom: 8px;">
                     <div>
                         <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span class="loading-spinner"></span> Loading...</div>
-                        <div style="color: var(--text-muted); font-size: 14px;" id="billing-tier-features">Loading tier features...</div>
-                        <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;" id="billing-renews-at" style="display:none;"></div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 14px;" id="billing-tier-features">Loading tier features...</div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 13px; margin-top: 4px;" id="billing-renews-at" style="display:none;"></div>
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn btn-primary" onclick="document.getElementById('billing-plans').scrollIntoView({behavior:'smooth'})" id="billing-upgrade-btn">Upgrade</button>
@@ -506,7 +506,7 @@
             <div class="card" style="margin-top: 16px;">
                 <h2>Payment Method</h2>
                 <div id="billing-card-display">
-                    <div style="text-align:center; color:var(--text-muted); padding:20px;"><span class="loading-spinner"></span></div>
+                    <div style="text-align:center; color:var(--text-muted, #9CA3AF); padding:20px;"><span class="loading-spinner"></span></div>
                 </div>
                 <button class="btn btn-primary" onclick="showAddCardModal()" id="add-card-btn" style="margin-top:12px; display:none;">+ Add Card</button>
             </div>
@@ -514,7 +514,7 @@
             <!-- Auto-Recharge -->
             <div class="card" style="margin-top: 16px;">
                 <h2>Auto-Recharge</h2>
-                <p style="color:var(--text-muted); font-size:14px; margin-bottom:16px;">Automatically top up your balance when it drops below a threshold. Requires a saved card.</p>
+                <p style="color:var(--text-muted, #9CA3AF); font-size:14px; margin-bottom:16px;">Automatically top up your balance when it drops below a threshold. Requires a saved card.</p>
                 <div id="auto-recharge-no-card" style="display:none; color:#f59e0b; font-size:13px; margin-bottom:12px;">Add a payment method to enable auto-recharge.</div>
                 <div class="toggle-switch">
                     <div><strong>Enable Auto-Recharge</strong></div>
@@ -524,12 +524,12 @@
                     <div style="display:flex; gap:12px; align-items:center;">
                         <label style="font-size:14px; min-width:180px;">Recharge when balance below</label>
                         <input type="number" id="recharge-threshold" class="form-input" style="width:100px;" placeholder="5" min="1">
-                        <span style="color:var(--text-muted);">USD</span>
+                        <span style="color:var(--text-muted, #9CA3AF);">USD</span>
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
                         <label style="font-size:14px; min-width:180px;">Recharge amount</label>
                         <input type="number" id="recharge-amount" class="form-input" style="width:100px;" placeholder="10" min="1">
-                        <span style="color:var(--text-muted);">USD</span>
+                        <span style="color:var(--text-muted, #9CA3AF);">USD</span>
                     </div>
                     <button class="btn btn-primary" onclick="saveAutoRecharge()" style="width:fit-content;">Save</button>
                 </div>
@@ -542,12 +542,12 @@
                     <div style="display:flex; gap:12px; align-items:center;">
                         <label style="font-size:14px; min-width:180px;">Monthly spending cap</label>
                         <input type="number" id="spending-limit" class="form-input" style="width:100px;" placeholder="None" min="0">
-                        <span style="color:var(--text-muted);">USD (0 = no limit)</span>
+                        <span style="color:var(--text-muted, #9CA3AF);">USD (0 = no limit)</span>
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
                         <label style="font-size:14px; min-width:180px;">Low balance alert</label>
                         <input type="number" id="low-balance-threshold" class="form-input" style="width:100px;" placeholder="2" min="0">
-                        <span style="color:var(--text-muted);">USD</span>
+                        <span style="color:var(--text-muted, #9CA3AF);">USD</span>
                     </div>
                     <button class="btn btn-primary" onclick="saveSpendingAlerts()" style="width:fit-content;">Save Alerts</button>
                 </div>
@@ -573,15 +573,15 @@
             <div class="card" style="margin-top: 16px;">
                 <h2>Payment History</h2>
                 <div id="payment-history">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span class="loading-spinner"></span> Loading payment history...</div>
+                    <div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;"><span class="loading-spinner"></span> Loading payment history...</div>
                 </div>
             </div>
 
             <!-- Refund Requests -->
             <div class="card" style="margin-top: 16px;">
                 <h2>Refund Requests</h2>
-                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Refunds for payments within the last 14 days. Processed within 5-7 business days.</p>
-                <div id="refund-history"><div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div></div>
+                <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-bottom: 16px;">Refunds for payments within the last 14 days. Processed within 5-7 business days.</p>
+                <div id="refund-history"><div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">No refund requests</div></div>
             </div>
         </div>
 
@@ -589,7 +589,7 @@
         <div id="add-card-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
             <div style="background:var(--bg-card); border-radius:12px; padding:32px; max-width:480px; width:90%;">
                 <h2 style="margin:0 0 8px;">Add Payment Method</h2>
-                <p style="color:var(--text-muted); font-size:14px; margin-bottom:24px;">We'll charge a $0.50 authorization hold (refunded immediately) to verify your card via Paystack.</p>
+                <p style="color:var(--text-muted, #9CA3AF); font-size:14px; margin-bottom:24px;">We'll charge a $0.50 authorization hold (refunded immediately) to verify your card via Paystack.</p>
                 <button class="btn btn-primary" onclick="initiateCardAuth()" style="width:100%;">Authorize Card via Paystack</button>
                 <button class="btn btn-secondary" onclick="document.getElementById('add-card-modal').style.display='none'" style="width:100%; margin-top:8px;">Cancel</button>
             </div>
@@ -601,7 +601,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <div>
                         <h2 style="margin: 0;">Blacklist Management</h2>
-                        <p style="color: var(--text-muted); font-size: 14px; margin: 4px 0 0 0;">Block specific phone
+                        <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin: 4px 0 0 0;">Block specific phone
                             numbers from receiving verifications</p>
                     </div>
                     <button class="btn btn-primary" onclick="showAddBlacklistModal()">Add Number</button>
@@ -614,7 +614,7 @@
                 </div>
 
                 <div id="blacklist-list">
-                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 40px;">
                         <span class="loading-spinner"></span> Loading blacklist...
                     </div>
                 </div>
@@ -629,32 +629,32 @@
         <div id="privacy-tab" class="settings-tab">
             <div class="card">
                 <h2>Data Export</h2>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format.</p>
+                <p style="color: var(--text-muted, #9CA3AF); margin-bottom: 16px;">Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format.</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 8px;">
                     <div>
                         <h4 style="margin: 0;">Download Your Data</h4>
-                        <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">Export all personal data including profile, verifications, and transactions (JSON)</p>
+                        <p style="color: var(--text-muted, #9CA3AF); font-size: 13px; margin: 4px 0 0 0;">Export all personal data including profile, verifications, and transactions (JSON)</p>
                     </div>
                     <button class="btn btn-primary" onclick="exportData()" id="export-btn">Export Data</button>
                 </div>
-                <p style="font-size: 13px; color: var(--text-muted);">Last export: <span id="last-export-date">Never</span></p>
+                <p style="font-size: 13px; color: var(--text-muted, #9CA3AF);">Last export: <span id="last-export-date">Never</span></p>
             </div>
             <div class="card" style="margin-top: 16px;">
                 <h2>Privacy Preferences</h2>
                 <div class="toggle-switch">
-                    <div><strong>Essential Cookies</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Required for basic functionality. Always enabled.</p></div>
+                    <div><strong>Essential Cookies</strong><p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 2px 0 0 0;">Required for basic functionality. Always enabled.</p></div>
                     <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
                 </div>
                 <div class="toggle-switch">
-                    <div><strong>Analytics</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Help us understand how you use our service</p></div>
+                    <div><strong>Analytics</strong><p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 2px 0 0 0;">Help us understand how you use our service</p></div>
                     <label class="switch"><input type="checkbox" id="consent-analytics" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
                 </div>
                 <div class="toggle-switch">
-                    <div><strong>Marketing Communications</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Receive updates about new features and promotions</p></div>
+                    <div><strong>Marketing Communications</strong><p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 2px 0 0 0;">Receive updates about new features and promotions</p></div>
                     <label class="switch"><input type="checkbox" id="consent-marketing" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
                 </div>
                 <div class="toggle-switch">
-                    <div><strong>Email Notifications</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Receive important account notifications via email</p></div>
+                    <div><strong>Email Notifications</strong><p style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin: 2px 0 0 0;">Receive important account notifications via email</p></div>
                     <label class="switch"><input type="checkbox" id="consent-email" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
                 </div>
             </div>
@@ -666,19 +666,19 @@
                 <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
                     <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
                         <div style="font-size: 28px; font-weight: 700;" id="ref-total-earnings">$0.00</div>
-                        <div style="color: var(--text-muted); font-size: 13px;">Total Earnings</div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Total Earnings</div>
                     </div>
                     <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
                         <div style="font-size: 28px; font-weight: 700;" id="ref-total-referrals">0</div>
-                        <div style="color: var(--text-muted); font-size: 13px;">Friends Invited</div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Friends Invited</div>
                     </div>
                     <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
                         <div style="font-size: 28px; font-weight: 700;" id="ref-bonus-credits">0</div>
-                        <div style="color: var(--text-muted); font-size: 13px;">Bonus Credits</div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 13px;">Bonus Credits</div>
                     </div>
                 </div>
                 <h2>Share the Love</h2>
-                <p style="color: var(--text-muted); margin: 8px 0 16px;">Give 2 free verifications to your friends and earn 10% on their first deposit!</p>
+                <p style="color: var(--text-muted, #9CA3AF); margin: 8px 0 16px;">Give 2 free verifications to your friends and earn 10% on their first deposit!</p>
                 <div style="display: flex; gap: 8px; margin-bottom: 24px;">
                     <input type="text" id="referral-url" class="form-input" readonly value="Loading..." style="flex: 1;">
                     <button class="btn btn-primary" onclick="copyReferralLink()">Copy Link</button>
@@ -688,14 +688,14 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">User ID</th>
-                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Email</th>
-                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date Joined</th>
-                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">User ID</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Email</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Date Joined</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Status</th>
                             </tr>
                         </thead>
                         <tbody id="referrals-list">
-                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;"><span class="loading-spinner"></span> Loading referrals...</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 40px;"><span class="loading-spinner"></span> Loading referrals...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -708,7 +708,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <div>
                         <h2 style="margin: 0;">Webhook Builder</h2>
-                        <p style="color: var(--text-muted); margin: 4px 0 0 0;">Build custom real-time integrations for your business</p>
+                        <p style="color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">Build custom real-time integrations for your business</p>
                     </div>
                     <button class="btn btn-primary" onclick="showAddWebhookModal()">+ Add Webhook</button>
                 </div>
@@ -718,7 +718,7 @@
                 <div id="webhooks-empty-state" style="display: none; text-align: center; padding: 60px;">
                     <div style="font-size: 48px; margin-bottom: 16px;">🔗</div>
                     <h2>No Webhooks Configured</h2>
-                    <p style="color: var(--text-muted);">Connect your apps to vrenum.app and receive real-time updates.</p>
+                    <p style="color: var(--text-muted, #9CA3AF);">Connect your apps to vrenum.app and receive real-time updates.</p>
                     <button class="btn btn-primary" onclick="showAddWebhookModal()" style="margin-top: 16px;">Create First Webhook</button>
                 </div>
             </div>
@@ -728,7 +728,7 @@
         <div id="api-docs-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div class="card">
                 <h2>API Documentation</h2>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">Integrate vrenum.app SMS verification into your application.</p>
+                <p style="color: var(--text-muted, #9CA3AF); margin-bottom: 16px;">Integrate vrenum.app SMS verification into your application.</p>
                 <div style="background: var(--bg-body); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                     <strong>Base URL</strong>
                     <code style="display: block; margin-top: 8px; font-size: 13px;">https://vrenum.onrender.com/api</code>
@@ -785,7 +785,7 @@
         <div style="margin-bottom: 16px;">
             <label style="display: block; margin-bottom: 8px; font-size: 14px;">Phone Number:</label>
             <input type="tel" id="blacklist-phone" class="form-input" placeholder="+1234567890" style="width: 100%;">
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Include country code (e.g., +1 for
+            <p style="font-size: 11px; color: var(--text-muted, #9CA3AF); margin-top: 4px;">Include country code (e.g., +1 for
                 US)</p>
         </div>
         <div style="margin-bottom: 16px;">
@@ -807,7 +807,7 @@
     <div
         style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; margin: 20px;">
         <h3 style="margin: 0 0 16px 0;">Bulk Import Numbers</h3>
-        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+        <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-bottom: 16px;">
             Upload a CSV file with phone numbers to blacklist. The file should have one number per line or a column
             named "phone".
         </p>
@@ -818,7 +818,7 @@
                 style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer;"
                 onclick="document.getElementById('blacklist-csv-file').click()">
                 <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
-                <div style="color: var(--text-muted);">Click to select or drag & drop CSV file</div>
+                <div style="color: var(--text-muted, #9CA3AF);">Click to select or drag & drop CSV file</div>
             </div>
         </div>
         <div id="bulk-preview" style="display: none; margin-bottom: 16px;">
@@ -1056,7 +1056,7 @@
                     FrontendLogger.info('[Settings] Billing plans loaded', { count: Array.isArray(tiers) ? tiers.length : 0 });
 
                     if (!Array.isArray(tiers)) {
-                        container.innerHTML = '<div style="color: var(--text-muted); padding: 16px;">No plans available</div>';
+                        container.innerHTML = '<div style="color: var(--text-muted, #9CA3AF); padding: 16px;">No plans available</div>';
                         return;
                     }
 
@@ -1067,13 +1067,13 @@
                         const tierHierarchy = { freemium: 0, payg: 1, pro: 2, custom: 3 };
                         const isDowngrade = (tierHierarchy[tierCode] || 0) < (tierHierarchy[settingsUserTier] || 0);
                         return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${isCurrent ? 'border: 2px solid var(--primary);' : ''}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${isCurrent ? 'border: 2px solid var(--primary, #FE3C72);' : ''}">
                         <div>
                             <div style="font-weight: 600;">${tier.name || tier.display_name || tierCode}</div>
-                            <div style="color: var(--text-muted); font-size: 14px;">${price}</div>
+                            <div style="color: var(--text-muted, #9CA3AF); font-size: 14px;">${price}</div>
                         </div>
                         ${isCurrent
-                            ? '<span style="color: var(--primary); font-weight: 500;">✓ Current Plan</span>'
+                            ? '<span style="color: var(--primary, #FE3C72); font-weight: 500;">✓ Current Plan</span>'
                             : `<button class="btn ${isDowngrade ? 'btn-secondary' : 'btn-primary'}" onclick="selectTier('${tierCode}', ${tier.price_monthly || 0})" style="padding: 8px 16px;">${isDowngrade ? 'Downgrade' : 'Upgrade'}</button>`
                         }
                     </div>`;
@@ -1161,12 +1161,12 @@
                 const addBtn = document.getElementById('add-card-btn');
                 if (d.has_card) {
                     cardDiv.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-body); border-radius:8px;">
-                        <div><strong>${escapeHtml(d.card_type || 'Card')}</strong> ending in <strong>${escapeHtml(d.card_last4 || '****')}</strong><span style="color:var(--text-muted); font-size:13px; margin-left:12px;">Exp: ${escapeHtml(d.card_expiry || '')}</span></div>
+                        <div><strong>${escapeHtml(d.card_type || 'Card')}</strong> ending in <strong>${escapeHtml(d.card_last4 || '****')}</strong><span style="color:var(--text-muted, #9CA3AF); font-size:13px; margin-left:12px;">Exp: ${escapeHtml(d.card_expiry || '')}</span></div>
                         <button class="btn btn-secondary" onclick="removeCard()" style="padding:6px 12px; font-size:12px; color:#ef4444;">Remove</button>
                     </div>`;
                     if (addBtn) addBtn.style.display = 'none';
                 } else {
-                    cardDiv.innerHTML = '<div style="color:var(--text-muted); font-size:14px;">No payment method saved.</div>';
+                    cardDiv.innerHTML = '<div style="color:var(--text-muted, #9CA3AF); font-size:14px;">No payment method saved.</div>';
                     if (addBtn) addBtn.style.display = 'inline-flex';
                     const noCard = document.getElementById('auto-recharge-no-card');
                     if (noCard) noCard.style.display = 'block';
@@ -1306,7 +1306,7 @@
                     FrontendLogger.info('[Settings] API keys loaded', { count: keys ? keys.length : 0 });
 
                     if (!keys || keys.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No API keys found. Generate one to get started.</div>';
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">No API keys found. Generate one to get started.</div>';
                         return;
                     }
 
@@ -1314,7 +1314,7 @@
                 <div class="api-key-item">
                     <div style="flex: 1;">
                         <div style="font-weight: 500; margin-bottom: 4px;">${escapeHtml(key.name || 'API Key')}</div>
-                        <div style="font-size: 12px; color: var(--text-muted); display: flex; gap: 16px;">
+                        <div style="font-size: 12px; color: var(--text-muted, #9CA3AF); display: flex; gap: 16px;">
                             <span>Created: ${key.created_at ? new Date(key.created_at).toLocaleDateString() : 'Unknown'}</span>
                             ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : '<span>Never used</span>'}
                         </div>
@@ -1477,17 +1477,17 @@
                     const payments = data.transactions || data.payments || [];
 
                     if (!Array.isArray(payments) || payments.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No payment history yet</div>';
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">No payment history yet</div>';
                         return;
                     }
 
                     let html = '<table style="width: 100%; border-collapse: collapse;">';
                     html += '<thead><tr style="border-bottom: 1px solid var(--border-color);">';
-                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Date</th>';
-                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reference</th>';
-                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Amount</th>';
-                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Status</th>';
-                    html += '<th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Date</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Reference</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Amount</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Status</th>';
+                    html += '<th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Action</th>';
                     html += '</tr></thead><tbody>';
 
                     for (const payment of payments.slice(0, 10)) {
@@ -1501,7 +1501,7 @@
                         <td style="padding: 12px;"><span style="color: ${statusColor}; font-size: 13px;">${escapeHtml(payment.status || 'unknown')}</span></td>
                         <td style="padding: 12px; text-align: right;">
                             ${canRefund ? `<button class="btn btn-secondary" onclick="showRefundModal('${payment.id || payment.reference}', '${payment.reference}', ${payment.amount_usd || payment.amount || 0})" style="padding: 4px 12px; font-size: 12px;">Request Refund</button>` : ''}
-                            <a href="/api/wallet/invoice/${payment.id}" download style="margin-left:4px; font-size:12px; color:var(--primary);">📄 Receipt</a>
+                            <a href="/api/wallet/invoice/${payment.id}" download style="margin-left:4px; font-size:12px; color:var(--primary, #FE3C72);">📄 Receipt</a>
                         </td>
                     </tr>`;
                     }
@@ -1509,11 +1509,11 @@
                     html += '</tbody></table>';
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Unable to load payment history</div>';
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">Unable to load payment history</div>';
                 }
             } catch (error) {
                 console.error('[Settings] Failed to load payment history:', error);
-                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Failed to load payment history</div>';
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">Failed to load payment history</div>';
             }
         }
 
@@ -1541,7 +1541,7 @@
                     const refunds = data.refunds || data || [];
 
                     if (!Array.isArray(refunds) || refunds.length === 0) {
-                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div>';
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 20px;">No refund requests</div>';
                         return;
                     }
 
@@ -1552,7 +1552,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-body); border-radius: 8px; margin-bottom: 8px;">
                             <div>
                                 <div style="font-weight: 500;">${escapeHtml(refund.reference || 'Refund')}</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">${formatDate(refund.initiated_at || refund.created_at)}</div>
+                                <div style="font-size: 12px; color: var(--text-muted, #9CA3AF);">${formatDate(refund.initiated_at || refund.created_at)}</div>
                             </div>
                             <div style="text-align: right;">
                                 <div style="font-weight: 600;">${formatMoney(refund.amount || 0)}</div>
@@ -1819,7 +1819,7 @@
 
                     if (blacklistData.length === 0) {
                         container.innerHTML = `
-                        <div style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <div style="text-align: center; padding: 60px; color: var(--text-muted, #9CA3AF);">
                             <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
                             <div style="font-size: 16px; margin-bottom: 8px;">No blacklisted numbers</div>
                             <div style="font-size: 14px;">Add numbers to prevent them from receiving verifications</div>
@@ -1833,17 +1833,17 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Phone Number</th>
-                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reason</th>
-                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Added</th>
-                                <th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Phone Number</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Reason</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Added</th>
+                                <th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted, #9CA3AF);">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${blacklistData.map(item => `
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 12px; font-family: monospace;">${escapeHtml(item.phone_number || item.number)}</td>
-                                    <td style="padding: 12px; color: var(--text-muted);">${escapeHtml(item.reason || '-')}</td>
+                                    <td style="padding: 12px; color: var(--text-muted, #9CA3AF);">${escapeHtml(item.reason || '-')}</td>
                                     <td style="padding: 12px; font-size: 13px;">${formatDate(item.created_at)}</td>
                                     <td style="padding: 12px; text-align: right;">
                                         <button class="btn btn-secondary" onclick="removeFromBlacklist('${item.id}')" style="padding: 4px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ef4444; border: none;">Remove</button>
@@ -1856,11 +1856,11 @@
 
                     renderBlacklistPagination(total);
                 } else {
-                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Failed to load blacklist</div>';
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 40px;">Failed to load blacklist</div>';
                 }
             } catch (error) {
                 console.error('[Settings] Failed to load blacklist:', error);
-                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Error loading blacklist</div>';
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 40px;">Error loading blacklist</div>';
             }
         }
 
@@ -1878,7 +1878,7 @@
 
             for (let i = 1; i <= Math.min(totalPages, 5); i++) {
                 const isActive = i === blacklistPage;
-                html += `<button onclick="changeBlacklistPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary); color: white;' : ''}">${i}</button>`;
+                html += `<button onclick="changeBlacklistPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary, #FE3C72); color: white;' : ''}">${i}</button>`;
             }
 
             html += `<button onclick="changeBlacklistPage(${blacklistPage + 1})" class="btn" style="padding: 6px 12px;" ${blacklistPage === totalPages ? 'disabled' : ''}>→</button>`;
@@ -2107,7 +2107,7 @@
                     <td style="padding:12px">${v.created_at ? new Date(v.created_at).toLocaleDateString() : '-'}</td>
                     <td style="padding:12px">-</td>
                 </tr>`).join('');
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-muted);">Failed to load history</td></tr>'; }
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-muted, #9CA3AF);">Failed to load history</td></tr>'; }
         }
 
         let notifCurrentFilter = 'all';
@@ -2129,7 +2129,7 @@
                 const markBtn = document.getElementById('mark-all-btn');
                 if (markBtn) markBtn.disabled = unread === 0;
                 renderNotifList(notifAllData);
-            } catch(e) { document.getElementById('notif-list').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Failed to load notifications</p>'; }
+            } catch(e) { document.getElementById('notif-list').innerHTML = '<p style="color:var(--text-muted, #9CA3AF);text-align:center;padding:40px;">Failed to load notifications</p>'; }
         }
 
         function setNotifFilter(filter) {
@@ -2146,8 +2146,8 @@
             empty.style.display = 'none';
             list.innerHTML = items.map(n => `<div role="listitem" style="padding:12px;border-bottom:1px solid var(--border-color);${!n.is_read ? 'background:var(--bg-body);' : ''}">
                 <div style="font-weight:${n.is_read ? '400' : '600'};">${n.title || n.message || 'Notification'}</div>
-                <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${n.body || n.message || ''}</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+                <div style="font-size:13px;color:var(--text-muted, #9CA3AF);margin-top:4px;">${n.body || n.message || ''}</div>
+                <div style="font-size:11px;color:var(--text-muted, #9CA3AF);margin-top:4px;">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
             </div>`).join('');
         }
 
@@ -2167,7 +2167,7 @@
                     <td style="padding:12px">${r.email || '-'}</td>
                     <td style="padding:12px">${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
                     <td style="padding:12px">${r.status || '-'}</td>
-                </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted);">No referrals yet</td></tr>';
+                </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted, #9CA3AF);">No referrals yet</td></tr>';
             } catch(e) { console.error('Failed to load referrals', e); }
         }
 
@@ -2188,10 +2188,10 @@
                 empty.style.display = 'none'; container.style.display = 'block';
                 container.innerHTML = hooks.map(h => `<div style="padding:16px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:12px;">
                     <div style="font-weight:600;">${h.name || 'Webhook'}</div>
-                    <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${h.url || ''}</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Events: ${(h.events || []).join(', ')}</div>
+                    <div style="font-size:13px;color:var(--text-muted, #9CA3AF);margin-top:4px;">${h.url || ''}</div>
+                    <div style="font-size:12px;color:var(--text-muted, #9CA3AF);margin-top:4px;">Events: ${(h.events || []).join(', ')}</div>
                 </div>`).join('');
-            } catch(e) { container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Failed to load webhooks</p>'; }
+            } catch(e) { container.innerHTML = '<p style="color:var(--text-muted, #9CA3AF);text-align:center;padding:40px;">Failed to load webhooks</p>'; }
         }
 
         function showAddWebhookModal() { window.location.href = '/webhooks'; }

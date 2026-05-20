@@ -34,25 +34,29 @@ class AlertingService:
                 await self._send_webhook_alert(alert)
             return True
         except Exception as e:
-            logger.error("Alert sending failed", extra={"error": str(e)})
+            logger.error(f"Alert sending failed: {e}", exc_info=True)
             return False
 
     async def _send_email_alert(self, alert: Dict):
         """Send email alert."""
-        logger.info("Email alert", extra={"message": alert["message"]})
+        print(f"📧 Email Alert: {alert['message']}")
+        logger.info("Email alert", extra={"alert_message": alert["message"]})
 
     async def _send_slack_alert(self, alert: Dict):
         """Send Slack alert."""
+        severity_emoji = {"info": "ℹ️", "warning": "⚠️", "critical": "🚨"}.get(alert.get("severity"), "ℹ️")
+        print(f"💬 Slack Alert: {severity_emoji} {alert['message']}")
         logger.info(
             "Slack alert",
-            extra={"severity": alert.get("severity"), "message": alert["message"]},
+            extra={"severity": alert.get("severity"), "alert_message": alert["message"]},
         )
 
     async def _send_webhook_alert(self, alert: Dict):
         """Send webhook alert."""
+        print(f"🔗 Webhook Alert: {alert.get('type')} - {alert['message']}")
         logger.info(
             "Webhook alert",
-            extra={"type": alert.get("type"), "message": alert["message"]},
+            extra={"alert_type": alert.get("type"), "alert_message": alert["message"]},
         )
 
     async def process_alert_batch(self, alerts: List[Dict]) -> Dict:

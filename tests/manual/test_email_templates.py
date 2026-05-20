@@ -20,7 +20,11 @@ TEST_USER_PASSWORD = "testpassword123"
 test_results = []
 
 
-class TestResult:
+class EmailTemplateTestResult:
+    """Result container for email template tests.
+    
+    Note: Not a test class - renamed to avoid pytest collection.
+    """
     def __init__(self, name: str, passed: bool, message: str = "", duration: float = 0):
         self.name = name
         self.passed = passed
@@ -34,7 +38,7 @@ def log_test(name: str, passed: bool, message: str = ""):
     print(f"{status} - {name}")
     if message:
         print(f"   {message}")
-    test_results.append(TestResult(name, passed, message))
+    test_results.append(EmailTemplateTestResult(name, passed, message))
 
 
 async def get_auth_token(client: httpx.AsyncClient) -> str:

@@ -129,7 +129,7 @@ def test_user(db, test_user_id):
         user = User(
             id=test_user_id,
             email="test@example.com",
-            password_hash="$2b$12$test_hash",
+            password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
             credits=100.0,
             subscription_tier="pro",
             is_admin=False,
@@ -148,7 +148,7 @@ def admin_user(db):
         user = User(
             id="admin-user-123",
             email="admin@example.com",
-            password_hash="$2b$12$admin_hash",
+            password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
             credits=1000.0,
             subscription_tier="custom",
             is_admin=True,
@@ -167,7 +167,7 @@ def regular_user(db):
         user = User(
             id="regular-user-123",
             email="regular@example.com",
-            password_hash="$2b$12$regular_hash",
+            password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
             credits=50.0,
             subscription_tier="freemium",
             is_admin=False,
@@ -185,7 +185,7 @@ def payg_user(db):
     user = User(
         id=uid,
         email=f"payg-{uid[:8]}@example.com",
-        password_hash="$2b$12$test_hash",
+        password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
         credits=50.0,
         subscription_tier="payg",
         is_admin=False,
@@ -203,7 +203,7 @@ def pro_user(db):
     user = User(
         id=uid,
         email=f"pro-{uid[:8]}@example.com",
-        password_hash="$2b$12$test_hash",
+        password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
         credits=100.0,
         subscription_tier="pro",
         is_admin=False,
@@ -246,7 +246,7 @@ def freemium_user_token(db):
     user = User(
         id=uid,
         email=f"freemium-{uid[:8]}@example.com",
-        password_hash="$2b$12$test_hash",
+        password_hash="$2b$12$K7Kn0bFc6ne3EY2F008AvOVlOgDcWFPJV2LbZnxlZh/Bzu.Au3fPO",
         credits=0.0,
         subscription_tier="freemium",
         is_admin=False,

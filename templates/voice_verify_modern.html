@@ -58,7 +58,7 @@
     font-size: 32px;
     font-weight: 700;
     letter-spacing: 4px;
-    color: var(--text-main);
+    color: var(--text-primary, #21262D);
     background: white;
     padding: 16px 24px;
     border-radius: 12px;
@@ -156,7 +156,7 @@
                 <div class="form-group">
                     <label class="form-label">
                         Area Code
-                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 4px;">(Optional)</span>
+                        <span style="font-size: 11px; color: var(--text-muted, #9CA3AF); font-weight: 400; margin-left: 4px;">(Optional)</span>
                         <span id="voice-area-code-badge" class="badge" style="margin-left: 8px; display: none;"></span>
                     </label>
                     <select class="form-select" id="area-code-select" onchange="checkVoiceAreaCode(this.value)" aria-label="Select area code">
@@ -317,10 +317,10 @@ function openVoiceServiceModal() {
             <div style="background:var(--bg-card,#1e293b);max-width:500px;width:90%;max-height:80vh;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;">
                 <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1);">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div><h2 style="margin:0;font-size:20px;font-weight:700;">Select Service</h2><p style="margin:4px 0 0;font-size:13px;color:var(--text-muted);">Select a platform for voice verification — ${_voiceServices.length} available</p></div>
-                        <button onclick="closeVoiceModal()" style="background:rgba(255,255,255,0.1);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--text-muted);font-size:16px;">✕</button>
+                        <div><h2 style="margin:0;font-size:20px;font-weight:700;">Select Service</h2><p style="margin:4px 0 0;font-size:13px;color:var(--text-muted, #9CA3AF);">Select a platform for voice verification — ${_voiceServices.length} available</p></div>
+                        <button onclick="closeVoiceModal()" style="background:rgba(255,255,255,0.1);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--text-muted, #9CA3AF);font-size:16px;">✕</button>
                     </div>
-                    <div style="margin-top:12px;"><input type="text" id="voice-modal-search" placeholder="Search service..." oninput="renderVoiceModalList(this.value)" style="width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--text-main);font-size:14px;outline:none;"></div>
+                    <div style="margin-top:12px;"><input type="text" id="voice-modal-search" placeholder="Search service..." oninput="renderVoiceModalList(this.value)" style="width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--text-primary, #21262D);font-size:14px;outline:none;"></div>
                 </div>
                 <div id="voice-modal-list" style="overflow-y:auto;flex:1;padding:8px 0;"></div>
             </div>
@@ -348,22 +348,22 @@ function renderVoiceModalList(query) {
     const rest = filtered.filter(s => !_voicePinned.includes(s.value) && !_voiceRecent.includes(s.value) && !popularIds.includes(s.value.toLowerCase()));
 
     if (!filtered.length) {
-        list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">No results found</div>';
+        list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted, #9CA3AF);">No results found</div>';
         return;
     }
 
     let html = '';
     const renderSection = (title, items) => {
         if (!items.length) return '';
-        let h = `<div style="padding:4px 24px 8px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${title}</div>`;
+        let h = `<div style="padding:4px 24px 8px;font-size:11px;font-weight:700;color:var(--text-muted, #9CA3AF);text-transform:uppercase;letter-spacing:0.5px;">${title}</div>`;
         items.forEach(s => {
             const isPinned = _voicePinned.includes(s.value);
             const costDisplay = (s.price && s.price > 0) ? formatMoney(s.price) : '';
             h += `<div onclick="selectVoiceService('${s.value.replace(/'/g,"\\\'")}','${s.label.replace(/'/g,"\\\'")}',${s.price||0})" style="display:flex;align-items:center;padding:12px 24px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid rgba(255,255,255,0.05);" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                 <img src="${_getServiceIcon(s.value)}" style="width:24px;height:24px;margin-right:12px;" onerror="this.style.display='none'">
                 <span style="flex:1;font-size:14px;font-weight:500;">${s.label}</span>
-                <span style="font-size:13px;color:var(--text-muted);margin-right:12px;">${costDisplay}</span>
-                <span onclick="event.stopPropagation();toggleVoicePin('${s.value.replace(/'/g,"\\\'")}')" style="cursor:pointer;font-size:16px;color:${isPinned?'#f59e0b':'var(--text-muted)'};">${isPinned?'★':'☆'}</span>
+                <span style="font-size:13px;color:var(--text-muted, #9CA3AF);margin-right:12px;">${costDisplay}</span>
+                <span onclick="event.stopPropagation();toggleVoicePin('${s.value.replace(/'/g,"\\\'")}')" style="cursor:pointer;font-size:16px;color:${isPinned?'#f59e0b':'var(--text-muted, #9CA3AF)'};">${isPinned?'★':'☆'}</span>
             </div>`;
         });
         return h;
@@ -428,7 +428,7 @@ async function checkVoiceAreaCode(areaCode) {
         return;
     }
 
-    statusDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Checking availability...</span>';
+    statusDiv.innerHTML = '<span style="color: var(--text-muted, #9CA3AF);">⏳ Checking availability...</span>';
     altDiv.innerHTML = '';
 
     try {
@@ -460,7 +460,7 @@ async function checkVoiceAreaCode(areaCode) {
             }
         }
     } catch (e) {
-        statusDiv.innerHTML = '<span style="color: var(--text-muted);">Unable to check availability</span>';
+        statusDiv.innerHTML = '<span style="color: var(--text-muted, #9CA3AF);">Unable to check availability</span>';
     }
 
     updatePricing();

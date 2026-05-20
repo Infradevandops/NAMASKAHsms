@@ -88,3 +88,10 @@ server.log
 namaskah_fallback.db
 *.db
 *.html filter=export-ignore
+
+# Test cache and databases
+.hypothesis/
+logs/*.log.1
+logs/*.log.gz
+*.db
+!data/*.db

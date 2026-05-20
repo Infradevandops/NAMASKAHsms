@@ -5,6 +5,48 @@
 {% block head_extra %}
 {{ super() }}
 <style>
+    [data-theme="dark"] .docs-hero {
+        background: linear-gradient(135deg, rgba(254, 60, 114, 0.2) 0%, rgba(224, 36, 94, 0.1) 100%);
+        color: #f1f5f9;
+    }
+    
+    [data-theme="dark"] .endpoint-group h2,
+    [data-theme="dark"] .endpoint-path {
+        color: #f1f5f9;
+    }
+    
+    [data-theme="dark"] .endpoint {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    
+    [data-theme="dark"] .endpoint:hover {
+        border-color: #FE3C72;
+    }
+    
+    [data-theme="dark"] .endpoint-desc,
+    [data-theme="dark"] .tier-note {
+        color: #cbd5e1;
+    }
+    
+    [data-theme="dark"] .info-card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    
+    [data-theme="dark"] .info-card h3 {
+        color: #f1f5f9;
+    }
+    
+    [data-theme="dark"] .info-card p {
+        color: #cbd5e1;
+    }
+    
+    [data-theme="dark"] .info-card code {
+        background: #0f172a;
+        color: #f1f5f9;
+    }
+    
     .docs-hero {
         background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
         padding: 60px 20px;

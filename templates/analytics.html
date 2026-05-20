@@ -25,7 +25,7 @@ endblock %}
 
     .stat-card .stat-label {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 8px;
@@ -51,7 +51,7 @@ endblock %}
     }
 
     .stat-change.neutral {
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .chart-container {
@@ -91,9 +91,9 @@ endblock %}
 
     .chart-btn:hover,
     .chart-btn.active {
-        background: var(--primary);
+        background: var(--primary, #FE3C72);
         color: white;
-        border-color: var(--primary);
+        border-color: var(--primary, #FE3C72);
     }
 
     .chart-placeholder {
@@ -103,7 +103,7 @@ endblock %}
         justify-content: center;
         background: var(--bg-body);
         border-radius: 8px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .chart-canvas {
@@ -125,7 +125,7 @@ endblock %}
 
     .analytics-table th {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         text-transform: uppercase;
         font-weight: 600;
     }
@@ -154,7 +154,7 @@ endblock %}
     .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .empty-state-icon {
@@ -213,7 +213,7 @@ endblock %}
 <!-- Summary Stats -->
 <div class="analytics-grid" id="stats-grid" aria-label="Analytics summary">
     <!-- Row 1: The Cash Flow -->
-    <div class="stat-card" style="border-left: 4px solid var(--primary);">
+    <div class="stat-card" style="border-left: 4px solid var(--primary, #FE3C72);">
         <div class="stat-label">Net Spent</div>
         <div class="stat-value" id="stat-net-spent">
             <span class="skeleton" style="width: 100px; height: 32px; display: inline-block;"></span>
@@ -346,7 +346,7 @@ endblock %}
             <h3 class="chart-title">Carrier Match Rate</h3>
         </div>
         <div id="carrier-chart" class="chart-canvas" aria-label="Carrier match rate chart" style="display:none;">
-            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No carrier data yet</div>
+            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted, #9CA3AF);">No carrier data yet</div>
         </div>
     </div>
     <div class="chart-container">
@@ -354,7 +354,7 @@ endblock %}
             <h3 class="chart-title">Outcome Categories</h3>
         </div>
         <div id="outcome-chart" class="chart-canvas" aria-label="Outcome category chart" style="display:none;">
-            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted);">No outcome data yet</div>
+            <div style="display: flex; align-items: center; justify-content: center; height: 300px; color: var(--text-muted, #9CA3AF);">No outcome data yet</div>
         </div>
     </div>
 </div>
@@ -401,7 +401,7 @@ endblock %}
             </div>
         </div>
         <div id="notif-status-chart" style="min-height: 200px; margin-top: 16px;">
-            <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-muted);">Loading...</div>
+            <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-muted, #9CA3AF);">Loading...</div>
         </div>
     </div>
     <div class="chart-container" id="refund-insights-card" style="display: none;">
@@ -627,7 +627,7 @@ endblock %}
                 </div>` : ''}
                 <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;">
                     <div style="width:${width}%;min-width:60px;background:${color};color:white;padding:12px 8px;border-radius:8px;text-align:center;font-weight:700;font-size:18px;">${s.count}</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;text-align:center;">${s.label}</div>
+                    <div style="font-size:12px;color:var(--text-muted, #9CA3AF);margin-top:6px;text-align:center;">${s.label}</div>
                     <div style="font-size:11px;color:${color};font-weight:600;">${s.pct}%</div>
                 </div>
             `;
@@ -841,7 +841,7 @@ endblock %}
         const services = data.top_services || [];
 
         if (services.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No services used yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted, #9CA3AF);">No services used yet</td></tr>';
             return;
         }
 
@@ -1028,12 +1028,12 @@ endblock %}
                                 </div>
                                 <div style="display:flex;gap:16px;align-items:center;">
                                     <span style="font-weight:600;">${formatCurrency(r.amount)}</span>
-                                    <span style="color:var(--text-muted);">${date}</span>
+                                    <span style="color:var(--text-muted, #9CA3AF);">${date}</span>
                                 </div>
                             </div>`;
                         }).join('');
                     } else {
-                        timeline.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">No refund records</div>';
+                        timeline.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted, #9CA3AF);font-size:13px;">No refund records</div>';
                     }
 
                     // Stuck refund warning

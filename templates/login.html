@@ -5,14 +5,85 @@
 {% block head_extra %}
 {{ super() }}
 <style>
+    /* Dark mode support */
+    [data-theme="dark"] .auth-container {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    [data-theme="dark"] .auth-tabs {
+        background: #0f172a;
+    }
+
+    [data-theme="dark"] .auth-tab {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .auth-tab.active {
+        background: #1e293b;
+        color: #FE3C72;
+    }
+
+    [data-theme="dark"] .form-label,
+    [data-theme="dark"] .checkbox-group label {
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] .form-input {
+        background: #0f172a !important;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] .form-input:-webkit-autofill,
+    [data-theme="dark"] .form-input:-webkit-autofill:hover,
+    [data-theme="dark"] .form-input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+        -webkit-text-fill-color: #f1f5f9 !important;
+    }
+
+    [data-theme="dark"] .form-input:focus {
+        border-color: #FE3C72;
+    }
+
+    [data-theme="dark"] .btn-social {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    [data-theme="dark"] .divider {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .divider::before,
+    [data-theme="dark"] .divider::after {
+        border-bottom-color: #334155;
+    }
+
+    [data-theme="dark"] h1 {
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] p {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .forgot-link {
+        color: #FE3C72;
+    }
+
+    [data-theme="dark"] #toggle-password {
+        color: #94a3b8;
+    }
+
     .auth-container {
         max-width: 440px;
         margin: 20px auto;
-        background: white;
+        background: var(--bg-card, white);
         padding: 40px;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color, rgba(0, 0, 0, 0.05));
     }
 
     .auth-tabs {
@@ -32,12 +103,12 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
     }
 
     .auth-tab.active {
-        background: white;
-        color: var(--primary);
+        background: var(--bg-card, white);
+        color: var(--primary, #FE3C72);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
@@ -50,28 +121,29 @@
         margin-bottom: 8px;
         font-weight: 500;
         font-size: 14px;
-        color: var(--text-main);
+        color: var(--text-primary, #21262D);
     }
 
     .form-input {
         width: 100%;
         padding: 12px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--border-color, #e0e0e0);
         border-radius: 8px;
         font-size: 16px;
         transition: border-color 0.2s;
-        background: white !important;
+        background: var(--bg-card, white) !important;
+        color: var(--text-primary, #21262D);
     }
 
     .form-input:-webkit-autofill,
     .form-input:-webkit-autofill:hover,
     .form-input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0 30px white inset !important;
-        -webkit-text-fill-color: var(--text-main) !important;
+        -webkit-box-shadow: 0 0 0 30px var(--bg-card, white) inset !important;
+        -webkit-text-fill-color: var(--text-primary, #21262D) !important;
     }
 
     .form-input:focus {
-        border-color: var(--primary);
+        border-color: var(--primary, #FE3C72);
         outline: none;
         box-shadow: 0 0 0 3px var(--primary-light);
     }
@@ -91,13 +163,13 @@
 
     .checkbox-group label {
         font-size: 14px;
-        color: var(--text-main);
+        color: var(--text-primary, #21262D);
         cursor: pointer;
     }
 
     .btn-auth {
         width: 100%;
-        background: var(--primary);
+        background: var(--primary, #FE3C72);
         color: white;
         border: none;
         padding: 14px;
@@ -107,6 +179,14 @@
         cursor: pointer;
         transition: all 0.2s;
         min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    [data-theme="dark"] .btn-auth {
+        background: #FE3C72;
+        color: white;
     }
 
     @media (max-width: 640px) {
@@ -141,7 +221,7 @@
         align-items: center;
         text-align: center;
         margin: 24px 0;
-        color: var(--text-muted);
+        color: var(--text-muted, #9CA3AF);
         font-size: 14px;
     }
 
@@ -149,7 +229,7 @@
     .divider::after {
         content: '';
         flex: 1;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
     }
 
     .divider span {
@@ -166,9 +246,9 @@
         width: 48px;
         height: 48px;
         padding: 0;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--border-color, #e0e0e0);
         border-radius: 50%;
-        background: white;
+        background: var(--bg-card, white);
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
@@ -178,7 +258,7 @@
 
     .btn-social:hover {
         background: var(--bg-sidebar);
-        border-color: var(--primary);
+        border-color: var(--primary, #FE3C72);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
@@ -196,7 +276,7 @@
 
     .forgot-link {
         font-size: 13px;
-        color: var(--primary);
+        color: var(--primary, #FE3C72);
         text-decoration: none;
         float: right;
     }
@@ -237,7 +317,7 @@
             </label>
             <div style="position: relative;">
                 <input type="password" class="form-input" id="password" required placeholder="••••••••" autocomplete="current-password" style="padding-right: 45px;">
-                <button type="button" id="toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;" title="Show/Hide password">
+                <button type="button" id="toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted, #9CA3AF); padding: 4px;" title="Show/Hide password">
                     <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
@@ -257,18 +337,18 @@
 
     <!-- MFA Step (hidden until needed) -->
     <div id="mfa-step" style="display:none;">
-        <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px; text-align:center;">Enter the 6-digit code from your authenticator app.</p>
+        <p style="font-size:14px; color:var(--text-muted, #9CA3AF); margin-bottom:16px; text-align:center;">Enter the 6-digit code from your authenticator app.</p>
         <div class="form-group">
             <label class="form-label">Authentication Code</label>
             <input type="text" class="form-input" id="mfa-code" maxlength="6" placeholder="000000" autocomplete="one-time-code" style="letter-spacing:6px; font-size:20px; text-align:center;">
         </div>
         <button class="btn-auth" id="mfa-submit-btn" onclick="submitMFACode()">Verify</button>
-        <button style="width:100%; margin-top:8px; background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer;" onclick="cancelMFAStep()">← Back to login</button>
+        <button style="width:100%; margin-top:8px; background:none; border:none; color:var(--text-muted, #9CA3AF); font-size:13px; cursor:pointer;" onclick="cancelMFAStep()">← Back to login</button>
     </div>
 
     <div class="divider"><span>Or</span></div>
 
-    <button class="btn-auth" onclick="window.location.href='/api/auth/google'" style="background: white; color: #37352F; border: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <button class="btn-auth" onclick="window.location.href='/api/auth/google'" style="background: var(--bg-card, white); color: var(--text-primary, #37352F); border: 1px solid var(--border-color, #e0e0e0); display: flex; align-items: center; justify-content: center; gap: 8px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         <span>Continue with Google</span>
     </button>

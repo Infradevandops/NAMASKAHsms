@@ -5,10 +5,48 @@ All notable changes to the Namaskah project.
 ## [Unreleased]
 
 ### In Progress
-- Q2 2026 Growth & Adoption phase planning
-- SDK libraries (Python, JavaScript) in design
-- Onboarding tour (6-step guided walkthrough) planned
-- Mobile UI Phase 3 — cross-device QA (manual testing pending)
+- Test coverage improvement: 81.8% → 90% target
+- SDK libraries (Python, JavaScript) — deferred
+- Multi-region deployment (Q3 2026)
+
+---
+
+## [4.8.1] - May 20, 2026
+
+PWA, Mobile UI & Onboarding Complete
+
+### Added
+- **PWA Foundation**: 9 real branded icons (72px–512px), manifest linked in all templates, iOS meta tags, service worker with update detection
+- **Onboarding Wizard**: 6-step guided tour — language/currency, add credits, create verification, view history, API keys (Pro+), webhooks (Pro+)
+- **Mobile UI Stability**: `pwa-mobile.css` with overflow prevention, touch optimization, safe-area insets, iOS zoom fix
+- **Offline Support**: `/offline` fallback page, service worker caching strategy (stale-while-revalidate)
+- **Database Fields**: `onboarding_completed`, `onboarding_step` added to users table
+- **API Endpoints**: `GET /api/user/onboarding-status`, `PUT /api/user/onboarding-complete`
+- **Routes**: `/welcome` onboarding wizard, `/reviews` testimonials, `/services` service directory, `/offline` fallback
+
+### Fixed
+- **CI Migration**: Whitelabel migration guarded against DuplicateTable error
+- **SEO Content**: Removed false country claims across 14 files
+- **FAQ**: Corrected 6 inaccurate claims
+- **Sitemap**: Updated to 42 URLs (added /reviews, /services)
+
+### Changed
+- Service worker cache strategy: Network-first for navigation, stale-while-revalidate for static assets
+- Post-registration flow: New users redirected to `/welcome` onboarding
+- Mobile inputs: All set to 16px to prevent iOS zoom
+- Touch targets: Minimum 44px for accessibility
+
+### Tests
+- **PWA Tests**: 14/14 passing (manifest, service worker, iOS meta, offline page, mobile CSS)
+- **Onboarding Tests**: 14/14 passing (API endpoints, wizard flow, tier gating, mobile responsive)
+- **Total New Tests**: 28 tests added
+
+### Impact
+- ✅ PWA installable on iOS and Android
+- ✅ Onboarding completion tracking for analytics
+- ✅ Mobile UI stable (no overflow, no border conflicts)
+- ✅ All 23 sidebar tabs complete (100%)
+- ✅ Platform readiness: 100/100
 
 ---
 

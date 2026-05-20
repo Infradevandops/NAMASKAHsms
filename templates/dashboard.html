@@ -38,13 +38,13 @@ endblock %}
 </style>
 
 <!-- Tier Information Card -->
-<div class="card" id="tier-card" aria-live="polite" style="margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+<div class="card" id="tier-card" aria-live="polite" style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
         <div style="flex: 1; min-width: 200px;">
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">
+            <div style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin-bottom: 4px;" data-i18n="tiers.current_plan">
                 Current Plan</div>
             <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name">Freemium</div>
-            <div id="tier-price" style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">$0.00/month</div>
+            <div id="tier-price" style="font-size: 14px; color: var(--text-muted, #9CA3AF); margin-bottom: 12px;">$0.00/month</div>
             <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);">Basic SMS verification</div>
         </div>
         <div class="tier-cta-container" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;">
@@ -62,38 +62,38 @@ endblock %}
 </div>
 
 <!-- Quota Usage (for subscribed users) -->
-<div class="card" id="quota-card" style="margin-bottom: 24px; display: none;" aria-label="Monthly quota usage">
+<div class="card" id="quota-card" style="margin-bottom: 16px; display: none;" aria-label="Monthly quota usage">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <div style="font-size: 14px; font-weight: 600;">Monthly Quota Usage</div>
-        <div id="quota-text" style="font-size: 14px; color: var(--text-muted);">$0.00 / $0.00</div>
+        <div id="quota-text" style="font-size: 14px; color: var(--text-muted, #9CA3AF);">$0.00 / $0.00</div>
     </div>
     <div style="background: var(--bg-body); border-radius: 8px; height: 8px; overflow: hidden;" role="progressbar"
         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <div id="quota-fill" style="background: var(--primary); height: 100%; width: 0%; transition: width 0.3s;"></div>
+        <div id="quota-fill" style="background: var(--primary, #FE3C72); height: 100%; width: 0%; transition: width 0.3s;"></div>
     </div>
 </div>
 
 <!-- API Usage Statistics (for subscribed users) -->
-<div class="card" id="api-stats-card" style="margin-bottom: 24px; display: none;" aria-label="API usage statistics">
+<div class="card" id="api-stats-card" style="margin-bottom: 16px; display: none;" aria-label="API usage statistics">
     <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">API Usage This Month</div>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px;">
         <div>
-            <div style="font-size: 12px; color: var(--text-muted);">API Calls</div>
+            <div style="font-size: 12px; color: var(--text-muted, #9CA3AF);">API Calls</div>
             <div style="font-size: 20px; font-weight: 700;" id="api-calls-count">0</div>
         </div>
         <div>
-            <div style="font-size: 12px; color: var(--text-muted);">SMS Sent</div>
+            <div style="font-size: 12px; color: var(--text-muted, #9CA3AF);">SMS Sent</div>
             <div style="font-size: 20px; font-weight: 700;" id="api-sms-count">0</div>
         </div>
         <div>
-            <div style="font-size: 12px; color: var(--text-muted);">API Keys</div>
+            <div style="font-size: 12px; color: var(--text-muted, #9CA3AF);">API Keys</div>
             <div style="font-size: 20px; font-weight: 700;" id="api-keys-count">0</div>
         </div>
     </div>
 </div>
 
 <div class="stats-grid"
-    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
     <div class="nsk-stat" style="border-left: 3px solid #FE3C72;">
         <div class="nsk-stat-label" data-i18n="dashboard.total_sms">Total SMS</div>
         <div class="nsk-stat-value" id="total-sms">0</div>
@@ -116,15 +116,15 @@ endblock %}
 </div>
 
 <div class="card">
-    <h3 style="font-size: 18px; margin-bottom: 16px;" data-i18n="dashboard.recent_activity">Recent Activity <a href="/history" style="font-size: 13px; font-weight: 500; color: var(--primary); float: right; text-decoration: none;">View All →</a></h3>
-    <div id="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted); display: none;">
+    <h3 style="font-size: 18px; margin-bottom: 16px;" data-i18n="dashboard.recent_activity">Recent Activity <a href="/history" style="font-size: 13px; font-weight: 500; color: var(--primary, #FE3C72); float: right; text-decoration: none;">View All →</a></h3>
+    <div id="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted, #9CA3AF); display: none;">
         <div style="font-size: 24px; margin-bottom: 12px;" data-i18n="dashboard.no_activity">No recent activity</div>
         <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;"
             aria-label="Start a new verification">
             <span data-i18n="dashboard.start_verification">Start Verification</span>
         </button>
     </div>
-    <div id="activity-loading" style="text-align: center; padding: 20px; color: var(--text-muted);"
+    <div id="activity-loading" style="text-align: center; padding: 20px; color: var(--text-muted, #9CA3AF);"
         aria-label="Loading activity">
         <div class="skeleton-activity-table">
             <div class="skeleton-activity-row">
@@ -151,13 +151,13 @@ endblock %}
         aria-label="Recent verification activity">
         <thead>
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);"
                     data-i18n="dashboard.service" scope="col">Service</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);"
                     data-i18n="dashboard.number" scope="col">Number</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);"
                     data-i18n="dashboard.time" scope="col">Time</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);"
                     data-i18n="common.status" scope="col">Status</th>
             </tr>
         </thead>

@@ -732,6 +732,11 @@ async def affiliate_page(request: Request):
     return templates.TemplateResponse("affiliate_program.html", {"request": request})
 
 
+@router.get("/affiliate-program", response_class=HTMLResponse)
+async def affiliate_program_page(request: Request):
+    return templates.TemplateResponse("affiliate_program.html", {"request": request})
+
+
 @router.get("/status", response_class=HTMLResponse)
 async def status_page(request: Request):
     return templates.TemplateResponse("status.html", {"request": request})
