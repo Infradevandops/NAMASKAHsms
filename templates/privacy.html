@@ -1,165 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - VRENUM ACTV8TN</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; line-height: 1.8; }
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 40px 20px; text-align: center; border-radius: 16px; margin-bottom: 40px; }
-        .header h1 { font-size: 36px; margin-bottom: 12px; }
-        .header p { opacity: 0.9; font-size: 14px; }
-        .section { margin-bottom: 30px; }
-        .section h2 { font-size: 24px; color: #6366f1; margin-bottom: 16px; }
-        .section h3 { font-size: 18px; color: #10b981; margin-top: 16px; margin-bottom: 12px; }
-        .section p { opacity: 0.8; margin-bottom: 12px; }
-        .section ul { margin-left: 20px; margin-bottom: 12px; }
-        .section li { margin-bottom: 8px; }
-        .back-btn { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #475569; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; }
-        .back-btn:hover { background: #64748b; }
-        .highlight { background: rgba(99, 102, 241, 0.1); padding: 16px; border-left: 4px solid #6366f1; border-radius: 4px; margin: 16px 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="/" class="back-btn">← Back to Home</a>
+{% extends "public_base.html" %}
+{% block title %}Privacy Policy - VRENUM ACTV8TN{% endblock %}
 
-        <div class="header">
-            <h1>Privacy Policy</h1>
-            <p>Last Updated: May 2026</p>
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-6">
+
+        <div class="text-center mb-12 p-8 rounded-2xl" style="background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%);">
+            <h1 class="text-4xl font-bold text-white mb-2">Privacy Policy</h1>
+            <p class="text-white/90">Last Updated: May 2026</p>
         </div>
 
-        <div class="section">
-            <h2>1. Introduction</h2>
-            <p>vrenum.app ("we," "us," "our," or "Company") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our SMS verification services.</p>
-            <p>Please read this Privacy Policy carefully. If you do not agree with our policies and practices, please do not use our services.</p>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">1. Introduction</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">vrenum.app ("we," "us," "our," or "Company") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our SMS verification services.</p>
+            <p class="text-gray-700 leading-relaxed">Please read this Privacy Policy carefully. If you do not agree with our policies and practices, please do not use our services.</p>
         </div>
 
-        <div class="section">
-            <h2>2. Information We Collect</h2>
-            <h3>2.1 Information You Provide</h3>
-            <ul>
-                <li>Account registration information (email, password, name)</li>
-                <li>Payment information (processed securely through Paystack)</li>
-                <li>API keys and authentication credentials</li>
-                <li>Support requests and communications</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">2. Information We Collect</h2>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">2.1 Information You Provide</h3>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• Account registration information (email, password, name)</li>
+                <li>• Payment information (processed securely through Paystack)</li>
+                <li>• API keys and authentication credentials</li>
+                <li>• Support requests and communications</li>
             </ul>
 
-            <h3>2.2 Information Collected Automatically</h3>
-            <ul>
-                <li>IP address and device information</li>
-                <li>Browser type and version</li>
-                <li>Pages visited and time spent</li>
-                <li>Referral source</li>
-                <li>Cookies and similar tracking technologies</li>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">2.2 Information Collected Automatically</h3>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• IP address and device information</li>
+                <li>• Browser type and version</li>
+                <li>• Pages visited and time spent</li>
+                <li>• Referral source</li>
+                <li>• Cookies and similar tracking technologies</li>
             </ul>
 
-            <h3>2.3 SMS Content</h3>
-            <p>We temporarily store SMS content for delivery verification purposes only. SMS content is retained for 24 hours and then permanently deleted. We never share SMS content with third parties.</p>
+            <h3 class="text-xl font-semibold mb-3 text-gray-800">2.3 SMS Content</h3>
+            <p class="text-gray-700 leading-relaxed">We temporarily store SMS content for delivery verification purposes only. SMS content is retained for 24 hours and then permanently deleted. We never share SMS content with third parties.</p>
         </div>
 
-        <div class="section">
-            <h2>3. How We Use Your Information</h2>
-            <ul>
-                <li>Provide and maintain our SMS verification services</li>
-                <li>Process payments and billing</li>
-                <li>Send service updates and security alerts</li>
-                <li>Respond to support requests</li>
-                <li>Improve and optimize our services</li>
-                <li>Comply with legal obligations</li>
-                <li>Prevent fraud and abuse</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">3. How We Use Your Information</h2>
+            <ul class="ml-6 space-y-2 text-gray-700">
+                <li>• Provide and maintain our SMS verification services</li>
+                <li>• Process payments and billing</li>
+                <li>• Send service updates and security alerts</li>
+                <li>• Respond to support requests</li>
+                <li>• Improve and optimize our services</li>
+                <li>• Comply with legal obligations</li>
+                <li>• Prevent fraud and abuse</li>
             </ul>
         </div>
 
-        <div class="section">
-            <h2>4. Data Security</h2>
-            <p>We implement comprehensive security measures to protect your data:</p>
-            <ul>
-                <li>AES-256 encryption for data at rest</li>
-                <li>TLS 1.2+ encryption for data in transit</li>
-                <li>Regular security audits and penetration testing</li>
-                <li>Secure data centers with redundancy</li>
-                <li>Access controls and authentication</li>
-                <li>Comprehensive audit logging</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">4. Data Security</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">We implement comprehensive security measures to protect your data:</p>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• AES-256 encryption for data at rest</li>
+                <li>• TLS 1.2+ encryption for data in transit</li>
+                <li>• Regular security audits and penetration testing</li>
+                <li>• Secure data centers with redundancy</li>
+                <li>• Access controls and authentication</li>
+                <li>• Comprehensive audit logging</li>
             </ul>
-            <p>However, no method of transmission over the Internet is 100% secure. While we strive to protect your information, we cannot guarantee absolute security.</p>
+            <p class="text-gray-700 leading-relaxed">However, no method of transmission over the Internet is 100% secure. While we strive to protect your information, we cannot guarantee absolute security.</p>
         </div>
 
-        <div class="section">
-            <h2>5. Data Retention</h2>
-            <ul>
-                <li>Account data: Retained while account is active, deleted upon account deletion</li>
-                <li>SMS content: Deleted after 24 hours</li>
-                <li>Transaction logs: Retained for 7 years for compliance</li>
-                <li>API logs: Retained for 90 days</li>
-                <li>Support tickets: Retained for 2 years</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">5. Data Retention</h2>
+            <ul class="ml-6 space-y-2 text-gray-700">
+                <li>• Account data: Retained while account is active, deleted upon account deletion</li>
+                <li>• SMS content: Deleted after 24 hours</li>
+                <li>• Transaction logs: Retained for 7 years for compliance</li>
+                <li>• API logs: Retained for 90 days</li>
+                <li>• Support tickets: Retained for 2 years</li>
             </ul>
         </div>
 
-        <div class="section">
-            <h2>6. GDPR Compliance</h2>
-            <p>We comply with the General Data Protection Regulation (GDPR). You have the right to:</p>
-            <ul>
-                <li>Access your personal data</li>
-                <li>Correct inaccurate data</li>
-                <li>Request deletion of your data</li>
-                <li>Export your data in a portable format</li>
-                <li>Withdraw consent at any time</li>
-                <li>Lodge a complaint with your data protection authority</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">6. GDPR Compliance</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">We comply with the General Data Protection Regulation (GDPR). You have the right to:</p>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• Access your personal data</li>
+                <li>• Correct inaccurate data</li>
+                <li>• Request deletion of your data</li>
+                <li>• Export your data in a portable format</li>
+                <li>• Withdraw consent at any time</li>
+                <li>• Lodge a complaint with your data protection authority</li>
             </ul>
-            <p>You can exercise these rights through your account settings or by contacting us at privacy@vrenum.app.</p>
+            <p class="text-gray-700 leading-relaxed">You can exercise these rights through your account settings or by contacting us at privacy@vrenum.app.</p>
         </div>
 
-        <div class="section">
-            <h2>7. Third-Party Services</h2>
-            <p>We use third-party services for:</p>
-            <ul>
-                <li>Payment processing (Paystack)</li>
-                <li>Email delivery (SendGrid)</li>
-                <li>Analytics (Google Analytics)</li>
-                <li>Cloud infrastructure (AWS)</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">7. Third-Party Services</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">We use third-party services for:</p>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• Payment processing (Paystack)</li>
+                <li>• Email delivery (SendGrid)</li>
+                <li>• Analytics (Google Analytics)</li>
+                <li>• Cloud infrastructure (AWS)</li>
             </ul>
-            <p>These services have their own privacy policies. We recommend reviewing them.</p>
+            <p class="text-gray-700 leading-relaxed">These services have their own privacy policies. We recommend reviewing them.</p>
         </div>
 
-        <div class="section">
-            <h2>8. Cookies</h2>
-            <p>We use cookies to:</p>
-            <ul>
-                <li>Remember your login information</li>
-                <li>Understand how you use our service</li>
-                <li>Improve user experience</li>
-                <li>Prevent fraud</li>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">8. Cookies</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">We use cookies to:</p>
+            <ul class="ml-6 space-y-2 text-gray-700 mb-4">
+                <li>• Remember your login information</li>
+                <li>• Understand how you use our service</li>
+                <li>• Improve user experience</li>
+                <li>• Prevent fraud</li>
             </ul>
-            <p>You can control cookies through your browser settings. Disabling cookies may affect service functionality.</p>
+            <p class="text-gray-700 leading-relaxed">You can control cookies through your browser settings. Disabling cookies may affect service functionality.</p>
         </div>
 
-        <div class="section">
-            <h2>9. Children's Privacy</h2>
-            <p>Our services are not intended for children under 13. We do not knowingly collect information from children under 13. If we become aware of such collection, we will delete the information immediately.</p>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">9. Children's Privacy</h2>
+            <p class="text-gray-700 leading-relaxed">Our services are not intended for children under 13. We do not knowingly collect information from children under 13. If we become aware of such collection, we will delete the information immediately.</p>
         </div>
 
-        <div class="section">
-            <h2>10. International Data Transfers</h2>
-            <p>Your information may be transferred to, stored in, and processed in countries other than your country of residence. These countries may have data protection laws different from your home country. By using our services, you consent to such transfers.</p>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">10. International Data Transfers</h2>
+            <p class="text-gray-700 leading-relaxed">Your information may be transferred to, stored in, and processed in countries other than your country of residence. These countries may have data protection laws different from your home country. By using our services, you consent to such transfers.</p>
         </div>
 
-        <div class="section">
-            <h2>11. Changes to This Policy</h2>
-            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or through our website. Your continued use of our services constitutes acceptance of the updated policy.</p>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">11. Changes to This Policy</h2>
+            <p class="text-gray-700 leading-relaxed">We may update this Privacy Policy from time to time. We will notify you of significant changes via email or through our website. Your continued use of our services constitutes acceptance of the updated policy.</p>
         </div>
 
-        <div class="section">
-            <h2>12. Contact Us</h2>
-            <p>If you have questions about this Privacy Policy or our privacy practices, please contact us:</p>
-            <div class="highlight">
-                <p><strong>Email:</strong> privacy@vrenum.app</p>
-                <p><strong>Address:</strong> Vrenum Inc., Global Headquarters</p>
-                <p><strong>Response Time:</strong> We respond to all privacy inquiries within 30 days</p>
+        <div class="mb-8 bg-white rounded-xl p-6 border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4" style="color: #FE3C72;">12. Contact Us</h2>
+            <p class="text-gray-700 leading-relaxed mb-4">If you have questions about this Privacy Policy or our privacy practices, please contact us:</p>
+            <div class="bg-pink-50 border-l-4 border-pink-500 p-4 rounded">
+                <p class="text-gray-700 mb-2"><strong>Email:</strong> privacy@vrenum.app</p>
+                <p class="text-gray-700 mb-2"><strong>Address:</strong> Vrenum Inc., Global Headquarters</p>
+                <p class="text-gray-700"><strong>Response Time:</strong> We respond to all privacy inquiries within 30 days</p>
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

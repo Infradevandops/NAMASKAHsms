@@ -34,6 +34,15 @@ SEO_SERVICES: Dict[str, dict] = {
     "binance": {"name": "Binance", "icon": "📈"},
     "airbnb": {"name": "Airbnb", "icon": "🏠"},
     "doordash": {"name": "DoorDash", "icon": "🍕"},
+    "signal": {"name": "Signal", "icon": "🔒"},
+    "viber": {"name": "Viber", "icon": "📞"},
+    "line": {"name": "Line", "icon": "💚"},
+    "wechat": {"name": "WeChat", "icon": "💬"},
+    "steam": {"name": "Steam", "icon": "🎮"},
+    "github": {"name": "GitHub", "icon": "🐙"},
+    "aws": {"name": "AWS", "icon": "☁️"},
+    "kraken": {"name": "Kraken", "icon": "🐙"},
+    "cashapp": {"name": "Cash App", "icon": "💵"},
 }
 
 # Fallback price shown if cache is cold (TextVerified not yet polled)
