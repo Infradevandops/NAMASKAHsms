@@ -2,7 +2,8 @@
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  {% include "includes/pwa_head.html" %}
   <title>VRENUM ACTV8TN - Keep Your Real Number Private</title>
   <meta name="description" content="Register on any website without exposing your phone number. No spam. No data brokers. Get verification codes instantly.">
 
@@ -24,6 +25,7 @@
   <script src="https://unpkg.com/@phosphor-icons/web" nonce="{{ request.state.csp_nonce }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer nonce="{{ request.state.csp_nonce }}"></script>
   <link rel="stylesheet" href="/static/css/glassmorphism.css">
+  <link rel="stylesheet" href="/static/css/pwa-mobile.css">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -524,5 +526,6 @@
     reveals.forEach(el => observer.observe(el));
   </script>
 
+{% include "includes/pwa_sw.html" %}
 </body>
 </html>

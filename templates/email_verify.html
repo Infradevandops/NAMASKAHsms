@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  {% include "includes/pwa_head.html" %}
   <meta name="description" content="Verify your email address for vrenum.app">
   <title>Email Verification - VRENUM ACTV8TN</title>
 
@@ -127,6 +128,7 @@
       margin-top: 1.5rem;
     }
   </style>
+  <link rel="stylesheet" href="/static/css/pwa-mobile.css">
 </head>
 <body>
   <div class="auth-container">
@@ -301,5 +303,6 @@
       }
     });
   </script>
+{% include "includes/pwa_sw.html" %}
 </body>
 </html>

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    {% include "includes/pwa_head.html" %}
     <title>API Documentation | VRENUM ACTV8TN</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/dashboard.css">
@@ -51,6 +52,7 @@
         .download-btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; margin-top: 12px; }
         .download-btn:hover { background: #5568d3; }
     </style>
+  <link rel="stylesheet" href="/static/css/pwa-mobile.css">
 </head>
 <body>
     {% include 'components/sidebar.html' %}
@@ -557,5 +559,6 @@ console.log(data);</pre>
 
         loadApiKey();
     </script>
+{% include "includes/pwa_sw.html" %}
 </body>
 </html>

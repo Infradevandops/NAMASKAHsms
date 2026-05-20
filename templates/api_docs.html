@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  {% include "includes/pwa_head.html" %}
   <meta name="description" content="API documentation - VRENUM ACTV8TN">
   <title>API Documentation - VRENUM ACTV8TN</title>
 
@@ -180,6 +181,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/static/css/pwa-mobile.css">
 </head>
 <body>
   <div class="docs-container">
@@ -350,5 +352,6 @@ X-RateLimit-Reset: 1700000000
 
 
   <script src="/static/js/main.js"></script>
+{% include "includes/pwa_sw.html" %}
 </body>
 </html>

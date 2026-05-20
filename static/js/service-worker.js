@@ -1,202 +1,167 @@
 /**
- * Service Worker for Push Notifications
- * Handles push events and notification interactions
+ * Service Worker — Vrenum PWA v2
+ * Production-grade: versioned cache, stale-while-revalidate for assets,
+ * network-first for API, offline fallback for navigation.
  */
 
-const CACHE_NAME = 'vrenum-v1';
-const URLS_TO_CACHE = [
+const CACHE_VERSION = '2.0.0';
+const STATIC_CACHE = `vrenum-static-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `vrenum-runtime-${CACHE_VERSION}`;
+
+const PRECACHE_URLS = [
     '/',
-    '/static/css/mobile-notifications.css',
-    '/static/js/mobile-notifications.js',
-    '/static/images/icon-192x192.png',
-    '/static/images/badge-72x72.png',
+    '/offline',
+    '/static/css/vrenum-ui.css',
+    '/static/css/pwa-mobile.css',
+    '/static/css/responsive.css',
+    '/static/css/glassmorphism.css',
+    '/static/js/formatMoney.js',
+    '/static/icons/icon-192x192.png',
+    '/static/icons/icon-512x512.png',
+    '/static/manifest.json',
 ];
 
-/**
- * Install event - cache resources
- */
+/* ─── INSTALL ─────────────────────────────────────────────────────────── */
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(URLS_TO_CACHE).catch((error) => {
-                console.warn('Failed to cache some resources:', error);
+        caches.open(STATIC_CACHE).then((cache) => {
+            return cache.addAll(PRECACHE_URLS).catch((err) => {
+                console.warn('SW: precache partial failure:', err);
             });
         })
     );
     self.skipWaiting();
 });
 
-/**
- * Activate event - clean up old caches
- */
+/* ─── ACTIVATE ────────────────────────────────────────────────────────── */
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
+        caches.keys().then((names) => {
             return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
+                names
+                    .filter((n) => n !== STATIC_CACHE && n !== RUNTIME_CACHE)
+                    .map((n) => caches.delete(n))
             );
         })
     );
     self.clients.claim();
 });
 
-/**
- * Fetch event - serve from cache, fallback to network
- */
+/* ─── FETCH STRATEGY ──────────────────────────────────────────────────── */
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') {
+    const { request } = event;
+    if (request.method !== 'GET') return;
+
+    const url = new URL(request.url);
+
+    // API calls: network-only (never cache auth/data)
+    if (url.pathname.startsWith('/api/')) return;
+
+    // Static assets: stale-while-revalidate
+    if (url.pathname.startsWith('/static/')) {
+        event.respondWith(staleWhileRevalidate(request));
         return;
     }
 
+    // Navigation: network-first with offline fallback
+    if (request.mode === 'navigate') {
+        event.respondWith(networkFirstWithOffline(request));
+        return;
+    }
+
+    // Everything else: network-first
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            if (response) {
-                return response;
-            }
-
-            return fetch(event.request)
-                .then((response) => {
-                    // Don't cache non-successful responses
-                    if (!response || response.status !== 200 || response.type === 'error') {
-                        return response;
-                    }
-
-                    // Clone the response
-                    const responseToCache = response.clone();
-
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-
-                    return response;
-                })
-                .catch(() => {
-                    // Return offline page or cached response
-                    return caches.match('/');
-                });
-        })
+        fetch(request).catch(() => caches.match(request))
     );
 });
 
 /**
- * Push event - handle incoming push notifications
+ * Stale-while-revalidate: serve from cache immediately,
+ * update cache in background.
  */
+async function staleWhileRevalidate(request) {
+    const cache = await caches.open(RUNTIME_CACHE);
+    const cached = await cache.match(request);
+
+    const fetchPromise = fetch(request).then((response) => {
+        if (response && response.status === 200) {
+            cache.put(request, response.clone());
+        }
+        return response;
+    }).catch(() => cached);
+
+    return cached || fetchPromise;
+}
+
+/**
+ * Network-first for navigation, fallback to offline page.
+ */
+async function networkFirstWithOffline(request) {
+    try {
+        const response = await fetch(request);
+        // Cache successful navigation responses
+        if (response.status === 200) {
+            const cache = await caches.open(RUNTIME_CACHE);
+            cache.put(request, response.clone());
+        }
+        return response;
+    } catch (e) {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        return caches.match('/offline');
+    }
+});
+
+/* ─── PUSH NOTIFICATIONS ──────────────────────────────────────────────── */
 self.addEventListener('push', (event) => {
-    let notificationData = {
-        title: 'Vrenum Notification',
-        options: {
-            icon: '/static/images/icon-192x192.png',
-            badge: '/static/images/badge-72x72.png',
-            tag: 'notification',
-            requireInteraction: false,
-        },
-    };
+    let data = { title: 'Vrenum', options: {} };
 
     if (event.data) {
         try {
-            const data = event.data.json();
-            notificationData.title = data.notification?.title || data.title || notificationData.title;
-            notificationData.options = {
-                ...notificationData.options,
-                body: data.notification?.body || data.message || '',
-                icon: data.notification?.icon || notificationData.options.icon,
-                badge: data.notification?.badge || notificationData.options.badge,
-                tag: data.notification?.tag || notificationData.options.tag,
-                data: data.data || {},
+            const payload = event.data.json();
+            data.title = payload.notification?.title || payload.title || data.title;
+            data.options = {
+                body: payload.notification?.body || payload.message || '',
+                icon: '/static/icons/icon-192x192.png',
+                badge: '/static/icons/icon-72x72.png',
+                tag: payload.notification?.tag || 'vrenum',
+                data: payload.data || {},
             };
-        } catch (error) {
-            console.error('Failed to parse push notification data:', error);
-            notificationData.options.body = event.data.text();
+        } catch (e) {
+            data.options.body = event.data.text();
         }
     }
 
-    event.waitUntil(
-        self.registration.showNotification(notificationData.title, notificationData.options)
-    );
+    event.waitUntil(self.registration.showNotification(data.title, data.options));
 });
 
-/**
- * Notification click event - handle notification interactions
- */
+/* ─── NOTIFICATION CLICK ──────────────────────────────────────────────── */
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-
-    const urlToOpen = event.notification.data?.link || '/';
+    const url = event.notification.data?.link || '/';
 
     event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            // Check if there's already a window/tab open with the target URL
-            for (let i = 0; i < clientList.length; i++) {
-                const client = clientList[i];
-                if (client.url === urlToOpen && 'focus' in client) {
-                    return client.focus();
-                }
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+            for (const client of list) {
+                if (client.url === url && 'focus' in client) return client.focus();
             }
-
-            // If not, open a new window/tab with the target URL
-            if (clients.openWindow) {
-                return clients.openWindow(urlToOpen);
-            }
+            if (clients.openWindow) return clients.openWindow(url);
         })
     );
 });
 
-/**
- * Notification close event - track notification dismissal
- */
-self.addEventListener('notificationclose', (event) => {
-    const notificationData = event.notification.data;
-
-    if (notificationData?.notification_id) {
-        // Send analytics event to backend
-        fetch('/api/notifications/analytics/track', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                notification_id: notificationData.notification_id,
-                event: 'dismissed',
-            }),
-        }).catch((error) => {
-            console.error('Failed to track notification dismissal:', error);
-        });
-    }
-});
-
-/**
- * Message event - handle messages from clients
- */
+/* ─── MESSAGE (cache control from client) ─────────────────────────────── */
 self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
-
-    if (event.data && event.data.type === 'CLEAR_CACHE') {
-        caches.delete(CACHE_NAME).then(() => {
-            event.ports[0].postMessage({ success: true });
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+    if (event.data?.type === 'CLEAR_CACHE') {
+        Promise.all([
+            caches.delete(STATIC_CACHE),
+            caches.delete(RUNTIME_CACHE),
+        ]).then(() => {
+            event.ports[0]?.postMessage({ success: true });
         });
     }
-});
-
-/**
- * Sync event - handle background sync for offline notifications
- */
-self.addEventListener('sync', (event) => {
-    if (event.tag === 'sync-notifications') {
-        event.waitUntil(
-            fetch('/api/notifications/sync', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).catch((error) => {
-                console.error('Failed to sync notifications:', error);
-            })
-        );
+    if (event.data?.type === 'GET_VERSION') {
+        event.ports[0]?.postMessage({ version: CACHE_VERSION });
     }
 });

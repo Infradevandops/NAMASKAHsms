@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{{ page_description or 'Information - VRENUM ACTV8TN' }}">
-  <title>{% if page_title %}{{ page_title }}{% else %}Information{% endif %} - VRENUM ACTV8TN</title>
+{% extends "public_base.html" %}
+{% block title %}{% if page_title %}{{ page_title }}{% else %}Information{% endif %} - VRENUM ACTV8TN{% endblock %}
 
-  <link rel="stylesheet" href="/static/css/theme-config.css">
-  <link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
+{{% block head_extra %}}
+{{ super() }}
+<style>
 
-  <style>
     .info-container {
       max-width: 900px;
       margin: 0 auto;
@@ -195,10 +190,11 @@
         padding: var(--space-lg);
       }
     }
-  </style>
-</head>
-<body data-page="info" data-info-page="{{ page_type or 'about' }}">
-  <div class="info-container">
+
+</style>
+{{% endblock %}}
+{% block content %}
+<div class="info-container">
     <div class="info-header">
       <h1>{{ page_title or 'Information' }}</h1>
       <p>{{ page_subtitle or '' }}</p>
@@ -304,5 +300,4 @@
 
   <script src="/static/js/theme-manager.js"></script>
   <script type="module" src="/static/js/main.js"></script>
-</body>
-</html>
+{% endblock %}

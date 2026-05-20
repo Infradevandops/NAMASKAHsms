@@ -7,6 +7,17 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#FE3C72">
+
+    <!-- iOS PWA -->
+    <link rel="apple-touch-icon" href="/static/icons/icon-180x180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vrenum">
+
     <title>{% block title %}VRENUM ACTV8TN{% endblock %}</title>
 
     <!-- Critical CSS - Inline for fast render -->
@@ -63,6 +74,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/vrenum-ui.css">
+    <link rel="stylesheet" href="/static/css/pwa-mobile.css">
     {% include "includes/onesignal_sdk.html" %}
     {% block head_extra %}{% endblock %}
 
@@ -156,6 +168,30 @@
             localStorage.setItem('cookie_consent', 'declined');
             document.getElementById('cookie-consent').style.display = 'none';
         }
+    </script>
+
+    <!-- Service Worker Registration + Update Prompt -->
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/js/service-worker.js')
+          .then(reg => {
+            console.log('SW registered, scope:', reg.scope);
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  if (confirm('A new version is available. Reload to update?')) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                  }
+                }
+              });
+            });
+          })
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
     </script>
 </body>
 

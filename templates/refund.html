@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refund Policy - VRENUM ACTV8TN</title>
-    <meta name="description" content="Refund Policy for VRENUM ACTV8TN - Automatic refunds and cancellation terms">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/legal-pages.css">
-    <link rel="stylesheet" href="/static/css/landing-improvements.css">
-</head>
-<body>
+{% extends "public_base.html" %}
+{% block title %}Refund Policy - VRENUM ACTV8TN{% endblock %}
 
-    <div class="legal-container">
+{% block content %}
+<div class="legal-container">
         <div class="legal-header">
             <h1>Refund Policy</h1>
             <p style="color: var(--text-secondary);">Fair and transparent refund terms</p>
@@ -240,5 +231,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

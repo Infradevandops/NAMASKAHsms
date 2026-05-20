@@ -27,6 +27,11 @@ async def favicon():
     return FileResponse("static/favicon.ico")
 
 
+@router.get("/offline", response_class=HTMLResponse, include_in_schema=False)
+async def offline_page(request: Request):
+    return templates.TemplateResponse("offline.html", {"request": request})
+
+
 @router.get("/", response_class=HTMLResponse)
 @router.head("/")
 async def home_page(request: Request):
@@ -695,6 +700,31 @@ async def contact_page(request: Request):
 @router.get("/faq", response_class=HTMLResponse)
 async def faq_page(request: Request):
     return templates.TemplateResponse("faq.html", {"request": request})
+
+
+@router.get("/terms", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    return templates.TemplateResponse("terms.html", {"request": request})
+
+
+@router.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    return templates.TemplateResponse("privacy.html", {"request": request})
+
+
+@router.get("/cookies", response_class=HTMLResponse)
+async def cookies_page(request: Request):
+    return templates.TemplateResponse("cookies.html", {"request": request})
+
+
+@router.get("/refund", response_class=HTMLResponse)
+async def refund_page(request: Request):
+    return templates.TemplateResponse("refund.html", {"request": request})
+
+
+@router.get("/info", response_class=HTMLResponse)
+async def info_page(request: Request):
+    return templates.TemplateResponse("info.html", {"request": request})
 
 
 @router.get("/affiliate", response_class=HTMLResponse)
