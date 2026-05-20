@@ -101,7 +101,7 @@ class TestDisputeTimeline:
                 event_description="Dispute opened",
                 is_admin=False,
                 created_at=datetime.now(timezone.utc),
-                metadata=None,
+                event_metadata=None,
             ),
             Mock(
                 id="evt_2",
@@ -186,6 +186,15 @@ class TestDisputeComments:
             mock_dispute
         )
 
+        # Mock refresh to set created_at
+        def mock_refresh(obj):
+            if not hasattr(obj, "created_at") or obj.created_at is None:
+                obj.created_at = datetime.now(timezone.utc)
+            if not hasattr(obj, "id") or obj.id is None:
+                obj.id = "cmt_123"
+
+        mock_db_session.refresh = mock_refresh
+
         payload = Mock(content="This is my comment")
 
         result = await add_dispute_comment(
@@ -240,6 +249,15 @@ class TestDisputeAttachments:
         mock_db_session.query.return_value.filter.return_value.first.return_value = (
             mock_dispute
         )
+
+        # Mock refresh to set uploaded_at and id
+        def mock_refresh(obj):
+            if not hasattr(obj, "uploaded_at") or obj.uploaded_at is None:
+                obj.uploaded_at = datetime.now(timezone.utc)
+            if not hasattr(obj, "id") or obj.id is None:
+                obj.id = "att_123"
+
+        mock_db_session.refresh = mock_refresh
 
         # Create mock file
         file_content = b"fake image content"
@@ -375,6 +393,15 @@ class TestAcceptanceCriteria:
         mock_db_session.query.return_value.filter.return_value.first.return_value = (
             mock_dispute
         )
+
+        # Mock refresh to set uploaded_at and id
+        def mock_refresh(obj):
+            if not hasattr(obj, "uploaded_at") or obj.uploaded_at is None:
+                obj.uploaded_at = datetime.now(timezone.utc)
+            if not hasattr(obj, "id") or obj.id is None:
+                obj.id = "att_123"
+
+        mock_db_session.refresh = mock_refresh
 
         # Test PDF upload
         pdf_content = b"%PDF-1.4 fake pdf content"
