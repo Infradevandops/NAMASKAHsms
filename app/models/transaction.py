@@ -31,6 +31,9 @@ class Transaction(BaseModel):
     cancellation_reason = Column(String, nullable=True)
     cancelled_by = Column(String, nullable=True)  # user_id or 'system' or admin_id
 
+    def __repr__(self) -> str:
+        return f"<Transaction id={self.id}>"
+
 
 class PaymentLog(BaseModel):
     """Payment processing log."""
@@ -58,3 +61,6 @@ class PaymentLog(BaseModel):
     )  # pending, processing, completed, failed, refunded
     state_transitions = Column(JSON)  # Audit trail
     lock_version = Column(Integer, default=0, nullable=False)  # Optimistic locking
+
+    def __repr__(self) -> str:
+        return f"<PaymentLog email={self.email}>"

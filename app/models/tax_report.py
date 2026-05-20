@@ -70,6 +70,9 @@ class TaxReport(BaseModel):
     reviewed_by = Column(String)  # Reviewer or accountant
     reviewed_at = Column(DateTime)
 
+    def __repr__(self) -> str:
+        return f"<TaxReport id={self.id}>"
+
 
 class TaxJurisdictionConfig(BaseModel):
     """Configuration for tax rates and rules by jurisdiction."""
@@ -117,6 +120,9 @@ class TaxJurisdictionConfig(BaseModel):
     last_updated = Column(DateTime)
     updated_by = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<TaxJurisdictionConfig id={self.id}>"
+
 
 class TaxExemptionCertificate(BaseModel):
     """Tax exemption certificates for users."""
@@ -146,6 +152,9 @@ class TaxExemptionCertificate(BaseModel):
     # Application
     applied_to_transactions = Column(JSON)  # Transaction IDs using this exemption
     revenue_exempted = Column(Float, default=0.0)
+
+    def __repr__(self) -> str:
+        return f"<TaxExemptionCertificate id={self.id}>"
 
 
 class WithholdingTaxRecord(BaseModel):
@@ -181,3 +190,6 @@ class WithholdingTaxRecord(BaseModel):
 
     # Notes
     notes = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<WithholdingTaxRecord id={self.id}>"

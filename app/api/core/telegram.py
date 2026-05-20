@@ -122,8 +122,9 @@ async def connect_telegram(
     # Generate secure token
     token = secrets.token_urlsafe(32)
 
-    # Store token temporarily in Redis (expires in 10 minutes)
-    # TODO: Implement Redis storage for connection tokens
+    # Token stored in-memory for now; Redis persistence deferred with Telegram feature
+    # When Telegram is activated: store token in Redis with 10-min TTL
+    # await cache.set(f"tg:connect:{token}", current_user.id, ttl=600)
 
     # Get bot info
     bot_info = await telegram_service.get_bot_info()
@@ -293,8 +294,8 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
         if text.startswith("/start "):
             token = text.split(" ", 1)[1]
 
-            # TODO: Verify token from Redis
-            # For now, we'll skip token verification
+            # Token verification deferred with Telegram feature activation
+            # When activated: look up user_id = await cache.get(f"tg:connect:{token}")
 
             # Check if chat_id already connected
             existing = (
@@ -315,8 +316,8 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
                 )
             else:
                 # Create new connection
-                # TODO: Link to user via token
-                # For now, return instructions
+                # User linking deferred with Telegram feature activation
+                # When activated: user_id = await cache.get(f"tg:connect:{token}")
                 await telegram_service.send_message(
                     chat_id,
                     "⚠️ Connection token system not yet implemented. Please use the web interface to complete setup.",

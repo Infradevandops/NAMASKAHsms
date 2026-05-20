@@ -128,6 +128,9 @@ class User(BaseModel):
         "WhitelabelEmailTemplate", back_populates="user"
     )
 
+    def __repr__(self) -> str:
+        return f"<User email={self.email}>"
+
 
 # APIKey is defined in app/models/api_key.py to avoid duplication
 
@@ -148,6 +151,9 @@ class Webhook(BaseModel):
     last_failure = Column(DateTime, nullable=True)
     last_error = Column(String(500), nullable=True)
 
+    def __repr__(self) -> str:
+        return f"<Webhook name={self.name}>"
+
 
 class NotificationSettings(BaseModel):
     """User notification preferences."""
@@ -159,6 +165,9 @@ class NotificationSettings(BaseModel):
     email_on_low_balance = Column(Boolean, default=True, nullable=False)
     low_balance_threshold = Column(Numeric(10, 4), default=1.0, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<NotificationSettings id={self.id}>"
+
 
 class Referral(BaseModel):
     """Referral tracking."""
@@ -168,6 +177,9 @@ class Referral(BaseModel):
     referrer_id = Column(String, nullable=False, index=True)
     referred_id = Column(String, nullable=False, index=True)
     reward_amount = Column(Numeric(10, 4), default=1.0, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Referral id={self.id}>"
 
 
 class Subscription(BaseModel):
@@ -183,6 +195,9 @@ class Subscription(BaseModel):
     duration = Column(Numeric(10, 4), default=0, nullable=False)
     expires_at = Column(DateTime)
     cancelled_at = Column(DateTime)
+
+    def __repr__(self) -> str:
+        return f"<Subscription id={self.id}>"
 
 
 # InAppNotification is defined in system.py to avoid duplication

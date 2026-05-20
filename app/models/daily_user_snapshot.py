@@ -21,3 +21,6 @@ class DailyUserSnapshot(BaseModel):
     payg_count = Column(Integer, default=0)
     pro_count = Column(Integer, default=0)
     custom_count = Column(Integer, default=0)
+
+    def __repr__(self) -> str:
+        return f"<DailyUserSnapshot id={self.id}>"

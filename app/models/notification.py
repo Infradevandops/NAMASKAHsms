@@ -22,6 +22,9 @@ class Notification(BaseModel):
     # Relationship
     user = relationship("User", back_populates="notifications")
 
+    def __repr__(self) -> str:
+        return f"<Notification title={self.title}>"
+
     def to_dict(self):
         """Convert to dictionary."""
         return {

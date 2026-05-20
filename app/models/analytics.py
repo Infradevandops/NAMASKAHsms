@@ -23,6 +23,9 @@ class AnalyticsCache(BaseModel):
     success_rate = Column(Float, default=0.0)
     computed_at = Column(DateTime, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<AnalyticsCache id={self.id}>"
+
 
 class VerificationEvent(BaseModel):
     """Detailed event timeline for verifications."""
@@ -34,6 +37,9 @@ class VerificationEvent(BaseModel):
         String, nullable=False
     )  # created, retry, timeout, completed, refunded, cancelled
     event_data = Column(JSON)
+
+    def __repr__(self) -> str:
+        return f"<VerificationEvent id={self.id}>"
 
 
 class CustomReport(BaseModel):
@@ -50,6 +56,9 @@ class CustomReport(BaseModel):
     next_run = Column(DateTime, index=True)
     enabled = Column(Boolean, default=True, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<CustomReport id={self.id}>"
+
 
 class ScheduledReport(BaseModel):
     """Generated reports from scheduled runs."""
@@ -62,6 +71,9 @@ class ScheduledReport(BaseModel):
     generated_at = Column(DateTime, nullable=False)
     sent_at = Column(DateTime)
     status = Column(String, default="pending", nullable=False)  # pending, sent, failed
+
+    def __repr__(self) -> str:
+        return f"<ScheduledReport id={self.id}>"
 
 
 class UserAnalyticsSnapshot(BaseModel):
@@ -80,6 +92,9 @@ class UserAnalyticsSnapshot(BaseModel):
     top_service = Column(String)
     top_carrier = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<UserAnalyticsSnapshot id={self.id}>"
+
 
 class VerificationStatistics(BaseModel):
     """Platform-wide daily statistics."""
@@ -96,3 +111,6 @@ class VerificationStatistics(BaseModel):
     top_service = Column(String)
     top_country = Column(String)
     computed_at = Column(DateTime, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<VerificationStatistics id={self.id}>"

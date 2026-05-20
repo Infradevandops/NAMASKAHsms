@@ -13,3 +13,6 @@ class Waitlist(BaseModel):
     name = Column(String(100), nullable=True)
     is_notified = Column(Boolean, default=False)
     source = Column(String(50), default="landing_page")
+
+    def __repr__(self) -> str:
+        return f"<Waitlist email={self.email}>"

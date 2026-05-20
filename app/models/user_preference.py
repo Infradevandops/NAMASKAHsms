@@ -42,3 +42,6 @@ class UserPreference(BaseModel):
 
     # Display Settings (Future proofing)
     theme = Column(String, default="light")
+
+    def __repr__(self) -> str:
+        return f"<UserPreference id={self.id}>"

@@ -46,3 +46,6 @@ class CarrierAnalytics(BaseModel):
     created_at = Column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
     )
+
+    def __repr__(self) -> str:
+        return f"<CarrierAnalytics id={self.id}>"

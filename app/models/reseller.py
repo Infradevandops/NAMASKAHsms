@@ -33,6 +33,9 @@ class ResellerAccount(BaseModel):
     user = relationship("User", back_populates="reseller_account")
     sub_accounts = relationship("SubAccount", back_populates="reseller")
 
+    def __repr__(self) -> str:
+        return f"<ResellerAccount id={self.id}>"
+
 
 class SubAccount(BaseModel):
 
@@ -52,6 +55,9 @@ class SubAccount(BaseModel):
     reseller = relationship("ResellerAccount", back_populates="sub_accounts")
     transactions = relationship("SubAccountTransaction", back_populates="sub_account")
 
+    def __repr__(self) -> str:
+        return f"<SubAccount email={self.email}>"
+
 
 class SubAccountTransaction(BaseModel):
 
@@ -67,6 +73,9 @@ class SubAccountTransaction(BaseModel):
     # Relationships
     sub_account = relationship("SubAccount", back_populates="transactions")
 
+    def __repr__(self) -> str:
+        return f"<SubAccountTransaction id={self.id}>"
+
 
 class CreditAllocation(BaseModel):
 
@@ -81,6 +90,9 @@ class CreditAllocation(BaseModel):
     # Relationships
     reseller = relationship("ResellerAccount")
     sub_account = relationship("SubAccount")
+
+    def __repr__(self) -> str:
+        return f"<CreditAllocation id={self.id}>"
 
 
 class BulkOperation(BaseModel):
@@ -102,3 +114,6 @@ class BulkOperation(BaseModel):
 
     # Relationships
     reseller = relationship("ResellerAccount")
+
+    def __repr__(self) -> str:
+        return f"<BulkOperation id={self.id}>"

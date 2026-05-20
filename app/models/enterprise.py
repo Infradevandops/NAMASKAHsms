@@ -26,6 +26,9 @@ class EnterpriseTier(BaseModel):
         },
     )
 
+    def __repr__(self) -> str:
+        return f"<EnterpriseTier name={self.name}>"
+
 
 class EnterpriseAccount(BaseModel):
 
@@ -40,3 +43,6 @@ class EnterpriseAccount(BaseModel):
     # Relationships
     user = relationship("User", back_populates="enterprise_account")
     tier = relationship("EnterpriseTier")
+
+    def __repr__(self) -> str:
+        return f"<EnterpriseAccount id={self.id}>"

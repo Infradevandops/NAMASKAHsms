@@ -27,6 +27,9 @@ class NumberBlacklist(BaseModel):
     expires_at = Column(DateTime, nullable=False)
 
     @property
+    def __repr__(self) -> str:
+        return f"<NumberBlacklist id={self.id}>"
+
     def is_expired(self) -> bool:
         """Check if blacklist entry is expired."""
         return datetime.now(timezone.utc) > self.expires_at

@@ -20,6 +20,9 @@ class BalanceTransaction(BaseModel):
     # Relationship
     user = relationship("User", back_populates="balance_transactions")
 
+    def __repr__(self) -> str:
+        return f"<BalanceTransaction id={self.id}>"
+
     def to_dict(self):
         """Convert to dictionary."""
         return {

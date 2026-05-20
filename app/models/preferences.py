@@ -24,3 +24,6 @@ class ServicePreference(BaseModel):
 
     # Usage tracking
     use_count = Column(String, default="0")
+
+    def __repr__(self) -> str:
+        return f"<ServicePreference id={self.id}>"

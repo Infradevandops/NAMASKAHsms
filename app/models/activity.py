@@ -36,6 +36,9 @@ class Activity(BaseModel):
     # Relationship
     user = relationship("User", back_populates="activities", lazy="select")
 
+    def __repr__(self) -> str:
+        return f"<Activity title={self.title}>"
+
     def to_dict(self):
         """Convert to dictionary."""
         return {

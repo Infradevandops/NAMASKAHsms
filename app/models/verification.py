@@ -127,6 +127,9 @@ class Verification(BaseModel):
         comment="Whether this failure qualifies for refund",
     )
 
+    def __repr__(self) -> str:
+        return f"<Verification id={self.id}>"
+
     def __init__(self, **kwargs):
         # Set defaults for retry tracking fields
         kwargs.setdefault("retry_attempts", 0)
@@ -156,6 +159,9 @@ class NumberRental(BaseModel):
     auto_extend = Column(Boolean, default=False, nullable=False)
     warning_sent = Column(Boolean, default=False, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<NumberRental id={self.id}>"
+
 
 class VerificationReceipt(BaseModel):
     """Receipt for completed verifications."""
@@ -171,3 +177,6 @@ class VerificationReceipt(BaseModel):
     area_code = Column(String)
     success_timestamp = Column(DateTime, nullable=False)
     receipt_data = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<VerificationReceipt id={self.id}>"

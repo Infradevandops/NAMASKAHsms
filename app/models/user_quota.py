@@ -14,6 +14,9 @@ class UserQuota(BaseModel):
     quota_limit = Column(Float, default=100.0, nullable=False)
     quota_used = Column(Float, default=0.0, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<UserQuota id={self.id}>"
+
 
 class MonthlyQuotaUsage(BaseModel):
     """Track monthly quota usage per user."""
@@ -26,3 +29,6 @@ class MonthlyQuotaUsage(BaseModel):
     overage_used = Column(Float, default=0.0, nullable=False)
 
     __table_args__ = (UniqueConstraint("user_id", "month", name="uq_user_month"),)
+
+    def __repr__(self) -> str:
+        return f"<MonthlyQuotaUsage id={self.id}>"

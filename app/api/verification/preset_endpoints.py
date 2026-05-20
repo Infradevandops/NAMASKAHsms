@@ -35,15 +35,23 @@ class PresetResponse(PresetCreate):
 async def get_presets(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
-    """Get all saved presets for the current user."""
-    tier_manager = TierManager(db)
-    if not tier_manager.check_feature_access(user_id, "isp_filtering"):
-        pass
+    try:
+        """Get all saved presets for the current user."""
+        tier_manager = TierManager(db)
+        if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+            pass
 
-    presets = (
-        db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).all()
-    )
-    return presets
+        presets = (
+            db.query(VerificationPreset)
+            .filter(VerificationPreset.user_id == user_id)
+            .all()
+        )
+        return presets
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_presets: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/", response_model=PresetResponse)
@@ -52,30 +60,36 @@ async def create_preset(
     user_id: str = Depends(require_pro),
     db: Session = Depends(get_db),
 ):
-    """Create a new verification preset."""
-    count = (
-        db.query(VerificationPreset)
-        .filter(VerificationPreset.user_id == user_id)
-        .count()
-    )
-    if count >= 10:
-        raise HTTPException(status_code=400, detail="Maximum of 10 presets allowed")
+    try:
+        """Create a new verification preset."""
+        count = (
+            db.query(VerificationPreset)
+            .filter(VerificationPreset.user_id == user_id)
+            .count()
+        )
+        if count >= 10:
+            raise HTTPException(status_code=400, detail="Maximum of 10 presets allowed")
 
-    preset = VerificationPreset(
-        user_id=user_id,
-        name=preset_data.name,
-        service_id=preset_data.service_id,
-        country_id=preset_data.country_id,
-        area_code=preset_data.area_code,
-        carrier=preset_data.carrier,
-    )
+        preset = VerificationPreset(
+            user_id=user_id,
+            name=preset_data.name,
+            service_id=preset_data.service_id,
+            country_id=preset_data.country_id,
+            area_code=preset_data.area_code,
+            carrier=preset_data.carrier,
+        )
 
-    db.add(preset)
-    db.commit()
-    db.refresh(preset)
+        db.add(preset)
+        db.commit()
+        db.refresh(preset)
 
-    logger.info(f"Created preset {preset.id} for user {user_id}")
-    return preset
+        logger.info(f"Created preset {preset.id} for user {user_id}")
+        return preset
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in create_preset: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{preset_id}")
@@ -84,18 +98,25 @@ async def delete_preset(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Delete a preset."""
-    preset = (
-        db.query(VerificationPreset)
-        .filter(
-            VerificationPreset.id == preset_id, VerificationPreset.user_id == user_id
+    try:
+        """Delete a preset."""
+        preset = (
+            db.query(VerificationPreset)
+            .filter(
+                VerificationPreset.id == preset_id,
+                VerificationPreset.user_id == user_id,
+            )
+            .first()
         )
-        .first()
-    )
 
-    if not preset:
-        raise HTTPException(status_code=404, detail="Preset not found")
+        if not preset:
+            raise HTTPException(status_code=404, detail="Preset not found")
 
-    db.delete(preset)
-    db.commit()
-    return {"success": True, "message": "Preset deleted"}
+        db.delete(preset)
+        db.commit()
+        return {"success": True, "message": "Preset deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in delete_preset: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

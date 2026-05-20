@@ -90,6 +90,9 @@ class PurchaseOutcome(Base):
     refund_latency_seconds = Column(Float, nullable=True)
 
     @property
+    def __repr__(self) -> str:
+        return f"<PurchaseOutcome id={self.id}>"
+
     def net_cost(self) -> float:
         """User price minus refund amount."""
         return (self.user_price or 0.0) - (self.refund_amount or 0.0)

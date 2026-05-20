@@ -75,6 +75,9 @@ class ReconciliationLog(BaseModel):
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
 
+    def __repr__(self) -> str:
+        return f"<ReconciliationLog id={self.id}>"
+
 
 class BalanceMismatchAlert(BaseModel):
     """Alert for balance mismatches requiring investigation."""
@@ -112,3 +115,6 @@ class BalanceMismatchAlert(BaseModel):
         String, default="medium", nullable=False
     )  # low, medium, high, critical
     requires_manual_review = Column(Boolean, default=False)
+
+    def __repr__(self) -> str:
+        return f"<BalanceMismatchAlert id={self.id}>"

@@ -16,3 +16,6 @@ class AuditLog(BaseModel):
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
     details = Column(JSON, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<AuditLog id={self.id}>"

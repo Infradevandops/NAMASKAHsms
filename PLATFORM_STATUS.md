@@ -1,9 +1,9 @@
 # Platform Status — VRENUM ACTV8TN
 
-**Version**: v4.7.3
+**Version**: v4.8.0-dev
 **Status**: 🟢 Production Ready
-**Last Updated**: May 18, 2026
-**Readiness**: 98/100
+**Last Updated**: May 19, 2026
+**Readiness**: 99/100
 
 ---
 
@@ -88,7 +88,7 @@
 - [x] Google Analytics 4 (G-M15PBV1P55)
 - [x] Google Search Console + sitemap submitted
 - [x] robots.txt — vrenum.app domain
-- [x] sitemap.xml — 40 URLs
+- [x] sitemap.xml — 42 URLs
 - [x] OG + Twitter Card tags on all pages
 - [x] Canonical tags on all pages
 - [x] JSON-LD structured data on service pages
@@ -133,7 +133,7 @@
 
 ## Pending Configuration (Non-blocking)
 
-- ⏸️ Telegram SMS forwarding — code complete, needs `TELEGRAM_BOT_TOKEN` set
+- ⏸️ Telegram SMS forwarding — code complete, deferred
 - ⏸️ Push notifications — deferred, WebSocket active and sufficient
 
 ---
@@ -145,8 +145,8 @@
 - Voice transcription improvements (>50 voice/month)
 
 ### P3 — Growth Features
-- SDK Libraries (Python, JavaScript) — 2-3 weeks
-- Onboarding tour (6-step walkthrough)
+- SDK Libraries (Python, JavaScript) — ⏸️ Deferred
+- ~~Onboarding tour~~ ✅ Complete (v4.8.0)
 - Mobile UI Phase 3
 
 ### P4 — Enterprise (Demand-triggered)

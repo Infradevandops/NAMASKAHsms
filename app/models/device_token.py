@@ -29,6 +29,9 @@ class DeviceToken(BaseModel):
     # Relationship
     user = relationship("User", back_populates="device_tokens")
 
+    def __repr__(self) -> str:
+        return f"<DeviceToken token={self.token}>"
+
     def is_expired(self) -> bool:
         """Check if token is expired."""
         if not self.expires_at:

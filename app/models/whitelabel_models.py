@@ -145,6 +145,9 @@ class EmailTemplateVersion(Base):
     created_by = Column(String, nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<EmailTemplateVersion id={self.id}>"
+
 
 class EmailTemplateAnalytics(Base):
     """Analytics for email template performance"""
@@ -167,3 +170,6 @@ class EmailTemplateAnalytics(Base):
     updated_at = Column(
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
     )
+
+    def __repr__(self) -> str:
+        return f"<EmailTemplateAnalytics id={self.id}>"

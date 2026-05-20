@@ -69,6 +69,9 @@ class RevenueRecognition(BaseModel):
     journal_entry_id = Column(String)  # Link to accounting system
     notes = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<RevenueRecognition id={self.id}>"
+
 
 class DeferredRevenueSchedule(BaseModel):
     """Track deferred revenue schedules for long-term contracts."""
@@ -101,6 +104,9 @@ class DeferredRevenueSchedule(BaseModel):
     adjustments = Column(JSON)  # Array of {date, reason, amount, type}
     last_adjusted = Column(DateTime)
     adjusted_by = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<DeferredRevenueSchedule id={self.id}>"
 
 
 class RevenueAdjustment(BaseModel):
@@ -144,6 +150,9 @@ class RevenueAdjustment(BaseModel):
     supporting_documentation = Column(JSON)  # Links to evidence
     reversal_date = Column(DateTime)  # If reversed
 
+    def __repr__(self) -> str:
+        return f"<RevenueAdjustment id={self.id}>"
+
 
 class AccrualTrackingLog(BaseModel):
     """Log all accrual adjustments for reconciliation."""
@@ -175,3 +184,6 @@ class AccrualTrackingLog(BaseModel):
     # Reconciliation
     matched_to_transaction = Column(String)  # Transaction ID if matched
     reconciliation_notes = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<AccrualTrackingLog id={self.id}>"

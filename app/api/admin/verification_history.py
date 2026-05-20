@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger(__name__)
 """Admin verification history endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,5 +28,11 @@ async def get_verification_history(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    """Get verification history."""
-    return {"history": []}
+    try:
+        """Get verification history."""
+        return {"history": []}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_verification_history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

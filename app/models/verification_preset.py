@@ -19,4 +19,7 @@ class VerificationPreset(BaseModel):
     area_code = Column(String(10), nullable=True)
     carrier = Column(String(50), nullable=True)
 
+    def __repr__(self) -> str:
+        return f"<VerificationPreset name={self.name}>"
+
     # Optional: preset_type (personal, system) if we want shared presets later

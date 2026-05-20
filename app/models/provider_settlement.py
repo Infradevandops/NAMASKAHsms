@@ -79,6 +79,9 @@ class ProviderSettlement(BaseModel):
     last_updated = Column(DateTime)
     updated_by = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<ProviderSettlement id={self.id}>"
+
 
 class ProviderCostTracking(BaseModel):
     """Daily cost tracking per provider for real-time visibility."""
@@ -117,6 +120,9 @@ class ProviderCostTracking(BaseModel):
     # Metadata
     hourly_breakdown = Column(JSON)  # Granular hourly data if available
     notes = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<ProviderCostTracking id={self.id}>"
 
 
 class PayoutSchedule(BaseModel):
@@ -166,6 +172,9 @@ class PayoutSchedule(BaseModel):
     notes = Column(String)
     processed_by = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<PayoutSchedule id={self.id}>"
+
 
 class ProviderReconciliation(BaseModel):
     """Reconciliation between our records and provider invoices."""
@@ -213,6 +222,9 @@ class ProviderReconciliation(BaseModel):
     # Audit trail
     notes = Column(String)
     supporting_documents = Column(JSON)  # File references
+
+    def __repr__(self) -> str:
+        return f"<ProviderReconciliation id={self.id}>"
 
 
 class ProviderAgreement(BaseModel):
@@ -274,3 +286,6 @@ class ProviderAgreement(BaseModel):
     reviewed_at = Column(DateTime)
     reviewed_by = Column(String)
     last_updated = Column(DateTime)
+
+    def __repr__(self) -> str:
+        return f"<ProviderAgreement id={self.id}>"

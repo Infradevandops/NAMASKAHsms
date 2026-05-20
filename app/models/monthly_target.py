@@ -15,3 +15,6 @@ class MonthlyTarget(BaseModel):
     revenue_target = Column(Numeric(10, 2), nullable=False, default=4000.00)
     is_active = Column(Boolean, default=True, nullable=False)
     notes = Column(String(500), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<MonthlyTarget id={self.id}>"

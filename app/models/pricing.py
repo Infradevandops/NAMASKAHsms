@@ -34,6 +34,9 @@ class PricingTier(BaseModel):
     is_active = Column(Boolean, default=True, nullable=False)
     display_order = Column(Integer, default=0)  # For sorting on UI
 
+    def __repr__(self) -> str:
+        return f"<PricingTier name={self.name}>"
+
 
 class UserSubscription(BaseModel):
     """User subscription model."""
@@ -54,6 +57,9 @@ class UserSubscription(BaseModel):
     next_billing_date = Column(DateTime, nullable=True)
     cancelled_at = Column(DateTime, nullable=True)
     cancellation_reason = Column(String, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<UserSubscription id={self.id}>"
 
 
 class ServiceAddOn(BaseModel):
@@ -78,6 +84,9 @@ class ServiceAddOn(BaseModel):
     is_active = Column(Boolean, default=True, nullable=False)
     display_order = Column(Integer, default=0)
 
+    def __repr__(self) -> str:
+        return f"<ServiceAddOn name={self.name}>"
+
 
 class UserAddOnSubscription(BaseModel):
     """User add-on subscription model."""
@@ -100,6 +109,9 @@ class UserAddOnSubscription(BaseModel):
     next_billing_date = Column(DateTime, nullable=True)
     cancelled_at = Column(DateTime, nullable=True)
 
+    def __repr__(self) -> str:
+        return f"<UserAddOnSubscription id={self.id}>"
+
 
 class VerificationPricing(BaseModel):
     """Verification pricing by service and country."""
@@ -115,3 +127,6 @@ class VerificationPricing(BaseModel):
     )  # Ultra-fast add-on
     is_active = Column(Boolean, default=True, nullable=False)
     last_updated = Column(DateTime, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<VerificationPricing id={self.id}>"

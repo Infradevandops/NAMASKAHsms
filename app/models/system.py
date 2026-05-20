@@ -15,6 +15,9 @@ class ServiceStatus(BaseModel):
     success_rate = Column(Float, default=100.0, nullable=False)
     last_checked = Column(DateTime, nullable=False, index=True)
 
+    def __repr__(self) -> str:
+        return f"<ServiceStatus id={self.id}>"
+
 
 class SupportTicket(BaseModel):
     """Customer support tickets."""
@@ -30,6 +33,9 @@ class SupportTicket(BaseModel):
     message = Column(String, nullable=False)
     status = Column(String, default="open", nullable=False, index=True)
     admin_response = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<SupportTicket email={self.email}>"
 
 
 class ActivityLog(BaseModel):
@@ -48,6 +54,9 @@ class ActivityLog(BaseModel):
     ip_address = Column(String)
     user_agent = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<ActivityLog email={self.email}>"
+
 
 class BannedNumber(BaseModel):
     """Banned phone numbers tracking."""
@@ -61,6 +70,9 @@ class BannedNumber(BaseModel):
     fail_count = Column(Float, default=1, nullable=False)
     last_failed_at = Column(DateTime, nullable=False)
 
+    def __repr__(self) -> str:
+        return f"<BannedNumber id={self.id}>"
+
 
 class InAppNotification(BaseModel):
     """In - app notifications."""
@@ -73,3 +85,6 @@ class InAppNotification(BaseModel):
     type = Column(String, default="receipt", nullable=False)
     is_read = Column(Boolean, default=False, nullable=False, index=True)
     verification_id = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<InAppNotification title={self.title}>"

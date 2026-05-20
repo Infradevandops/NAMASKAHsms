@@ -81,6 +81,9 @@ class Dispute(BaseModel):
         "other": "Other reason",
     }
 
+    def __repr__(self) -> str:
+        return f"<Dispute id={self.id}>"
+
 
 class DisputeComment(BaseModel):
     """Comments on disputes for communication between user and admin."""
@@ -97,6 +100,9 @@ class DisputeComment(BaseModel):
         nullable=False,
         index=True,
     )
+
+    def __repr__(self) -> str:
+        return f"<DisputeComment id={self.id}>"
 
 
 class DisputeAttachment(BaseModel):
@@ -116,6 +122,9 @@ class DisputeAttachment(BaseModel):
         nullable=False,
         index=True,
     )
+
+    def __repr__(self) -> str:
+        return f"<DisputeAttachment id={self.id}>"
 
 
 class DisputeTimeline(BaseModel):
@@ -137,3 +146,6 @@ class DisputeTimeline(BaseModel):
         nullable=False,
         index=True,
     )
+
+    def __repr__(self) -> str:
+        return f"<DisputeTimeline id={self.id}>"

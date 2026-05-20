@@ -659,10 +659,18 @@ def get_all_transactions(
     # Calculate pages
     pages = (total + size - 1) // size
 
+    # Batch-load users to avoid N+1 query
+    user_ids = {t.user_id for t in transactions}
+    users_map = (
+        {u.id: u for u in db.query(User).filter(User.id.in_(user_ids)).all()}
+        if user_ids
+        else {}
+    )
+
     # Format response
     items = []
     for transaction in transactions:
-        user = db.query(User).filter(User.id == transaction.user_id).first()
+        user = users_map.get(transaction.user_id)
         items.append(
             {
                 "id": transaction.id,

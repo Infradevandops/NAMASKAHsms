@@ -17,6 +17,9 @@ class AffiliateProgram(BaseModel):
     features = Column(JSON, default=lambda: {})
     is_active = Column(Boolean, default=True)
 
+    def __repr__(self) -> str:
+        return f"<AffiliateProgram name={self.name}>"
+
 
 class AffiliateApplication(BaseModel):
 
@@ -28,6 +31,9 @@ class AffiliateApplication(BaseModel):
     message = Column(Text, nullable=True)
     status = Column(String(50), default="pending")
     admin_notes = Column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<AffiliateApplication email={self.email}>"
 
 
 class AffiliateCommission(BaseModel):
@@ -43,3 +49,6 @@ class AffiliateCommission(BaseModel):
 
     # Relationships
     affiliate = relationship("User", back_populates="commissions")
+
+    def __repr__(self) -> str:
+        return f"<AffiliateCommission id={self.id}>"

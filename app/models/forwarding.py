@@ -27,3 +27,6 @@ class ForwardingConfig(BaseModel):
 
     # Status
     is_active = Column(Boolean, default=True)
+
+    def __repr__(self) -> str:
+        return f"<ForwardingConfig id={self.id}>"

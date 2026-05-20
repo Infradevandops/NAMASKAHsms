@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger(__name__)
 import secrets
 from typing import List, Optional
 
@@ -45,24 +48,34 @@ async def list_webhooks(
     db: Session = Depends(get_db),
     _=Depends(require_payg),
 ):
-    """List all webhooks for the current user."""
-    webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
-    return SuccessResponse(
-        message="Webhooks retrieved successfully",
-        data=[
-            {
-                "id": w.id,
-                "name": w.name,
-                "url": w.url,
-                "events": w.events,
-                "is_active": w.is_active,
-                "secret": w.secret,
-                "last_success": w.last_success.isoformat() if w.last_success else None,
-                "last_failure": w.last_failure.isoformat() if w.last_failure else None,
-            }
-            for w in webhooks
-        ],
-    )
+    try:
+        """List all webhooks for the current user."""
+        webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
+        return SuccessResponse(
+            message="Webhooks retrieved successfully",
+            data=[
+                {
+                    "id": w.id,
+                    "name": w.name,
+                    "url": w.url,
+                    "events": w.events,
+                    "is_active": w.is_active,
+                    "secret": w.secret,
+                    "last_success": (
+                        w.last_success.isoformat() if w.last_success else None
+                    ),
+                    "last_failure": (
+                        w.last_failure.isoformat() if w.last_failure else None
+                    ),
+                }
+                for w in webhooks
+            ],
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in list_webhooks: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("", response_model=SuccessResponse)
@@ -72,22 +85,28 @@ async def create_webhook(
     db: Session = Depends(get_db),
     _=Depends(require_payg),
 ):
-    """Create a new webhook."""
-    webhook = Webhook(
-        user_id=current_user.id,
-        name=request.name,
-        url=str(request.url),
-        events=",".join(request.events),
-        secret=secrets.token_hex(16),
-        is_active=True,
-    )
-    db.add(webhook)
-    db.commit()
-    db.refresh(webhook)
-    return SuccessResponse(
-        message="Webhook created successfully",
-        data={"id": webhook.id, "secret": webhook.secret},
-    )
+    try:
+        """Create a new webhook."""
+        webhook = Webhook(
+            user_id=current_user.id,
+            name=request.name,
+            url=str(request.url),
+            events=",".join(request.events),
+            secret=secrets.token_hex(16),
+            is_active=True,
+        )
+        db.add(webhook)
+        db.commit()
+        db.refresh(webhook)
+        return SuccessResponse(
+            message="Webhook created successfully",
+            data={"id": webhook.id, "secret": webhook.secret},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in create_webhook: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{webhook_id}", response_model=SuccessResponse)
@@ -97,17 +116,23 @@ async def delete_webhook(
     db: Session = Depends(get_db),
     _=Depends(require_payg),
 ):
-    """Delete a webhook."""
-    webhook = (
-        db.query(Webhook)
-        .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
-        .first()
-    )
-    if not webhook:
-        raise HTTPException(status_code=404, detail="Webhook not found")
-    db.delete(webhook)
-    db.commit()
-    return SuccessResponse(message="Webhook deleted successfully")
+    try:
+        """Delete a webhook."""
+        webhook = (
+            db.query(Webhook)
+            .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
+            .first()
+        )
+        if not webhook:
+            raise HTTPException(status_code=404, detail="Webhook not found")
+        db.delete(webhook)
+        db.commit()
+        return SuccessResponse(message="Webhook deleted successfully")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in delete_webhook: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{webhook_id}/test", response_model=SuccessResponse)
@@ -117,12 +142,18 @@ async def test_webhook(
     db: Session = Depends(get_db),
     _=Depends(require_payg),
 ):
-    """Send a test ping to the webhook."""
-    webhook = (
-        db.query(Webhook)
-        .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
-        .first()
-    )
-    if not webhook:
-        raise HTTPException(status_code=404, detail="Webhook not found")
-    return SuccessResponse(message=f"Test ping sent to {webhook.url}")
+    try:
+        """Send a test ping to the webhook."""
+        webhook = (
+            db.query(Webhook)
+            .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
+            .first()
+        )
+        if not webhook:
+            raise HTTPException(status_code=404, detail="Webhook not found")
+        return SuccessResponse(message=f"Test ping sent to {webhook.url}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in test_webhook: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

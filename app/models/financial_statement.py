@@ -78,6 +78,9 @@ class FinancialStatement(BaseModel):
     is_provisional = Column(Boolean, default=True)
     notes_field = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<FinancialStatement id={self.id}>"
+
 
 class FinancialRatio(BaseModel):
     """Pre-calculated financial ratios for analysis."""
@@ -124,6 +127,9 @@ class FinancialRatio(BaseModel):
     calculated_at = Column(DateTime, nullable=False)
     calculated_by = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<FinancialRatio id={self.id}>"
+
 
 class BudgetVsActual(BaseModel):
     """Budget vs actual analysis."""
@@ -164,6 +170,9 @@ class BudgetVsActual(BaseModel):
     action_description = Column(String)
     action_owner = Column(String)
     action_due_date = Column(DateTime)
+
+    def __repr__(self) -> str:
+        return f"<BudgetVsActual id={self.id}>"
 
 
 class OperatingMetrics(BaseModel):
@@ -215,3 +224,6 @@ class OperatingMetrics(BaseModel):
 
     # Notes
     notes = Column(String)
+
+    def __repr__(self) -> str:
+        return f"<OperatingMetrics id={self.id}>"

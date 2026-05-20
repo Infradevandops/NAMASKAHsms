@@ -1,8 +1,11 @@
+import logging
+
+logger = logging.getLogger(__name__)
 """Admin endpoint to audit unreceived verifications."""
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
@@ -22,86 +25,92 @@ async def get_unreceived_verifications(
     user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
-    """Get verifications that were charged but never received SMS.
+    try:
+        """Get verifications that were charged but never received SMS.
 
-    Args:
-        days: Days to look back (1-30)
-        min_age_minutes: Minimum age for pending verifications (5-60)
+        Args:
+            days: Days to look back (1-30)
+            min_age_minutes: Minimum age for pending verifications (5-60)
 
-    Returns:
-        Summary of unreceived verifications and refund candidates
-    """
-    cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
-    pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
+        Returns:
+            Summary of unreceived verifications and refund candidates
+        """
+        cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
+        pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
 
-    # Query unreceived verifications
-    unreceived = (
-        db.query(Verification)
-        .filter(
-            and_(
-                Verification.cost > 0,
-                Verification.sms_code.is_(None),
-                Verification.created_at > cutoff_time,
-                or_(
-                    and_(
-                        Verification.status == "pending",
-                        Verification.created_at < pending_cutoff,
+        # Query unreceived verifications
+        unreceived = (
+            db.query(Verification)
+            .filter(
+                and_(
+                    Verification.cost > 0,
+                    Verification.sms_code.is_(None),
+                    Verification.created_at > cutoff_time,
+                    or_(
+                        and_(
+                            Verification.status == "pending",
+                            Verification.created_at < pending_cutoff,
+                        ),
+                        Verification.status.in_(["failed", "error", "cancelled"]),
                     ),
-                    Verification.status.in_(["failed", "error", "cancelled"]),
-                ),
+                )
             )
+            .all()
         )
-        .all()
-    )
 
-    # Calculate stats
-    total_count = len(unreceived)
-    total_amount = sum(v.cost for v in unreceived)
-    affected_users = len(set(v.user_id for v in unreceived))
+        # Calculate stats
+        total_count = len(unreceived)
+        total_amount = sum(v.cost for v in unreceived)
+        affected_users = len(set(v.user_id for v in unreceived))
 
-    # Group by service
-    by_service = {}
-    for v in unreceived:
-        if v.service_name not in by_service:
-            by_service[v.service_name] = {"count": 0, "amount": 0}
-        by_service[v.service_name]["count"] += 1
-        by_service[v.service_name]["amount"] += float(v.cost)
+        # Group by service
+        by_service = {}
+        for v in unreceived:
+            if v.service_name not in by_service:
+                by_service[v.service_name] = {"count": 0, "amount": 0}
+            by_service[v.service_name]["count"] += 1
+            by_service[v.service_name]["amount"] += float(v.cost)
 
-    # Group by status
-    by_status = {}
-    for v in unreceived:
-        if v.status not in by_status:
-            by_status[v.status] = {"count": 0, "amount": 0}
-        by_status[v.status]["count"] += 1
-        by_status[v.status]["amount"] += float(v.cost)
+        # Group by status
+        by_status = {}
+        for v in unreceived:
+            if v.status not in by_status:
+                by_status[v.status] = {"count": 0, "amount": 0}
+            by_status[v.status]["count"] += 1
+            by_status[v.status]["amount"] += float(v.cost)
 
-    # Recent examples
-    recent_examples = [
-        {
-            "id": v.id,
-            "user_id": v.user_id,
-            "service_name": v.service_name,
-            "status": v.status,
-            "cost": float(v.cost),
-            "created_at": v.created_at.isoformat(),
-            "minutes_elapsed": int(
-                (datetime.now(timezone.utc) - v.created_at).total_seconds() / 60
-            ),
+        # Recent examples
+        recent_examples = [
+            {
+                "id": v.id,
+                "user_id": v.user_id,
+                "service_name": v.service_name,
+                "status": v.status,
+                "cost": float(v.cost),
+                "created_at": v.created_at.isoformat(),
+                "minutes_elapsed": int(
+                    (datetime.now(timezone.utc) - v.created_at).total_seconds() / 60
+                ),
+            }
+            for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
+        ]
+
+        return {
+            "summary": {
+                "total_count": total_count,
+                "total_amount_usd": float(total_amount),
+                "affected_users": affected_users,
+                "by_service": by_service,
+                "by_status": by_status,
+            },
+            "recent_examples": recent_examples,
+            "query_params": {"days_back": days, "min_age_minutes": min_age_minutes},
         }
-        for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
-    ]
-
-    return {
-        "summary": {
-            "total_count": total_count,
-            "total_amount_usd": float(total_amount),
-            "affected_users": affected_users,
-            "by_service": by_service,
-            "by_status": by_status,
-        },
-        "recent_examples": recent_examples,
-        "query_params": {"days_back": days, "min_age_minutes": min_age_minutes},
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_unreceived_verifications: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/refund-candidates")
@@ -110,73 +119,79 @@ async def get_refund_candidates(
     user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
-    """Get list of verifications that need refunds (no existing refund transaction).
+    try:
+        """Get list of verifications that need refunds (no existing refund transaction).
 
-    Returns:
-        List of verifications needing refund with user details
-    """
-    cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
-    pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+        Returns:
+            List of verifications needing refund with user details
+        """
+        cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
+        pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
 
-    # Find unreceived verifications
-    unreceived = (
-        db.query(Verification)
-        .filter(
-            and_(
-                Verification.cost > 0,
-                Verification.sms_code.is_(None),
-                Verification.created_at > cutoff_time,
-                or_(
-                    and_(
-                        Verification.status == "pending",
-                        Verification.created_at < pending_cutoff,
-                    ),
-                    Verification.status.in_(["failed", "error", "cancelled"]),
-                ),
-            )
-        )
-        .all()
-    )
-
-    # Filter out already refunded
-    candidates = []
-    for v in unreceived:
-        # Check for existing refund
-        existing_refund = (
-            db.query(Transaction)
+        # Find unreceived verifications
+        unreceived = (
+            db.query(Verification)
             .filter(
                 and_(
-                    Transaction.user_id == v.user_id,
-                    Transaction.transaction_type == "refund",
-                    Transaction.created_at > v.created_at,
-                    Transaction.amount == v.cost,
+                    Verification.cost > 0,
+                    Verification.sms_code.is_(None),
+                    Verification.created_at > cutoff_time,
+                    or_(
+                        and_(
+                            Verification.status == "pending",
+                            Verification.created_at < pending_cutoff,
+                        ),
+                        Verification.status.in_(["failed", "error", "cancelled"]),
+                    ),
                 )
             )
-            .first()
+            .all()
         )
 
-        if not existing_refund:
-            user = db.query(User).filter(User.id == v.user_id).first()
-            candidates.append(
-                {
-                    "verification_id": v.id,
-                    "user_id": v.user_id,
-                    "user_email": user.email if user else "unknown",
-                    "service_name": v.service_name,
-                    "status": v.status,
-                    "cost": float(v.cost),
-                    "created_at": v.created_at.isoformat(),
-                    "phone_number": v.phone_number,
-                    "refund_reason": (
-                        "Timeout - No SMS received"
-                        if v.status == "pending"
-                        else f"Failed - Status: {v.status}"
-                    ),
-                }
+        # Filter out already refunded
+        candidates = []
+        for v in unreceived:
+            # Check for existing refund
+            existing_refund = (
+                db.query(Transaction)
+                .filter(
+                    and_(
+                        Transaction.user_id == v.user_id,
+                        Transaction.transaction_type == "refund",
+                        Transaction.created_at > v.created_at,
+                        Transaction.amount == v.cost,
+                    )
+                )
+                .first()
             )
 
-    return {
-        "total_candidates": len(candidates),
-        "total_refund_amount": sum(c["cost"] for c in candidates),
-        "candidates": candidates,
-    }
+            if not existing_refund:
+                user = db.query(User).filter(User.id == v.user_id).first()
+                candidates.append(
+                    {
+                        "verification_id": v.id,
+                        "user_id": v.user_id,
+                        "user_email": user.email if user else "unknown",
+                        "service_name": v.service_name,
+                        "status": v.status,
+                        "cost": float(v.cost),
+                        "created_at": v.created_at.isoformat(),
+                        "phone_number": v.phone_number,
+                        "refund_reason": (
+                            "Timeout - No SMS received"
+                            if v.status == "pending"
+                            else f"Failed - Status: {v.status}"
+                        ),
+                    }
+                )
+
+        return {
+            "total_candidates": len(candidates),
+            "total_refund_amount": sum(c["cost"] for c in candidates),
+            "candidates": candidates,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_refund_candidates: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

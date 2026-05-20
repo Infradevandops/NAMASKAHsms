@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger(__name__)
 """Record verification outcome for history and analytics."""
 
 from typing import Optional
@@ -26,23 +29,29 @@ async def record_outcome(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id),
 ):
-    v = (
-        db.query(Verification)
-        .filter(
-            Verification.id == verification_id,
-            Verification.user_id == user_id,
+    try:
+        v = (
+            db.query(Verification)
+            .filter(
+                Verification.id == verification_id,
+                Verification.user_id == user_id,
+            )
+            .first()
         )
-        .first()
-    )
 
-    if not v:
-        raise HTTPException(status_code=404, detail="Verification not found")
+        if not v:
+            raise HTTPException(status_code=404, detail="Verification not found")
 
-    v.outcome = body.outcome
-    if body.cancel_reason:
-        v.cancel_reason = body.cancel_reason
-    if body.error_message:
-        v.error_message = body.error_message
+        v.outcome = body.outcome
+        if body.cancel_reason:
+            v.cancel_reason = body.cancel_reason
+        if body.error_message:
+            v.error_message = body.error_message
 
-    db.commit()
-    return {"success": True}
+        db.commit()
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in record_outcome: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")

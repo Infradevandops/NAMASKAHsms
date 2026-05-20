@@ -65,3 +65,6 @@ class SubscriptionTier(BaseModel):
     # Rate limiting
     rate_limit_per_minute = Column(Integer, default=10, nullable=False)
     rate_limit_per_hour = Column(Integer, default=100, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<SubscriptionTier name={self.name}>"

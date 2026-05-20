@@ -28,6 +28,9 @@ class CommissionTier(BaseModel):
     benefits = Column(JSON, default=lambda: {})
     is_active = Column(Boolean, default=True)
 
+    def __repr__(self) -> str:
+        return f"<CommissionTier name={self.name}>"
+
 
 class RevenueShare(BaseModel):
 
@@ -46,6 +49,9 @@ class RevenueShare(BaseModel):
     # Relationships
     partner = relationship("User", back_populates="revenue_shares")
 
+    def __repr__(self) -> str:
+        return f"<RevenueShare id={self.id}>"
+
 
 class PayoutRequest(BaseModel):
 
@@ -63,3 +69,6 @@ class PayoutRequest(BaseModel):
 
     # Relationships
     affiliate = relationship("User", back_populates="payout_requests")
+
+    def __repr__(self) -> str:
+        return f"<PayoutRequest id={self.id}>"

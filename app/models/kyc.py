@@ -48,6 +48,9 @@ class KYCProfile(BaseModel):
     user_agent = Column(String)
     verification_notes = Column(Text)
 
+    def __repr__(self) -> str:
+        return f"<KYCProfile id={self.id}>"
+
 
 class KYCDocument(BaseModel):
     """KYC document storage and verification."""
@@ -84,6 +87,9 @@ class KYCDocument(BaseModel):
     access_count = Column(Float, default=0)
     last_accessed = Column(DateTime)
 
+    def __repr__(self) -> str:
+        return f"<KYCDocument id={self.id}>"
+
 
 class KYCVerificationLimit(BaseModel):
     """Transaction limits based on KYC verification level."""
@@ -103,6 +109,9 @@ class KYCVerificationLimit(BaseModel):
     # Restrictions
     country_restrictions = Column(JSON)  # List of restricted countries
     service_restrictions = Column(JSON)  # List of restricted services
+
+    def __repr__(self) -> str:
+        return f"<KYCVerificationLimit id={self.id}>"
 
 
 class KYCAuditLog(BaseModel):
@@ -134,6 +143,9 @@ class KYCAuditLog(BaseModel):
     user_agent = Column(String)
     session_id = Column(String)
 
+    def __repr__(self) -> str:
+        return f"<KYCAuditLog id={self.id}>"
+
 
 class AMLScreening(BaseModel):
     """Anti - Money Laundering screening results."""
@@ -159,6 +171,9 @@ class AMLScreening(BaseModel):
     review_notes = Column(Text)
     reviewed_at = Column(DateTime)
 
+    def __repr__(self) -> str:
+        return f"<AMLScreening id={self.id}>"
+
 
 class KYCSettings(BaseModel):
     """Global KYC configuration settings."""
@@ -172,6 +187,9 @@ class KYCSettings(BaseModel):
     # Metadata
     updated_by = Column(String)
     is_active = Column(Boolean, default=True)
+
+    def __repr__(self) -> str:
+        return f"<KYCSettings id={self.id}>"
 
 
 class BiometricVerification(BaseModel):
@@ -196,3 +214,6 @@ class BiometricVerification(BaseModel):
     algorithm_used = Column(String)
     processing_time = Column(Float)
     quality_scores = Column(JSON)
+
+    def __repr__(self) -> str:
+        return f"<BiometricVerification id={self.id}>"

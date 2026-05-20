@@ -42,3 +42,6 @@ class Refund(BaseModel):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    def __repr__(self) -> str:
+        return f"<Refund id={self.id}>"

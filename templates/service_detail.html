@@ -1,17 +1,17 @@
 {% extends "public_base.html" %}
 {% block title %}{{ service.name }} SMS Verification - Get Code Instantly | Vrenum{% endblock %}
-{% block meta_description %}Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries. Instant delivery, automatic refund guarantee.{% endblock %}
+{% block meta_description %}Get a temporary US phone number for {{ service.name }} verification. Instant delivery, automatic refund guarantee.{% endblock %}
 {% block og_title %}{{ service.name }} SMS Verification - Get Code Instantly | Vrenum{% endblock %}
-{% block og_description %}Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries. Instant delivery, automatic refund.{% endblock %}
+{% block og_description %}Get a temporary US phone number for {{ service.name }} verification. Instant delivery, automatic refund.{% endblock %}
 {% block twitter_title %}{{ service.name }} SMS Verification | Vrenum{% endblock %}
-{% block twitter_description %}Get a temporary phone number for {{ service.name }} verification. {{ service.country_count }}+ countries. Auto-refund guaranteed.{% endblock %}
+{% block twitter_description %}Get a temporary US phone number for {{ service.name }} verification. Auto-refund guaranteed.{% endblock %}
 
 {% block content %}
 <main class="container mx-auto px-4 py-12 max-w-3xl">
   <h1 class="text-3xl font-bold mb-4">{{ service.name }} SMS Verification</h1>
   <p class="text-gray-600 mb-6">
-    Get a temporary phone number to verify {{ service.name }} instantly.
-    Available in {{ service.country_count }}+ countries. Starting at ${{ "%.2f"|format(service.price) }}.
+    Get a temporary US phone number to verify {{ service.name }} instantly.
+    Real mobile numbers, accepted by {{ service.name }}.
     Automatic refund if SMS not received.
   </p>
 
@@ -44,30 +44,19 @@
         </tr>
       </thead>
       <tbody>
-        {% if service.countries %}
-          {% for country in service.countries[:10] %}
-          <tr>
-            <td class="border px-4 py-2">{{ country.flag }} {{ country.name }}</td>
-            <td class="border px-4 py-2 text-center">${{ "%.2f"|format(country.price) }}</td>
-            <td class="border px-4 py-2 text-center">{{ country.success_rate }}%</td>
-          </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td class="border px-4 py-2">🇺🇸 USA</td>
-            <td class="border px-4 py-2 text-center">${{ "%.2f"|format(service.price) }}</td>
-            <td class="border px-4 py-2 text-center">95%</td>
-          </tr>
-        {% endif %}
+        <tr>
+          <td class="border px-4 py-2">🇺🇸 USA</td>
+          <td class="border px-4 py-2 text-center">${{ "%.2f"|format(service.price) }}</td>
+          <td class="border px-4 py-2 text-center">95%</td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <h2 class="text-2xl font-semibold mt-8 mb-4">Why Use Vrenum for {{ service.name }}?</h2>
   <ul class="list-disc pl-6 space-y-2 mb-8">
-    <li>✅ Real mobile numbers — accepted by {{ service.name }}</li>
+    <li>✅ Real mobile US numbers — accepted by {{ service.name }}</li>
     <li>✅ Automatic refund if no SMS received</li>
-    <li>✅ {{ service.country_count }}+ countries available</li>
     <li>✅ Instant delivery — code in under 60 seconds</li>
     <li>✅ API available for bulk verifications (Pro plan)</li>
   </ul>
@@ -99,7 +88,7 @@
     "@type": "Service",
     "name": "{{ service.name }} SMS Verification",
     "provider": {"@type": "Organization", "name": "Vrenum", "url": "https://vrenum.app"},
-    "description": "Get a temporary phone number for {{ service.name }} verification. Available in {{ service.country_count }}+ countries.",
+    "description": "Get a temporary US phone number for {{ service.name }} verification.",
     "url": "https://vrenum.app/services/{{ service.slug }}",
     "offers": {
       "@type": "Offer",

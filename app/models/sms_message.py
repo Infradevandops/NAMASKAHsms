@@ -23,3 +23,6 @@ class SMSMessage(BaseModel):
     updated_at = Column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+    def __repr__(self) -> str:
+        return f"<SMSMessage id={self.id}>"

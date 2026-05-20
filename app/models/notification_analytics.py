@@ -39,6 +39,9 @@ class NotificationAnalytics(BaseModel):
     retry_count = Column(Integer, default=0, nullable=False)
     tracking_data = Column(JSON, nullable=True)  # Additional tracking data
 
+    def __repr__(self) -> str:
+        return f"<NotificationAnalytics id={self.id}>"
+
     def to_dict(self):
         """Convert to dictionary."""
         return {

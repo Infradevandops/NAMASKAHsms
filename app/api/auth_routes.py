@@ -30,6 +30,7 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     mfa_token: Optional[str] = None
+    turnstile_token: Optional[str] = None
 
 
 class RegisterRequest(BaseModel):

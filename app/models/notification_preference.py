@@ -34,6 +34,9 @@ class NotificationPreference(BaseModel):
     # Relationship
     user = relationship("User", back_populates="notification_preferences")
 
+    def __repr__(self) -> str:
+        return f"<NotificationPreference id={self.id}>"
+
     def to_dict(self):
         """Convert to dictionary."""
         return {
@@ -68,6 +71,9 @@ class NotificationPreferenceDefaults(BaseModel):
     delivery_methods = Column(String(255), default="toast")
     frequency = Column(String(20), default="instant")
     description = Column(String(255), nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<NotificationPreferenceDefaults id={self.id}>"
 
     def to_dict(self):
         """Convert to dictionary."""
