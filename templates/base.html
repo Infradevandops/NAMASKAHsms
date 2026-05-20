@@ -109,8 +109,10 @@
     <div class="spinner"></div>
     {% endblock %}
 
-    <!-- Global Components -->
+    <!-- Global Components (only for authenticated users) -->
+    {% if user %}
     {% include "components/notification.html" %}
+    {% endif %}
     {% include "components/loading_spinner.html" %}
 
     <!-- Global currency formatter — MUST load before everything -->

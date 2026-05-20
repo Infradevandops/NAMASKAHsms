@@ -3,18 +3,26 @@
 {% block head_extra %}
 <style>
 .public-layout { min-height: 100vh; display: flex; flex-direction: column; }
-.public-header { background: white; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+.public-header { background: white; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: relative; }
 .logo { font-size: 24px; font-weight: 700; color: var(--text-main); text-decoration: none; }
 .nav-links { display: flex; gap: 24px; align-items: center; }
-.nav-links a { color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+.nav-links a { color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 15px; transition: color 0.2s; white-space: nowrap; }
 .nav-links a:hover { color: var(--primary); }
 .public-content { flex: 1; padding: 40px; }
 .public-footer { background: var(--bg-sidebar); border-top: 1px solid rgba(0,0,0,0.05); padding: 24px 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
+/* Mobile Menu */
+.mobile-menu-btn { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-main); padding: 8px; }
+.mobile-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; }
+.mobile-menu.active { display: block; }
+.mobile-menu a { display: block; padding: 16px 20px; color: var(--text-main); text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.mobile-menu a:hover { background: var(--bg-sidebar); color: var(--primary); }
+
 @media (max-width: 768px) {
     .public-header { padding: 16px 20px; }
     .public-content { padding: 20px; }
-    .nav-links { gap: 12px; }
+    .nav-links { display: none; }
+    .mobile-menu-btn { display: block; }
 }
 </style>
 {% endblock %}
@@ -23,6 +31,8 @@
 <div class="public-layout">
     <header class="public-header">
         <a href="/" style="display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px;">VRENUM ACTV8TN</a>
+
+        <!-- Desktop Navigation -->
         <nav class="nav-links">
             <a href="/pricing">Pricing</a>
             <a href="/about">About</a>
@@ -34,6 +44,24 @@
             <a href="/auth/register" style="background: var(--primary); color: white; padding: 8px 16px; border-radius: 8px;">Sign Up</a>
             {% endif %}
         </nav>
+
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+            <span id="menu-icon">☰</span>
+        </button>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/pricing">Pricing</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+            {% if user %}
+            <a href="/dashboard">Dashboard</a>
+            {% else %}
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Sign Up</a>
+            {% endif %}
+        </div>
     </header>
 
     <main class="public-content">
@@ -50,4 +78,23 @@
         <div>&copy; 2026 vrenum.app. All rights reserved.</div>
     </footer>
 </div>
+
+<script>
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const icon = document.getElementById('menu-icon');
+    menu.classList.toggle('active');
+    icon.textContent = menu.classList.contains('active') ? '✕' : '☰';
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('mobile-menu');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target)) {
+        menu.classList.remove('active');
+        document.getElementById('menu-icon').textContent = '☰';
+    }
+});
+</script>
 {% endblock %}
