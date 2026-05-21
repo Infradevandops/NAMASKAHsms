@@ -200,12 +200,26 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 
     <main class="main-content" id="main-content" role="main">
         <header class="header" role="banner">
-            <div>
-                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
-                <p style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-top: 4px;">
-                    {% block page_subtitle %}Welcome back{% endblock %}
-                </p>
+            <div class="header-top-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <!-- Mobile Hamburger Navigation Toggle -->
+                    <button class="mobile-sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation Sidebar" title="Open navigation menu">
+                        <span>☰</span>
+                    </button>
+                    <div>
+                        <h1 style="margin: 0;">{% block page_title %}Dashboard{% endblock %}</h1>
+                        <p class="desktop-only" style="color: var(--text-muted, #9CA3AF); font-size: 14px; margin-top: 4px; margin-bottom: 0;">
+                            {% block page_subtitle %}Welcome back{% endblock %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mobile Theme Toggle (visible only on mobile headers) -->
+                <button onclick="toggleTheme()" class="mobile-theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+                    <span class="theme-icon-mobile">🌙</span>
+                </button>
             </div>
+
             <div class="header-actions">
                 <!-- Currency Selector -->
                 <div class="currency-selector-wrapper" style="position: relative;">
@@ -263,12 +277,12 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
                 </div>
 
                 <span id="header-tier-badge" class="tier-badge" style="display: none;" aria-label="Your subscription tier"></span>
-                
-                <!-- Theme Toggle -->
-                <button onclick="toggleTheme()" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+
+                <!-- Desktop Theme Toggle -->
+                <button onclick="toggleTheme()" class="desktop-theme-toggle" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode" title="Toggle dark/light mode">
                     <span id="theme-icon">🌙</span>
                 </button>
-                
+
                 {% include "components/balance.html" %}
                 {% block header_actions %}{% endblock %}
             </div>

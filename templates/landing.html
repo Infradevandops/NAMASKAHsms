@@ -99,12 +99,19 @@
 
   <!-- Navigation -->
   <nav id="main-nav" x-data="{ open: false }" class="bg-white border-b border-zinc-100 fixed top-0 w-full z-50 transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="/" class="flex items-center">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
+      <!-- Left: Mobile Hamburger Trigger (visible only on mobile, order-1) -->
+      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700 dark:text-zinc-300 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition border border-zinc-200 dark:border-zinc-700/50 order-1" aria-label="Toggle menu">
+        <i :class="open ? 'ph ph-x' : 'ph ph-list'" class="text-3xl"></i>
+      </button>
+
+      <!-- Center: Logo (centered on mobile, left-aligned on desktop, order-2) -->
+      <a href="/" class="flex items-center absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none md:left-auto order-2 z-10">
         <span class="nav-brand px-4 py-2 bg-brand-500 rounded-lg text-sm font-semibold text-white hover:bg-brand-600 transition">VRENUM ACTV8TN</span>
       </a>
 
-      <div class="hidden md:flex gap-8 text-sm">
+      <!-- Desktop Links (hidden on mobile) -->
+      <div class="hidden md:flex gap-8 text-sm md:order-3">
         <a href="#how-it-works" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">How It Works</a>
         <a href="/services" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Services</a>
         <a href="#pricing" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Pricing</a>
@@ -112,23 +119,23 @@
         <a href="/faq" class="nav-link text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">FAQ</a>
       </div>
 
-      <div class="hidden md:flex gap-4 items-center">
-        <!-- Theme Toggle -->
-        <button onclick="toggleTheme()" style="background: transparent; border: 1px solid rgba(0,0,0,0.1); color: #374151; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode">
+      <!-- Right Actions (Theme toggle & Auth) -->
+      <div class="flex gap-4 items-center order-3 md:order-4">
+        <!-- Theme Toggle (always visible on desktop & mobile!) -->
+        <button onclick="toggleTheme()" class="theme-toggle-btn border border-zinc-200 dark:border-zinc-700/50 text-zinc-700 dark:text-zinc-300 w-[36px] h-[36px] rounded-full cursor-pointer flex items-center justify-center text-lg transition duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Toggle dark mode">
           <span id="theme-icon">🌙</span>
         </button>
 
-        {% if user %}
-        <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
-        {% else %}
-        <a href="/auth/login" class="nav-link px-4 py-2 text-sm text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Login</a>
-        <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Get Started Free →</a>
-        {% endif %}
+        <!-- Desktop-only Auth Buttons -->
+        <div class="hidden md:flex gap-4 items-center">
+          {% if user %}
+          <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
+          {% else %}
+          <a href="/auth/login" class="nav-link px-4 py-2 text-sm text-zinc-600 hover:text-brand-500 transition-colors duration-200 font-medium">Login</a>
+          <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Get Started Free →</a>
+          {% endif %}
+        </div>
       </div>
-
-      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700 p-2 hover:bg-zinc-100 rounded-lg transition border border-zinc-200" aria-label="Toggle menu">
-        <i :class="open ? 'ph ph-x' : 'ph ph-list'" class="text-3xl"></i>
-      </button>
     </div>
 
     <div x-show="open" x-transition class="absolute top-full left-0 right-0 md:hidden border-t border-black/5 bg-white shadow-lg z-50">

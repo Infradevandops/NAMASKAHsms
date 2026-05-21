@@ -36,12 +36,18 @@
 [data-theme="dark"] .mobile-menu a { color: #f1f5f9; }
 [data-theme="dark"] .mobile-menu-btn { color: #f1f5f9; }
 
+/* Theme toggle button specific dark-mode colors */
+.theme-toggle-btn { color: #21262D; border-color: rgba(0,0,0,0.1); }
+[data-theme="dark"] .theme-toggle-btn { color: #f1f5f9 !important; border-color: rgba(255,255,255,0.2) !important; }
+[data-theme="dark"] .theme-toggle-btn:hover { background: #334155 !important; }
+
 /* Responsive - Mobile only */
 @media (max-width: 768px) {
-    .public-header { padding: 16px 20px; }
+    .public-header { padding: 16px 20px; display: flex !important; justify-content: space-between !important; align-items: center !important; }
     .public-content { padding: 20px; }
     .nav-links { display: none !important; }
     .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; }
+    .logo-badge { position: absolute; left: 50%; transform: translateX(-50%); }
 }
 </style>
 {% endblock %}
@@ -49,34 +55,38 @@
 {% block body %}
 <div class="public-layout">
     <header class="public-header">
-        <a href="/" style="display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px;">VRENUM ACTV8TN</a>
-
-        <!-- Desktop Navigation -->
-        <nav class="nav-links">
-            <a href="/pricing">Pricing</a>
-            <a href="/about">About</a>
-            <a href="/affiliate-program">Affiliates</a>
-            <a href="/contact">Contact</a>
-
-            <!-- Theme Toggle -->
-            <button onclick="toggleTheme()" style="background: transparent; border: 1px solid var(--border-color, rgba(0,0,0,0.1)); color: var(--text-primary, #374151); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode">
-                <span id="theme-icon">🌙</span>
-            </button>
-
-            {% if user %}
-            <a href="/dashboard" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Dashboard</a>
-            {% else %}
-            <a href="/auth/login" class="btn-secondary" style="color: var(--text-primary, #21262D); padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary, #FE3C72)'" onmouseout="this.style.color='var(--text-primary, #21262D)'">Login</a>
-            <a href="/auth/register" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign Up</a>
-            {% endif %}
-        </nav>
-
-        <!-- Mobile Menu Button -->
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+        <!-- Mobile Hamburger Menu Button (visible on mobile, hidden on desktop) -->
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu" style="order: 1;">
             <span id="menu-icon">☰</span>
         </button>
 
-        <!-- Mobile Menu -->
+        <!-- Brand Logo (centered on mobile, left-aligned on desktop) -->
+        <a href="/" class="logo-badge" style="order: 2; display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; white-space: nowrap;">VRENUM ACTV8TN</a>
+
+        <!-- Header Actions (combines theme toggle and auth/nav links) -->
+        <div class="public-header-actions" style="order: 3; display: flex; align-items: center; gap: 16px;">
+            <!-- Theme Toggle (always visible on desktop and mobile) -->
+            <button onclick="toggleTheme()" class="theme-toggle-btn" style="background: transparent; border: 1px solid var(--border-color, rgba(0,0,0,0.1)); color: var(--text-primary, #374151); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+                <span id="theme-icon">🌙</span>
+            </button>
+
+            <!-- Desktop Navigation Links (hidden on mobile) -->
+            <nav class="nav-links">
+                <a href="/pricing">Pricing</a>
+                <a href="/about">About</a>
+                <a href="/affiliate-program">Affiliates</a>
+                <a href="/contact">Contact</a>
+
+                {% if user %}
+                <a href="/dashboard" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Dashboard</a>
+                {% else %}
+                <a href="/auth/login" class="btn-secondary" style="color: var(--text-primary, #21262D); padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary, #FE3C72)'" onmouseout="this.style.color='var(--text-primary, #21262D)'">Login</a>
+                <a href="/auth/register" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
         <div class="mobile-menu" id="mobile-menu">
             <a href="/pricing">Pricing</a>
             <a href="/about">About</a>
