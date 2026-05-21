@@ -6,40 +6,88 @@
 /* Light mode defaults - CRITICAL for visibility */
 .terms-header {
     background: linear-gradient(135deg, rgba(254, 60, 114, 0.1) 0%, rgba(255, 107, 157, 0.05) 100%) !important;
+    border: 1px solid rgba(254, 60, 114, 0.2) !important;
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 32px;
+    border-radius: 16px;
 }
 
-.terms-header h1,
-.terms-header p {
+.terms-header h1 {
+    font-size: 36px;
+    font-weight: 800;
     color: #21262D !important;
+    margin-bottom: 8px;
+}
+
+.terms-header p {
+    color: #6b7280 !important;
+    font-size: 16px;
 }
 
 .terms-section {
     background: #ffffff !important;
-    border-color: #e5e7eb !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
 }
 
 .terms-section h2 {
     color: #FE3C72 !important;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.terms-section h3 {
+    color: #21262D !important;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
 }
 
 .terms-section p,
 .terms-section li {
     color: #4b5563 !important;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.terms-section ul {
+    margin-left: 24px;
+}
+
+.terms-section li {
+    margin-bottom: 8px;
 }
 
 .warning-box {
     background: rgba(239, 68, 68, 0.1) !important;
-    border-color: #ef4444 !important;
+    border-left: 4px solid #ef4444 !important;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.warning-box p {
+    color: #21262D !important;
+    font-weight: 600;
+    margin: 0;
 }
 
 /* Dark mode overrides */
 [data-theme="dark"] .terms-header {
     background: linear-gradient(135deg, rgba(254, 60, 114, 0.2) 0%, rgba(255, 107, 157, 0.1) 100%) !important;
+    border-color: rgba(254, 60, 114, 0.3) !important;
 }
 
-[data-theme="dark"] .terms-header h1,
-[data-theme="dark"] .terms-header p {
+[data-theme="dark"] .terms-header h1 {
     color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .terms-header p {
+    color: #cbd5e1 !important;
 }
 
 [data-theme="dark"] .terms-section {
@@ -51,14 +99,22 @@
     color: #FE3C72 !important;
 }
 
+[data-theme="dark"] .terms-section h3 {
+    color: #f1f5f9 !important;
+}
+
 [data-theme="dark"] .terms-section p,
 [data-theme="dark"] .terms-section li {
     color: #cbd5e1 !important;
 }
 
 [data-theme="dark"] .warning-box {
-    background: rgba(239, 68, 68, 0.1) !important;
+    background: rgba(239, 68, 68, 0.15) !important;
     border-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .warning-box p {
+    color: #f1f5f9 !important;
 }
 </style>
 {% endblock %}

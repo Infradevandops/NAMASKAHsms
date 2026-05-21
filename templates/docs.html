@@ -5,95 +5,95 @@
 {% block head_extra %}
 {{ super() }}
 <style>
-    [data-theme="dark"] .docs-hero {
-        background: linear-gradient(135deg, rgba(254, 60, 114, 0.2) 0%, rgba(224, 36, 94, 0.1) 100%);
-        color: #f1f5f9;
-    }
-    
-    [data-theme="dark"] .endpoint-group h2,
-    [data-theme="dark"] .endpoint-path {
-        color: #f1f5f9;
-    }
-    
-    [data-theme="dark"] .endpoint {
-        background: #1e293b;
-        border-color: #334155;
-    }
-    
-    [data-theme="dark"] .endpoint:hover {
-        border-color: #FE3C72;
-    }
-    
-    [data-theme="dark"] .endpoint-desc,
-    [data-theme="dark"] .tier-note {
-        color: #cbd5e1;
-    }
-    
-    [data-theme="dark"] .info-card {
-        background: #1e293b;
-        border-color: #334155;
-    }
-    
-    [data-theme="dark"] .info-card h3 {
-        color: #f1f5f9;
-    }
-    
-    [data-theme="dark"] .info-card p {
-        color: #cbd5e1;
-    }
-    
-    [data-theme="dark"] .info-card code {
-        background: #0f172a;
-        color: #f1f5f9;
-    }
-    
+    /* Light mode defaults - CRITICAL for visibility */
     .docs-hero {
-        background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+        background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%) !important;
         padding: 60px 20px;
         text-align: center;
         border-radius: 24px;
         margin-bottom: 48px;
-        color: white;
+        color: white !important;
     }
-    .docs-hero h1 { font-size: 42px; margin-bottom: 12px; font-weight: 800; }
-    .docs-hero p { font-size: 18px; opacity: 0.95; }
-    .docs-container { max-width: 960px; margin: 0 auto; }
+    .docs-hero h1 { font-size: 42px; margin-bottom: 12px; font-weight: 800; color: white !important; }
+    .docs-hero p { font-size: 18px; opacity: 0.95; color: white !important; }
+    .docs-container { max-width: 960px; margin: 0 auto; padding: 20px; }
     .endpoint-group { margin-bottom: 48px; }
     .endpoint-group h2 {
-        font-size: 28px; font-weight: 700; color: #37352F;
+        font-size: 28px; font-weight: 700; color: #21262D !important;
         margin-bottom: 20px; padding-bottom: 12px;
-        border-bottom: 2px solid #f0f0f0;
+        border-bottom: 2px solid #e5e7eb;
     }
     .endpoint {
-        background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+        background: #ffffff !important; border: 1px solid #e5e7eb !important; border-radius: 12px;
         padding: 20px; margin-bottom: 12px; transition: border-color 0.2s;
     }
-    .endpoint:hover { border-color: #FE3C72; }
+    .endpoint:hover { border-color: #FE3C72 !important; }
     .endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
     .method {
         font-size: 12px; font-weight: 700; padding: 4px 10px;
         border-radius: 6px; font-family: monospace; min-width: 56px; text-align: center;
     }
-    .method.get { background: #DCFCE7; color: #166534; }
-    .method.post { background: #DBEAFE; color: #1E40AF; }
-    .method.put { background: #FEF9C3; color: #854D0E; }
-    .method.delete { background: #FEE2E2; color: #B91C1C; }
-    .endpoint-path { font-family: monospace; font-size: 15px; font-weight: 600; color: #37352F; }
-    .endpoint-desc { font-size: 14px; color: #6b7280; margin-left: 68px; }
+    .method.get { background: #DCFCE7 !important; color: #166534 !important; }
+    .method.post { background: #DBEAFE !important; color: #1E40AF !important; }
+    .method.put { background: #FEF9C3 !important; color: #854D0E !important; }
+    .method.delete { background: #FEE2E2 !important; color: #B91C1C !important; }
+    .endpoint-path { font-family: monospace; font-size: 15px; font-weight: 600; color: #21262D !important; }
+    .endpoint-desc { font-size: 14px; color: #6b7280 !important; margin-left: 68px; }
     .auth-badge {
         font-size: 11px; font-weight: 600; padding: 2px 8px;
-        border-radius: 4px; background: #FFF0F3; color: #FE3C72; margin-left: auto;
+        border-radius: 4px; background: #FFF0F3 !important; color: #FE3C72 !important; margin-left: auto;
     }
-    .tier-note { font-size: 11px; color: #9CA3AF; margin-left: 68px; margin-top: 4px; }
+    .tier-note { font-size: 11px; color: #9CA3AF !important; margin-left: 68px; margin-top: 4px; }
     .info-card {
-        background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px;
+        background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 12px;
         padding: 24px; margin-bottom: 32px;
     }
-    .info-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #37352F; }
-    .info-card p { font-size: 14px; color: #6b7280; line-height: 1.7; margin-bottom: 8px; }
+    .info-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #21262D !important; }
+    .info-card p { font-size: 14px; color: #4b5563 !important; line-height: 1.7; margin-bottom: 8px; }
     .info-card code {
-        background: #E2E8F0; padding: 2px 6px; border-radius: 4px;
-        font-size: 13px; font-family: monospace;
+        background: #E2E8F0 !important; padding: 2px 6px; border-radius: 4px;
+        font-size: 13px; font-family: monospace; color: #21262D !important;
+    }
+    .info-card a { color: #FE3C72 !important; text-decoration: none; }
+    .info-card a:hover { text-decoration: underline; }
+
+    /* Dark mode overrides */
+    [data-theme="dark"] .docs-hero {
+        background: linear-gradient(135deg, rgba(254, 60, 114, 0.2) 0%, rgba(224, 36, 94, 0.1) 100%) !important;
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .docs-hero h1,
+    [data-theme="dark"] .docs-hero p {
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .endpoint-group h2,
+    [data-theme="dark"] .endpoint-path {
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .endpoint {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+    }
+    [data-theme="dark"] .endpoint:hover {
+        border-color: #FE3C72 !important;
+    }
+    [data-theme="dark"] .endpoint-desc,
+    [data-theme="dark"] .tier-note {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .info-card {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+    }
+    [data-theme="dark"] .info-card h3 {
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .info-card p {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .info-card code {
+        background: #0f172a !important;
+        color: #f1f5f9 !important;
     }
 </style>
 {% endblock %}

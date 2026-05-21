@@ -5,28 +5,79 @@
 <style>
 /* Light mode defaults - CRITICAL for visibility */
 .privacy-header {
-    background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%);
+    background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%) !important;
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 32px;
+    border-radius: 16px;
+}
+
+.privacy-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: white !important;
+    margin-bottom: 8px;
+}
+
+.privacy-header p {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 16px;
 }
 
 .privacy-section {
-    background: #ffffff;
-    border-color: #e5e7eb;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
 }
 
-.privacy-section h2,
-.privacy-section h3 {
+.privacy-section h2 {
     color: #FE3C72 !important;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.privacy-section h3 {
+    color: #21262D !important;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 16px;
 }
 
 .privacy-section p,
 .privacy-section li {
     color: #4b5563 !important;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+
+.privacy-section ul {
+    margin-left: 24px;
+}
+
+.privacy-section li {
+    margin-bottom: 8px;
 }
 
 /* Dark mode overrides */
+[data-theme="dark"] .privacy-header {
+    background: linear-gradient(135deg, rgba(254, 60, 114, 0.3) 0%, rgba(255, 107, 157, 0.2) 100%) !important;
+}
+
 [data-theme="dark"] .privacy-section {
-    background: #1e293b;
-    border-color: #334155;
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .privacy-section h2 {
+    color: #FE3C72 !important;
+}
+
+[data-theme="dark"] .privacy-section h3 {
+    color: #f1f5f9 !important;
 }
 
 [data-theme="dark"] .privacy-section p,
