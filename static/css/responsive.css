@@ -349,4 +349,30 @@
     .desktop-only {
         display: none;
     }
+
+    /* Hero Typography Scaling & Prevent Word Splitting */
+    .docs-hero h1,
+    .contact-hero h1,
+    .public-content h1,
+    [class*="-hero"] h1 {
+        font-size: 28px !important;
+        line-height: 1.25 !important;
+        word-break: keep-all !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+    }
+
+    .docs-hero,
+    .contact-hero,
+    [class*="-hero"] {
+        padding: 32px 16px !important;
+        margin-bottom: 24px !important;
+        border-radius: 16px !important;
+    }
+
+    .docs-hero p,
+    .contact-hero p,
+    [class*="-hero"] p {
+        font-size: 15px !important;
+    }
 }
