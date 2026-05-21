@@ -477,7 +477,7 @@
             transform: translateX(-100%);
         }
 
-        .sidebar.active {
+        .sidebar.active, .sidebar.open {
             transform: translateX(0);
         }
 
@@ -579,6 +579,7 @@
         const sidebar = document.getElementById('app-sidebar');
         const toggleBtn = document.querySelector('.sidebar-toggle');
         const isExpanded = sidebar.classList.toggle('active');
+        sidebar.classList.toggle('open', isExpanded);
 
         // Update aria-expanded for accessibility
         if (toggleBtn) {

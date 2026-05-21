@@ -25,8 +25,9 @@
     window.toggleSidebar = function() {
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
-            // On mobile, toggle the 'open' class to slide the drawer in/out from left
+            // On mobile, toggle the 'open' and 'active' classes to slide the drawer in/out from left
             const isOpen = sidebar.classList.toggle('open');
+            sidebar.classList.toggle('active', isOpen);
             if (toggleBtn) {
                 toggleBtn.setAttribute('aria-expanded', isOpen);
             }
@@ -71,11 +72,12 @@
         const mobileToggleBtn = document.querySelector('.mobile-sidebar-toggle-btn');
         const sidebarToggleBtn = document.querySelector('.sidebar-toggle');
 
-        if (sidebar.classList.contains('open') &&
+        if ((sidebar.classList.contains('open') || sidebar.classList.contains('active')) &&
             !sidebar.contains(event.target) &&
             (!mobileToggleBtn || !mobileToggleBtn.contains(event.target)) &&
             (!sidebarToggleBtn || !sidebarToggleBtn.contains(event.target))) {
             sidebar.classList.remove('open');
+            sidebar.classList.remove('active');
         }
     });
 
@@ -88,6 +90,7 @@
             if (isNowDesktop) {
                 // Ensure mobile open state is cleaned up
                 sidebar.classList.remove('open');
+                sidebar.classList.remove('active');
 
                 // Auto-collapse on desktop if not explicitly expanded
                 if (!sidebar.classList.contains('collapsed')) {
