@@ -44,11 +44,16 @@ class AlertingService:
 
     async def _send_slack_alert(self, alert: Dict):
         """Send Slack alert."""
-        severity_emoji = {"info": "ℹ️", "warning": "⚠️", "critical": "🚨"}.get(alert.get("severity"), "ℹ️")
+        severity_emoji = {"info": "ℹ️", "warning": "⚠️", "critical": "🚨"}.get(
+            alert.get("severity"), "ℹ️"
+        )
         print(f"💬 Slack Alert: {severity_emoji} {alert['message']}")
         logger.info(
             "Slack alert",
-            extra={"severity": alert.get("severity"), "alert_message": alert["message"]},
+            extra={
+                "severity": alert.get("severity"),
+                "alert_message": alert["message"],
+            },
         )
 
     async def _send_webhook_alert(self, alert: Dict):

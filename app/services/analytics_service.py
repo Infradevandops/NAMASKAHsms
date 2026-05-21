@@ -9,9 +9,7 @@ from app.models.verification import Verification
 
 
 class AnalyticsService:
-
     def __init__(self, db: Session):
-
         self.db = db
 
     async def get_overview(self):

@@ -16,7 +16,6 @@ request_duration = Histogram(
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
-
     async def dispatch(self, request: Request, call_next):
         start = time.time()
         response = await call_next(request)

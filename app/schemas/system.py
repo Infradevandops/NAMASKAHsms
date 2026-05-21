@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 
 class ServiceStatus(BaseModel):
-
     name: str
     status: str
     response_time: Optional[float] = None
@@ -14,14 +13,12 @@ class ServiceStatus(BaseModel):
 
 
 class ServiceStatusSummary(BaseModel):
-
     overall_status: str
     services: Dict[str, ServiceStatus]
     timestamp: str
 
 
 class SupportTicketResponse(BaseModel):
-
     id: str
     name: str
     email: str

@@ -596,7 +596,6 @@ def get_system_health(
     """Get comprehensive system health status (admin only)."""
     # Database health
     try:
-
         db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception:

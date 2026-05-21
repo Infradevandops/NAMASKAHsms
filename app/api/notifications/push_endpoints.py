@@ -221,7 +221,6 @@ async def send_test_push_notification(
         Results of push notification delivery
     """
     try:
-
         # Get user's active devices
         devices = (
             db.query(DeviceToken)
@@ -290,7 +289,6 @@ async def get_push_preferences(
         Push notification preferences
     """
     try:
-
         preferences = (
             db.query(NotificationPreference)
             .filter_by(
@@ -339,7 +337,6 @@ async def update_push_preference(
         Updated preference
     """
     try:
-
         preference = (
             db.query(NotificationPreference)
             .filter_by(

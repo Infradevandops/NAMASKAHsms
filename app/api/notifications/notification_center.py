@@ -364,7 +364,6 @@ async def export_notifications(
         )
 
         if format == "csv":
-
             output = io.StringIO()
             writer = csv.DictWriter(
                 output,

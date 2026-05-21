@@ -6,7 +6,6 @@ from app.models.base import BaseModel
 
 
 class AuditLog(BaseModel):
-
     __tablename__ = "audit_logs"
 
     user_id = Column(String(36), nullable=True, index=True)

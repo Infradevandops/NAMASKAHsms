@@ -19,5 +19,9 @@ class Rental(Base):
     phone_number = Column(String(20), nullable=False)
     cost = Column(Float, nullable=False, default=0.0)
     status = Column(String(50), nullable=False, default="active")
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc)
+    )

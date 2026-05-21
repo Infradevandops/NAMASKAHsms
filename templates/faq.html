@@ -5,6 +5,8 @@
 {% block head_extra %}
 <style>
 /* Light mode defaults - CRITICAL for visibility */
+/* OVERRIDE parent .public-content styles with higher specificity */
+.public-content .faq-item,
 .faq-item {
   border: 1px solid #e5e7eb !important;
   margin-bottom: 8px;
@@ -12,6 +14,7 @@
   overflow: hidden;
 }
 
+.public-content .faq-q,
 .faq-q {
   background: #ffffff !important;
   color: #21262D !important;
@@ -29,10 +32,12 @@
   transition: background 0.2s;
 }
 
+.public-content .faq-q:hover,
 .faq-q:hover {
   background: #f9fafb !important;
 }
 
+.public-content .faq-a,
 .faq-a {
   display: none;
   padding: 0 20px 16px;
@@ -42,6 +47,7 @@
   background: #ffffff !important;
 }
 
+.public-content #faq-search,
 #faq-search {
   width: 100%;
   padding: 12px 16px;
@@ -55,18 +61,17 @@
   color: #21262D !important;
 }
 
+.public-content #faq-search:focus,
 #faq-search:focus {
   border-color: #FE3C72 !important;
 }
 
-h1, h2 {
+.public-content h1,
+.public-content h2 {
   color: #21262D !important;
 }
 
-p {
-  color: #6b7280 !important;
-}
-
+.public-content .faq-icon,
 .faq-icon {
   color: #FE3C72 !important;
   font-size: 18px;

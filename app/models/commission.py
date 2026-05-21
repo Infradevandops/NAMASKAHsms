@@ -16,7 +16,6 @@ from app.models.base import BaseModel
 
 
 class CommissionTier(BaseModel):
-
     __tablename__ = "commission_tiers"
 
     name = Column(String(50), nullable=False, unique=True)
@@ -33,7 +32,6 @@ class CommissionTier(BaseModel):
 
 
 class RevenueShare(BaseModel):
-
     __tablename__ = "revenue_shares"
 
     partner_id = Column(String, ForeignKey("users.id"), nullable=False)
@@ -54,7 +52,6 @@ class RevenueShare(BaseModel):
 
 
 class PayoutRequest(BaseModel):
-
     __tablename__ = "payout_requests"
 
     affiliate_id = Column(String, ForeignKey("users.id"), nullable=False)

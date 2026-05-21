@@ -4,6 +4,8 @@
 {% block head_extra %}
 <style>
 /* Light mode defaults - CRITICAL for visibility */
+/* OVERRIDE parent .public-content styles with higher specificity */
+.public-content .privacy-header,
 .privacy-header {
     background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%) !important;
     text-align: center;
@@ -12,6 +14,7 @@
     border-radius: 16px;
 }
 
+.public-content .privacy-header h1,
 .privacy-header h1 {
     font-size: 36px;
     font-weight: 800;
@@ -19,11 +22,13 @@
     margin-bottom: 8px;
 }
 
+.public-content .privacy-header p,
 .privacy-header p {
     color: rgba(255, 255, 255, 0.9) !important;
     font-size: 16px;
 }
 
+.public-content .privacy-section,
 .privacy-section {
     background: #ffffff !important;
     border: 1px solid #e5e7eb !important;
@@ -32,6 +37,7 @@
     margin-bottom: 32px;
 }
 
+.public-content .privacy-section h2,
 .privacy-section h2 {
     color: #FE3C72 !important;
     font-size: 24px;
@@ -39,6 +45,7 @@
     margin-bottom: 16px;
 }
 
+.public-content .privacy-section h3,
 .privacy-section h3 {
     color: #21262D !important;
     font-size: 18px;
@@ -47,6 +54,8 @@
     margin-top: 16px;
 }
 
+.public-content .privacy-section p,
+.public-content .privacy-section li,
 .privacy-section p,
 .privacy-section li {
     color: #4b5563 !important;
@@ -54,10 +63,12 @@
     margin-bottom: 12px;
 }
 
+.public-content .privacy-section ul,
 .privacy-section ul {
     margin-left: 24px;
 }
 
+.public-content .privacy-section li,
 .privacy-section li {
     margin-bottom: 8px;
 }

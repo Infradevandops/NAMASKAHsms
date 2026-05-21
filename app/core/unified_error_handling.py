@@ -41,7 +41,6 @@ class NamaskahException(Exception):
 
 
 class AuthenticationError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Authentication failed",
@@ -51,7 +50,6 @@ class AuthenticationError(NamaskahException):
 
 
 class AuthorizationError(NamaskahException):
-
     def __init__(
         self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None
     ):
@@ -59,7 +57,6 @@ class AuthorizationError(NamaskahException):
 
 
 class ValidationError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Validation failed",
@@ -69,7 +66,6 @@ class ValidationError(NamaskahException):
 
 
 class ExternalServiceError(NamaskahException):
-
     def __init__(
         self,
         service: str,
@@ -82,7 +78,6 @@ class ExternalServiceError(NamaskahException):
 
 
 class DatabaseError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Database operation failed",
@@ -92,7 +87,6 @@ class DatabaseError(NamaskahException):
 
 
 class PaymentError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Payment processing failed",
@@ -102,7 +96,6 @@ class PaymentError(NamaskahException):
 
 
 class InsufficientCreditsError(NamaskahException):
-
     def __init__(self, required_or_message, available=None):
         if available is not None:
             message = f"Insufficient credits. Required: {required_or_message}, Available: {available}"
@@ -114,7 +107,6 @@ class InsufficientCreditsError(NamaskahException):
 
 
 class VerificationError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Verification failed",
@@ -124,7 +116,6 @@ class VerificationError(NamaskahException):
 
 
 class RentalError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Rental operation failed",
@@ -134,7 +125,6 @@ class RentalError(NamaskahException):
 
 
 class RateLimitError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Rate limit exceeded",
@@ -144,7 +134,6 @@ class RateLimitError(NamaskahException):
 
 
 class ServiceUnavailableError(NamaskahException):
-
     def __init__(
         self,
         message: str = "Service temporarily unavailable",

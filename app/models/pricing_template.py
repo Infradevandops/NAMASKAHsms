@@ -50,7 +50,6 @@ class PricingTemplate(Base):
     creator = relationship("User", foreign_keys=[created_by])
 
     def __repr__(self):
-
         return f"<PricingTemplate(name='{self.name}', active={self.is_active}, region='{self.region}')>"
 
 

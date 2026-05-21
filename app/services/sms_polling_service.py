@@ -20,7 +20,6 @@ logger = get_logger(__name__)
 
 
 class SMSPollingService:
-
     def __init__(self):
         self.textverified = TextVerifiedService()
         self.adaptive = AdaptivePollingService()

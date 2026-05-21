@@ -8,7 +8,6 @@ from app.models.base import BaseModel
 
 
 class APIKey(BaseModel):
-
     __tablename__ = "api_keys"
 
     id = Column(

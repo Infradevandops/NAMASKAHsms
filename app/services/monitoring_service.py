@@ -10,7 +10,6 @@ from app.models.verification import Verification
 
 @dataclass
 class MetricPoint:
-
     timestamp: datetime
     value: float
     labels: Dict[str, str] = None
@@ -20,7 +19,6 @@ class MonitoringService:
     """Advanced monitoring and metrics collection."""
 
     def __init__(self):
-
         self.metrics_buffer = []
         self.alerts = []
         self.thresholds = {

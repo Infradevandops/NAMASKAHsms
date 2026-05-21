@@ -16,7 +16,6 @@ class AvailabilityService:
     """Track and report SMS verification success rates."""
 
     def __init__(self, db: Session):
-
         self.db = db
 
     def get_service_availability(

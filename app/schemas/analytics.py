@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 
 class ServiceUsage(BaseModel):
-
     service: str
     count: int
     success_rate: float
@@ -15,7 +14,6 @@ class ServiceUsage(BaseModel):
 
 
 class DailyUsage(BaseModel):
-
     date: str
     count: int
     cost: float
@@ -23,7 +21,6 @@ class DailyUsage(BaseModel):
 
 
 class CountryAnalytics(BaseModel):
-
     country: str
     count: int
     success_rate: float
@@ -31,14 +28,12 @@ class CountryAnalytics(BaseModel):
 
 
 class TrendData(BaseModel):
-
     period: str
     value: float
     change_percent: Optional[float] = None
 
 
 class PredictiveInsight(BaseModel):
-
     metric: str
     prediction: float
     confidence: float
@@ -46,7 +41,6 @@ class PredictiveInsight(BaseModel):
 
 
 class AnalyticsResponse(BaseModel):
-
     total_verifications: int
     success_rate: float
     total_spent: float
@@ -60,7 +54,6 @@ class AnalyticsResponse(BaseModel):
 
 
 class BusinessMetrics(BaseModel):
-
     revenue: float
     profit_margin: float
     customer_lifetime_value: float
@@ -69,7 +62,6 @@ class BusinessMetrics(BaseModel):
 
 
 class CompetitiveAnalysis(BaseModel):
-
     market_position: str
     cost_comparison: Dict[str, float]
     service_availability: Dict[str, bool]

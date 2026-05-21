@@ -148,7 +148,9 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             "type": "refresh",
         }
         refresh_token = jwt.encode(
-            refresh_token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+            refresh_token_data,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
         )
 
         # Update last login
@@ -313,7 +315,11 @@ async def get_current_user(
             "email": user.email,
             "username": user.email.split("@")[0],
             "credits": float(user.credits) if user.credits else 0.0,
-            "free_verifications": int(user.free_verifications) if hasattr(user, 'free_verifications') and user.free_verifications else 0,
+            "free_verifications": (
+                int(user.free_verifications)
+                if hasattr(user, "free_verifications") and user.free_verifications
+                else 0
+            ),
             "is_active": user.is_active,
         }
 

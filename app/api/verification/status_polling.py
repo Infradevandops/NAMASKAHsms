@@ -21,7 +21,6 @@ router = APIRouter(prefix="/verification", tags=["verification-status"])
 
 
 class VerificationStatusService:
-
     def __init__(self, db: Session):
         self.db = db
         self.textverified = TextVerifiedService()

@@ -21,7 +21,6 @@ class PricingTemplateService:
     """Service for managing pricing templates"""
 
     def __init__(self, db: Session):
-
         self.db = db
 
     def get_active_template(

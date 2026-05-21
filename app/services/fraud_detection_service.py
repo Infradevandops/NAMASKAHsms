@@ -11,7 +11,6 @@ class FraudDetectionService:
     """Detects fraudulent verification attempts."""
 
     def __init__(self):
-
         self.model = None
         self.threshold = 0.7
 

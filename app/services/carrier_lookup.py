@@ -70,7 +70,6 @@ class CarrierLookupService:
                     params=params,
                     timeout=aiohttp.ClientTimeout(total=NUMVERIFY_TIMEOUT),
                 ) as response:
-
                     if response.status != 200:
                         error_text = await response.text()
                         logger.error(

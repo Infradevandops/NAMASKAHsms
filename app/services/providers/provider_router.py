@@ -31,7 +31,6 @@ logger = get_logger(__name__)
 
 
 class ProviderRouter:
-
     def __init__(self):
         self._textverified: Optional[TextVerifiedAdapter] = None
         self._telnyx: Optional[TelnyxAdapter] = None

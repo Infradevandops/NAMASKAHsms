@@ -4,6 +4,8 @@
 {% block head_extra %}
 <style>
 /* Light mode defaults - CRITICAL for visibility */
+/* OVERRIDE parent .public-content styles with higher specificity */
+.public-content .terms-header,
 .terms-header {
     background: linear-gradient(135deg, rgba(254, 60, 114, 0.1) 0%, rgba(255, 107, 157, 0.05) 100%) !important;
     border: 1px solid rgba(254, 60, 114, 0.2) !important;
@@ -13,6 +15,7 @@
     border-radius: 16px;
 }
 
+.public-content .terms-header h1,
 .terms-header h1 {
     font-size: 36px;
     font-weight: 800;
@@ -20,11 +23,13 @@
     margin-bottom: 8px;
 }
 
+.public-content .terms-header p,
 .terms-header p {
     color: #6b7280 !important;
     font-size: 16px;
 }
 
+.public-content .terms-section,
 .terms-section {
     background: #ffffff !important;
     border: 1px solid #e5e7eb !important;
@@ -33,6 +38,7 @@
     margin-bottom: 32px;
 }
 
+.public-content .terms-section h2,
 .terms-section h2 {
     color: #FE3C72 !important;
     font-size: 24px;
@@ -40,6 +46,7 @@
     margin-bottom: 16px;
 }
 
+.public-content .terms-section h3,
 .terms-section h3 {
     color: #21262D !important;
     font-size: 18px;
@@ -47,6 +54,8 @@
     margin-bottom: 12px;
 }
 
+.public-content .terms-section p,
+.public-content .terms-section li,
 .terms-section p,
 .terms-section li {
     color: #4b5563 !important;
@@ -54,14 +63,17 @@
     margin-bottom: 12px;
 }
 
+.public-content .terms-section ul,
 .terms-section ul {
     margin-left: 24px;
 }
 
+.public-content .terms-section li,
 .terms-section li {
     margin-bottom: 8px;
 }
 
+.public-content .warning-box,
 .warning-box {
     background: rgba(239, 68, 68, 0.1) !important;
     border-left: 4px solid #ef4444 !important;
@@ -70,6 +82,7 @@
     margin-top: 16px;
 }
 
+.public-content .warning-box p,
 .warning-box p {
     color: #21262D !important;
     font-weight: 600;

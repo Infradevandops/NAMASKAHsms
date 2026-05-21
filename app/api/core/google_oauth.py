@@ -23,6 +23,7 @@ settings = get_settings()
 
 class GoogleTokenRequest(BaseModel):
     """Google token request model."""
+
     token: str
 
 
@@ -30,9 +31,13 @@ class GoogleTokenRequest(BaseModel):
 async def google_config():
     """Get Google OAuth configuration."""
     return {
-        "client_id": settings.google_client_id if hasattr(settings, 'google_client_id') else "",
+        "client_id": (
+            settings.google_client_id if hasattr(settings, "google_client_id") else ""
+        ),
         "features": {
-            "enabled": bool(hasattr(settings, 'google_client_id') and settings.google_client_id),
+            "enabled": bool(
+                hasattr(settings, "google_client_id") and settings.google_client_id
+            ),
             "auto_create_account": True,
             "email_verification_required": False,
         },
@@ -83,14 +88,18 @@ async def google_login(request: Request):
 async def google_auth(token_request: GoogleTokenRequest, db: Session = Depends(get_db)):
     """Authenticate with Google ID token."""
     try:
-        from google.oauth2 import id_token
         from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token
 
         # Verify the token
         idinfo = id_token.verify_oauth2_token(
             token_request.token,
             google_requests.Request(),
-            settings.google_client_id if hasattr(settings, 'google_client_id') else None
+            (
+                settings.google_client_id
+                if hasattr(settings, "google_client_id")
+                else None
+            ),
         )
 
         google_id = idinfo.get("sub")
@@ -104,9 +113,11 @@ async def google_auth(token_request: GoogleTokenRequest, db: Session = Depends(g
             )
 
         # Check if user exists
-        user = db.query(User).filter(
-            (User.email == email) | (User.google_id == google_id)
-        ).first()
+        user = (
+            db.query(User)
+            .filter((User.email == email) | (User.google_id == google_id))
+            .first()
+        )
 
         if user:
             if not user.google_id:
@@ -129,12 +140,14 @@ async def google_auth(token_request: GoogleTokenRequest, db: Session = Depends(g
 
         # Generate JWT
         import uuid
+
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
             "iat": datetime.now(timezone.utc),
             "jti": str(uuid.uuid4()),
-            "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours),
+            "exp": datetime.now(timezone.utc)
+            + timedelta(hours=settings.jwt_expiration_hours),
         }
         access_token = jwt.encode(
             token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm

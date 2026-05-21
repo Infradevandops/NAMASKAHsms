@@ -5,6 +5,10 @@
 {% block head_extra %}
 <style>
 /* Light mode defaults - CRITICAL */
+/* OVERRIDE parent .public-content styles with higher specificity */
+.public-content .benefit-card,
+.public-content .commission-section,
+.public-content .faq-item,
 .benefit-card,
 .commission-section,
 .faq-item {
@@ -12,11 +16,13 @@
   border: 1px solid #e5e7eb !important;
 }
 
+.public-content .commission-table,
 .commission-table {
   width: 100%;
   border-collapse: collapse;
 }
 
+.public-content .commission-table th,
 .commission-table th {
   background: #f9fafb !important;
   color: #21262D !important;
@@ -26,34 +32,41 @@
   font-weight: 600;
 }
 
+.public-content .commission-table td,
 .commission-table td {
   padding: 16px;
   border-bottom: 1px solid #e5e7eb;
   color: #4b5563 !important;
 }
 
+.public-content .commission-table tbody tr,
 .commission-table tbody tr {
   transition: background 0.2s;
 }
 
+.public-content .commission-table tbody tr:hover,
 .commission-table tbody tr:hover {
   background: #f9fafb !important;
 }
 
-h1, h2, h3 {
+.public-content h1,
+.public-content h2,
+.public-content h3 {
   color: #21262D !important;
 }
 
-p, td, li {
-  color: #4b5563 !important;
-}
-
+.public-content .benefit-card h3,
+.public-content .commission-section h2,
+.public-content .faq-item h3,
 .benefit-card h3,
 .commission-section h2,
 .faq-item h3 {
   color: #21262D !important;
 }
 
+.public-content .benefit-card p,
+.public-content .commission-section p,
+.public-content .faq-item p,
 .benefit-card p,
 .commission-section p,
 .faq-item p {

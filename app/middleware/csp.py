@@ -5,7 +5,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class CSPMiddleware(BaseHTTPMiddleware):
-
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
