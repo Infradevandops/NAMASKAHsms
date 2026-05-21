@@ -63,6 +63,14 @@
         margin-bottom: 24px;
     }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted, #9CA3AF); }
+    @media (max-width: 425px) {
+        #createModal > div, #showKeyModal > div {
+            padding: 20px !important;
+        }
+        .key-info {
+            grid-template-columns: 1fr !important;
+        }
+    }
 </style>
 {% endblock %}
 

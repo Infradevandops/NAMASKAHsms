@@ -114,11 +114,31 @@
 [data-theme="dark"] p {
   color: #cbd5e1 !important;
 }
+
+/* Mobile responsive rules */
+@media (max-width: 768px) {
+  .public-content .faq-q, .faq-q {
+    padding: 14px 16px !important;
+    font-size: 14px !important;
+  }
+  .public-content .faq-a, .faq-a {
+    padding: 0 16px 12px !important;
+    font-size: 13px !important;
+  }
+  .public-content #faq-search, #faq-search {
+    font-size: 16px !important; /* iOS auto-zoom prevention */
+    padding: 14px 16px !important;
+    margin-bottom: 24px !important;
+  }
+  .faq-section {
+    margin-bottom: 20px !important;
+  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto p-section">
 
   <!-- Header -->
   <div class="text-center mb-10">

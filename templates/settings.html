@@ -244,6 +244,15 @@
             transform: translateY(0);
         }
     }
+
+    [data-theme="dark"] .settings-nav {
+        background: rgba(15, 23, 42, 0.95) !important;
+        border-top-color: #334155 !important;
+    }
+    [data-theme="dark"] .settings-nav-item:hover {
+        color: #FE3C72 !important;
+        background: rgba(254, 60, 114, 0.1) !important;
+    }
 </style>
 {% endblock %}
 
@@ -685,7 +694,7 @@
                 </div>
                 <h3 style="margin-bottom: 16px;">Recent Referrals</h3>
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse;">
+                    <table class="responsive-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
                                 <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">User ID</th>
@@ -2163,10 +2172,10 @@
                 const tbody = document.getElementById('referrals-list');
                 const refs = data.referrals || [];
                 tbody.innerHTML = refs.length ? refs.map(r => `<tr>
-                    <td style="padding:12px">${r.user_id || '-'}</td>
-                    <td style="padding:12px">${r.email || '-'}</td>
-                    <td style="padding:12px">${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
-                    <td style="padding:12px">${r.status || '-'}</td>
+                    <td data-label="User ID" style="padding:12px">${r.user_id || '-'}</td>
+                    <td data-label="Email" style="padding:12px">${r.email || '-'}</td>
+                    <td data-label="Date Joined" style="padding:12px">${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
+                    <td data-label="Status" style="padding:12px">${r.status || '-'}</td>
                 </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted, #9CA3AF);">No referrals yet</td></tr>';
             } catch(e) { console.error('Failed to load referrals', e); }
         }

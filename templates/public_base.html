@@ -19,22 +19,20 @@
 .public-content a { color: #FE3C72; }
 
 /* Mobile Menu - FORCE HIDE on desktop */
-.mobile-menu-btn { display: none !important; background: none; border: none; font-size: 24px; cursor: pointer; color: #21262D; padding: 8px; min-width: 44px; min-height: 44px; }
-.mobile-menu { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border-bottom: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; }
+.mobile-menu-btn { display: none !important; background: none; border: none; font-size: 24px; cursor: pointer; color: #21262D; padding: 8px; min-width: 44px; min-height: 44px; transition: background 0.2s; }
+.mobile-menu-btn:hover { background: rgba(0,0,0,0.05); }
+.mobile-menu { display: none !important; position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border-bottom: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 40; max-height: calc(100vh - 70px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .mobile-menu.active { display: block !important; }
-.mobile-menu a { display: block; padding: 16px 20px; color: #21262D; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.mobile-menu a { display: block; padding: 16px 20px; color: #21262D; text-decoration: none; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.2s; }
 .mobile-menu a:hover { background: #f9fafb; color: #FE3C72; }
+.mobile-menu a:active { background: #f3f4f6; }
 
 /* Dark mode overrides */
-[data-theme="dark"] .public-layout { background: #0f172a; color: #f1f5f9; }
-[data-theme="dark"] .public-header { background: #1e293b; border-bottom-color: rgba(255,255,255,0.1); }
-[data-theme="dark"] .nav-links a { color: #f1f5f9; }
-[data-theme="dark"] .public-content { background: #0f172a; color: #f1f5f9; }
-[data-theme="dark"] .public-content h1, [data-theme="dark"] .public-content h2, [data-theme="dark"] .public-content h3 { color: #f1f5f9 !important; }
-[data-theme="dark"] .public-content p, [data-theme="dark"] .public-content li { color: #cbd5e1 !important; }
-[data-theme="dark"] .mobile-menu { background: #1e293b; }
-[data-theme="dark"] .mobile-menu a { color: #f1f5f9; }
 [data-theme="dark"] .mobile-menu-btn { color: #f1f5f9; }
+[data-theme="dark"] .mobile-menu-btn:hover { background: rgba(255,255,255,0.1); }
+[data-theme="dark"] .mobile-menu { background: #1e293b; border-bottom-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .mobile-menu a { color: #f1f5f9; border-bottom-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] .mobile-menu a:hover { background: #334155; color: #FE3C72; }
 
 /* Theme toggle button specific dark-mode colors */
 .theme-toggle-btn { color: #21262D; border-color: rgba(0,0,0,0.1); }
@@ -128,6 +126,19 @@ function toggleMobileMenu() {
     icon.textContent = menu.classList.contains('active') ? '✕' : '☰';
 }
 
+// Close mobile menu when clicking on a link
+document.addEventListener('DOMContentLoaded', function() {
+    const menu = document.getElementById('mobile-menu');
+    const links = menu ? menu.querySelectorAll('a') : [];
+
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            menu.classList.remove('active');
+            document.getElementById('menu-icon').textContent = '☰';
+        });
+    });
+});
+
 // Close mobile menu when clicking outside
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('mobile-menu');
@@ -135,6 +146,17 @@ document.addEventListener('click', function(event) {
     if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target)) {
         menu.classList.remove('active');
         document.getElementById('menu-icon').textContent = '☰';
+    }
+});
+
+// Close mobile menu on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const menu = document.getElementById('mobile-menu');
+        if (menu) {
+            menu.classList.remove('active');
+            document.getElementById('menu-icon').textContent = '☰';
+        }
     }
 });
 </script>

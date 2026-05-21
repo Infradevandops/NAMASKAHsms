@@ -1,15 +1,99 @@
 {% extends "public_base.html" %}
 
+{% block head_extra %}
+{{ super() }}
+<style>
+    .success-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 0 20px;
+    }
+    .success-emoji {
+        font-size: 80px;
+        margin-bottom: 24px;
+    }
+    .success-title {
+        font-size: 32px;
+        margin-bottom: 16px;
+        color: #10b981;
+        font-weight: 700;
+    }
+    .success-text {
+        font-size: 18px;
+        color: var(--text-muted, #9CA3AF);
+        margin-bottom: 32px;
+    }
+    .success-card {
+        background: var(--bg-card, white);
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: var(--radius-card, 16px);
+        padding: 24px;
+        box-shadow: var(--shadow-soft, 0 4px 12px rgba(0,0,0,0.05));
+        margin-bottom: 32px;
+    }
+    .success-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        text-align: left;
+    }
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .success-container {
+            margin: 40px auto;
+        }
+        .success-emoji {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+        .success-title {
+            font-size: 26px;
+            margin-bottom: 12px;
+        }
+        .success-text {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        .success-card {
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .success-grid {
+            gap: 16px;
+        }
+    }
+    @media (max-width: 425px) {
+        .success-grid {
+            grid-template-columns: 1fr;
+        }
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        .btn-group button {
+            width: 100%;
+            min-height: 44px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block public_content %}
-<div style="max-width: 600px; margin: 80px auto; text-align: center;">
-    <div style="font-size: 80px; margin-bottom: 24px;">✅</div>
-    <h1 style="font-size: 32px; margin-bottom: 16px; color: #10b981;">Payment Successful!</h1>
-    <p style="font-size: 18px; color: var(--text-muted, #9CA3AF); margin-bottom: 32px;">
+<div class="success-container">
+    <div class="success-emoji">✅</div>
+    <h1 class="success-title">Payment Successful!</h1>
+    <p class="success-text">
         Your credits have been added to your account
     </p>
 
-    <div style="background: var(--bg-card); border-radius: var(--radius-card); padding: 24px; box-shadow: var(--shadow-soft); margin-bottom: 32px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: left;">
+    <div class="success-card">
+        <div class="success-grid">
             <div>
                 <div style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin-bottom: 4px;">Amount Paid</div>
                 <div style="font-size: 24px; font-weight: 700;" id="amount-paid">$0.00</div>
@@ -29,7 +113,7 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 12px; justify-content: center;">
+    <div class="btn-group">
         <button class="btn" onclick="window.location.href='/dashboard'" style="padding: 12px 24px;">
             Go to Dashboard
         </button>

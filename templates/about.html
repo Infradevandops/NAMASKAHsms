@@ -10,32 +10,32 @@
 [data-theme="dark"] .card, [data-theme="dark"] .box { background: #1e293b; border-color: #334155; }
     .about-hero {
         background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
-        padding: 80px 20px;
+        padding: var(--space-10) var(--space-6);
         text-align: center;
         border-radius: 24px;
-        margin-bottom: 60px;
+        margin-bottom: var(--space-10);
         color: white;
     }
     .about-hero h1 {
-        font-size: 48px;
+        font-size: var(--font-size-4xl);
         margin-bottom: 16px;
         font-weight: 800;
     }
     .about-hero p {
-        font-size: 20px;
+        font-size: var(--font-size-2xl);
         opacity: 0.95;
     }
     .section {
-        margin-bottom: 60px;
+        margin-bottom: var(--space-10);
     }
     .section h2 {
-        font-size: 36px;
+        font-size: var(--font-size-3xl);
         margin-bottom: 24px;
         color: #37352F;
         font-weight: 700;
     }
     .section p {
-        font-size: 18px;
+        font-size: var(--font-size-lg);
         color: #6b7280;
         line-height: 1.8;
         margin-bottom: 16px;
@@ -174,7 +174,7 @@
 {% endblock %}
 
 {% block public_content %}
-<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+<div class="container p-section" style="max-width: 1200px; margin: 0 auto;">
 
     <div class="about-hero">
         <h1>About Vrenum</h1>

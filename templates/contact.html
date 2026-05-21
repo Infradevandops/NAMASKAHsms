@@ -178,15 +178,35 @@
         transform: translateY(-2px);
     }
     @media (max-width: 768px) {
+        .contact-hero {
+            padding: var(--space-10) var(--space-5);
+            margin-bottom: var(--space-8);
+            border-radius: 16px;
+        }
+        .contact-hero h1 { font-size: var(--font-size-4xl); }
+        .contact-hero p { font-size: var(--font-size-xl); }
         .contact-grid {
             grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .contact-info, .form-container {
+            padding: var(--space-8) var(--space-6);
+        }
+        .contact-info h2, .form-container h2 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-6);
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            padding: 12px;
+            font-size: 16px;
+            min-height: 44px;
         }
     }
 </style>
 {% endblock %}
 
 {% block public_content %}
-<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+<div class="container p-section" style="max-width: 1200px; margin: 0 auto;">
 
     <div class="contact-hero">
         <h1>Get in Touch</h1>

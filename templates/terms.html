@@ -130,11 +130,39 @@
 [data-theme="dark"] .warning-box p {
     color: #f1f5f9 !important;
 }
+
+@media (max-width: 768px) {
+    .public-content .terms-header, .terms-header {
+        padding: 24px 16px !important;
+        margin-bottom: 24px !important;
+        border-radius: 12px !important;
+    }
+    .public-content .terms-header h1, .terms-header h1 {
+        font-size: 26px !important;
+    }
+    .public-content .terms-section, .terms-section {
+        padding: 16px !important;
+        margin-bottom: 20px !important;
+        border-radius: 8px !important;
+    }
+    .public-content .terms-section h2, .terms-section h2 {
+        font-size: 20px !important;
+        margin-bottom: 12px !important;
+    }
+    .public-content .terms-section h3, .terms-section h3 {
+        font-size: 16px !important;
+        margin-bottom: 8px !important;
+    }
+    .public-content .warning-box, .warning-box {
+        padding: 12px !important;
+        margin-top: 12px !important;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-12 px-6">
+<div class="max-w-4xl mx-auto p-section">
 
         <div class="terms-header text-center mb-12 p-8 rounded-2xl" style="background: linear-gradient(135deg, rgba(254, 60, 114, 0.1) 0%, rgba(255, 107, 157, 0.05) 100%); border: 1px solid rgba(254, 60, 114, 0.2);">
             <h1 class="text-4xl font-bold mb-2" style="color: var(--text-primary, #21262D);">Terms of Service</h1>

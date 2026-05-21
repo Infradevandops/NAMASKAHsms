@@ -51,6 +51,29 @@
         .api-key-display { background: #f8f9fa; padding: 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .download-btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; margin-top: 12px; }
         .download-btn:hover { background: #5568d3; }
+        @media (max-width: 768px) {
+            .docs-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+            .docs-sidebar {
+                position: relative !important;
+                top: 0 !important;
+            }
+            .docs-content {
+                padding: 20px !important;
+            }
+            .sdk-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .tab-buttons {
+                flex-wrap: wrap !important;
+            }
+            .param-table {
+                display: block !important;
+                overflow-x: auto !important;
+            }
+        }
     </style>
   <link rel="stylesheet" href="/static/css/pwa-mobile.css">
 </head>
@@ -460,7 +483,7 @@ console.log(data);</pre>
                         <p class="section-text">
                             Official SDKs and community libraries to integrate vrenum.app into your application.
                         </p>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
+                        <div class="sdk-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
                             <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
                                 <h4 style="margin-bottom: 8px;">🐍 Python SDK</h4>
                                 <p style="font-size: 13px; color: #666; margin-bottom: 12px;">Official Python library</p>

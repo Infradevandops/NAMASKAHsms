@@ -147,6 +147,47 @@
     --max-content-width: 1200px;
 }
 
+/* Mobile Responsiveness Design Tokens */
+@media (max-width: 768px) {
+    :root {
+        /* Mobile Typography Override */
+        --font-size-4xl: 28px;      /* Hero h1 */
+        --font-size-3xl: 24px;      /* Section h2 */
+        --font-size-2xl: 20px;      /* Card h3 */
+        --font-size-xl: 16px;       /* Regular text */
+        --font-size-lg: 15px;
+        --font-size-base: 14px;
+
+        /* Mobile Spacing Override */
+        --space-10: 28px;           /* Large sections */
+        --space-8: 20px;            /* Cards */
+        --space-6: 16px;            /* Subsections */
+        --space-5: 12px;            /* Small gaps */
+        --space-4: 12px;            /* Minimum padding */
+    }
+}
+
+@media (max-width: 425px) {
+    :root {
+        --font-size-4xl: 24px;
+        --font-size-3xl: 20px;
+        --font-size-2xl: 18px;
+        --space-10: 20px;
+        --space-8: 16px;
+        --space-6: 12px;
+    }
+}
+
+@media (max-width: 320px) {
+    :root {
+        --font-size-4xl: 22px;
+        --font-size-3xl: 18px;
+        --font-size-2xl: 16px;
+        --space-10: 16px;
+        --space-8: 12px;
+    }
+}
+
 /* ============================================
    2. RESET & BASE
    ============================================ */

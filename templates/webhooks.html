@@ -161,11 +161,44 @@
         gap: 8px;
         font-size: 14px;
     }
+    @media (max-width: 768px) {
+        .webhook-header-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 16px !important;
+        }
+        .webhook-header-row button {
+            width: 100% !important;
+            min-height: 44px !important;
+        }
+    }
+    @media (max-width: 576px) {
+        .modal-content {
+            padding: 20px !important;
+            width: 95% !important;
+        }
+        .event-selector {
+            grid-template-columns: 1fr !important;
+        }
+        .webhook-info {
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+        .webhook-actions {
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+        .webhook-actions .btn {
+            width: 100% !important;
+            min-height: 44px !important;
+            justify-content: center !important;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+<div class="webhook-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
     <div>
         <h1 style="margin: 0;">Webhook Builder</h1>
         <p style="color: var(--text-muted, #9CA3AF); margin: 4px 0 0 0;">Build custom real-time integrations for your business

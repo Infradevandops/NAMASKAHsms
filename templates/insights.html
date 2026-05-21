@@ -128,7 +128,7 @@
     <!-- Recent Refunds -->
     <div class="insight-card">
         <div class="insight-title">Recent Refunds</div>
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="responsive-table" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 2px solid rgba(0,0,0,0.05);">
                     <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted, #9CA3AF);">Amount</th>
@@ -302,14 +302,14 @@
 
         tbody.innerHTML = refunds.map(r => `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <td style="padding: 12px;">${formatMoney(r.amount || 0)}</td>
-                <td style="padding: 12px;">${r.reason || '-'}</td>
-                <td style="padding: 12px;">
+                <td data-label="Amount" style="padding: 12px;">${formatMoney(r.amount || 0)}</td>
+                <td data-label="Reason" style="padding: 12px;">${r.reason || '-'}</td>
+                <td data-label="Status" style="padding: 12px;">
                     <span class="status-badge status-${r.status === 'completed' || r.status === 'success' ? 'success' : r.status === 'pending' ? 'warning' : 'danger'}">
                         ${r.status}
                     </span>
                 </td>
-                <td style="padding: 12px;">${r.initiated_at ? new Date(r.initiated_at).toLocaleDateString() : '-'}</td>
+                <td data-label="Date" style="padding: 12px;">${r.initiated_at ? new Date(r.initiated_at).toLocaleDateString() : '-'}</td>
             </tr>
         `).join('');
     }

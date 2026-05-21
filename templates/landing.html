@@ -64,10 +64,27 @@
       min-height: 44px;
     }
 
+    /* Mobile menu dropdown - ensure it doesn't overflow or cover content */
+    #mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    #mobile-menu.show,
+    [x-show="open"] + #mobile-menu {
+      max-height: calc(100vh - 70px) !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
     /* Force desktop menu to show on desktop */
     @media (min-width: 768px) {
       .hidden.md\:flex {
         display: flex !important;
+      }
+      #mobile-menu {
+        display: none !important;
       }
     }
 
@@ -98,11 +115,11 @@
 <body>
 
   <!-- Navigation -->
-  <nav id="main-nav" x-data="{ open: false }" class="bg-white border-b border-zinc-100 fixed top-0 w-full z-50 transition-all duration-300">
+  <nav id="main-nav" x-data="{ open: false }" class="bg-white dark:bg-slate-900 border-b border-zinc-100 dark:border-slate-700 fixed top-0 w-full z-50 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
       <!-- Left: Mobile Hamburger Trigger (visible only on mobile, order-1) -->
-      <button @click="open = !open" class="nav-hamburger md:hidden text-zinc-700 dark:text-zinc-300 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition border border-zinc-200 dark:border-zinc-700/50 order-1 w-[44px] h-[44px] flex items-center justify-center" aria-label="Toggle menu">
-        <span class="text-2xl font-bold leading-none select-none" x-text="open ? '✕' : '☰'">☰</span>
+      <button @click="open = !open" @keydown.escape="open = false" class="nav-hamburger md:hidden text-zinc-700 dark:text-zinc-300 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition border border-zinc-200 dark:border-zinc-700/50 order-1 w-[44px] h-[44px] flex items-center justify-center" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="text-2xl font-bold leading-none select-none" x-text="open ? '✕' : '☰'" aria-hidden="true">☰</span>
       </button>
 
       <!-- Center: Logo (centered on mobile, left-aligned on desktop, order-2) -->
@@ -138,19 +155,19 @@
       </div>
     </div>
 
-    <div x-show="open" x-transition class="absolute top-full left-0 right-0 md:hidden border-t border-black/5 bg-white shadow-lg z-50">
+    <div x-show="open" x-transition id="mobile-menu" class="absolute top-full left-0 right-0 md:hidden border-t border-black/5 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg z-40 max-h-[calc(100vh-70px)] overflow-y-auto">
       <div class="px-6 py-6 space-y-4">
-        <a href="#how-it-works" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">How It Works</a>
-        <a href="/services" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Services</a>
-        <a href="#pricing" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Pricing</a>
-        <a href="/docs" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">API Docs</a>
-        <a href="/faq" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">FAQ</a>
-        <div class="pt-4 border-t border-zinc-200 space-y-3">
+        <a href="#how-it-works" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">How It Works</a>
+        <a href="/services" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">Services</a>
+        <a href="#pricing" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">Pricing</a>
+        <a href="/docs" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">API Docs</a>
+        <a href="/faq" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">FAQ</a>
+        <div class="pt-4 border-t border-zinc-200 dark:border-slate-700 space-y-3">
         {% if user %}
-        <a href="/dashboard" class="block px-6 py-3 bg-brand-500 rounded-lg text-center text-white font-semibold">Dashboard →</a>
+        <a href="/dashboard" @click="open=false" class="block px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-lg text-center text-white font-semibold">Dashboard →</a>
         {% else %}
-        <a href="/auth/login" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Login</a>
-        <a href="/auth/register" class="block px-6 py-3 bg-brand-500 rounded-lg text-center text-white font-semibold">Get Started Free →</a>
+        <a href="/auth/login" @click="open=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-brand-500 dark:hover:text-brand-400 font-medium py-3 text-base">Login</a>
+        <a href="/auth/register" @click="open=false" class="block px-6 py-3 bg-brand-500 hover:bg-brand-600 rounded-lg text-center text-white font-semibold">Get Started Free →</a>
         {% endif %}
         </div>
       </div>
@@ -532,6 +549,65 @@
   </script>
 
   <script nonce="{{ request.state.csp_nonce }}">
+    // ── Hamburger Menu - Fallback & Click-Outside Handler ────────────────
+    (function setupMobileMenu() {
+      const btn = document.querySelector('.nav-hamburger');
+      const menu = document.getElementById('mobile-menu');
+      const nav = document.getElementById('main-nav');
+
+      if (!btn || !menu) return; // Alpine will handle it if elements exist
+
+      // Fallback: If Alpine hasn't initialized after 1 second, use plain JavaScript
+      let alpineInitialized = false;
+      const checkAlpine = setInterval(() => {
+        // Check if Alpine is working by testing x-data attribute
+        const navWithAlpine = document.querySelector('[x-data]');
+        if (navWithAlpine && navWithAlpine.__x) {
+          alpineInitialized = true;
+          clearInterval(checkAlpine);
+        }
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(checkAlpine);
+        if (!alpineInitialized) {
+          console.warn('Alpine.js not initialized, using fallback');
+          // Plain JS fallback
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+            menu.style.display = menu.classList.contains('show') ? 'block' : 'none';
+          });
+        }
+      }, 1500);
+
+      // Close menu when clicking a link
+      const links = menu.querySelectorAll('a');
+      links.forEach(link => {
+        link.addEventListener('click', () => {
+          menu.classList.remove('show');
+          menu.style.display = 'none';
+        });
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!nav.contains(e.target)) {
+          menu.classList.remove('show');
+          if (menu.style.display === 'none' || !menu.style.display) return;
+          menu.style.display = 'none';
+        }
+      });
+
+      // Close menu on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          menu.classList.remove('show');
+          menu.style.display = 'none';
+        }
+      });
+    })();
+
     // ── Nav scroll effect ──────────────────────────────────────────
     const nav = document.getElementById('main-nav');
     const heroHeight = window.innerHeight * 0.6;
