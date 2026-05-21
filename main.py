@@ -114,6 +114,8 @@ def create_app() -> FastAPI:
         version=settings.version,
         description="Modular SMS Verification Service",
         lifespan=lifespan,
+        docs_url="/api/swagger",  # Move Swagger UI to /api/swagger
+        redoc_url="/api/redoc",  # Move ReDoc to /api/redoc
     )
 
     # ============== MIDDLEWARE ==============
