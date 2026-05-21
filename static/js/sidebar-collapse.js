@@ -7,7 +7,7 @@
     const sidebar = document.getElementById('app-sidebar');
     const mainContent = document.querySelector('.main-content');
     const toggleBtn = document.querySelector('.sidebar-toggle');
-    
+
     if (!sidebar) return;
 
     // Check saved state or default to collapsed on desktop
@@ -21,19 +21,32 @@
         if (mainContent) mainContent.classList.add('sidebar-collapsed');
     }
 
-    // Toggle function
-    window.toggleSidebarCollapse = function() {
-        const isCollapsed = sidebar.classList.toggle('collapsed');
-        if (mainContent) mainContent.classList.toggle('sidebar-collapsed');
-        
-        // Save state
-        localStorage.setItem('sidebar-collapsed', isCollapsed);
-        
-        // Update aria-expanded
-        if (toggleBtn) {
-            toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+    // Unified Toggle function
+    window.toggleSidebar = function() {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            // On mobile, toggle the 'open' class to slide the drawer in/out from left
+            const isOpen = sidebar.classList.toggle('open');
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-expanded', isOpen);
+            }
+        } else {
+            // On desktop, toggle the 'collapsed' state
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            if (mainContent) mainContent.classList.toggle('sidebar-collapsed');
+
+            // Save state
+            localStorage.setItem('sidebar-collapsed', isCollapsed);
+
+            // Update aria-expanded
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+            }
         }
     };
+
+    // Alias for compatibility
+    window.toggleSidebarCollapse = window.toggleSidebar;
 
     // Add toggle button if it doesn't exist
     if (!toggleBtn && isDesktop) {
@@ -42,13 +55,29 @@
         btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>';
         btn.setAttribute('aria-label', 'Toggle sidebar');
         btn.setAttribute('aria-expanded', !shouldCollapse);
-        btn.onclick = window.toggleSidebarCollapse;
-        
+        btn.onclick = window.toggleSidebar;
+
         const sidebarHeader = sidebar.querySelector('.sidebar-header');
         if (sidebarHeader) {
             sidebarHeader.appendChild(btn);
         }
     }
+
+    // Close sidebar on mobile when clicking outside
+    document.addEventListener('click', function(event) {
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) return;
+
+        const mobileToggleBtn = document.querySelector('.mobile-sidebar-toggle-btn');
+        const sidebarToggleBtn = document.querySelector('.sidebar-toggle');
+
+        if (sidebar.classList.contains('open') &&
+            !sidebar.contains(event.target) &&
+            (!mobileToggleBtn || !mobileToggleBtn.contains(event.target)) &&
+            (!sidebarToggleBtn || !sidebarToggleBtn.contains(event.target))) {
+            sidebar.classList.remove('open');
+        }
+    });
 
     // Handle window resize
     let resizeTimer;
@@ -56,12 +85,17 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             const isNowDesktop = window.innerWidth >= 1024;
-            if (isNowDesktop && !sidebar.classList.contains('collapsed')) {
+            if (isNowDesktop) {
+                // Ensure mobile open state is cleaned up
+                sidebar.classList.remove('open');
+
                 // Auto-collapse on desktop if not explicitly expanded
-                const userExpanded = localStorage.getItem('sidebar-collapsed') === 'false';
-                if (!userExpanded) {
-                    sidebar.classList.add('collapsed');
-                    if (mainContent) mainContent.classList.add('sidebar-collapsed');
+                if (!sidebar.classList.contains('collapsed')) {
+                    const userExpanded = localStorage.getItem('sidebar-collapsed') === 'false';
+                    if (!userExpanded) {
+                        sidebar.classList.add('collapsed');
+                        if (mainContent) mainContent.classList.add('sidebar-collapsed');
+                    }
                 }
             }
         }, 250);
