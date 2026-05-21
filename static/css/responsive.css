@@ -100,6 +100,25 @@
    ============================================ */
 
 @media (max-width: 768px) {
+    /* Stack dashboard headers vertically on mobile to prevent squishing */
+    .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px !important;
+        margin-bottom: 24px !important;
+    }
+
+    .header h1 {
+        font-size: 24px !important; /* Elegant typography scale on mobile */
+    }
+
+    .header-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+    }
+
     /* Single column layouts */
     [style*="grid-template-columns"] {
         grid-template-columns: 1fr !important;

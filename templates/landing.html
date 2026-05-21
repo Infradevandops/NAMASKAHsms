@@ -54,7 +54,7 @@
     .nav-scrolled .nav-link:hover { color: #FE3C72 !important; }
     .nav-scrolled .nav-brand { color: var(--text-primary, #111827) !important; }
     .nav-scrolled .nav-hamburger { color: var(--text-primary, #374151) !important; }
-    
+
     /* Hamburger button - mobile only */
     .nav-hamburger {
       display: flex;
@@ -63,7 +63,7 @@
       min-width: 44px;
       min-height: 44px;
     }
-    
+
     /* Force desktop menu to show on desktop */
     @media (min-width: 768px) {
       .hidden.md\:flex {
@@ -74,7 +74,7 @@
     /* Section fade-in on scroll */
     .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
-    
+
     /* Dark mode styles */
     [data-theme="dark"] {
       --bg-body: #0f172a;
@@ -117,7 +117,7 @@
         <button onclick="toggleTheme()" style="background: transparent; border: 1px solid rgba(0,0,0,0.1); color: #374151; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode">
           <span id="theme-icon">🌙</span>
         </button>
-        
+
         {% if user %}
         <a href="/dashboard" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white">Dashboard →</a>
         {% else %}
@@ -131,7 +131,7 @@
       </button>
     </div>
 
-    <div x-show="open" x-transition class="md:hidden border-t border-black/5 bg-white shadow-lg">
+    <div x-show="open" x-transition class="absolute top-full left-0 right-0 md:hidden border-t border-black/5 bg-white shadow-lg z-50">
       <div class="px-6 py-6 space-y-4">
         <a href="#how-it-works" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">How It Works</a>
         <a href="/services" @click="open=false" class="block text-zinc-700 hover:text-brand-500 font-medium py-3 text-base">Services</a>
@@ -195,7 +195,6 @@
       </div>
 
     </div>
-  </section>    </div>
   </section>
 
   <!-- The Problem Section -->
