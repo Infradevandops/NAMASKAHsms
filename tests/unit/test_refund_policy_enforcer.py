@@ -5,6 +5,7 @@ Test refund policy enforcer to ensure it works in production
 import asyncio
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,7 +20,7 @@ async def test_refund_enforcer_finds_stuck_verifications(db_session):
     # Create user
     user = User(
         email="test@example.com",
-        hashed_password="test",
+        password_hash="test",
         subscription_tier="payg",
         credits=Decimal("10.00"),
     )
@@ -43,7 +44,10 @@ async def test_refund_enforcer_finds_stuck_verifications(db_session):
 
     # Run enforcer
     enforcer = RefundPolicyEnforcer()
-    await enforcer._enforce_refund_policy()
+    with patch("app.core.database.SessionLocal") as mock_session_local:
+        mock_session_local.return_value = db_session
+        mock_session_local.return_value.close = MagicMock()
+        await enforcer._enforce_refund_policy()
 
     # Refresh from DB
     db_session.refresh(user)
@@ -61,7 +65,7 @@ async def test_refund_enforcer_handles_failed_verifications(db_session):
     # Create user
     user = User(
         email="test2@example.com",
-        hashed_password="test",
+        password_hash="test",
         subscription_tier="custom",
         credits=Decimal("5.00"),
     )
@@ -86,7 +90,10 @@ async def test_refund_enforcer_handles_failed_verifications(db_session):
 
     # Run enforcer
     enforcer = RefundPolicyEnforcer()
-    await enforcer._enforce_refund_policy()
+    with patch("app.core.database.SessionLocal") as mock_session_local:
+        mock_session_local.return_value = db_session
+        mock_session_local.return_value.close = MagicMock()
+        await enforcer._enforce_refund_policy()
 
     # Refresh from DB
     db_session.refresh(user)
@@ -103,7 +110,7 @@ async def test_refund_enforcer_skips_already_refunded(db_session):
     # Create user
     user = User(
         email="test3@example.com",
-        hashed_password="test",
+        password_hash="test",
         subscription_tier="pro",
         credits=Decimal("15.00"),
     )
@@ -128,7 +135,10 @@ async def test_refund_enforcer_skips_already_refunded(db_session):
 
     # Run enforcer
     enforcer = RefundPolicyEnforcer()
-    await enforcer._enforce_refund_policy()
+    with patch("app.core.database.SessionLocal") as mock_session_local:
+        mock_session_local.return_value = db_session
+        mock_session_local.return_value.close = MagicMock()
+        await enforcer._enforce_refund_policy()
 
     # Refresh from DB
     db_session.refresh(user)
@@ -143,7 +153,7 @@ async def test_refund_enforcer_immediate_enforcement(db_session):
     # Create user
     user = User(
         email="test4@example.com",
-        hashed_password="test",
+        password_hash="test",
         subscription_tier="payg",
         credits=Decimal("2.40"),
     )

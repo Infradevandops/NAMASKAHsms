@@ -12,7 +12,7 @@ class TestValidationErrors:
     def test_invalid_email_format(self, client):
         """Test invalid email format handling."""
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": "invalid-email", "password": "password123"},
         )
         assert response.status_code == 422
@@ -20,7 +20,7 @@ class TestValidationErrors:
     def test_missing_required_field(self, client):
         """Test missing required field handling."""
         response = client.post(
-            "/api/v1/auth/register", json={"email": "test@example.com"}
+            "/api/auth/register", json={"email": "test@example.com"}
         )  # Missing password
         assert response.status_code == 422
 
@@ -50,13 +50,13 @@ class TestAuthenticationErrors:
 
     def test_missing_token(self, client):
         """Test missing authentication token."""
-        response = client.get("/api/v1/auth/me")
+        response = client.get("/api/auth/me")
         assert response.status_code in [401, 403, 422]
 
     def test_invalid_token(self, client):
         """Test invalid authentication token."""
         response = client.get(
-            "/api/v1/auth/me", headers={"Authorization": "Bearer invalid-token"}
+            "/api/auth/me", headers={"Authorization": "Bearer invalid-token"}
         )
         assert response.status_code in [401, 403, 422]
 
@@ -68,7 +68,7 @@ class TestAuthenticationErrors:
     def test_wrong_credentials(self, client):
         """Test wrong login credentials."""
         response = client.post(
-            "/api/v1/auth/login",
+            "/api/auth/login",
             json={"email": "test@example.com", "password": "wrongpassword"},
         )
         assert response.status_code == 401
@@ -161,7 +161,7 @@ class TestBusinessLogicErrors:
     def test_duplicate_registration(self, client, regular_user):
         """Test duplicate email registration."""
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": regular_user.email, "password": "password123"},
         )
         # May return 400, 409 (conflict), or 422 (validation error)
@@ -272,7 +272,7 @@ class TestBoundaryConditions:
     def test_empty_string_input(self, client):
         """Test empty string input."""
         response = client.post(
-            "/api/v1/auth/register", json={"email": "", "password": "password123"}
+            "/api/auth/register", json={"email": "", "password": "password123"}
         )
         assert response.status_code == 422
 
@@ -280,7 +280,7 @@ class TestBoundaryConditions:
         """Test very long string input."""
         long_email = "a" * 1000 + "@example.com"
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": long_email, "password": "password123"},
         )
         assert response.status_code in [400, 422]

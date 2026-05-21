@@ -19,22 +19,22 @@ class TestSMSServiceComplete:
     def test_sms_base_cost_freemium(self):
         """Test base SMS cost for freemium tier."""
         config = TIER_CONFIG["freemium"]
-        assert config["base_sms_cost"] == 2.50
+        assert config["base_sms_cost"] == 2.63
 
     def test_sms_base_cost_payg(self):
         """Test base SMS cost for PAYG tier."""
         config = TIER_CONFIG["payg"]
-        assert config["base_sms_cost"] == 2.50
+        assert config["base_sms_cost"] == 2.63
 
     def test_sms_base_cost_pro(self):
         """Test base SMS cost for pro tier."""
         config = TIER_CONFIG["pro"]
-        assert config["base_sms_cost"] == 2.50
+        assert config["base_sms_cost"] == 2.63
 
     def test_sms_base_cost_custom(self):
         """Test base SMS cost for custom tier."""
         config = TIER_CONFIG["custom"]
-        assert config["base_sms_cost"] == 2.50
+        assert config["base_sms_cost"] == 2.63
 
     def test_filter_charges_calculation(self):
         """Test filter charges for advanced features."""
@@ -89,11 +89,13 @@ class TestSMSServiceComplete:
         initial_balance = regular_user.credits
         cost = 2.50
 
-        regular_user.credits -= cost
+        from decimal import Decimal
+
+        regular_user.credits -= Decimal(str(cost))
         db_session.commit()
 
         db_session.refresh(regular_user)
-        assert regular_user.credits == initial_balance - cost
+        assert regular_user.credits == initial_balance - Decimal(str(cost))
 
     def test_balance_deduction_multiple_sms(self, db_session, regular_user):
         """Test balance deduction for multiple SMS."""
@@ -101,13 +103,15 @@ class TestSMSServiceComplete:
         cost_per_sms = 2.50
         sms_count = 3
 
+        from decimal import Decimal
+
         for _ in range(sms_count):
-            regular_user.credits -= cost_per_sms
+            regular_user.credits -= Decimal(str(cost_per_sms))
 
         db_session.commit()
         db_session.refresh(regular_user)
 
-        expected = initial_balance - (cost_per_sms * sms_count)
+        expected = initial_balance - Decimal(str(cost_per_sms * sms_count))
         assert regular_user.credits == expected
 
     # ==================== Verification Records ====================

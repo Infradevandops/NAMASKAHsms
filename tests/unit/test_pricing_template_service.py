@@ -22,7 +22,10 @@ def test_get_active_template_no_assignment(service, mock_db):
     # Setup mock
     template = PricingTemplate(id=1, name="Default", is_active=True, region="US")
     # First query (assignment) returns None
-    mock_db.query.return_value.filter.return_value.first.side_effect = [None, template]
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_db.query.return_value.filter.return_value.order_by.return_value.first.return_value = (
+        template
+    )
 
     result = service.get_active_template(user_id=123)
 
@@ -121,10 +124,10 @@ def test_activate_template(service, mock_db):
     #    get_active_template(region) queries PricingTemplate filter(active=True, region=...)
 
     mock_filter = mock_db.query.return_value.filter.return_value
-    mock_filter.first.side_effect = [
-        new_template,  # get_template(2)
-        current_active,  # get_active_template("US")
-    ]
+    mock_filter.first.return_value = new_template  # get_template(2)
+    mock_filter.order_by.return_value.first.return_value = (
+        current_active  # get_active_template("US")
+    )
 
     service.activate_template(template_id=2, admin_user_id=1)
 

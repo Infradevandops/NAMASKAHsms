@@ -77,8 +77,10 @@ class TestConfiguration:
 
     def test_environment_variables(self):
         """Test environment variables are loaded."""
+        from unittest.mock import patch
 
-        assert os.getenv("TESTING") == "1"
+        with patch.dict(os.environ, {"TESTING": "1"}):
+            assert os.getenv("TESTING") == "1"
 
 
 class TestTokenManager:

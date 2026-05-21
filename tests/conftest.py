@@ -392,3 +392,57 @@ def mock_verification_response():
         "service": "test_service",
         "cost": 2.50,
     }
+
+
+@pytest.fixture
+def mock_textverified_service(monkeypatch):
+    """Mock TextVerified service for all tests."""
+    mock_service = MagicMock()
+    mock_service.enabled = True
+    mock_service.get_services_list = AsyncMock(
+        return_value=[
+            {"id": "telegram", "name": "Telegram", "price": 0.50},
+            {"id": "whatsapp", "name": "WhatsApp", "price": 0.75},
+            {"id": "instagram", "name": "Instagram", "price": 0.60},
+        ]
+    )
+    mock_service.get_sms = AsyncMock(return_value=None)
+    mock_service.cancel_number = AsyncMock()
+
+    # Patch at module level
+    monkeypatch.setattr("app.api.verification.services_endpoint._tv", mock_service)
+    return mock_service
+
+
+@pytest.fixture
+def mock_provider_router(monkeypatch):
+    """Mock ProviderRouter for verification tests."""
+    from app.services.providers.purchase_result import PurchaseResult
+
+    mock_router = MagicMock()
+    mock_router.get_enabled_providers = MagicMock(return_value=["textverified"])
+
+    mock_purchase_result = PurchaseResult(
+        phone_number="+12025551234",
+        order_id="tv-123",
+        cost=0.50,
+        provider="textverified",
+        operator="T-Mobile",
+        assigned_area_code="202",
+        area_code_matched=True,
+        fallback_applied=False,
+        same_state_fallback=False,
+        retry_attempts=0,
+        voip_rejected=False,
+        routing_reason="primary",
+        city_honoured=False,
+        city_note=None,
+        requested_area_code=None,
+    )
+    mock_router.purchase_with_failover = AsyncMock(return_value=mock_purchase_result)
+
+    # Patch ProviderRouter class
+    monkeypatch.setattr(
+        "app.api.verification.purchase_endpoints.ProviderRouter", lambda: mock_router
+    )
+    return mock_router

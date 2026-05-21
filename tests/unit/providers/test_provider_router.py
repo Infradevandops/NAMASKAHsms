@@ -113,6 +113,7 @@ class TestProviderRouter:
         with patch.object(router, "get_provider", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = (mock_provider, False, None)
             result = await router.purchase_with_failover(
+                db=MagicMock(),
                 service="whatsapp",
                 country="US",
             )
@@ -133,6 +134,7 @@ class TestProviderRouter:
         ):
             with pytest.raises(RuntimeError, match="Insufficient balance"):
                 await router.purchase_with_failover(
+                    db=MagicMock(),
                     service="whatsapp",
                     country="US",
                 )
@@ -151,6 +153,7 @@ class TestProviderRouter:
         ):
             with pytest.raises(RuntimeError, match="No inventory"):
                 await router.purchase_with_failover(
+                    db=MagicMock(),
                     service="whatsapp",
                     country="US",
                 )
@@ -184,6 +187,7 @@ class TestProviderRouter:
             mock_failover.return_value = mock_secondary
 
             result = await router.purchase_with_failover(
+                db=MagicMock(),
                 service="whatsapp",
                 country="GB",
             )
@@ -213,6 +217,7 @@ class TestProviderRouter:
             ):
                 with pytest.raises(RuntimeError, match="Connection timeout"):
                     await router.purchase_with_failover(
+                        db=MagicMock(),
                         service="whatsapp",
                         country="US",
                     )
@@ -292,7 +297,9 @@ class TestProviderRouter:
             "app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score",
             return_value=1.0,
         ):
-            failover = await router._get_failover_provider(mock_tv, "GB", "whatsapp")
+            failover = await router._get_failover_provider(
+                MagicMock(), mock_tv, "GB", "whatsapp", "pro"
+            )
             assert failover == mock_telnyx
 
     @pytest.mark.asyncio
@@ -309,7 +316,7 @@ class TestProviderRouter:
             return_value=1.0,
         ):
             failover = await router._get_failover_provider(
-                mock_telnyx, "GB", "whatsapp"
+                MagicMock(), mock_telnyx, "GB", "whatsapp", "pro"
             )
             assert failover == mock_fivesim
 
@@ -329,6 +336,6 @@ class TestProviderRouter:
             return_value=1.0,
         ):
             failover = await router._get_failover_provider(
-                mock_fivesim, "GB", "whatsapp"
+                MagicMock(), mock_fivesim, "GB", "whatsapp", "pro"
             )
             assert failover == mock_pvapins

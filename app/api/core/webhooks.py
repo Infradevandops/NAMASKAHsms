@@ -51,25 +51,26 @@ async def list_webhooks(
     try:
         """List all webhooks for the current user."""
         webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
+        webhook_list = [
+            {
+                "id": w.id,
+                "name": w.name,
+                "url": w.url,
+                "events": w.events,
+                "is_active": w.is_active,
+                "secret": w.secret,
+                "last_success": (
+                    w.last_success.isoformat() if w.last_success else None
+                ),
+                "last_failure": (
+                    w.last_failure.isoformat() if w.last_failure else None
+                ),
+            }
+            for w in webhooks
+        ]
         return SuccessResponse(
             message="Webhooks retrieved successfully",
-            data=[
-                {
-                    "id": w.id,
-                    "name": w.name,
-                    "url": w.url,
-                    "events": w.events,
-                    "is_active": w.is_active,
-                    "secret": w.secret,
-                    "last_success": (
-                        w.last_success.isoformat() if w.last_success else None
-                    ),
-                    "last_failure": (
-                        w.last_failure.isoformat() if w.last_failure else None
-                    ),
-                }
-                for w in webhooks
-            ],
+            data={"webhooks": webhook_list, "total": len(webhook_list)},
         )
     except HTTPException:
         raise

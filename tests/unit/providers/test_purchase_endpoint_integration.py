@@ -91,8 +91,12 @@ def test_purchase_us_routes_textverified(auth_client, db, funded_user, test_user
         "app.api.verification.purchase_endpoints.QuotaService"
     ), patch(
         "app.api.verification.purchase_endpoints.sms_polling_service"
-    ):
+    ), patch(
+        "app.api.verification.purchase_endpoints._get_provider_price",
+        new_callable=AsyncMock,
+    ) as MockGetPrice:
 
+        MockGetPrice.return_value = 2.50
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
         MockRouter.return_value.get_enabled_providers.return_value = ["textverified"]
         MockPricing.calculate_sms_cost.return_value = {
@@ -106,6 +110,9 @@ def test_purchase_us_routes_textverified(auth_client, db, funded_user, test_user
                 "current_balance": 50.0,
                 "source": "local",
             }
+        )
+        MockBalance.deduct_credits_for_verification = AsyncMock(
+            return_value=(True, None)
         )
         MockRefund.return_value.process_refund = AsyncMock(
             return_value={"refund_issued": False}
@@ -159,8 +166,12 @@ def test_purchase_gb_routes_fivesim(auth_client, db, funded_user, test_user_id):
         "app.api.verification.purchase_endpoints.QuotaService"
     ), patch(
         "app.api.verification.purchase_endpoints.sms_polling_service"
-    ):
+    ), patch(
+        "app.api.verification.purchase_endpoints._get_provider_price",
+        new_callable=AsyncMock,
+    ) as MockGetPrice:
 
+        MockGetPrice.return_value = 2.50
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
         MockRouter.return_value.get_enabled_providers.return_value = ["fivesim"]
         MockPricing.calculate_sms_cost.return_value = {
@@ -174,6 +185,9 @@ def test_purchase_gb_routes_fivesim(auth_client, db, funded_user, test_user_id):
                 "current_balance": 50.0,
                 "source": "local",
             }
+        )
+        MockBalance.deduct_credits_for_verification = AsyncMock(
+            return_value=(True, None)
         )
         MockRefund.return_value.process_refund = AsyncMock(
             return_value={"refund_issued": False}
@@ -224,8 +238,12 @@ def test_verification_record_provider_field(auth_client, db, funded_user, test_u
         "app.api.verification.purchase_endpoints.QuotaService"
     ), patch(
         "app.api.verification.purchase_endpoints.sms_polling_service"
-    ):
+    ), patch(
+        "app.api.verification.purchase_endpoints._get_provider_price",
+        new_callable=AsyncMock,
+    ) as MockGetPrice:
 
+        MockGetPrice.return_value = 2.50
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
         MockRouter.return_value.get_enabled_providers.return_value = ["telnyx"]
         MockPricing.calculate_sms_cost.return_value = {
@@ -239,6 +257,9 @@ def test_verification_record_provider_field(auth_client, db, funded_user, test_u
                 "current_balance": 50.0,
                 "source": "local",
             }
+        )
+        MockBalance.deduct_credits_for_verification = AsyncMock(
+            return_value=(True, None)
         )
         MockRefund.return_value.process_refund = AsyncMock(
             return_value={"refund_issued": False}
@@ -289,8 +310,12 @@ def test_purchase_failover_success(auth_client, db, funded_user, test_user_id):
         "app.api.verification.purchase_endpoints.QuotaService"
     ), patch(
         "app.api.verification.purchase_endpoints.sms_polling_service"
-    ):
+    ), patch(
+        "app.api.verification.purchase_endpoints._get_provider_price",
+        new_callable=AsyncMock,
+    ) as MockGetPrice:
 
+        MockGetPrice.return_value = 2.50
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
         MockRouter.return_value.get_enabled_providers.return_value = ["telnyx"]
         MockPricing.calculate_sms_cost.return_value = {
@@ -304,6 +329,9 @@ def test_purchase_failover_success(auth_client, db, funded_user, test_user_id):
                 "current_balance": 50.0,
                 "source": "local",
             }
+        )
+        MockBalance.deduct_credits_for_verification = AsyncMock(
+            return_value=(True, None)
         )
         MockRefund.return_value.process_refund = AsyncMock(
             return_value={"refund_issued": False}
@@ -335,8 +363,12 @@ def test_purchase_business_error_no_failover(auth_client, funded_user, test_user
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
         "app.api.verification.purchase_endpoints.BalanceService"
-    ) as MockBalance:
+    ) as MockBalance, patch(
+        "app.api.verification.purchase_endpoints._get_provider_price",
+        new_callable=AsyncMock,
+    ) as MockGetPrice:
 
+        MockGetPrice.return_value = 2.50
         MockRouter.return_value.purchase_with_failover = AsyncMock(
             side_effect=RuntimeError("No inventory available for GB")
         )
@@ -352,6 +384,9 @@ def test_purchase_business_error_no_failover(auth_client, funded_user, test_user
                 "current_balance": 50.0,
                 "source": "local",
             }
+        )
+        MockBalance.deduct_credits_for_verification = AsyncMock(
+            return_value=(True, None)
         )
 
         response = auth_client.post(

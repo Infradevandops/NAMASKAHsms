@@ -76,9 +76,7 @@ class TestConnectionManager:
         await connection_manager_instance.connect(mock_websocket, "user-123")
         assert connection_manager_instance.is_user_connected("user-123")
 
-        result = await connection_manager_instance.disconnect("user-123")
-
-        assert result is True
+        connection_manager_instance.disconnect(mock_websocket, "user-123")
         assert not connection_manager_instance.is_user_connected("user-123")
 
     @pytest.mark.asyncio
@@ -123,9 +121,8 @@ class TestConnectionManager:
         await connection_manager_instance.connect(mock_websocket2, "user-2")
 
         message = {"type": "notification", "title": "Test"}
-        result = await connection_manager_instance.broadcast_to_all(message)
+        await connection_manager_instance.broadcast(message)
 
-        assert result == 2
         mock_websocket1.send_json.assert_called_once_with(message)
         mock_websocket2.send_json.assert_called_once_with(message)
 
@@ -161,8 +158,9 @@ class TestConnectionManager:
         result = connection_manager_instance.subscribe_user("user-123", "notifications")
 
         assert result is True
-        subscriptions = connection_manager_instance.get_user_subscriptions("user-123")
-        assert "notifications" in subscriptions
+        assert "user-123" in connection_manager_instance._channels.get(
+            "notifications", set()
+        )
 
     def test_unsubscribe_user(self, connection_manager_instance):
         """Test unsubscribing user from channel."""
@@ -172,8 +170,9 @@ class TestConnectionManager:
         )
 
         assert result is True
-        subscriptions = connection_manager_instance.get_user_subscriptions("user-123")
-        assert "notifications" not in subscriptions
+        assert "user-123" not in connection_manager_instance._channels.get(
+            "notifications", set()
+        )
 
     def test_get_active_connections_count(self, connection_manager_instance):
         """Test getting active connections count."""

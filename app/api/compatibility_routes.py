@@ -83,16 +83,16 @@ async def tiers_alias(
 
 
 # Stub: /api/notifications/categories
-@router.get("/notifications/categories")
-async def notification_categories():
-    return {
-        "categories": [
-            {"id": "system", "name": "System", "enabled": True},
-            {"id": "payment", "name": "Payment", "enabled": True},
-            {"id": "verification", "name": "Verification", "enabled": True},
-            {"id": "security", "name": "Security", "enabled": True},
-        ]
-    }
+# @router.get("/notifications/categories")
+# async def notification_categories():
+#     return {
+#         "categories": [
+#             {"id": "system", "name": "System", "enabled": True},
+#             {"id": "payment", "name": "Payment", "enabled": True},
+#             {"id": "verification", "name": "Verification", "enabled": True},
+#             {"id": "security", "name": "Security", "enabled": True},
+#         ]
+#     }
 
 
 # Stub: /api/user/settings

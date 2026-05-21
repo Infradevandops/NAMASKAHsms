@@ -246,10 +246,10 @@ class TestTierServiceComplete:
 
     def test_overage_rates(self):
         """Test overage rates for each tier."""
-        assert TIER_CONFIG["freemium"]["overage_rate"] == 2.22
-        assert TIER_CONFIG["payg"]["overage_rate"] == 2.5
-        assert TIER_CONFIG["pro"]["overage_rate"] == 0.30
-        assert TIER_CONFIG["custom"]["overage_rate"] == 0.20
+        assert TIER_CONFIG["freemium"]["overage_rate"] == 2.63
+        assert TIER_CONFIG["payg"]["overage_rate"] == 2.63
+        assert TIER_CONFIG["pro"]["overage_rate"] == 1.80
+        assert TIER_CONFIG["custom"]["overage_rate"] == 1.50
 
     # ==================== Tier Validation ====================
 

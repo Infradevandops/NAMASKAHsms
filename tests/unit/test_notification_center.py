@@ -141,10 +141,10 @@ class TestNotificationCenter:
             assert len(data["categories"]) == 4
 
             # Verify category structure
-        for category in data["categories"]:
-            assert "type" in category
-            assert "total" in category
-            assert "unread" in category
+            for category in data["categories"]:
+                assert "type" in category
+                assert "total" in category
+                assert "unread" in category
 
     def test_search_notifications(
         self, client, test_user, test_notifications, auth_headers_factory

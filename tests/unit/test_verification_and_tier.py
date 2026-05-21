@@ -41,13 +41,36 @@ class TestCreateVerification:
     def test_insufficient_credits_returns_402(self, client, db, regular_user):
         """Insufficient credits → 402."""
         regular_user.credits = 0.5
+        regular_user.free_verifications = 0.0
         db.commit()
 
         with patch(
-            "app.api.verification.purchase_endpoints.TextVerifiedService"
-        ) as MockTV:
-            tv = MockTV.return_value
-            tv.enabled = True
+            "app.services.providers.provider_router.ProviderRouter"
+        ) as MockPR, patch(
+            "app.api.verification.purchase_endpoints._get_provider_price",
+            new_callable=AsyncMock,
+        ) as MockGetPrice, patch(
+            "app.api.verification.purchase_endpoints.TierManager"
+        ) as MockTM:
+            pr = MockPR.return_value
+            pr.get_enabled_providers.return_value = ["textverified"]
+            MockGetPrice.return_value = 2.50
+            mock_result = MagicMock()
+            mock_result.provider = "textverified"
+            mock_result.order_id = "act-123"
+            mock_result.phone_number = "+12025551234"
+            mock_result.cost = 2.50
+            mock_result.area_code_matched = False
+            mock_result.carrier_matched = False
+            mock_result.real_carrier = "AT&T"
+            mock_result.carrier_surcharge = 0.0
+            mock_result.area_code_surcharge = 0.0
+            mock_result.voip_rejected = False
+            pr.purchase_with_failover = AsyncMock(return_value=mock_result)
+
+            tm = MockTM.return_value
+            tm.get_user_tier.return_value = "payg"
+            tm.get_free_verifications_remaining.return_value = 0
 
             from app.core.dependencies import get_current_user_id
             from main import app
@@ -68,10 +91,14 @@ class TestCreateVerification:
         from main import app
 
         with patch(
-            "app.api.verification.purchase_endpoints.TextVerifiedService"
-        ) as MockTV:
-            tv = MockTV.return_value
-            tv.enabled = False
+            "app.services.providers.provider_router.ProviderRouter"
+        ) as MockPR, patch(
+            "app.api.verification.purchase_endpoints._get_provider_price",
+            new_callable=AsyncMock,
+        ) as MockGetPrice:
+            pr = MockPR.return_value
+            pr.get_enabled_providers.return_value = []
+            MockGetPrice.return_value = 2.50
 
             app.dependency_overrides[get_current_user_id] = lambda: regular_user.id
             response = client.post(
@@ -80,7 +107,7 @@ class TestCreateVerification:
             )
             app.dependency_overrides.clear()
 
-        assert response.status_code in [503, 402, 201]
+        assert response.status_code == 503
 
 
 # ── GET /verification/status/{id} ─────────────────────────────────────────────

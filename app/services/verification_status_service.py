@@ -112,3 +112,5 @@ async def mark_verification_cancelled_by_user(
         error_message="User cancelled verification",
         refund_eligible=True,
     )
+    verification.status = "cancelled"
+    db.commit()

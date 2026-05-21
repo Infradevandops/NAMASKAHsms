@@ -37,10 +37,14 @@ async def get_pricing(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Calculate pricing with real provider costs, premiums, and discounts."""
+    if not service or service.strip() == "":
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="Service is required")
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        user = User(tier="freemium")
+        user = User(id=user_id, tier="freemium")
 
     provider_price = await _get_provider_price(service)
 

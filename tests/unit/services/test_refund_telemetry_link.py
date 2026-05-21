@@ -39,7 +39,11 @@ async def test_refund_updates_purchase_outcome_telemetry():
         mock_stmt = mock_update.return_value
         mock_stmt.where.assert_called_once()
         mock_stmt.where.return_value.values.assert_called_once_with(
-            is_refunded=True, refund_amount=0.55
+            is_refunded=True,
+            refund_amount=0.55,
+            refund_reason="area_code_mismatch",
+            outcome_category="PRODUCT",
+            provider_refunded=True,
         )
 
         # Check if executed

@@ -161,7 +161,10 @@ class TestAdaptivePolling:
 class TestAvailabilityService:
     @pytest.fixture
     def db(self):
-        return MagicMock()
+        db = MagicMock()
+        query_mock = db.query.return_value
+        query_mock.filter.return_value = query_mock
+        return db
 
     @pytest.fixture
     def service(self, db):

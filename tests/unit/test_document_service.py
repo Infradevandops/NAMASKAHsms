@@ -56,12 +56,9 @@ class TestDocumentService:
     @pytest.mark.asyncio
     async def test_upload_document_profile_not_found(self, service):
         mock_file = MagicMock(spec=UploadFile)
-        # Service suppresses HTTPException and returns None (based on pass
-        # block)
-        assert (
+        with pytest.raises(HTTPException) as exc:
             await service.upload_document(mock_file, "passport", "non-existent-id")
-            is None
-        )
+        assert exc.value.status_code == 404
 
     @pytest.mark.asyncio
     async def test_process_image_no_pil(self, service):

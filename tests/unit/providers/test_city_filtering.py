@@ -214,7 +214,7 @@ async def test_telnyx_empty_country_failover_to_fivesim():
         mock_settings_fn.return_value = s
 
         result = await router.purchase_with_failover(
-            "whatsapp", "GB", city="London", user_tier="pro"
+            MagicMock(), "whatsapp", "GB", city="London", user_tier="pro"
         )
 
     assert result.phone_number == "+447700900123"

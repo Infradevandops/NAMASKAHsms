@@ -35,16 +35,13 @@ class TestWebhookNotificationService:
         result = await service.send_webhook("http://fail.com", "test.event", {})
         assert result is False
 
-        @pytest.mark.asyncio
-        @patch.object(
-            WebhookNotificationService, "send_webhook", new_callable=AsyncMock
-        )
-        async def test_notify_methods(self, mock_send, service):
+    @pytest.mark.asyncio
+    @patch.object(WebhookNotificationService, "send_webhook", new_callable=AsyncMock)
+    async def test_notify_methods(self, mock_send, service):
+        url = "http://webhook.com"
 
-            url = "http://webhook.com"
-
-            await service.notify_verification_created("id1", "123", "serv", 1.0, url)
-            mock_send.assert_called_with(url, "verification.created", ANY)
+        await service.notify_verification_created("id1", "123", "serv", 1.0, url)
+        mock_send.assert_called_with(url, "verification.created", ANY)
 
         await service.notify_sms_received("id1", "code", url)
         mock_send.assert_called_with(url, "sms.received", ANY)

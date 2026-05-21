@@ -40,7 +40,7 @@ class TestWhitelabelContext:
 
     def test_get_context_disabled(self):
         request = Mock()
-        delattr(request, "state")
+        delattr(request.state, "whitelabel")
 
         context = get_whitelabel_context(request)
         assert context["enabled"] is False
@@ -156,6 +156,7 @@ class TestBrandingInjection:
         middleware = WhitelabelMiddleware(mock_app, base_domain="vrenum.app")
 
         request = Mock()
+        request.headers = {"host": "custom.example.com"}
         request.state = Mock()
         request.state.whitelabel = {"enabled": True, "branding": {}}
 
@@ -182,17 +183,23 @@ class TestErrorHandling:
         request.state = Mock()
 
         with patch("app.middleware.whitelabel_middleware.SessionLocal") as mock_session:
-            mock_session.side_effect = Exception("DB error")
+            mock_db = Mock()
+            mock_session.return_value = mock_db
 
-            call_next = AsyncMock(
-                return_value=Mock(
-                    headers={"content-type": "text/html"}, body_iterator=[]
+            with patch(
+                "app.middleware.whitelabel_middleware.whitelabel_service.get_branding_by_domain"
+            ) as mock_get:
+                mock_get.side_effect = Exception("DB error")
+
+                call_next = AsyncMock(
+                    return_value=Mock(
+                        headers={"content-type": "text/html"}, body_iterator=[]
+                    )
                 )
-            )
 
-            # Should not crash
-            result = await middleware.dispatch(request, call_next)
-            assert result is not None
+                # Should not crash
+                result = await middleware.dispatch(request, call_next)
+                assert result is not None
 
     @pytest.mark.asyncio
     async def test_injection_error_graceful(self, mock_app):

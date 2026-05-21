@@ -71,8 +71,9 @@ class TestCalculateOverage:
             overage = QuotaService.calculate_overage(
                 db, regular_user.id, 10.0, tier="pro"
             )
-            # Implementation returns raw overage amount (not multiplied by rate)
-            expected_overage = max(0, round((baseline_used + 10.0 + 10.0) - 15.0, 2))
+            # Implementation returns overage charge (overage_rate * excess_fraction)
+            excess_fraction = ((baseline_used + 10.0 + 10.0) - 15.0) / 10.0
+            expected_overage = round(0.30 * excess_fraction, 2)
             assert overage == pytest.approx(expected_overage)
 
     def test_get_overage_rate_pro(self, db, regular_user):

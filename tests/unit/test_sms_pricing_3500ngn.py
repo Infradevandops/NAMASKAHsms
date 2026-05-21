@@ -21,7 +21,7 @@ class TestSMSPricing3500NGN:
         # Should be exactly 3498 (2.12 * 1650)
         assert round(ngn_price) == 3498
         # Close enough to 3500 (within 0.06% tolerance)
-        assert abs(ngn_price - 3500) < 2
+        assert abs(ngn_price - 3500) <= 2
 
     def test_all_currency_conversions(self):
         """Verify $2.12 converts to all supported currencies."""

@@ -42,12 +42,12 @@ def test_calculate_score_logic():
     service = FraudDetectionService()
 
     # Test high risk country logic
-    features = {"country": "high_risk_country", "service": "safe", "ip": "1.1.1.1"}
+    features = {"country": "RU", "service": "safe", "ip": "1.1.1.1"}
     score = service._calculate_score(features)
     assert score >= 0.3
 
     # Test high risk service logic
-    features = {"country": "safe", "service": "high_risk_service", "ip": "1.1.1.1"}
+    features = {"country": "safe", "service": "telegram", "ip": "1.1.1.1"}
     score = service._calculate_score(features)
     assert score >= 0.2
 

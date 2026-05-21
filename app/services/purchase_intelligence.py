@@ -140,7 +140,20 @@ class PurchaseIntelligenceService:
                             refund_processed_at=refund_processed_at,
                             refund_latency_seconds=(
                                 (
-                                    refund_processed_at - refund_requested_at
+                                    (
+                                        refund_processed_at
+                                        if refund_processed_at.tzinfo
+                                        else refund_processed_at.replace(
+                                            tzinfo=timezone.utc
+                                        )
+                                    )
+                                    - (
+                                        refund_requested_at
+                                        if refund_requested_at.tzinfo
+                                        else refund_requested_at.replace(
+                                            tzinfo=timezone.utc
+                                        )
+                                    )
                                 ).total_seconds()
                                 if refund_processed_at and refund_requested_at
                                 else None

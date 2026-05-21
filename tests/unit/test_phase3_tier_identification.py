@@ -45,7 +45,7 @@ class TestBackendTierCheck1_UserExistence:
             mock_tm.return_value = mock_instance
 
             call_next = AsyncMock()
-            call_next.return_value = MagicMock()
+            call_next.return_value = "response"
 
             result = await tier_verification_middleware(request, call_next)
 
@@ -67,7 +67,7 @@ class TestBackendTierCheck1_UserExistence:
             mock_tm.return_value = mock_instance
 
             call_next = AsyncMock()
-            call_next.return_value = MagicMock()
+            call_next.return_value = "response"
 
             result = await tier_verification_middleware(request, call_next)
 
@@ -82,7 +82,7 @@ class TestBackendTierCheck1_UserExistence:
         request.state.user_id = None
 
         call_next = AsyncMock()
-        call_next.return_value = MagicMock()
+        call_next.return_value = "response"
 
         result = await tier_verification_middleware(request, call_next)
 
@@ -584,7 +584,7 @@ class TestPhase3Integration:
             mock_tm.return_value = mock_instance
 
             call_next = AsyncMock()
-            call_next.return_value = MagicMock()
+            call_next.return_value = "response"
 
             result = await tier_verification_middleware(request, call_next)
 

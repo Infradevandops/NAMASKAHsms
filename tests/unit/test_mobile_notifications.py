@@ -176,7 +176,7 @@ class TestMobileNotificationService:
         assert result is True
         assert existing_token.platform == "ios"
         assert existing_token.device_name == "iPhone 14"
-        assert existing_token.is_active is True
+        assert existing_token.active is True
         mock_db.commit.assert_called_once()
 
     @pytest.mark.asyncio
@@ -213,7 +213,7 @@ class TestMobileNotificationService:
         )
 
         assert result is True
-        assert existing_token.is_active is False
+        assert existing_token.active is False
         mock_db.commit.assert_called_once()
 
     @pytest.mark.asyncio
@@ -232,9 +232,9 @@ class TestMobileNotificationService:
     async def test_get_user_device_tokens(self, service, mock_db):
         """Test getting user's device tokens."""
         token1 = MagicMock(spec=DeviceToken)
-        token1.device_token = "token_1"
+        token1.token = "token_1"
         token2 = MagicMock(spec=DeviceToken)
-        token2.device_token = "token_2"
+        token2.token = "token_2"
 
         mock_db.query.return_value.filter_by.return_value.all.return_value = [
             token1,
@@ -251,7 +251,7 @@ class TestMobileNotificationService:
     async def test_get_user_device_tokens_with_platform_filter(self, service, mock_db):
         """Test getting user's device tokens with platform filter."""
         token1 = MagicMock(spec=DeviceToken)
-        token1.device_token = "android_token"
+        token1.token = "android_token"
 
         mock_db.query.return_value.filter_by.return_value.filter_by.return_value.all.return_value = [
             token1
@@ -341,13 +341,17 @@ class TestMobileNotificationService:
         notification = MagicMock(spec=Notification)
         device_tokens = ["token_1"]
 
-        mock_response = AsyncMock()
+        mock_response = MagicMock()
         mock_response.status = 401
 
-        mock_session = AsyncMock()
-        mock_session.post = AsyncMock()
-        mock_session.post.return_value.__aenter__.return_value = mock_response
-        mock_session.post.return_value.__aexit__.return_value = None
+        mock_session = MagicMock()
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=None)
+
+        mock_context = MagicMock()
+        mock_context.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_context.__aexit__ = AsyncMock(return_value=None)
+        mock_session.post = MagicMock(return_value=mock_context)
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await service._send_fcm_notification(
@@ -381,10 +385,10 @@ class TestDeviceTokenModel:
         token = DeviceToken(
             id="token_id",
             user_id="user_123",
-            device_token="test_token",
+            token="test_token",
             platform="android",
             device_name="Samsung Galaxy",
-            is_active=True,
+            active=True,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -393,10 +397,10 @@ class TestDeviceTokenModel:
 
         assert result["id"] == "token_id"
         assert result["user_id"] == "user_123"
-        assert result["device_token"] == "test_token"
+        assert result["token"] == "test_token"
         assert result["platform"] == "android"
         assert result["device_name"] == "Samsung Galaxy"
-        assert result["is_active"] is True
+        assert result["active"] is True
         assert "created_at" in result
         assert "updated_at" in result
 
@@ -428,7 +432,7 @@ class TestPushNotificationIntegration:
 
             # Get device tokens
             token = MagicMock(spec=DeviceToken)
-            token.device_token = "android_token"
+            token.token = "android_token"
             mock_db.query.return_value.filter_by.return_value.all.return_value = [token]
 
             tokens = await service.get_user_device_tokens(user_id="user_123")

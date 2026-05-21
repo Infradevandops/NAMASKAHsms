@@ -29,7 +29,7 @@ class AdaptivePollingService:
         verifications = query.all()
 
         if not verifications:
-            return settings.sms_polling_initial_interval_seconds
+            return int(settings.sms_polling_initial_interval_seconds)
 
         polling_times = [
             (v.completed_at - v.created_at).total_seconds()
@@ -38,7 +38,7 @@ class AdaptivePollingService:
         ]
 
         if not polling_times:
-            return settings.sms_polling_initial_interval_seconds
+            return int(settings.sms_polling_initial_interval_seconds)
 
         avg_time = sum(polling_times) / len(polling_times)
         optimal = max(5, min(30, int(avg_time / 3)))

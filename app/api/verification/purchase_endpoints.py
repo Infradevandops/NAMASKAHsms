@@ -226,6 +226,18 @@ async def request_verification(
             )
         sms_cost = pricing_info["total_cost"]
 
+        use_free_verification = False
+        if (
+            not getattr(user, "is_admin", False)
+            and getattr(user, "free_verifications", None) is not None
+            and float(user.free_verifications) >= 1.0
+        ):
+            use_free_verification = True
+            sms_cost = 0.0
+            logger.info(
+                f"User {user_id} has free verifications. Using free verification (remaining: {float(user.free_verifications)})"
+            )
+
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
 
         # Check user has sufficient balance using unified service
@@ -408,6 +420,12 @@ async def request_verification(
                 db.flush()
                 verification.debit_transaction_id = balance_tx.id
             else:
+                if use_free_verification:
+                    user.free_verifications = type(user.free_verifications)(
+                        float(user.free_verifications) - 1.0
+                    )
+                    db.flush()
+
                 success, error = await BalanceService.deduct_credits_for_verification(
                     db=db,
                     user=user,

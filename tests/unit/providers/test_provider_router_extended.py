@@ -105,7 +105,9 @@ async def test_purchase_all_providers_fail(router):
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             with pytest.raises(ProviderError):
-                await router.purchase_with_failover("whatsapp", "US")
+                await router.purchase_with_failover(
+                    db=MagicMock(), service="whatsapp", country="US"
+                )
 
 
 # ── concurrent failover ───────────────────────────────────────────────────────
@@ -137,7 +139,12 @@ async def test_purchase_concurrent_failover(router):
             router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
-            tasks = [router.purchase_with_failover("whatsapp", "US") for _ in range(10)]
+            tasks = [
+                router.purchase_with_failover(
+                    db=MagicMock(), service="whatsapp", country="US"
+                )
+                for _ in range(10)
+            ]
             results = await asyncio.gather(*tasks)
 
     assert len(results) == 10
@@ -180,7 +187,9 @@ async def test_routing_reason_populated(router):
     with patch.object(
         router, "get_provider", return_value=(mock_provider, False, None)
     ):
-        result = await router.purchase_with_failover("whatsapp", "US")
+        result = await router.purchase_with_failover(
+            db=MagicMock(), service="whatsapp", country="US"
+        )
 
     assert "country=US" in result.routing_reason
 
@@ -208,7 +217,9 @@ async def test_routing_reason_failover_populated(router):
             router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
-            result = await router.purchase_with_failover("whatsapp", "US")
+            result = await router.purchase_with_failover(
+                db=MagicMock(), service="whatsapp", country="US"
+            )
 
     assert "failover" in result.routing_reason
 
@@ -216,7 +227,8 @@ async def test_routing_reason_failover_populated(router):
 # ── failover circular guard ───────────────────────────────────────────────────
 
 
-def test_failover_no_circular_loop(router):
+@pytest.mark.asyncio
+async def test_failover_no_circular_loop(router):
     """_get_failover_provider never returns the same provider that failed."""
     mock_tv = MagicMock()
     mock_tv.name = "textverified"
@@ -235,7 +247,9 @@ def test_failover_no_circular_loop(router):
         mock_fivesim.enabled = False
         mock_fivesim_fn.return_value = mock_fivesim
 
-        result = router._get_failover_provider(mock_tv, "US")
+        result = await router._get_failover_provider(
+            MagicMock(), mock_tv, "US", "whatsapp", "freemium"
+        )
 
     # No enabled secondary → returns None, not the same provider
     assert result is None

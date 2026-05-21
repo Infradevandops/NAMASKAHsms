@@ -40,7 +40,7 @@ class TestSecurityMiddleware:
 
     def test_security_headers_added(self, client):
         """Test security headers are added to responses."""
-        response = client.get("/api/v1/auth/google/config")
+        response = client.get("/api/auth/google/config")
 
         # Check for security headers
         response.headers
@@ -71,7 +71,7 @@ class TestRateLimitingMiddleware:
         with patch(
             "app.core.dependencies.get_current_user_id", return_value=regular_user.id
         ):
-            response = client.get("/api/v1/auth/me")
+            response = client.get("/api/auth/me")
 
         assert response.status_code in [200, 401, 403, 422]
 
@@ -94,22 +94,18 @@ class TestLoggingMiddleware:
 
     def test_request_logging(self, client):
         """Test requests are logged."""
-        with patch("app.middleware.logging.logger") as mock_logger:
-            client.get("/api/v1/auth/google/config")
-            # Logger should be called
-            assert True
+        client.get("/api/auth/google/config")
+        assert True
 
     def test_response_logging(self, client):
         """Test responses are logged."""
-        with patch("app.middleware.logging.logger") as mock_logger:
-            client.get("/api/v1/auth/google/config")
-            assert True
+        client.get("/api/auth/google/config")
+        assert True
 
     def test_error_logging(self, client):
         """Test errors are logged."""
-        with patch("app.middleware.logging.logger") as mock_logger:
-            client.get("/api/v1/nonexistent")
-            assert True
+        client.get("/api/nonexistent")
+        assert True
 
     def test_sensitive_data_masking(self):
         """Test sensitive data is masked in logs."""
@@ -139,13 +135,13 @@ class TestCORSMiddleware:
 
     def test_cors_headers_added(self, client):
         """Test CORS headers are added."""
-        response = client.options("/api/v1/auth/google/config")
+        response = client.options("/api/auth/google/config")
         # Should have Access-Control-Allow-Origin
         assert response.status_code in [200, 404, 405]
 
     def test_cors_preflight_request(self, client):
         """Test CORS preflight OPTIONS request."""
-        response = client.options("/api/v1/auth/me")
+        response = client.options("/api/auth/me")
         assert response.status_code in [200, 404, 405]
 
 
@@ -166,7 +162,7 @@ class TestTierValidationMiddleware:
 
     def test_tier_validation_success(self, authenticated_pro_client):
         """Test tier validation passes for authorized user."""
-        response = authenticated_pro_client.get("/api/v1/auth/me")
+        response = authenticated_pro_client.get("/api/auth/me")
 
         assert response.status_code in [200, 401]
 

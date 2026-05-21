@@ -28,7 +28,13 @@ def setup_tiers(db: Session):
 
 def test_freemium_blocked_from_rental_area_code(db: Session, setup_tiers):
     """Freemium users cannot use area code selection for rentals."""
-    user = User(id="user1", subscription_tier="freemium", credits=10.0)
+    user = User(
+        id="user1",
+        email="user1@test.com",
+        password_hash="test",
+        subscription_tier="freemium",
+        credits=10.0,
+    )
     db.add(user)
     db.commit()
 
@@ -42,7 +48,13 @@ def test_freemium_blocked_from_rental_area_code(db: Session, setup_tiers):
 
 def test_payg_charges_rental_area_code_fee(db: Session, setup_tiers):
     """PAYG users pay $0.50 for rental area code selection."""
-    user = User(id="user2", subscription_tier="payg", credits=10.0)
+    user = User(
+        id="user2",
+        email="user2@test.com",
+        password_hash="test",
+        subscription_tier="payg",
+        credits=10.0,
+    )
     db.add(user)
     db.commit()
 
@@ -55,7 +67,13 @@ def test_payg_charges_rental_area_code_fee(db: Session, setup_tiers):
 
 def test_pro_rental_area_code_included(db: Session, setup_tiers):
     """Pro users get rental area code selection included."""
-    user = User(id="user3", subscription_tier="pro", credits=10.0)
+    user = User(
+        id="user3",
+        email="user3@test.com",
+        password_hash="test",
+        subscription_tier="pro",
+        credits=10.0,
+    )
     db.add(user)
     db.commit()
 
@@ -67,7 +85,13 @@ def test_pro_rental_area_code_included(db: Session, setup_tiers):
 
 def test_custom_rental_area_code_included(db: Session, setup_tiers):
     """Custom users get rental area code selection included."""
-    user = User(id="user4", subscription_tier="custom", credits=10.0)
+    user = User(
+        id="user4",
+        email="user4@test.com",
+        password_hash="test",
+        subscription_tier="custom",
+        credits=10.0,
+    )
     db.add(user)
     db.commit()
 
@@ -79,7 +103,13 @@ def test_custom_rental_area_code_included(db: Session, setup_tiers):
 
 def test_rental_without_area_code_no_fee(db: Session, setup_tiers):
     """No area code fee when area code not requested for rentals."""
-    user = User(id="user5", subscription_tier="payg", credits=10.0)
+    user = User(
+        id="user5",
+        email="user5@test.com",
+        password_hash="test",
+        subscription_tier="payg",
+        credits=10.0,
+    )
     db.add(user)
     db.commit()
 

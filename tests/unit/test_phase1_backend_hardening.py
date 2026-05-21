@@ -8,7 +8,7 @@ Tests for:
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 from fastapi import HTTPException, Request
@@ -31,7 +31,7 @@ class TestTierVerificationMiddleware:
         request.url.path = "/health"
         request.state = Mock()
 
-        call_next = Mock()
+        call_next = AsyncMock()
         call_next.return_value = "response"
 
         result = await tier_verification_middleware(request, call_next)
@@ -47,7 +47,7 @@ class TestTierVerificationMiddleware:
         request.state = Mock()
         request.state.user_id = None
 
-        call_next = Mock()
+        call_next = AsyncMock()
         call_next.return_value = "response"
 
         result = await tier_verification_middleware(request, call_next)
@@ -69,7 +69,7 @@ class TestTierVerificationMiddleware:
             mock_instance.get_user_tier.return_value = "pro"
             mock_tm.return_value = mock_instance
 
-            call_next = Mock()
+            call_next = AsyncMock()
             call_next.return_value = "response"
 
             result = await tier_verification_middleware(request, call_next)
@@ -93,7 +93,7 @@ class TestTierVerificationMiddleware:
             mock_instance.get_user_tier.side_effect = Exception("DB error")
             mock_tm.return_value = mock_instance
 
-            call_next = Mock()
+            call_next = AsyncMock()
             call_next.return_value = "response"
 
             result = await tier_verification_middleware(request, call_next)

@@ -64,11 +64,17 @@ class MobileNotificationService:
 
         if not device_tokens:
             logger.debug(f"No device tokens for user {user_id}")
-        return results
+            return results
 
         try:
+            android_tokens = []
             if platform in ("android", "both") and self.fcm_enabled:
-                android_tokens = [t for t in device_tokens if t.startswith("android_")]
+                android_tokens = [
+                    t
+                    for t in device_tokens
+                    if t.startswith("android_") or "android" in t.lower()
+                ]
+
             if android_tokens:
                 fcm_result = await self._send_fcm_notification(
                     notification=notification,
@@ -76,8 +82,14 @@ class MobileNotificationService:
                 )
                 results["android"] = fcm_result
 
+            ios_tokens = []
             if platform in ("ios", "both") and self.apns_enabled:
-                ios_tokens = [t for t in device_tokens if t.startswith("ios_")]
+                ios_tokens = [
+                    t
+                    for t in device_tokens
+                    if t.startswith("ios_") or "ios" in t.lower()
+                ]
+
             if ios_tokens:
                 apns_result = await self._send_apns_notification(
                     notification=notification,
@@ -87,8 +99,8 @@ class MobileNotificationService:
 
             logger.info(
                 f"Push notifications sent for user {user_id}: "
-                f"Android {results['android']['sent']}/{len([t for t in device_tokens if t.startswith('android_')])}, "
-                f"iOS {results['ios']['sent']}/{len([t for t in device_tokens if t.startswith('ios_')])}"
+                f"Android {results['android']['sent']}/{len(android_tokens)}, "
+                f"iOS {results['ios']['sent']}/{len(ios_tokens)}"
             )
 
         except Exception as e:
@@ -96,7 +108,7 @@ class MobileNotificationService:
                 f"Failed to send push notifications for user {user_id}: {str(e)}"
             )
 
-            return results
+        return results
 
     async def _send_fcm_notification(
         self,
@@ -163,7 +175,7 @@ class MobileNotificationService:
             logger.error(f"Failed to send FCM notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
-            return result
+        return result
 
     async def _send_apns_notification(
         self,
@@ -196,7 +208,7 @@ class MobileNotificationService:
             logger.error(f"Failed to send APNs notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
-            return result
+        return result
 
     async def register_device_token(
         self,
@@ -220,16 +232,15 @@ class MobileNotificationService:
             logger.warning(
                 "Database session not available for device token registration"
             )
-        return False
+            return False
 
         try:
-
             # Check if token already exists
             existing = (
                 self.db.query(DeviceToken)
                 .filter_by(
                     user_id=user_id,
-                    device_token=device_token,
+                    token=device_token,
                 )
                 .first()
             )
@@ -237,14 +248,14 @@ class MobileNotificationService:
             if existing:
                 existing.platform = platform
                 existing.device_name = device_name
-                existing.is_active = True
+                existing.active = True
             else:
                 token = DeviceToken(
                     user_id=user_id,
-                    device_token=device_token,
+                    token=device_token,
                     platform=platform,
                     device_name=device_name,
-                    is_active=True,
+                    active=True,
                 )
                 self.db.add(token)
 
@@ -275,25 +286,23 @@ class MobileNotificationService:
             logger.warning(
                 "Database session not available for device token unregistration"
             )
-        return False
+            return False
 
         try:
-
             token = (
                 self.db.query(DeviceToken)
                 .filter_by(
                     user_id=user_id,
-                    device_token=device_token,
+                    token=device_token,
                 )
                 .first()
             )
 
             if token:
-                token.is_active = False
+                token.active = False
                 self.db.commit()
                 logger.info(f"Device token unregistered for user {user_id}")
-            return True
-
+                return True
             return False
 
         except Exception as e:
@@ -317,20 +326,19 @@ class MobileNotificationService:
         """
         if not self.db:
             logger.warning("Database session not available for getting device tokens")
-        return []
+            return []
 
         try:
-
             query = self.db.query(DeviceToken).filter_by(
                 user_id=user_id,
-                is_active=True,
+                active=True,
             )
 
             if platform:
                 query = query.filter_by(platform=platform)
 
             tokens = query.all()
-            return [t.device_token for t in tokens]
+            return [t.token for t in tokens]
 
         except Exception as e:
             logger.error(f"Failed to get device tokens for user {user_id}: {str(e)}")
@@ -347,16 +355,15 @@ class MobileNotificationService:
         """
         if not self.db:
             logger.warning("Database session not available for cleanup")
-        return 0
+            return 0
 
         try:
-
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
             deleted = (
                 self.db.query(DeviceToken)
                 .filter(
-                    DeviceToken.is_active is False,
+                    DeviceToken.active == False,
                     DeviceToken.updated_at < cutoff_date,
                 )
                 .delete()

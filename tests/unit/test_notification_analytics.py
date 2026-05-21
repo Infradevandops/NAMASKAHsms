@@ -210,12 +210,12 @@ class TestNotificationAnalyticsService:
                 delivery_method="email",
             )
 
-        if i < 3:
-            analytics_service.track_notification_delivered(
-                notification_id=notification.id,
-                user_id=test_user.id,
-                delivery_method="email",
-            )
+            if i < 3:
+                analytics_service.track_notification_delivered(
+                    notification_id=notification.id,
+                    user_id=test_user.id,
+                    delivery_method="email",
+                )
 
         metrics = analytics_service.get_delivery_metrics(user_id=test_user.id)
 

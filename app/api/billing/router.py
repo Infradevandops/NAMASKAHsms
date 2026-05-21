@@ -18,6 +18,7 @@ router.include_router(payment_router, prefix="/wallet/paystack", tags=["payment"
 router.include_router(payment_history_router, prefix="/wallet", tags=["wallet"])
 router.include_router(pricing_endpoints_router, prefix="/billing", tags=["billing"])
 router.include_router(refund_router, prefix="/wallet/refund", tags=["refund"])
+router.include_router(refund_router, prefix="/billing/refunds", tags=["refund"])
 router.include_router(tier_router, prefix="/billing/tiers", tags=["tiers"])
 router.include_router(
     payment_method_router, prefix="/billing/payment-method", tags=["payment-method"]

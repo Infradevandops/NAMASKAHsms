@@ -31,6 +31,7 @@ class PricingTemplateService:
         Get active pricing template for region
         If user has specific assignment (A/B test), return that instead
         """
+        assignment = None
         # Check if user has specific template assignment
         if user_id:
             assignment = (

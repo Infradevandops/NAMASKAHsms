@@ -14,11 +14,17 @@
 - **[Changelog](../CHANGELOG.md)** — Version history
 
 ### 🚀 Recent Implementations
+- **[Stable Fixes Summary](../STABLE_FIXES_SUMMARY.md)** — UI fixes (navigation, dark mode) - May 21
+- **[Test Status Current](./TEST_STATUS_CURRENT.md)** — Test suite status - May 21
 - **[Mobile UI Taskfile](../MOBILE_UI_TASKFILE.md)** — Mobile UI + glassmorphism (Phase 1+2 complete)
 - **[Branding Audit](../BRANDING_AUDIT_VRENUM.md)** — Rebrand to VRENUM ACTV8TN (186 files)
 - **[Production Setup Checklist](../PRODUCTION_SETUP_CHECKLIST.md)** — Launch checklist
 
 ### 🧪 Testing & Verification
+- **[Test Status Current](./TEST_STATUS_CURRENT.md)** — Current test suite status (May 21)
+- **[Test Remediation Progress](./TEST_REMEDIATION_PROGRESS.md)** — Detailed progress (May 21)
+- **[Test Remediation Plan](./TEST_REMEDIATION_PLAN.md)** — Full remediation plan
+- **[Test Remediation Remaining](./TEST_REMEDIATION_REMAINING.md)** — Remaining work (OUTDATED)
 - **[UI/UX Assessment](./UI_UX_ASSESSMENT.md)** — Interface evaluation (May 10)
 - **[UI/UX Assessment Update](./UI_UX_ASSESSMENT_UPDATE.md)** — Current state (May 17)
 

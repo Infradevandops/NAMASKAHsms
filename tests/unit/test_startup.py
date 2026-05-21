@@ -31,7 +31,7 @@ class TestEnsureAdminUser:
 
     @patch("app.core.startup.SessionLocal")
     @patch("app.core.startup.hash_password")
-    @patch("app.utils.security.verify_password")
+    @patch("app.core.startup.verify_password")
     def test_admin_user_updated_when_exists(self, mock_verify, mock_hash, mock_session):
         """Test admin user password is updated when user exists."""
         # Setup
@@ -84,7 +84,7 @@ class TestEnsureAdminUser:
 
     @patch("app.core.startup.SessionLocal")
     @patch("app.core.startup.hash_password")
-    @patch("app.utils.security.verify_password")
+    @patch("app.core.startup.verify_password")
     def test_admin_password_verification_after_update(
         self, mock_verify, mock_hash, mock_session
     ):

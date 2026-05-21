@@ -267,7 +267,7 @@ class TestEmailNotificationService:
         )
 
         assert "Telegram" in html
-        assert "Verification Completed" in html
+        assert "Verification Complete" in html
         assert "0.05" in html
 
     def test_create_low_balance_alert_html(self, email_service):
@@ -303,7 +303,7 @@ class TestEmailNotificationService:
         )
 
         assert "Weekly Summary" in html
-        assert "Statistics" in html
+        assert "Recent Notifications" in html
         assert "10" in html
 
 

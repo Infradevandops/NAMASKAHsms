@@ -285,24 +285,23 @@ async def test_handle_timeout_fivesim(service):
 
 @pytest.mark.asyncio
 async def test_handle_timeout_refund_fallback(service):
-    """When provider report fails, platform refund kicks in."""
+    """When provider report fails, platform refund kicks in via mark_verification_failed."""
     v = _make_verification(provider="textverified")
     db = MagicMock()
     service.textverified.report_verification = AsyncMock(return_value=False)
 
     with patch(
-        "app.services.sms_polling_service.refund_policy_enforcer"
-    ) as MockEnforcer, patch("app.services.sms_polling_service.NotificationService"):
-        MockEnforcer.enforce_single_verification = AsyncMock(
-            return_value={"refund_amount": 2.22}
-        )
+        "app.services.verification_status_service.mark_verification_failed",
+        new_callable=AsyncMock,
+    ) as mock_mark_failed, patch(
+        "app.services.sms_polling_service.NotificationService"
+    ):
 
-        # Mock DB reload inside enforcer calls might be needed if they also reload
         db.query.return_value.filter.return_value.first.return_value = v
 
         await service._handle_timeout(v, db)
 
-    MockEnforcer.enforce_single_verification.assert_called_once()
+    mock_mark_failed.assert_called_once()
 
 
 # ── background service ────────────────────────────────────────────────────────

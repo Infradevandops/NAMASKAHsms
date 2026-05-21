@@ -6,6 +6,8 @@
 {{ super() }}
 <style>
     /* Light mode defaults - CRITICAL for visibility */
+    /* OVERRIDE parent .public-content styles with higher specificity */
+    .public-content .docs-hero,
     .docs-hero {
         background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%) !important;
         padding: 60px 20px;
@@ -14,15 +16,21 @@
         margin-bottom: 48px;
         color: white !important;
     }
+    .public-content .docs-hero h1,
     .docs-hero h1 { font-size: 42px; margin-bottom: 12px; font-weight: 800; color: white !important; }
+    .public-content .docs-hero p,
     .docs-hero p { font-size: 18px; opacity: 0.95; color: white !important; }
+    .public-content .docs-container,
     .docs-container { max-width: 960px; margin: 0 auto; padding: 20px; }
+    .public-content .endpoint-group,
     .endpoint-group { margin-bottom: 48px; }
+    .public-content .endpoint-group h2,
     .endpoint-group h2 {
         font-size: 28px; font-weight: 700; color: #21262D !important;
         margin-bottom: 20px; padding-bottom: 12px;
         border-bottom: 2px solid #e5e7eb;
     }
+    .public-content .endpoint,
     .endpoint {
         background: #ffffff !important; border: 1px solid #e5e7eb !important; border-radius: 12px;
         padding: 20px; margin-bottom: 12px; transition: border-color 0.2s;
@@ -37,24 +45,32 @@
     .method.post { background: #DBEAFE !important; color: #1E40AF !important; }
     .method.put { background: #FEF9C3 !important; color: #854D0E !important; }
     .method.delete { background: #FEE2E2 !important; color: #B91C1C !important; }
+    .public-content .endpoint-path,
     .endpoint-path { font-family: monospace; font-size: 15px; font-weight: 600; color: #21262D !important; }
+    .public-content .endpoint-desc,
     .endpoint-desc { font-size: 14px; color: #6b7280 !important; margin-left: 68px; }
     .auth-badge {
         font-size: 11px; font-weight: 600; padding: 2px 8px;
         border-radius: 4px; background: #FFF0F3 !important; color: #FE3C72 !important; margin-left: auto;
     }
     .tier-note { font-size: 11px; color: #9CA3AF !important; margin-left: 68px; margin-top: 4px; }
+    .public-content .info-card,
     .info-card {
         background: #F8FAFC !important; border: 1px solid #E2E8F0 !important; border-radius: 12px;
         padding: 24px; margin-bottom: 32px;
     }
+    .public-content .info-card h3,
     .info-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #21262D !important; }
+    .public-content .info-card p,
     .info-card p { font-size: 14px; color: #4b5563 !important; line-height: 1.7; margin-bottom: 8px; }
+    .public-content .info-card code,
     .info-card code {
         background: #E2E8F0 !important; padding: 2px 6px; border-radius: 4px;
         font-size: 13px; font-family: monospace; color: #21262D !important;
     }
+    .public-content .info-card a,
     .info-card a { color: #FE3C72 !important; text-decoration: none; }
+    .public-content .info-card a:hover,
     .info-card a:hover { text-decoration: underline; }
 
     /* Dark mode overrides */

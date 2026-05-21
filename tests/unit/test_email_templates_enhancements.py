@@ -1,7 +1,7 @@
 """Unit tests for Email Templates enhancements."""
 
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
@@ -121,8 +121,10 @@ class TestTestEmail:
     """Test test email functionality."""
 
     @pytest.mark.asyncio
-    async def test_send_test_email_success(self, mock_db_session):
+    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
+    async def test_send_test_email_success(self, mock_send, mock_db_session):
         """Test sending test email successfully."""
+        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(
@@ -146,8 +148,12 @@ class TestTestEmail:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_send_test_email_with_custom_variables(self, mock_db_session):
+    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
+    async def test_send_test_email_with_custom_variables(
+        self, mock_send, mock_db_session
+    ):
         """Test sending test email with custom variables."""
+        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(
@@ -377,8 +383,10 @@ class TestAcceptanceCriteria:
         assert current_template.version == 4
 
     @pytest.mark.asyncio
-    async def test_ac3_test_email_sends(self, mock_db_session):
+    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
+    async def test_ac3_test_email_sends(self, mock_send, mock_db_session):
         """AC-3: Test email sends successfully."""
+        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(

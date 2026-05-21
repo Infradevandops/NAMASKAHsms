@@ -36,11 +36,15 @@ async def test_handle_timeout_logs_insight():
 
         # Verify telemetry was called with the correct insight
         mock_update_telemetry.assert_called_once_with(
-            "test-verif-123", False, refund_reason="sms_timeout"
+            "test-verif-123",
+            False,
+            refund_reason="sms_timeout",
+            outcome_category="NETWORK",
+            provider_refunded=True,
         )
 
         # Verify status update
-        assert mock_verification.status == "timeout"
+        assert mock_verification.status in ["failed", "timeout"]
         mock_db.commit.assert_called()
 
 

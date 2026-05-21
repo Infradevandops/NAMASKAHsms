@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Basic app settings
     app_name: str = "VRENUM ACTV8TN"
-    version: str = "4.7.3"
+    version: str = "4.8.1"
     environment: str = "development"
     debug: bool = False
 

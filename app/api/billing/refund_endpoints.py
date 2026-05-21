@@ -97,3 +97,19 @@ async def get_refund_history(
     except Exception as e:
         logger.error(f"Failed to get refund history for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve refund history")
+
+
+@router.get("")
+async def list_refunds(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """List all refunds for the current user."""
+    try:
+        from app.models.refund import Refund
+
+        refunds = db.query(Refund).filter(Refund.user_id == user_id).all()
+        return refunds
+    except Exception as e:
+        logger.error(f"Failed to list refunds for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list refunds")

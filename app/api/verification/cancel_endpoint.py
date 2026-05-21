@@ -92,7 +92,7 @@ async def cancel_verification(
             mark_verification_cancelled_by_user,
         )
 
-        mark_verification_cancelled_by_user(db, verification)
+        await mark_verification_cancelled_by_user(db, verification)
 
         # 3. Process refund immediately
         refund_service = AutoRefundService(db)
