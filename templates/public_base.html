@@ -14,8 +14,8 @@
 .public-footer { background: #f9fafb; border-top: 1px solid rgba(0,0,0,0.08); padding: 24px 40px; text-align: center; color: #6b7280; font-size: 14px; }
 
 /* Ensure all text is visible in light mode */
-.public-content h1, .public-content h2, .public-content h3, .public-content h4 { color: #21262D !important; }
-.public-content p, .public-content li, .public-content span { color: #4b5563 !important; }
+.public-content h1, .public-content h2, .public-content h3, .public-content h4 { color: #21262D; }
+.public-content p, .public-content li, .public-content span { color: #4b5563; }
 .public-content a { color: #FE3C72; }
 
 /* Mobile Menu - FORCE HIDE on desktop */
@@ -57,12 +57,12 @@
             <a href="/about">About</a>
             <a href="/affiliate-program">Affiliates</a>
             <a href="/contact">Contact</a>
-            
+
             <!-- Theme Toggle -->
             <button onclick="toggleTheme()" style="background: transparent; border: 1px solid var(--border-color, rgba(0,0,0,0.1)); color: var(--text-primary, #374151); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode">
                 <span id="theme-icon">🌙</span>
             </button>
-            
+
             {% if user %}
             <a href="/dashboard" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Dashboard</a>
             {% else %}
