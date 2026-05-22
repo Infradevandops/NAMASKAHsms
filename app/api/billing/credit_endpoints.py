@@ -38,15 +38,8 @@ async def get_credit_balance(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Always return user.credits as the canonical balance
-        # (TextVerified API balance is an operational metric, not the user's wallet)
-        result = {
-            "credits": user.credits or 0.0,
-            "free_verifications": getattr(user, "free_verifications", 0),
-            "currency": "USD",
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-        }
-
+        # For admin users, show TextVerified balance as primary
+        # For regular users, show platform credits
         if user.is_admin:
             from app.core.unified_cache import cache
 
@@ -58,10 +51,33 @@ async def get_credit_balance(
                 bal_data = await _get_tv_service().get_balance()
                 tv_balance = bal_data.get("balance", 0.0)
                 await cache.set(_BALANCE_CACHE_KEY, tv_balance, ttl=60)
-            result["provider_balance"] = tv_balance
-            result["source"] = "database"
 
-        logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
+            # Admin sees TextVerified balance as primary
+            result = {
+                "credits": tv_balance,  # ← TextVerified balance
+                "platform_credits": user.credits
+                or 0.0,  # ← Platform balance (secondary)
+                "provider_balance": tv_balance,  # ← Keep for backward compatibility
+                "free_verifications": getattr(user, "free_verifications", 0),
+                "currency": "USD",
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "source": "textverified_api",
+            }
+        else:
+            # Regular users see platform credits
+            result = {
+                "credits": user.credits or 0.0,
+                "free_verifications": getattr(user, "free_verifications", 0),
+                "currency": "USD",
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "source": "database",
+            }
+
+        # Log both the value returned to the client and the user's platform credits
+        returned_credits = result.get("credits") if isinstance(result, dict) else None
+        logger.info(
+            f"Retrieved balance for user {user_id}: returned_credits={returned_credits} platform_credits={user.credits}"
+        )
         return result
 
     except HTTPException:
