@@ -38,8 +38,11 @@ class CreditService:
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
-        return float(user.credits or 0.0)
+        returned = float(user.credits or 0.0)
+        logger.info(
+            f"Retrieved balance for user {user_id}: returned_credits={returned} platform_credits={user.credits}"
+        )
+        return returned
 
     def add_credits(
         self,
