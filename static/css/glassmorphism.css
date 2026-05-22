@@ -782,12 +782,10 @@
    DARK MODE GLASS VARIANTS
    ============================================ */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --glass-white: rgba(31, 41, 55, 0.7);
-        --glass-white-light: rgba(31, 41, 55, 0.5);
-        --glass-white-lighter: rgba(31, 41, 55, 0.3);
-    }
+html.dark-mode, [data-theme="dark"] {
+    --glass-white: rgba(31, 41, 55, 0.7);
+    --glass-white-light: rgba(31, 41, 55, 0.5);
+    --glass-white-lighter: rgba(31, 41, 55, 0.3);
 }
 
 /* ============================================

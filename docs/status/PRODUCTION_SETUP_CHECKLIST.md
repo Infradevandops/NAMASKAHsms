@@ -1,6 +1,6 @@
 # Production Setup Checklist
 
-**Platform**: VRENUM ACTV8TN
+**Platform**: VRENUM SMS
 **Domain**: https://vrenum.app
 **Version**: 4.7.3
 **Last Updated**: May 17, 2026

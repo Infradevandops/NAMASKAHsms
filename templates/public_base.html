@@ -7,11 +7,14 @@
 .public-layout { min-height: 100vh; display: flex; flex-direction: column; background: #ffffff; color: #21262D; transition: background 0.3s, color 0.3s; }
 .public-header { background: #ffffff; border-bottom: 1px solid rgba(0,0,0,0.08); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: relative; }
 .logo { font-size: 24px; font-weight: 700; color: #21262D; text-decoration: none; }
-.nav-links { display: flex !important; gap: 24px; align-items: center; }
+.nav-links { display: flex; gap: 24px; align-items: center; }
 .nav-links a { color: #21262D; text-decoration: none; font-weight: 600; font-size: 15px; transition: color 0.2s; white-space: nowrap; }
 .nav-links a:hover { color: #FE3C72; }
 .public-content { flex: 1; padding: 40px; background: #ffffff; color: #21262D; }
 .public-footer { background: #f9fafb; border-top: 1px solid rgba(0,0,0,0.08); padding: 24px 40px; text-align: center; color: #6b7280; font-size: 14px; }
+.public-footer div { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; gap: 12px 24px !important; margin-bottom: 12px !important; }
+.public-footer a { display: inline-block !important; color: var(--text-muted, #9CA3AF) !important; text-decoration: none !important; transition: color 0.2s !important; }
+.public-footer a:hover { color: #FE3C72 !important; }
 
 /* Ensure all text is visible in light mode */
 .public-content h1, .public-content h2, .public-content h3, .public-content h4 { color: #21262D; }
@@ -54,20 +57,12 @@
 <div class="public-layout">
     <header class="public-header">
         <!-- Mobile Hamburger Menu Button (visible on mobile, hidden on desktop) -->
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu" style="order: 1;">
-            <span id="menu-icon">☰</span>
-        </button>
+        {% block mobile_hamburger %}{% endblock %}
 
         <!-- Brand Logo (centered on mobile, left-aligned on desktop) -->
-        <a href="/" class="logo-badge" style="order: 2; display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; white-space: nowrap;">VRENUM ACTV8TN</a>
+        <a href="/" class="logo-badge" style="order: 2; display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; white-space: nowrap;">VRENUM SMS</a>
 
-        <!-- Header Actions (combines theme toggle and auth/nav links) -->
         <div class="public-header-actions" style="order: 3; display: flex; align-items: center; gap: 16px;">
-            <!-- Theme Toggle (always visible on desktop and mobile) -->
-            <button onclick="toggleTheme()" class="theme-toggle-btn" style="background: transparent; border: 1px solid var(--border-color, rgba(0,0,0,0.1)); color: var(--text-primary, #374151); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='var(--bg-sidebar)'" onmouseout="this.style.background='transparent'" aria-label="Toggle dark mode" title="Toggle dark/light mode">
-                <span id="theme-icon">🌙</span>
-            </button>
-
             <!-- Desktop Navigation Links (hidden on mobile) -->
             <nav class="nav-links">
                 <a href="/pricing">Pricing</a>
@@ -104,14 +99,14 @@
     </main>
 
     <footer class="public-footer">
-        <div style="margin-bottom: 12px;">
-            <a href="/pricing" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Pricing</a>
-            <a href="/about" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">About</a>
-            <a href="/affiliate-program" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Affiliates</a>
-            <a href="/privacy" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Privacy</a>
-            <a href="/terms" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Terms</a>
-            <a href="/refund" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Refund</a>
-            <a href="/status" style="color: var(--text-muted, #9CA3AF); margin: 0 12px;">Status</a>
+        <div>
+            <a href="/pricing">Pricing</a>
+            <a href="/about">About</a>
+            <a href="/affiliate-program">Affiliates</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/refund">Refund</a>
+            <a href="/status">Status</a>
         </div>
         <div>&copy; 2026 vrenum.app. All rights reserved.</div>
     </footer>

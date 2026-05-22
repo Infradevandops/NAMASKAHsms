@@ -129,9 +129,95 @@
 
     .header-actions {
         width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        background: var(--bg-card, #ffffff);
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--border-color, #e5e7eb) !important;
+        box-shadow: var(--shadow-soft) !important;
+        margin-top: 8px !important;
+    }
+
+    [data-theme="dark"] .header-actions {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .mobile-actions-group {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
         gap: 12px !important;
+    }
+
+    /* Currency selector smaller and premium on mobile */
+    .currency-selector-btn {
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        min-width: auto !important;
+        background: transparent !important;
+        border-color: var(--border-color, #e5e7eb) !important;
+    }
+    [data-theme="dark"] .currency-selector-btn {
+        border-color: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Notification bell button smaller on mobile */
+    .notification-bell-btn {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        font-size: 16px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Tier badge smaller and premium on mobile */
+    #header-tier-badge {
+        padding: 4px 10px !important;
+        font-size: 10px !important;
+        height: 24px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        border-radius: 12px !important;
+    }
+
+    /* Balance chip premium & smaller on mobile */
+    .balance-chip {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        min-width: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        background: var(--gray-100, #f3f4f6) !important;
+        color: var(--text-primary, #1f2937) !important;
+        font-weight: 600 !important;
+    }
+    [data-theme="dark"] .balance-chip {
+        background: #334155 !important;
+        color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .balance-chip:hover {
+        background: #475569 !important;
     }
 
     /* Mobile-specific header overrides */

@@ -53,7 +53,7 @@ async def download_invoice(
         styles = getSampleStyleSheet()
         elements = []
 
-        elements.append(Paragraph("VRENUM ACTV8TN", styles["Title"]))
+        elements.append(Paragraph("VRENUM SMS", styles["Title"]))
         elements.append(Paragraph("Invoice / Receipt", styles["Heading2"]))
         elements.append(Spacer(1, 12))
 

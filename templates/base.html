@@ -18,7 +18,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Vrenum">
 
-    <title>{% block title %}VRENUM ACTV8TN{% endblock %}</title>
+    <title>{% block title %}VRENUM SMS{% endblock %}</title>
 
     <!-- Critical CSS - Inline for fast render -->
     <style>
@@ -123,7 +123,8 @@
 
     <!-- Global Components (only for authenticated users) -->
     {% if user %}
-    {% include "components/notification.html" %}
+    <!-- Legacy notification bell commented out to prevent misplaced icon at bottom left of mobile dashboard; the new industry-standard notification bell is in dashboard_base.html -->
+    {# {% include "components/notification.html" %} #}
     {% endif %}
     {% include "components/loading_spinner.html" %}
 

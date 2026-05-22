@@ -110,7 +110,7 @@ def create_app() -> FastAPI:
 
     # Create FastAPI app with lifespan
     fastapi_app = FastAPI(
-        title="VRENUM ACTV8TN API",
+        title="VRENUM SMS API",
         version=settings.version,
         description="Modular SMS Verification Service",
         lifespan=lifespan,

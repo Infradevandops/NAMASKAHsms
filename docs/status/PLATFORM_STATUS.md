@@ -1,4 +1,4 @@
-# Platform Status — VRENUM ACTV8TN
+# Platform Status — VRENUM SMS
 
 **Version**: v4.8.1
 **Status**: 🟢 Production Ready
@@ -17,7 +17,7 @@
 - ✅ Email Templates — versioning, test email, analytics (17 tests)
 - ✅ GDPR Settings — multi-format export, consent management (6 tests)
 - ✅ 70 new tests added, 9 new API endpoints, 5 new DB tables
-- ✅ Full rebrand to VRENUM ACTV8TN (186 files, 3 commits)
+- ✅ Full rebrand to VRENUM SMS (186 files, 3 commits)
 - ✅ SEO infrastructure — blog pages, service pages, OG tags, GA4, sitemap
 
 ### Previous Versions

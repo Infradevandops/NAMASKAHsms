@@ -95,7 +95,7 @@ class FinancialStatementsService:
                 period_type=(
                     "monthly" if (period_end - period_start).days <= 31 else "quarterly"
                 ),
-                reporting_entity="VRENUM ACTV8TN",
+                reporting_entity="VRENUM SMS",
                 statement_type="income",
                 revenue=revenue,
                 cost_of_revenue=cogs,
@@ -198,7 +198,7 @@ class FinancialStatementsService:
                 period_start=as_of_date,
                 period_end=as_of_date,
                 period_type="snapshot",
-                reporting_entity="VRENUM ACTV8TN",
+                reporting_entity="VRENUM SMS",
                 statement_type="balance_sheet",
                 current_assets=current_assets,
                 fixed_assets=fixed_assets,
@@ -296,7 +296,7 @@ class FinancialStatementsService:
             # Create ratio record
             ratios = FinancialRatio(
                 period=period,
-                reporting_entity="VRENUM ACTV8TN",
+                reporting_entity="VRENUM SMS",
                 gross_profit_margin=gross_margin,
                 net_profit_margin=net_margin,
                 current_ratio=current_ratio,

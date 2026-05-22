@@ -1,4 +1,4 @@
-# VRENUM ACTV8TN — SMS Verification Platform
+# VRENUM SMS — SMS Verification Platform
 
 **Version**: 4.7.3 - Production Ready 🚀
 **Status**: Ready to Deploy
@@ -12,7 +12,7 @@
 
 ## 🏗️ Architecture Overview
 
-VRENUM ACTV8TN follows a **Modular Monolith** architecture pattern, providing the benefits of microservices organization while maintaining the simplicity of a monolithic deployment.
+VRENUM SMS follows a **Modular Monolith** architecture pattern, providing the benefits of microservices organization while maintaining the simplicity of a monolithic deployment.
 
 ```mermaid
 graph TB

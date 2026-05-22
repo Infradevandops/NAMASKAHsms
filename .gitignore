@@ -95,3 +95,45 @@ logs/*.log.1
 logs/*.log.gz
 *.db
 !data/*.db
+
+# Test artifacts
+.hypothesis/
+*.db
+!data/*.db
+
+# Log rotation
+logs/*.log.1
+logs/*.log.gz
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log.1
+*.log.2
+*.log.gz
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/

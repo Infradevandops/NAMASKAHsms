@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   {% include "includes/pwa_head.html" %}
-  <title>VRENUM ACTV8TN - Keep Your Real Number Private</title>
+  <title>VRENUM SMS - Keep Your Real Number Private</title>
   <meta name="description" content="Register on any website without exposing your phone number. No spam. No data brokers. Get verification codes instantly.">
 
   <link rel="preconnect" href="https://unpkg.com">
@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com" nonce="{{ request.state.csp_nonce }}"></script>
   <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
+      darkMode: ['selector', '[data-theme="dark"]'],
       theme: {
         extend: {
           colors: {
@@ -124,7 +125,7 @@
 
       <!-- Center: Logo (centered on mobile, left-aligned on desktop, order-2) -->
       <a href="/" class="flex items-center absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none md:left-auto order-2 z-10">
-        <span class="nav-brand px-4 py-2 bg-brand-500 rounded-lg text-sm font-semibold text-white hover:bg-brand-600 transition">VRENUM ACTV8TN</span>
+        <span class="nav-brand px-4 py-2 bg-brand-500 rounded-lg text-sm font-semibold text-white hover:bg-brand-600 transition">VRENUM SMS</span>
       </a>
 
       <!-- Desktop Links (hidden on mobile) -->
@@ -490,7 +491,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <span class="px-3 py-1.5 bg-brand-500 rounded-lg text-sm font-semibold text-white">VRENUM ACTV8TN</span>
+            <span class="px-3 py-1.5 bg-brand-500 rounded-lg text-sm font-semibold text-white">VRENUM SMS</span>
           </div>
           <p class="text-zinc-400 text-sm">Keep your real number private. Verify anywhere, anytime.</p>
         </div>

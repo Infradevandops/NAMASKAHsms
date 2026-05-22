@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Basic app settings
-    app_name: str = "VRENUM ACTV8TN"
+    app_name: str = "VRENUM SMS"
     version: str = "4.8.1"
     environment: str = "development"
     debug: bool = False

@@ -10,7 +10,7 @@ def get_openapi_schema(app: FastAPI) -> dict:
         return app.openapi_schema
 
     openapi_schema = get_openapi(
-        title="VRENUM ACTV8TN API",
+        title="VRENUM SMS API",
         version="2.4.0",
         description="SMS Verification Platform with Multi-Provider Support",
         routes=app.routes,

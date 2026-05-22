@@ -18,7 +18,7 @@ class TestSmokeTests:
         """Verify homepage loads successfully"""
         await page.goto(BASE_URL)
         title = await page.title()
-        assert title == "VRENUM ACTV8TN"
+        assert title == "VRENUM SMS"
         assert await page.is_visible("text=SMS Verification")
 
     @pytest.mark.asyncio

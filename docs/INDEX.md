@@ -17,7 +17,7 @@
 - **[Stable Fixes Summary](../STABLE_FIXES_SUMMARY.md)** — UI fixes (navigation, dark mode) - May 21
 - **[Test Status Current](./TEST_STATUS_CURRENT.md)** — Test suite status - May 21
 - **[Mobile UI Taskfile](../MOBILE_UI_TASKFILE.md)** — Mobile UI + glassmorphism (Phase 1+2 complete)
-- **[Branding Audit](../BRANDING_AUDIT_VRENUM.md)** — Rebrand to VRENUM ACTV8TN (186 files)
+- **[Branding Audit](../BRANDING_AUDIT_VRENUM.md)** — Rebrand to VRENUM SMS (186 files)
 - **[Production Setup Checklist](../PRODUCTION_SETUP_CHECKLIST.md)** — Launch checklist
 
 ### 🧪 Testing & Verification

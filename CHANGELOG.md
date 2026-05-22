@@ -85,7 +85,7 @@ SEO Infrastructure, Mobile UI & Production Hardening
 - **Glassmorphism CSS**: `@supports not (backdrop-filter)` fallback, blur capped to `blur-sm` on mobile, hover transforms disabled on mobile, `.glass-float` animation disabled on mobile
 - **Accessibility**: `focus-visible` rings on all glass components, `aria-sort` on sortable columns, `aria-label` on icon-only buttons
 
-### Rebrand — VRENUM ACTV8TN (186 files, 3 commits)
+### Rebrand — VRENUM SMS (186 files, 3 commits)
 - **Frontend** (68 files): All titles, navbar brands, meta tags, schema.org, manifest.json, auth pages, dashboard pages, settings, admin, legal, marketing, API docs, contact page, JS export filenames
 - **JavaScript** (9 files): localStorage keys, service worker cache names, notification titles, export filenames
 - **CSS** (8 files): Renamed `namaskah-ui.css` → `vrenum-ui.css`, all theme comments updated

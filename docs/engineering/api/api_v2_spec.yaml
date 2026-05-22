@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: VRENUM ACTV8TN API
+  title: VRENUM SMS API
   version: 2.5.0
   description: Modular SMS Verification Service
   contact:

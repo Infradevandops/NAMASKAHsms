@@ -19,10 +19,22 @@
     text-decoration: none;
     padding: 6px;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted, #9ca3af) !important;
 }
-.account-cta-btn:hover { background: #e8e8e8; }
+.account-cta-btn:hover {
+    background: rgba(254, 60, 114, 0.08);
+    color: #FE3C72 !important;
+}
+@media (max-width: 768px) {
+    .account-cta-btn {
+        display: none !important;
+    }
+}
 </style>
 
 <script nonce="{{ request.state.csp_nonce }}">

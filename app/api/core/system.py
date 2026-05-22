@@ -85,7 +85,7 @@ def get_system_info():
     """Get system information."""
     try:
         return {
-            "service_name": "VRENUM ACTV8TN",
+            "service_name": "VRENUM SMS",
             "version": "2.4.0",
             "environment": settings.environment,
         }

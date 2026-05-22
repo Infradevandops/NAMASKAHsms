@@ -34,11 +34,7 @@ class ThemeManager {
       return stored;
     }
 
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return this.DARK_MODE;
-    }
-
+    // Default strictly to light mode instead of checking prefers-color-scheme
     return this.LIGHT_MODE;
   }
 
@@ -94,20 +90,7 @@ class ThemeManager {
    * Setup listener for system preference changes
    */
   setupSystemPreferenceListener() {
-    if (!window.matchMedia) return;
-
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    // Modern browsers
-    if (darkModeQuery.addEventListener) {
-      darkModeQuery.addEventListener('change', (e) => {
-        const stored = localStorage.getItem(this.STORAGE_KEY);
-        // Only apply if user hasn't set explicit preference
-        if (!stored) {
-          this.applyTheme(e.matches ? this.DARK_MODE : this.LIGHT_MODE);
-        }
-      });
-    }
+    // Removed system preference listener to strictly respect localStorage / default
   }
 
   /**

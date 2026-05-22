@@ -2,11 +2,11 @@
     <div class="sidebar-header">
         <div class="sidebar-brand">
             <div class="sidebar-logo">V</div>
-            <h2>VRENUM ACTV8TN</h2>
+            <h2>VRENUM SMS</h2>
         </div>
-        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation menu"
-            aria-expanded="false" aria-controls="sidebar-nav">
-            <span aria-hidden="true">&#9776;</span>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Close navigation menu"
+            aria-expanded="true" aria-controls="sidebar-nav">
+            <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
@@ -288,6 +288,8 @@
         align-items: center;
         gap: 8px;
         transition: all var(--transition);
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .sidebar-logo {
@@ -311,6 +313,9 @@
         color: var(--primary, #FE3C72);
         opacity: 1;
         letter-spacing: 0.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .nav-icon {

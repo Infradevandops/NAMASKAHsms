@@ -13,7 +13,7 @@ BASE = "http://localhost:8000"
 async def test_welcome_page_loads(page: Page):
     """OB-24: /welcome returns 200 and shows step 1."""
     await page.goto(f"{BASE}/welcome")
-    await expect(page.locator("h1")).to_contain_text("Welcome to VRENUM ACTV8TN")
+    await expect(page.locator("h1")).to_contain_text("Welcome to VRENUM SMS")
     await expect(page.locator("#language")).to_be_visible()
     await expect(page.locator("#currency")).to_be_visible()
     await expect(page.locator("#step-label")).to_contain_text("Step 1 of 6")

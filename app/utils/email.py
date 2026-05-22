@@ -97,9 +97,9 @@ class EmailService:
 
 
 WELCOME_TEMPLATE = EmailTemplate(
-    subject="Welcome to VRENUM ACTV8TN - $name",
+    subject="Welcome to VRENUM SMS - $name",
     html_body="""
-    <h2>Welcome to VRENUM ACTV8TN!</h2>
+    <h2>Welcome to VRENUM SMS!</h2>
     <p>Hi $name,</p>
     <p>Thank you for joining vrenum.app. Your account has been created successfully.</p>
     <p><strong>Account Details:</strong></p>

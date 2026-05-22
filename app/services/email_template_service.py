@@ -366,7 +366,7 @@ class EmailTemplateService:
             "welcome": {
                 "user_name": "John Doe",
                 "user_email": "john@example.com",
-                "company_name": "VRENUM ACTV8TN",
+                "company_name": "VRENUM SMS",
                 "support_email": "support@vrenum.app",
             },
             "verification_code": {

@@ -8,7 +8,7 @@ from playwright.async_api import expect
 async def test_homepage_loads(page, base_url):
     """Test that homepage loads successfully."""
     await page.goto(base_url)
-    await expect(page).to_have_title("VRENUM ACTV8TN")
+    await expect(page).to_have_title("VRENUM SMS")
 
 
 @pytest.mark.asyncio

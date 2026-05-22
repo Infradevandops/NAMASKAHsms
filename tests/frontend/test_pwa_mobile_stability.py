@@ -10,7 +10,7 @@ class TestPWAInstall:
         r = client.get("/static/manifest.json")
         assert r.status_code == 200
         data = r.json()
-        assert data["name"] == "VRENUM ACTV8TN"
+        assert data["name"] == "VRENUM SMS"
         assert data["display"] == "standalone"
         assert any(i["sizes"] == "512x512" for i in data["icons"])
         assert any("maskable" in i.get("purpose", "") for i in data["icons"])

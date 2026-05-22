@@ -1,48 +1,60 @@
 {% extends "public_base.html" %}
 
 {% block page_title %}About Vrenum{% endblock %}
+{% block mobile_hamburger %}{% endblock %}
+{% block theme_toggle %}{% endblock %}
 
 {% block head_extra %}
 {{ super() }}
 <style>
-[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #f1f5f9; }
-[data-theme="dark"] p, [data-theme="dark"] li { color: #cbd5e1; }
-[data-theme="dark"] .card, [data-theme="dark"] .box { background: #1e293b; border-color: #334155; }
+/* Dark mode compatibility rules */
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #f1f5f9 !important; }
+[data-theme="dark"] p, [data-theme="dark"] li { color: #cbd5e1 !important; }
+[data-theme="dark"] .feature-card, [data-theme="dark"] .stat-box, [data-theme="dark"] .team-member, [data-theme="dark"] .value-item { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .feature-card h3, [data-theme="dark"] .team-member h3 { color: #f1f5f9 !important; }
+[data-theme="dark"] .section h2 { color: #f1f5f9 !important; }
+[data-theme="dark"] .feature-card p, [data-theme="dark"] .stat-box .stat-label, [data-theme="dark"] .team-member p, [data-theme="dark"] .value-item p { color: #cbd5e1 !important; }
+
     .about-hero {
         background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
-        padding: var(--space-10) var(--space-6);
+        padding: 80px 40px;
         text-align: center;
         border-radius: 24px;
-        margin-bottom: var(--space-10);
+        margin-bottom: 48px;
         color: white;
+        box-shadow: 0 10px 30px rgba(254, 60, 114, 0.2);
     }
     .about-hero h1 {
-        font-size: var(--font-size-4xl);
+        font-size: 42px;
         margin-bottom: 16px;
         font-weight: 800;
+        letter-spacing: -0.5px;
+        color: white !important;
     }
     .about-hero p {
-        font-size: var(--font-size-2xl);
+        font-size: 20px;
         opacity: 0.95;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.95) !important;
     }
     .section {
-        margin-bottom: var(--space-10);
+        margin-bottom: 48px;
     }
     .section h2 {
-        font-size: var(--font-size-3xl);
-        margin-bottom: 24px;
+        font-size: 28px;
+        margin-bottom: 20px;
         color: #37352F;
         font-weight: 700;
     }
     .section p {
-        font-size: var(--font-size-lg);
+        font-size: 16px;
         color: #6b7280;
         line-height: 1.8;
         margin-bottom: 16px;
     }
     .features-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 24px;
         margin-top: 32px;
     }
@@ -51,7 +63,7 @@
         border: 2px solid #e5e7eb;
         border-radius: 16px;
         padding: 32px;
-        transition: all 0.3s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .feature-card:hover {
         border-color: #FE3C72;
@@ -66,7 +78,7 @@
     }
     .feature-card p {
         color: #6b7280;
-        font-size: 16px;
+        font-size: 15px;
         line-height: 1.6;
         margin: 0;
     }
@@ -82,6 +94,7 @@
         border-radius: 16px;
         padding: 32px;
         text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
     .stat-value {
         font-size: 48px;
@@ -92,6 +105,7 @@
     .stat-label {
         color: #6b7280;
         font-size: 16px;
+        font-weight: 500;
     }
     .team-grid {
         display: grid;
@@ -105,6 +119,7 @@
         border-radius: 16px;
         padding: 24px;
         text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
     .team-member h3 {
         color: #37352F;
@@ -123,9 +138,10 @@
     .value-item {
         background: white;
         border: 2px solid #e5e7eb;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 24px;
         margin-bottom: 16px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
     .value-item strong {
         color: #FE3C72;
@@ -136,7 +152,8 @@
     .value-item p {
         margin: 0;
         color: #6b7280;
-        font-size: 16px;
+        font-size: 15px;
+        line-height: 1.6;
     }
     .cta-section {
         background: #37352F;
@@ -145,14 +162,18 @@
         text-align: center;
         color: white;
         margin-top: 60px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
     .cta-section h2 {
-        color: white;
+        color: white !important;
         margin-bottom: 16px;
+        font-size: 28px;
+        font-weight: 700;
     }
     .cta-section p {
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.85) !important;
         margin-bottom: 32px;
+        font-size: 16px;
     }
     .btn-cta {
         display: inline-block;
@@ -162,13 +183,75 @@
         border-radius: 12px;
         text-decoration: none;
         font-weight: 600;
-        font-size: 18px;
+        font-size: 16px;
         transition: all 0.3s;
     }
     .btn-cta:hover {
         background: #E0245E;
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(254, 60, 114, 0.3);
+    }
+
+    /* RESPONSIVE PADDING & WELL-DESIGNED MOBILE RULES */
+    @media (max-width: 768px) {
+        .about-hero {
+            padding: 48px 24px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+        }
+        .about-hero h1 {
+            font-size: 32px;
+        }
+        .about-hero p {
+            font-size: 16px;
+        }
+        .section {
+            margin-bottom: 32px;
+        }
+        .section h2 {
+            font-size: 22px;
+            margin-bottom: 16px;
+        }
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .feature-card {
+            padding: 24px;
+        }
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .stat-box {
+            padding: 24px 16px;
+        }
+        .stat-value {
+            font-size: 36px;
+        }
+        .team-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .team-member {
+            padding: 16px;
+        }
+        .value-item {
+            padding: 20px;
+        }
+        .cta-section {
+            padding: 40px 24px;
+            border-radius: 16px;
+            margin-top: 40px;
+        }
+    }
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .team-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}

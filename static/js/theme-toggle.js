@@ -8,13 +8,19 @@
 
     // Get current theme
     function getTheme() {
-        return localStorage.getItem(STORAGE_KEY) ||
-               (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        return localStorage.getItem(STORAGE_KEY) || 'light';
     }
 
     // Set theme
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.documentElement.classList.remove('light-mode');
+        } else {
+            document.documentElement.classList.add('light-mode');
+            document.documentElement.classList.remove('dark-mode');
+        }
         localStorage.setItem(STORAGE_KEY, theme);
 
         // Update all icons matching theme-icon ID, class, or mobile variant
@@ -33,10 +39,10 @@
     // Initialize
     setTheme(getTheme());
 
-    // Listen for system changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (!localStorage.getItem(STORAGE_KEY)) {
-            setTheme(e.matches ? 'dark' : 'light');
-        }
-    });
+    // Listen for system changes (Removed to strictly default to light mode unless explicitly set)
+    // window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    //     if (!localStorage.getItem(STORAGE_KEY)) {
+    //         setTheme(e.matches ? 'dark' : 'light');
+    //     }
+    // });
 })();

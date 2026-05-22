@@ -1,10 +1,10 @@
 {% extends "public_base.html" %}
-{% block title %}SMS Verification Services — VRENUM ACTV8TN{% endblock %}
+{% block title %}SMS Verification Services — VRENUM SMS{% endblock %}
 {% block meta_description %}Temporary phone numbers for WhatsApp, Telegram, Google, Discord and 190+ more services. Instant delivery, auto-refund, US numbers.{% endblock %}
 
 {% block content %}
 <main class="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-50">
-  
+
   <!-- Hero Section -->
   <section class="container mx-auto px-4 sm:px-6 py-12 sm:py-16 max-w-7xl">
     <div class="text-center mb-12">
@@ -14,14 +14,14 @@
         </svg>
         190+ Services Supported
       </div>
-      
+
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-zinc-900 mb-4">
         SMS Verification Services
       </h1>
       <p class="text-lg sm:text-xl text-zinc-600 max-w-2xl mx-auto mb-6">
         Get temporary phone numbers for any service. Instant delivery, automatic refund guarantee, real US mobile numbers.
       </p>
-      
+
       <!-- VPN Advisory -->
       <div class="max-w-3xl mx-auto mb-8">
         <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 sm:p-5">
@@ -40,12 +40,12 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Search Bar -->
       <div class="max-w-xl mx-auto mb-8">
         <div class="relative">
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="service-search"
             placeholder="Search services (e.g., WhatsApp, Google, Discord...)"
             class="w-full px-6 py-4 pr-12 rounded-2xl border-2 border-zinc-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none transition text-base"
@@ -90,7 +90,7 @@
 
     <!-- Services Grid -->
     <div id="services-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-      
+
       <!-- WhatsApp -->
       <a href="/services/whatsapp" class="service-card group" data-category="messaging" data-name="whatsapp">
         <div class="relative bg-white rounded-2xl p-6 border-2 border-zinc-100 hover:border-green-400 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -199,7 +199,7 @@
       </a>
 
       <!-- Add more services... -->
-      
+
     </div>
 
     <!-- No Results Message -->
@@ -254,7 +254,7 @@ const noResults = document.getElementById('no-results');
 searchInput.addEventListener('input', (e) => {
   const query = e.target.value.toLowerCase();
   let visibleCount = 0;
-  
+
   serviceCards.forEach(card => {
     const name = card.dataset.name.toLowerCase();
     if (name.includes(query)) {
@@ -264,7 +264,7 @@ searchInput.addEventListener('input', (e) => {
       card.style.display = 'none';
     }
   });
-  
+
   noResults.classList.toggle('hidden', visibleCount > 0);
 });
 
@@ -276,10 +276,10 @@ categoryTabs.forEach(tab => {
     // Update active state
     categoryTabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    
+
     const category = tab.dataset.category;
     let visibleCount = 0;
-    
+
     serviceCards.forEach(card => {
       if (category === 'all' || card.dataset.category === category) {
         card.style.display = 'block';
@@ -288,7 +288,7 @@ categoryTabs.forEach(tab => {
         card.style.display = 'none';
       }
     });
-    
+
     noResults.classList.toggle('hidden', visibleCount > 0);
     searchInput.value = '';
   });
