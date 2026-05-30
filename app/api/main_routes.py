@@ -880,21 +880,6 @@ async def api_documentation_page(
     )
 
 
-@router.get("/webhooks-management", response_class=HTMLResponse)
-async def webhooks_management_page(
-    request: Request,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Webhooks Management page (PAYG+ only)."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse(
-        "webhooks_management.html", {"request": request, "user": user}
-    )
-
-
 @router.get("/admin/disaster-recovery", response_class=HTMLResponse)
 async def admin_disaster_recovery_page(
     request: Request,

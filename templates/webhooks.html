@@ -210,8 +210,27 @@
 </div>
 
 <div id="webhooks-container" class="webhook-grid">
-    <div style="text-align: center; padding: 60px;">
-        <span class="loading-spinner"></span> Loading your webhooks...
+    <div class="webhook-card" style="pointer-events: none; opacity: 0.7;">
+        <div class="webhook-header">
+            <div style="flex: 1;">
+                <div class="skeleton skeleton-text medium" style="height: 22px; width: 40%; margin-bottom: 8px;"></div>
+                <div class="skeleton skeleton-text long" style="height: 22px; width: 70%; border-radius: 4px;"></div>
+            </div>
+            <div class="skeleton" style="width: 60px; height: 24px; border-radius: 4px;"></div>
+        </div>
+        <div class="webhook-events skeleton skeleton-text" style="height: 20px; width: 30%; border-radius: 12px; margin: 16px 0;"></div>
+        <div class="secret-container">
+            <span style="color: var(--text-muted, #9CA3AF);">Signing Secret:</span>
+            <div class="skeleton skeleton-text" style="height: 20px; width: 120px; border-radius: 4px;"></div>
+        </div>
+        <div class="webhook-info">
+            <div class="info-item skeleton" style="height: 20px; width: 45%; border-radius: 4px;"></div>
+            <div class="info-item skeleton" style="height: 20px; width: 45%; border-radius: 4px;"></div>
+        </div>
+        <div class="webhook-actions">
+            <div class="skeleton" style="height: 36px; width: 80px; border-radius: 6px;"></div>
+            <div class="skeleton" style="height: 36px; width: 70px; border-radius: 6px;"></div>
+        </div>
     </div>
 </div>
 

@@ -189,10 +189,23 @@
                 </tr>
             </thead>
             <tbody id="referrals-list">
-                <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-muted, #9CA3AF); padding: 40px;">
-                        <span class="loading-spinner"></span> Loading referrals...
-                    </td>
+                <tr style="pointer-events: none; opacity: 0.7;">
+                    <td><div class="skeleton skeleton-text medium" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text long" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 24px; border-radius: 12px; width: 60px;"></div></td>
+                </tr>
+                <tr style="pointer-events: none; opacity: 0.5;">
+                    <td><div class="skeleton skeleton-text medium" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text long" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 24px; border-radius: 12px; width: 60px;"></div></td>
+                </tr>
+                <tr style="pointer-events: none; opacity: 0.3;">
+                    <td><div class="skeleton skeleton-text medium" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text long" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 20px;"></div></td>
+                    <td><div class="skeleton skeleton-text short" style="height: 24px; border-radius: 12px; width: 60px;"></div></td>
                 </tr>
             </tbody>
         </table>
