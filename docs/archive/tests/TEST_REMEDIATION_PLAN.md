@@ -1,8 +1,8 @@
 # Test Suite Remediation Plan — Institutional Grade
 
-**Status**: 419 failed, 2059 passed, 50 errors (83% pass rate)  
-**Target**: 95%+ pass rate (2400+ passing)  
-**Approach**: Systematic, data-driven, best practices  
+**Status**: 419 failed, 2059 passed, 50 errors (83% pass rate)
+**Target**: 95%+ pass rate (2400+ passing)
+**Approach**: Systematic, data-driven, best practices
 **Timeline**: 18-20 hours (2.5 days)
 
 ---
@@ -34,13 +34,13 @@ def categorize_failures():
     """Categorize failures by error type."""
     with open("test_report.json") as f:
         report = json.load(f)
-    
+
     categories = defaultdict(list)
-    
+
     for test in report.get("tests", []):
         if test["outcome"] == "failed":
             error = test.get("call", {}).get("longrepr", "")
-            
+
             if "404" in error or "Not Found" in error:
                 categories["404_missing_routes"].append(test["nodeid"])
             elif "AssertionError" in error:
@@ -51,7 +51,7 @@ def categorize_failures():
                 categories["attribute_errors"].append(test["nodeid"])
             else:
                 categories["other"].append(test["nodeid"])
-    
+
     return categories
 
 def generate_report(categories):
@@ -89,7 +89,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     -v
     --strict-markers
     --tb=short
@@ -123,7 +123,7 @@ class TestResult:
 # AFTER (institutional grade)
 class EmailTemplateTestResult:
     """Result container for email template tests.
-    
+
     Note: Not a test class - renamed to avoid pytest collection.
     """
     def __init__(self):
@@ -141,7 +141,7 @@ class TestModel(BaseModel):
 # AFTER
 class PydanticCompatTestModel(BaseModel):
     """Test model for Pydantic compatibility checks.
-    
+
     Note: Not a test class - renamed to avoid pytest collection.
     """
     name: str
@@ -170,7 +170,7 @@ from app.services.compliance_service import ComplianceService
 
 class TestComplianceService:
     """Compliance service test suite."""
-    
+
     def test_assess_compliance(self, db: Session):
         """Test compliance assessment."""
         service = ComplianceService(db)
@@ -255,7 +255,7 @@ async def get_real_time_stats(
     db: Session = Depends(get_db)
 ):
     """Get real-time user statistics.
-    
+
     Returns:
         dict: Current balance and pending verifications count
     """
@@ -263,18 +263,18 @@ async def get_real_time_stats(
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         pending_count = db.query(Verification).filter(
             Verification.user_id == user_id,
             Verification.status == "pending"
         ).count()
-        
+
         return {
             "balance": float(user.credits) if user.credits else 0.0,
             "pending_verifications": pending_count,
             "timestamp": datetime.utcnow().isoformat()
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -288,7 +288,7 @@ async def get_status_updates(
     db: Session = Depends(get_db)
 ):
     """Get recent status updates for user verifications.
-    
+
     Returns:
         dict: List of recent verification status changes
     """
@@ -297,7 +297,7 @@ async def get_status_updates(
             Verification.user_id == user_id,
             Verification.updated_at >= datetime.utcnow() - timedelta(hours=24)
         ).order_by(Verification.updated_at.desc()).limit(10).all()
-        
+
         updates = [
             {
                 "id": v.id,
@@ -307,9 +307,9 @@ async def get_status_updates(
             }
             for v in recent_verifications
         ]
-        
+
         return {"updates": updates}
-    
+
     except Exception as e:
         logger.error(f"Error fetching status updates: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -323,11 +323,11 @@ async def get_analytics_summary(
     db: Session = Depends(get_db)
 ):
     """Get analytics summary with optional date filtering.
-    
+
     Args:
         from_date: Start date (ISO format)
         to_date: End date (ISO format)
-        
+
     Returns:
         dict: Analytics summary including counts and spending
     """
@@ -337,36 +337,36 @@ async def get_analytics_summary(
             from_dt = datetime.utcnow() - timedelta(days=30)
         else:
             from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-        
+
         if not to_date:
             to_dt = datetime.utcnow()
         else:
             to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
-        
+
         # Query verifications in date range
         verifications = db.query(Verification).filter(
             Verification.user_id == user_id,
             Verification.created_at >= from_dt,
             Verification.created_at <= to_dt
         ).all()
-        
+
         total_verifications = len(verifications)
         successful = sum(1 for v in verifications if v.status == "completed")
         failed = sum(1 for v in verifications if v.status in ["failed", "timeout", "cancelled"])
-        
+
         # Calculate spending
         total_spent = sum(v.cost for v in verifications if v.cost)
-        
+
         # Top services
         service_counts = {}
         for v in verifications:
             service_counts[v.service_name] = service_counts.get(v.service_name, 0) + 1
-        
+
         top_services = [
             {"name": service, "count": count}
             for service, count in sorted(service_counts.items(), key=lambda x: -x[1])[:5]
         ]
-        
+
         # Daily breakdown
         daily_verifications = []
         current_date = from_dt.date()
@@ -377,7 +377,7 @@ async def get_analytics_summary(
                 "count": count
             })
             current_date += timedelta(days=1)
-        
+
         return {
             "total_verifications": total_verifications,
             "successful_verifications": successful,
@@ -390,7 +390,7 @@ async def get_analytics_summary(
                 "to": to_dt.isoformat()
             }
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -439,17 +439,17 @@ from sqlalchemy.orm import Session
 @pytest.fixture(autouse=True)
 def clean_database(db: Session):
     """Clean database before each test.
-    
+
     This fixture runs automatically before every test to ensure isolation.
     """
     yield
-    
+
     # Cleanup after test
     from app.models.verification import Verification
     from app.models.transaction import Transaction
     from app.models.notification import Notification
     from app.models.activity import Activity
-    
+
     try:
         db.query(Activity).delete()
         db.query(Notification).delete()
@@ -463,14 +463,14 @@ def clean_database(db: Session):
 @pytest.fixture
 def isolated_user(db: Session, regular_user):
     """User with guaranteed clean state.
-    
+
     Use this fixture when you need a user with no existing data.
     """
     # Clean user's data
     db.query(Verification).filter_by(user_id=regular_user.id).delete()
     db.query(Transaction).filter_by(user_id=regular_user.id).delete()
     db.commit()
-    
+
     return regular_user
 ```
 
@@ -483,7 +483,7 @@ def test_analytics_date_filter(client, db: Session, isolated_user):
     # Ensure clean state
     db.query(Verification).filter_by(user_id=isolated_user.id).delete()
     db.commit()
-    
+
     # Add old verification (outside default 30-day range)
     old_date = datetime.utcnow() - timedelta(days=60)
     v_old = Verification(
@@ -497,17 +497,17 @@ def test_analytics_date_filter(client, db: Session, isolated_user):
     db.add(v_old)
     db.commit()
     db.refresh(v_old)
-    
+
     token = create_test_token(isolated_user.id, isolated_user.email)
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     # Query default range (30 days) - should not see old verification
     response = client.get("/api/analytics/summary", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total_verifications"] == 0, \
         f"Expected 0 verifications in last 30 days, got {data['total_verifications']}"
-    
+
     # Query extended range (90 days) - should see old verification
     from_date = (datetime.utcnow() - timedelta(days=90)).isoformat()
     response = client.get(
@@ -540,16 +540,16 @@ def audit_log_and_retrieve(
     details: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Log audit event and retrieve recent logs.
-    
+
     Args:
         db: Database session
         user_id: User ID performing action
         action: Action description
         details: Optional additional details
-        
+
     Returns:
         dict: Audit log entry with metadata
-        
+
     Raises:
         TypeError: If required parameters are None
         ValueError: If parameters are invalid
@@ -558,10 +558,10 @@ def audit_log_and_retrieve(
         raise TypeError("user_id cannot be None")
     if not action:
         raise TypeError("action cannot be None")
-    
+
     try:
         from app.models.audit_log import AuditLog
-        
+
         log_entry = AuditLog(
             user_id=user_id,
             action=action,
@@ -571,7 +571,7 @@ def audit_log_and_retrieve(
         db.add(log_entry)
         db.commit()
         db.refresh(log_entry)
-        
+
         return {
             "id": log_entry.id,
             "user_id": log_entry.user_id,
@@ -579,7 +579,7 @@ def audit_log_and_retrieve(
             "details": log_entry.details,
             "timestamp": log_entry.timestamp.isoformat()
         }
-    
+
     except Exception as e:
         db.rollback()
         raise
@@ -625,10 +625,10 @@ if match:
     passed = int(match.group(2))
     total = failed + passed
     pass_rate = (passed / total) * 100
-    
+
     print(f"Pass Rate: {pass_rate:.1f}%")
     print(f"Passed: {passed}/{total}")
-    
+
     if pass_rate >= 95:
         print("✅ SUCCESS: Ready for deployment")
     else:
@@ -666,6 +666,6 @@ git diff HEAD~1
 
 ---
 
-**Timeline**: 18-20 hours  
-**Approach**: Systematic, institutional-grade  
+**Timeline**: 18-20 hours
+**Approach**: Systematic, institutional-grade
 **Result**: Production-ready test suite

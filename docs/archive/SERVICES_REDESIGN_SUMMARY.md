@@ -1,7 +1,7 @@
 # Services Page UI Redesign - Implementation Summary
 
-**Date**: May 20, 2026  
-**Status**: ✅ Complete - Ready for Review  
+**Date**: May 20, 2026
+**Status**: ✅ Complete - Ready for Review
 **Files Created**: 2 new templates
 
 ---
@@ -117,8 +117,8 @@ categoryTabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const category = tab.dataset.category;
     serviceCards.forEach(card => {
-      card.style.display = 
-        (category === 'all' || card.dataset.category === category) 
+      card.style.display =
+        (category === 'all' || card.dataset.category === category)
         ? 'block' : 'none';
     });
   });
@@ -131,7 +131,7 @@ categoryTabs.forEach(tab => {
 faqToggles.forEach(button => {
   button.addEventListener('click', () => {
     content.classList.toggle('hidden');
-    icon.style.transform = content.classList.contains('hidden') 
+    icon.style.transform = content.classList.contains('hidden')
       ? 'rotate(0deg)' : 'rotate(180deg)';
   });
 });
