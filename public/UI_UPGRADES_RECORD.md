@@ -70,6 +70,14 @@ This plan details the frontend UI upgrades to the verification flow and the user
 **[MODIFY] admin-dashboard.js**
 - **Admin Stats**: Apply skeleton classes (`.skeleton-stat`) to high-level admin metrics while `statsResponse` is fetching `/api/admin/stats`.
 
+#### 7. Global Walkthrough Wizard Enforcement
+
+**[MODIFY] app/api/auth_routes.py**
+- **Login Redirect**: Update the `/login` route to check the `onboarding_completed` flag and explicitly return `"redirect": "/welcome"` for any user (new or old) who hasn't completed it.
+
+**[MODIFY] static/js/auth-check.js & app/api/core/user_profile.py**
+- **Session Interceptor**: Update the `/api/user/me` endpoint to return the `onboarding_completed` status. Inject a global frontend check to intercept active sessions lacking completion and forcefully redirect them to the wizard.
+
 ---
 
 ## Tasks Checklist
@@ -107,3 +115,7 @@ This plan details the frontend UI upgrades to the verification flow and the user
 - [x] Apply skeleton loaders to Service Tier Pricing (`verify_modern.html`) (Confirmed synchronous/cached via ServiceStore)
 - [x] Apply skeleton loaders to Wallet Transaction History (`wallet.html`)
 - [x] Apply skeleton loaders to Admin Dashboard charts/stats (`admin-dashboard.js`)
+
+### 7. Global Walkthrough Wizard Enforcement
+- [x] Update `app/api/auth_routes.py` to return `redirect: "/welcome"` for logins where `onboarding_completed` is `False`.
+- [x] Update frontend `/api/auth/me` fetcher (in `auth-helpers.js` or similar) to globally intercept active sessions and redirect to `/welcome` if `onboarding_completed` is `False`.

@@ -110,6 +110,13 @@ export async function checkAuthentication() {
         }
 
         if (response.ok) {
+            const data = await response.json();
+            // If user hasn't completed onboarding and isn't currently on the welcome page, redirect
+            if (data.onboarding_completed === false && !window.location.pathname.includes('/welcome')) {
+                console.log('User has not completed onboarding, redirecting to /welcome');
+                window.location.href = '/welcome';
+                return false;
+            }
             return true;
         }
     } catch (error) {

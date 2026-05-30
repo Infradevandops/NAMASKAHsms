@@ -165,10 +165,11 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
         logger.info(f"Successful login: {user.email}")
 
-        return {
+        response_data = {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
+            "redirect": "/welcome" if not user.onboarding_completed else "/dashboard",
             "user": {
                 "id": str(user.id),
                 "email": user.email,
@@ -178,6 +179,8 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
                 "is_admin": user.is_admin,
             },
         }
+
+        return response_data
 
     except HTTPException:
         raise
