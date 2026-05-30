@@ -331,6 +331,7 @@ async def get_current_user(
                 else 0
             ),
             "is_active": user.is_active,
+            "onboarding_completed": bool(user.onboarding_completed),
         }
 
     except HTTPException:

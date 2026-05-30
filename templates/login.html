@@ -376,7 +376,20 @@
         localStorage.setItem('access_token', token);
         const isSecure = window.location.protocol === 'https:';
         document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
-        window.location.href = '/dashboard';
+
+        // Check onboarding status before redirecting
+        fetch('/api/user/me', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data && data.onboarding_completed === false) {
+                    window.location.href = '/welcome';
+                } else {
+                    window.location.href = '/dashboard';
+                }
+            })
+            .catch(() => {
+                window.location.href = '/dashboard';
+            });
     }
 
     document.getElementById('tab-login').addEventListener('click', () => { window.location.href = '/auth/login'; });
@@ -460,7 +473,7 @@
                 return;
             }
             storeToken(data.access_token);
-            window.location.href = '/dashboard';
+            window.location.href = data.redirect || '/dashboard';
         } else {
             const data = await res.json();
             showError(data.detail || "Invalid credentials");

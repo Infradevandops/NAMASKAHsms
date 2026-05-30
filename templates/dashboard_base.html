@@ -378,5 +378,23 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
             sessionStorage.removeItem('nsk_prefs_synced');
         } catch(e) { /* silent */ }
     };
+
+    // Global Walkthrough Enforcement Dragnet
+    (async function enforceWalkthrough() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        // Don't intercept if they are already on welcome page (handled by template extending base.html directly, but just in case)
+        if (window.location.pathname.includes('/welcome')) return;
+
+        try {
+            const res = await fetch('/api/user/me', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.onboarding_completed === false) {
+                    window.location.href = '/welcome';
+                }
+            }
+        } catch(e) { /* silent */ }
+    })();
 </script>
 {% endblock %}
