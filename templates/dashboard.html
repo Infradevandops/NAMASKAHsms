@@ -529,6 +529,22 @@ endblock %}
                 if (!driverObj.hasNextStep() || confirm("Are you sure you want to skip the tour?")) {
                     driverObj.destroy();
                 }
+            },
+            onHighlightStarted: (element) => {
+                const sidebarElements = ['tour-history-link', 'tour-api-keys-link', 'tour-webhooks-link'];
+                if (window.innerWidth <= 768) {
+                    const selectorId = element?.node?.id;
+                    const sidebar = document.getElementById('app-sidebar');
+                    if (selectorId && sidebarElements.includes(selectorId)) {
+                        if (sidebar && !sidebar.classList.contains('active')) {
+                            if (window.toggleSidebar) window.toggleSidebar();
+                        }
+                    } else {
+                        if (sidebar && sidebar.classList.contains('active')) {
+                            if (window.toggleSidebar) window.toggleSidebar();
+                        }
+                    }
+                }
             }
         });
 

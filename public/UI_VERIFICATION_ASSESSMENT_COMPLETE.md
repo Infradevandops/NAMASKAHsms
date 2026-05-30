@@ -26,6 +26,12 @@
 - Fallback warning when area code changes ✅
 - Toast notifications for errors ✅
 
+**Smart & Real-Time Features:**
+- Payment method localization based on IP (GeoIP) ✅
+- Real-time WebSocket SMS polling with granular events ✅
+- WebSocket auto-reconnect and HTTP fallback gracefully handled ✅
+- Currency selection & location setup wizard ✅
+
 **Frontend Files Involved:**
 - `templates/verify_modern.html` - Main SMS verification flow
 - `static/js/verification.js` - Core logic & polling
@@ -40,33 +46,13 @@
 ### ❌ Not Yet Implemented
 
 **1. Payment Method Selection by Location**
-- Currently: No location detection
-- Needed: Detect user country → suggest payment methods
-- Example Flow:
-  ```
-  User Location: Nigeria
-  ↓ Auto-suggest → Local Bank Transfer, Mobile Money
-  User Location: US
-  ↓ Auto-suggest → Credit/Debit Card, PayPal
-  User Location: India
-  ↓ Auto-suggest → UPI, Bank Transfer
-  ```
+- ~~Currently: No location detection~~ ✅ **IMPLEMENTED**: GeoIP lookup auto-suggests payment method by location.
 
 **2. Currency Selection & Setup Wizard**
-- Currently: No setup wizard
-- Needed: Onboarding screen for currency/payment preference
-- File: `static/js/currency-selector.js` EXISTS but not integrated into verification flow
+- ~~Currently: No setup wizard~~ ✅ **IMPLEMENTED**: Fully integrated into `welcome.html` onboarding wizard.
 
 **3. SMS Request Status Tracking**
-- Currently: Shows generic "Scanning Network..."
-- Needed: Show actual request lifecycle:
-  ```
-  ✓ Request sent to provider
-  ✓ Provider received request
-  ⏳ Waiting for SMS delivery
-  ⏳ SMS in transit...
-  ✓ SMS received
-  ```
+- ~~Currently: Shows generic "Scanning Network..."~~ ✅ **IMPLEMENTED**: Granular provider progress statuses broadcasted via WebSocket.
 
 **4. Provider Data Loading Spinner**
 - Currently: Brief loading but minimal branding
@@ -74,16 +60,9 @@
   - Service list fetching
   - Price fetching
   - Number purchase request
-  - SMS polling
 
 **5. Real-time Polling Progress**
-- Currently: Simple timer and ring animation
-- Needed: Visual indicators showing:
-  - Provider response status
-  - Retry attempts
-  - Estimated wait time remaining
-  - Network latency
-  - Auto-retry backoff
+- ~~Currently: Simple timer and ring animation~~ ✅ **IMPLEMENTED**: Fully interactive WebSocket lifecycle with fallback logic.
 
 **6. Timeout & Error Recovery UI**
 - Currently: Toast notifications

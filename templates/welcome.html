@@ -162,24 +162,35 @@
         } catch (_) {}
       }
 
-      await markComplete();
+      const success = await markComplete();
+      if (!success) {
+        alert("Network error saving preferences. Please try again.");
+        return;
+      }
       window.location.href = '/dashboard';
     }
 
     async function skipOnboarding() {
-      await markComplete();
+      const success = await markComplete();
+      if (!success) {
+        alert("Network error skipping. Please try again.");
+        return;
+      }
       window.location.href = '/dashboard';
     }
 
     async function markComplete() {
       const token = localStorage.getItem('access_token');
-      if (!token) return;
+      if (!token) return true;
       try {
-        await fetch('/api/auth/onboarding-complete', {
+        const res = await fetch('/api/auth/onboarding-complete', {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-      } catch (_) {}
+        return res.ok;
+      } catch (_) {
+        return false;
+      }
     }
 
     const COUNTRY_MAPS = {
