@@ -4,42 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome - VRENUM SMS</title>
-  <script src="https://unpkg.com/tailwindcss-cdn@3.4.16/tailwindcss.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FE3C72',
+            brandbg: '#0b0f19'
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background-color: #0b0f19;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      position: relative;
+      overflow-x: hidden;
     }
-    .step-panel { display: none; }
-    .step-panel.active { display: block; }
-    .progress-dot { transition: background 0.3s; }
+    /* Ambient neon glow */
+    body::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80vw;
+      height: 80vh;
+      background: radial-gradient(circle at center, rgba(254,60,114,0.15) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .step-panel { display: none; opacity: 0; transition: opacity 0.4s ease; }
+    .step-panel.active { display: block; opacity: 1; }
+    .progress-dot { transition: all 0.3s ease; }
     .select-card.active {
       border-color: #FE3C72;
-      background-color: rgba(254, 60, 114, 0.1);
+      background-color: rgba(254, 60, 114, 0.08);
+      box-shadow: 0 0 20px rgba(254, 60, 114, 0.1);
     }
     .service-btn.active {
       border-color: #FE3C72;
-      background-color: rgba(254, 60, 114, 0.15);
-      box-shadow: 0 0 10px rgba(254, 60, 114, 0.2);
+      background-color: rgba(254, 60, 114, 0.1);
+      box-shadow: 0 0 20px rgba(254, 60, 114, 0.15);
+      transform: translateY(-2px);
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 text-white">
 
-  <div class="w-full max-w-md" id="wizard">
+  <div class="w-full max-w-md relative z-10" id="wizard">
 
     <!-- Progress bar -->
-    <div class="flex items-center justify-between mb-6 px-1">
-      <span id="step-label" class="text-zinc-400 text-sm">Step 1 of 6</span>
+    <div class="flex items-center justify-between mb-8 px-2">
+      <span id="step-label" class="text-zinc-400 text-sm font-medium tracking-wide">Step 1 of 6</span>
       <div class="flex gap-2" id="progress-dots">
         <!-- dots injected by JS -->
       </div>
-      <button onclick="skipOnboarding()" class="text-zinc-500 text-sm hover:text-white transition" id="skip-btn">
-        Skip →
+      <button onclick="skipOnboarding()" class="text-zinc-500 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1" id="skip-btn">
+        Skip <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
       </button>
     </div>
 
-    <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+    <!-- Glassmorphism Card -->
+    <div class="bg-white/[0.03] backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-8 sm:p-10 border border-white/10 relative overflow-hidden">
+      <!-- Top edge highlight -->
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
       <!-- Step 1: Language & Currency -->
       <div class="step-panel active" id="step-1">
@@ -100,7 +132,7 @@
               <option value="AUD">🇦🇺 AUD - Australian Dollar (A$)</option>
             </select>
           </div>
-          <button type="submit" class="w-full py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
+          <button type="submit" class="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition">
             Continue →
           </button>
         </form>
@@ -155,10 +187,10 @@
         </div>
 
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
             ← Back
           </button>
-          <button onclick="handlePlanSelection()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition" id="plan-next-btn">
+          <button onclick="handlePlanSelection()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition" id="plan-next-btn">
             Next →
           </button>
         </div>
@@ -190,10 +222,10 @@
           </button>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
             ← Back
           </button>
-          <button onclick="saveServiceAndAdvance()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition" id="service-next-btn">
+          <button onclick="saveServiceAndAdvance()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition" id="service-next-btn">
             Next →
           </button>
         </div>
@@ -211,10 +243,10 @@
           <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">History</strong> tab in the sidebar</p>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition">
             Next →
           </button>
         </div>
@@ -267,10 +299,10 @@
           <p class="text-zinc-300 text-sm mt-1">Head to your dashboard to start verifying.</p>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
             ← Back
           </button>
-          <button onclick="finishOnboarding()" class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 text-white font-bold transition">
+          <button onclick="finishOnboarding()" class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] text-white font-bold transition">
             Go to Dashboard 🚀
           </button>
         </div>
@@ -603,7 +635,7 @@
       container.innerHTML = '';
       for (let i = 1; i <= TOTAL_STEPS; i++) {
         const dot = document.createElement('div');
-        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-[#FE3C72]' : i < currentStep ? 'bg-[#9e1f42]' : 'bg-white/20'}`;
+        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-primary shadow-[0_0_8px_rgba(254,60,114,0.8)]' : i < currentStep ? 'bg-primary/40' : 'bg-white/10'}`;
         container.appendChild(dot);
       }
     }
