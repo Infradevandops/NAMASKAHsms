@@ -1,0 +1,113 @@
+{
+  "common": {
+    "welcome": "Káàbọ̀",
+    "dashboard": "Ojú-iṣẹ́",
+    "settings": "Ètò",
+    "wallet": "Àpò Kádì",
+    "profile": "Ìtàn Tẹni",
+    "logout": "Jáde",
+    "loading": "Ò ń gbé wọlé...",
+    "error": "Àṣìṣe",
+    "success": "Àṣeyọrí",
+    "type": "Irúfẹ́",
+    "amount": "Iye",
+    "date": "Ọjọ́",
+    "status": "Ipò"
+  },
+  "dashboard": {
+    "title": "Ojú-iṣẹ́",
+    "subtitle": "Ìwòye gbogbo iṣẹ́ ìdánilójú SMS rẹ",
+    "total_sms": "Àpapọ̀ SMS",
+    "successful": "Aṣeyọrí",
+    "net_spent": "Iye tí o lò",
+    "success_rate": "Ìwọ̀n Aṣeyọrí",
+    "recent_activity": "Iṣẹ́ Láìpẹ́",
+    "no_activity": "Kò sí iṣẹ́ láìpẹ́",
+    "start_verification": "Bẹ̀rẹ̀ Ìdánilójú",
+    "service": "Iṣẹ́",
+    "number": "Nọ́mbà",
+    "time": "Àsìkò",
+    "your_plan": "Ètò Rẹ",
+    "upgrade": "Gbé ga",
+    "features": "Àwọn Àbùdá"
+  },
+  "tiers": {
+    "freemium": "Freemium",
+    "payg": "Sàn-bí-o-ṣe-lò",
+    "pro": "Pro",
+    "custom": "Àkànṣe",
+    "current_plan": "Ètò Lọ́wọ́lọ́wọ́",
+    "upgrade_to": "Gbé ga sí",
+    "features": {
+      "random_numbers": "Nọ́mbà lásán nìkan",
+      "no_api": "Kò sí àyè API",
+      "no_filters": "Kò sí aṣẹ́rọ́ ibi kankan",
+      "location_filters": "Aṣẹ́rọ́ ibi",
+      "isp_filters": "Aṣẹ́rọ́ ISP",
+      "api_access": "Àyè API",
+      "all_filters": "Gbogbo aṣẹ́rọ́ wà nínú rẹ̀",
+      "affiliate": "Ètò alábàáṣiṣẹ́",
+      "priority_support": "Ìrànlọ́wọ́ Kánjúkánjú",
+      "unlimited_api": "API Kò-ní-ààlà"
+    }
+  },
+  "wallet": {
+    "title": "Àpò Kádì",
+    "subtitle": "Ṣàkóso kádì ati owó sísan rẹ",
+    "current_balance": "Owó Lọ́wọ́lọ́wọ́",
+    "this_month": "Oṣù Yí",
+    "total_spent": "Àpapọ̀ Owó Tí O Lò",
+    "add_credits": "Fi Owó Kún",
+    "transaction_history": "Ìtàn Ìṣòwò",
+    "pay_with_crypto": "Sàn pẹ̀lú Crypto",
+    "pay_with_card": "Sàn pẹ̀lú Kádì",
+    "credit_history": "Ìtàn Kádì"
+  },
+  "verify": {
+    "title": "Ìdánilójú SMS",
+    "subtitle": "Gba nọ́mbà fún ìdánilójú",
+    "select_service": "Yàn Iṣẹ́",
+    "select_country": "Yàn Orílẹ̀-èdè",
+    "buy_number": "Ra Nọ́mbà",
+    "upgrade_countries": "Gbé ga sí Starter láti ṣí àyè orílẹ̀-èdè 37+",
+    "upgrade_area_code": "Gbé ga sí Starter láti yan àwọn nọ́mbà ibi pàtó",
+    "upgrade_carrier": "Gbé ga sí Pro láti ṣe aṣẹ́rọ́ pẹ̀lú ISP/Carrier",
+    "upgrade_presets": "Gbé ga sí Pro láti lo àwọn ètò àkànṣe fún ìrọ̀rùn",
+    "preset_saved": "A ti fi ètò pamọ́ pẹ̀lú àṣeyọrí",
+    "intelligent_fallback": "Ìṣe Ìgbé-pada Ọlọ́gbọ́n Ti Bẹ̀rẹ̀",
+    "fallback_message": "Aṣẹ́rọ́ rẹ kò sí nítorí iṣẹ́ ti pọ̀ jù. A ti yí ọ padà sí ọ̀nà tó dára jùlọ ní agbègbè rẹ láti ríi dájú pé iṣẹ́ náà yọrí sí rere.",
+    "search_services": "Ṣe àwárí iṣẹ́ (bíi Telegram, WhatsApp)...",
+    "area_code": "Kóòdù Ibi",
+    "any_area_code": "Kóòdù Ibi Kankan",
+    "carrier": "Pín-ín-kí / ISP",
+    "any_carrier": "Pín-ín-kí Kankan",
+    "cost": "Iye owó",
+    "delivery": "Ìfihàn",
+    "success": "Àṣeyọrí",
+    "sms_reception": "Ìgbà SMS",
+    "waiting": "Ń dúró de SMS",
+    "copy_code": "Da Kóòdù Kọ",
+    "cancel": "Fagbá tó",
+    "continue": "Tẹ̀síwájú"
+  },
+  "analytics": {
+    "title": "Ìtúpalẹ̀",
+    "subtitle": "Tọpinpin iṣẹ́ ìdánilójú rẹ ati iye owó tí o ń lò"
+  },
+  "notifications": {
+    "title": "Ìfilọ̀",
+    "subtitle": "Ṣàkóso àwọn ìfilọ̀ ati ìkìlọ̀ rẹ"
+  },
+  "privacy": {
+    "title": "Àṣírí",
+    "subtitle": "Ṣàkóso ètò àṣírí rẹ"
+  },
+  "voice": {
+    "title": "Ìdánilójú Ohùn",
+    "subtitle": "Gba kóòdù ìdánilójú pẹ̀lú ìpè tẹlifóònù"
+  },
+  "rentals": {
+    "title": "Ìyálo Nọ́mbà",
+    "subtitle": "Yá nọ́mbà tẹlifóònù pàtó fún ara rẹ"
+  }
+}

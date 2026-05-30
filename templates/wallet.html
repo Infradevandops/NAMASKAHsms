@@ -335,13 +335,13 @@
             <!-- Card Layout -->
             <div id="section-card">
                 <div class="grid-presets">
-                    <button class="preset-btn" id="preset-10" onclick="initSettlement(10, this)"><span data-usd="10">$10</span></button>
-                    <button class="preset-btn" id="preset-25" onclick="initSettlement(25, this)"><span data-usd="25">$25</span></button>
-                    <button class="preset-btn" id="preset-50" onclick="initSettlement(50, this)"><span data-usd="50">$50</span> <span class="bonus">+10%</span></button>
-                    <button class="preset-btn" id="preset-100" onclick="initSettlement(100, this)"><span data-usd="100">$100</span> <span class="bonus">+15%</span></button>
+                    <button class="preset-btn" id="preset-10" onclick="initSettlement(10, this)"><span data-usd-amount="10">$10</span></button>
+                    <button class="preset-btn" id="preset-25" onclick="initSettlement(25, this)"><span data-usd-amount="25">$25</span></button>
+                    <button class="preset-btn" id="preset-50" onclick="initSettlement(50, this)"><span data-usd-amount="50">$50</span> <span class="bonus">+10%</span></button>
+                    <button class="preset-btn" id="preset-100" onclick="initSettlement(100, this)"><span data-usd-amount="100">$100</span> <span class="bonus">+15%</span></button>
                 </div>
                 <div class="input-group">
-                    <input type="number" id="custom-usd" class="premium-input" placeholder="Amount in USD — min $5" aria-label="Custom deposit amount in USD">
+                    <input type="number" id="custom-usd" class="premium-input" placeholder="Amount in USD  min $5" aria-label="Custom deposit amount in USD">
                     <button class="btn nsk-btn-primary" onclick="initSettlement(null, this)" style="padding: 14px 24px;">Initialize</button>
                 </div>
             </div>
@@ -422,7 +422,30 @@
                     </tr>
                 </thead>
                 <tbody id="audit-trail-body">
-                    <tr><td colspan="6" style="text-align:center; padding: 40px;">Initializing secure connection...</td></tr>
+                    <tr>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text long"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text long"></div></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text long"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text short"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text long"></div></td>
+                        <td style="padding: 16px;"><div class="skeleton skeleton-text medium"></div></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -627,10 +650,10 @@
                     btn.title = 'Crypto payments temporarily unavailable';
                 }
             }
-            // Any other error (401, 500, network) — leave tab enabled, fail silently
+            // Any other error (401, 500, network) - leave tab enabled, fail silently
         } catch (e) {
             console.error('Failed to load addresses', e);
-            // Network error — leave tab enabled, user will get error on click
+            // Network error - leave tab enabled, user will get error on click
         }
     }
 

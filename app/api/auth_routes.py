@@ -44,6 +44,12 @@ class RegisterRequest(BaseModel):
     turnstile_token: Optional[str] = None
 
 
+class OnboardingStatusUpdateRequest(BaseModel):
+    """Onboarding status update request model."""
+
+    step: int
+
+
 class TokenResponse(BaseModel):
     """Token response model."""
 
@@ -315,6 +321,7 @@ async def get_current_user(
             "email": user.email,
             "username": user.email.split("@")[0],
             "credits": float(user.credits) if user.credits else 0.0,
+            "tier": getattr(user, "subscription_tier", "freemium") or "freemium",
             "free_verifications": (
                 int(user.free_verifications)
                 if hasattr(user, "free_verifications") and user.free_verifications
@@ -382,6 +389,19 @@ async def get_onboarding_status(
         "completed": bool(user.onboarding_completed),
         "step": int(user.onboarding_step or 0),
     }
+
+
+@router.put("/onboarding-status")
+async def update_onboarding_status(
+    data: OnboardingStatusUpdateRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    """Update current onboarding step for the authenticated user."""
+    user = _get_user_from_token(credentials.credentials, db)
+    user.onboarding_step = data.step
+    db.commit()
+    return {"status": "success", "step": user.onboarding_step}
 
 
 @router.put("/onboarding-complete")

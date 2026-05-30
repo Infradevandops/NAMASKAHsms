@@ -100,10 +100,10 @@
             .finally(function () { _fetching = false; });
     }
 
-    // Re-format all elements with data-usd attribute when currency changes
+    // Re-format all elements with data-usd or data-usd-amount attribute when currency changes
     function refreshAllMoneyElements() {
-        document.querySelectorAll('[data-usd]').forEach(function (el) {
-            var amount = parseFloat(el.getAttribute('data-usd'));
+        document.querySelectorAll('[data-usd],[data-usd-amount]').forEach(function (el) {
+            var amount = parseFloat(el.getAttribute('data-usd') || el.getAttribute('data-usd-amount'));
             if (!isNaN(amount)) el.textContent = formatMoney(amount);
         });
     }

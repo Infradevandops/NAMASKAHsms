@@ -4,7 +4,7 @@ class I18n {
         this.translations = {};
         this.fallback = {};
         this.loaded = false;
-        this.supportedLanguages = ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ja', 'ar', 'hi'];
+        this.supportedLanguages = ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ja', 'ar', 'hi', 'yo'];
     }
 
     async loadTranslations() {

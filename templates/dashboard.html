@@ -43,9 +43,9 @@ endblock %}
         <div style="flex: 1; min-width: 200px;">
             <div style="font-size: 12px; color: var(--text-muted, #9CA3AF); margin-bottom: 4px;" data-i18n="tiers.current_plan">
                 Current Plan</div>
-            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name">Freemium</div>
-            <div id="tier-price" style="font-size: 14px; color: var(--text-muted, #9CA3AF); margin-bottom: 12px;">$0.00/month</div>
-            <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);">Basic SMS verification</div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name"><div class="skeleton skeleton-text short" style="height: 28px;"></div></div>
+            <div id="tier-price" style="font-size: 14px; color: var(--text-muted, #9CA3AF); margin-bottom: 12px;"><div class="skeleton skeleton-text medium" style="height: 16px;"></div></div>
+            <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);"><div class="skeleton skeleton-text long" style="height: 15px;"></div></div>
         </div>
         <div class="tier-cta-container" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;">
             <button id="new-verification-btn" class="btn btn-success"
@@ -96,21 +96,21 @@ endblock %}
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
     <div class="nsk-stat" style="border-left: 3px solid #FE3C72;">
         <div class="nsk-stat-label" data-i18n="dashboard.total_sms">Total SMS</div>
-        <div class="nsk-stat-value" id="total-sms">0</div>
+        <div class="nsk-stat-value" id="total-sms"><div class="skeleton skeleton-text short" style="height: 32px; display: inline-block;"></div></div>
     </div>
     <div class="nsk-stat" style="border-left: 3px solid #01DF8A;">
         <div class="nsk-stat-label" data-i18n="dashboard.successful">Successful</div>
-        <div class="nsk-stat-value green" id="successful-sms">0</div>
+        <div class="nsk-stat-value green" id="successful-sms"><div class="skeleton skeleton-text short" style="height: 32px; display: inline-block;"></div></div>
     </div>
     <div class="nsk-stat" style="border-left: 3px solid #f59e0b;">
         <div class="nsk-stat-label" data-i18n="dashboard.net_spent">Net Spent</div>
         <div class="nsk-stat-value" id="total-spent" data-currency data-amount="0" data-from="USD"
-            style="font-size: clamp(16px, 2.5vw, 28px); word-break: break-all;">$0.00</div>
+            style="font-size: clamp(16px, 2.5vw, 28px); word-break: break-all;"><div class="skeleton skeleton-text medium" style="height: 32px; display: inline-block;"></div></div>
         <div id="refund-info" style="font-size: 11px; color: #f59e0b; margin-top: 4px; display: none;"></div>
     </div>
     <div class="nsk-stat" style="border-left: 3px solid #0ea5e9;">
         <div class="nsk-stat-label" data-i18n="dashboard.success_rate">Success Rate</div>
-        <div class="nsk-stat-value" id="success-rate">—</div>
+        <div class="nsk-stat-value" id="success-rate"><div class="skeleton skeleton-text short" style="height: 32px; display: inline-block;"></div></div>
         <div id="failure-info" style="font-size: 11px; color: #ef4444; margin-top: 4px; display: none;"></div>
     </div>
 </div>

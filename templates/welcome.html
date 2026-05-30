@@ -13,6 +13,15 @@
     .step-panel { display: none; }
     .step-panel.active { display: block; }
     .progress-dot { transition: background 0.3s; }
+    .select-card.active {
+      border-color: #FE3C72;
+      background-color: rgba(254, 60, 114, 0.1);
+    }
+    .service-btn.active {
+      border-color: #FE3C72;
+      background-color: rgba(254, 60, 114, 0.15);
+      box-shadow: 0 0 10px rgba(254, 60, 114, 0.2);
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -41,8 +50,27 @@
         </div>
         <form id="welcomeForm" onsubmit="savePreferencesAndAdvance(event)">
           <div class="mb-4">
+            <label class="block text-white font-semibold mb-2">Country <span class="text-red-400">*</span></label>
+            <select id="country" onchange="onCountryChange(this.value)" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
+              <option value="">Choose country...</option>
+              <option value="US">🇺🇸 United States</option>
+              <option value="GB">🇬🇧 United Kingdom</option>
+              <option value="ES">🇪🇸 Spain</option>
+              <option value="FR">🇫🇷 France</option>
+              <option value="DE">🇩🇪 Germany</option>
+              <option value="PT">🇵🇹 Portugal</option>
+              <option value="BR">🇧🇷 Brazil</option>
+              <option value="CN">🇨🇳 China</option>
+              <option value="JP">🇯🇵 Japan</option>
+              <option value="IN">🇮🇳 India</option>
+              <option value="NG">🇳🇬 Nigeria</option>
+              <option value="CA">🇨🇦 Canada</option>
+              <option value="AU">🇦🇺 Australia</option>
+            </select>
+          </div>
+          <div class="mb-4">
             <label class="block text-white font-semibold mb-2">Language <span class="text-red-400">*</span></label>
-            <select id="language" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
+            <select id="language" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose language...</option>
               <option value="en">🇺🇸 English</option>
               <option value="es">🇪🇸 Español</option>
@@ -58,7 +86,7 @@
           </div>
           <div class="mb-6">
             <label class="block text-white font-semibold mb-2">Currency <span class="text-red-400">*</span></label>
-            <select id="currency" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required>
+            <select id="currency" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose currency...</option>
               <option value="USD">🇺🇸 USD - US Dollar ($)</option>
               <option value="EUR">🇪🇺 EUR - Euro (€)</option>
@@ -72,49 +100,100 @@
               <option value="AUD">🇦🇺 AUD - Australian Dollar (A$)</option>
             </select>
           </div>
-          <button type="submit" class="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+          <button type="submit" class="w-full py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
             Continue →
           </button>
         </form>
       </div>
 
-      <!-- Step 2: Add Credits -->
+      <!-- Step 2: Choose Plan / Upgrade -->
       <div class="step-panel" id="step-2">
         <div class="text-center mb-6">
-          <div class="text-5xl mb-3">💳</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Add Credits</h2>
-          <p class="text-zinc-400 text-sm">Fund your wallet to start purchasing verifications. Credits never expire.</p>
+          <div class="text-5xl mb-3">⚡</div>
+          <h2 class="text-2xl font-bold text-white mb-2">Choose Your Plan</h2>
+          <p class="text-zinc-400 text-sm">Select the plan that fits your verification needs.</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
-          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
-          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Wallet</strong> → "Add Credits" button</p>
+        <div class="flex flex-col gap-3 mb-6">
+          <!-- Freemium -->
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-freemium-card" onclick="updatePlanCardSelection('freemium')">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="plan-selection" value="freemium" checked class="accent-[#FE3C72] w-5 h-5">
+              <div>
+                <p class="text-white font-semibold">Freemium</p>
+                <p class="text-zinc-400 text-xs">Try it free, $2.63/SMS</p>
+              </div>
+            </div>
+            <span class="text-green-400 font-bold">$0</span>
+          </label>
+          <!-- PAYG -->
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-payg-card" onclick="updatePlanCardSelection('payg')">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="plan-selection" value="payg" class="accent-[#FE3C72] w-5 h-5">
+              <div>
+                <p class="text-white font-semibold">Pay-As-You-Go</p>
+                <p class="text-zinc-400 text-xs">Pay per use, filter options</p>
+              </div>
+            </div>
+            <span class="text-[#FE3C72] font-bold">Flexible</span>
+          </label>
+          <!-- Pro -->
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-pro-card" onclick="updatePlanCardSelection('pro')">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="plan-selection" value="pro" class="accent-[#FE3C72] w-5 h-5">
+              <div>
+                <p class="text-white font-semibold flex items-center gap-1">Pro <span class="bg-[#FE3C72]/20 text-[#FE3C72] text-[10px] px-2 py-0.5 rounded-full font-bold">POPULAR</span></p>
+                <p class="text-zinc-400 text-xs">API Keys, Webhooks, priority support</p>
+              </div>
+            </div>
+            <span class="text-amber-400 font-bold">$25<span class="text-[10px] font-normal">/mo</span></span>
+          </label>
         </div>
+
+        <div id="plan-checkout-notice" class="hidden bg-amber-500/10 rounded-xl p-4 mb-6 border border-amber-500/30">
+          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Paid Plan selected</p>
+          <p class="text-zinc-300 text-xs">Clicking continue will redirect you to secure Paystack checkout to finalize upgrade.</p>
+        </div>
+
         <div class="flex gap-3">
           <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+          <button onclick="handlePlanSelection()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition" id="plan-next-btn">
             Next →
           </button>
         </div>
       </div>
 
-      <!-- Step 3: Create Verification -->
+      <!-- Step 3: Preferred Service Selection -->
       <div class="step-panel" id="step-3">
         <div class="text-center mb-6">
           <div class="text-5xl mb-3">📱</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Create a Verification</h2>
-          <p class="text-zinc-400 text-sm">Pick a service, get a temporary number, and receive the SMS code instantly.</p>
+          <h2 class="text-2xl font-bold text-white mb-2">Preferred Platform</h2>
+          <p class="text-zinc-400 text-sm">Select the main service you want to verify.</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
-          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
-          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Verify</strong> → choose a service → "Get Number"</p>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <button onclick="selectService('Google')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Google">
+            <span class="text-2xl mb-1">🔍</span>
+            <span class="text-xs font-semibold">Google</span>
+          </button>
+          <button onclick="selectService('WhatsApp')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="WhatsApp">
+            <span class="text-2xl mb-1">💬</span>
+            <span class="text-xs font-semibold">WhatsApp</span>
+          </button>
+          <button onclick="selectService('Telegram')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Telegram">
+            <span class="text-2xl mb-1">✈️</span>
+            <span class="text-xs font-semibold">Telegram</span>
+          </button>
+          <button onclick="selectService('OpenAI')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="OpenAI">
+            <span class="text-2xl mb-1">🤖</span>
+            <span class="text-xs font-semibold">OpenAI / ChatGPT</span>
+          </button>
         </div>
         <div class="flex gap-3">
           <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+          <button onclick="saveServiceAndAdvance()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition" id="service-next-btn">
             Next →
           </button>
         </div>
@@ -127,15 +206,15 @@
           <h2 class="text-2xl font-bold text-white mb-2">View Your History</h2>
           <p class="text-zinc-400 text-sm">All past verifications, codes received, and spending are logged here.</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30">
-          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-[#FE3C72]/30">
+          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
           <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">History</strong> tab in the sidebar</p>
         </div>
         <div class="flex gap-3">
           <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
             Next →
           </button>
         </div>
@@ -148,8 +227,8 @@
           <h2 class="text-2xl font-bold text-white mb-2">API Keys</h2>
           <p class="text-zinc-400 text-sm">Integrate verifications directly into your app with our REST API.</p>
         </div>
-        <div id="step5-pro" class="bg-white/5 rounded-xl p-4 mb-6 border border-cyan-500/30 hidden">
-          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+        <div id="step5-pro" class="bg-white/5 rounded-xl p-4 mb-6 border border-[#FE3C72]/30 hidden">
+          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
           <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">API Keys</strong> → "Generate Key"</p>
         </div>
         <div id="step5-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-6 border border-amber-500/30 hidden">
@@ -161,7 +240,7 @@
           <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-white font-bold transition">
+          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
             Next →
           </button>
         </div>
@@ -174,8 +253,8 @@
           <h2 class="text-2xl font-bold text-white mb-2">Webhooks</h2>
           <p class="text-zinc-400 text-sm">Get real-time HTTP callbacks when SMS codes arrive — no polling needed.</p>
         </div>
-        <div id="step6-pro" class="bg-white/5 rounded-xl p-4 mb-4 border border-cyan-500/30 hidden">
-          <p class="text-cyan-300 text-sm font-semibold mb-1">📍 Where to find it</p>
+        <div id="step6-pro" class="bg-white/5 rounded-xl p-4 mb-4 border border-[#FE3C72]/30 hidden">
+          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
           <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Webhooks</strong> → "Add Endpoint"</p>
         </div>
         <div id="step6-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-4 border border-amber-500/30 hidden">
@@ -203,15 +282,15 @@
   <script nonce="{{ request.state.csp_nonce }}">
     const TOTAL_STEPS = 6;
     let currentStep = 1;
-
-    // Tier-aware steps: populated after auth check
     let userTier = 'freemium';
+    let selectedPreferredService = '';
 
     // ── Init ──────────────────────────────────────────────────────────────────
 
     window.addEventListener('DOMContentLoaded', async () => {
       restorePreferences();
       renderDots();
+      updatePlanCardSelection('freemium');
 
       // Restore step from backend if authenticated
       const token = localStorage.getItem('access_token');
@@ -257,7 +336,7 @@
     function nextStep() {
       if (currentStep < TOTAL_STEPS) {
         currentStep++;
-        persistStep(currentStep);
+        persistStep(currentStep - 1); // Persist completed step
         showStep(currentStep);
       }
     }
@@ -273,11 +352,14 @@
 
     async function savePreferencesAndAdvance(e) {
       e.preventDefault();
+      const country = document.getElementById('country').value;
       const language = document.getElementById('language').value;
       const currency = document.getElementById('currency').value;
 
+      localStorage.setItem('country', country);
       localStorage.setItem('language', language);
       localStorage.setItem('currency', currency);
+      document.cookie = `country=${country}; path=/; max-age=31536000`;
       document.cookie = `language=${language}; path=/; max-age=31536000`;
       document.cookie = `currency=${currency}; path=/; max-age=31536000`;
 
@@ -292,6 +374,104 @@
         } catch (_) {}
       }
 
+      nextStep();
+    }
+
+    // ── Step 2: Plan Selection ─────────────────────────────────────────────────
+
+    function updatePlanCardSelection(plan) {
+      document.querySelectorAll('.select-card').forEach(c => c.classList.remove('active'));
+      document.getElementById(`plan-${plan}-card`).classList.add('active');
+      document.querySelector(`input[value="${plan}"]`).checked = true;
+
+      const notice = document.getElementById('plan-checkout-notice');
+      if (plan === 'pro') {
+        notice.classList.remove('hidden');
+      } else {
+        notice.classList.add('hidden');
+      }
+    }
+
+    async function handlePlanSelection() {
+      const selectedPlan = document.querySelector('input[name="plan-selection"]:checked').value;
+      const token = localStorage.getItem('access_token');
+      const btn = document.getElementById('plan-next-btn');
+
+      if (selectedPlan === 'freemium') {
+        nextStep();
+        return;
+      }
+
+      if (!token) {
+        // Unauthenticated fallback
+        nextStep();
+        return;
+      }
+
+      btn.disabled = true;
+
+      if (selectedPlan === 'payg') {
+        btn.textContent = 'Activating PAYG...';
+        try {
+          const res = await fetch(`/api/billing/upgrade?target_tier=payg`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            userTier = 'payg';
+          }
+        } catch (_) {}
+        btn.disabled = false;
+        btn.textContent = 'Continue →';
+        nextStep();
+      } else if (selectedPlan === 'pro') {
+        btn.textContent = 'Redirecting to Checkout...';
+        try {
+          const res = await fetch(`/api/billing/upgrade?target_tier=pro`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.authorization_url) {
+              window.location.href = data.authorization_url;
+              return;
+            }
+          }
+        } catch (_) {}
+        btn.disabled = false;
+        btn.textContent = 'Continue →';
+        nextStep();
+      }
+    }
+
+    // ── Step 3: Service Preference ─────────────────────────────────────────────
+
+    function selectService(service) {
+      selectedPreferredService = service;
+      document.querySelectorAll('.service-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.querySelector(`.service-btn[data-service="${service}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+    }
+
+    async function saveServiceAndAdvance() {
+      if (selectedPreferredService) {
+        localStorage.setItem('preferred_service', selectedPreferredService);
+
+        // Save preferred service to preference keys if endpoint exists
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          try {
+            await fetch('/api/user/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ preferred_service: selectedPreferredService })
+            });
+          } catch (_) {}
+        }
+      }
       nextStep();
     }
 
@@ -346,19 +526,101 @@
 
     // ── UI helpers ────────────────────────────────────────────────────────────
 
+    const COUNTRY_MAPS = {
+      US: { language: 'en', currency: 'USD' },
+      GB: { language: 'en', currency: 'GBP' },
+      ES: { language: 'es', currency: 'EUR' },
+      FR: { language: 'fr', currency: 'EUR' },
+      DE: { language: 'de', currency: 'EUR' },
+      PT: { language: 'pt', currency: 'EUR' },
+      BR: { language: 'pt', currency: 'BRL' },
+      CN: { language: 'zh', currency: 'CNY' },
+      JP: { language: 'ja', currency: 'JPY' },
+      IN: { language: 'hi', currency: 'INR' },
+      NG: { language: 'yo', currency: 'NGN' },
+      CA: { language: 'en', currency: 'CAD' },
+      AU: { language: 'en', currency: 'AUD' }
+    };
+
+    function detectCountry() {
+      // Try mapping by timezone
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz) {
+          const tzLower = tz.toLowerCase();
+          if (tzLower.includes('america/new_york') || tzLower.includes('america/chicago') || tzLower.includes('america/denver') || tzLower.includes('america/los_angeles') || tzLower.includes('america/anchorage') || tzLower.includes('america/adak') || tzLower.includes('pacific/honolulu')) {
+            return 'US';
+          }
+          if (tzLower.includes('europe/london')) return 'GB';
+          if (tzLower.includes('europe/madrid')) return 'ES';
+          if (tzLower.includes('europe/paris')) return 'FR';
+          if (tzLower.includes('europe/berlin')) return 'DE';
+          if (tzLower.includes('europe/lisbon')) return 'PT';
+          if (tzLower.includes('america/sao_paulo') || tzLower.includes('america/recife') || tzLower.includes('america/manaus')) return 'BR';
+          if (tzLower.includes('asia/shanghai') || tzLower.includes('asia/urumqi')) return 'CN';
+          if (tzLower.includes('asia/tokyo')) return 'JP';
+          if (tzLower.includes('asia/kolkata') || tzLower.includes('asia/calcutta')) return 'IN';
+          if (tzLower.includes('africa/lagos')) return 'NG';
+          if (tzLower.includes('america/toronto') || tzLower.includes('america/vancouver') || tzLower.includes('america/edmonton') || tzLower.includes('america/winnipeg')) return 'CA';
+          if (tzLower.includes('australia/sydney') || tzLower.includes('australia/melbourne') || tzLower.includes('australia/brisbane') || tzLower.includes('australia/perth')) return 'AU';
+        }
+      } catch (_) {}
+
+      // Fallback to navigator language
+      try {
+        const lang = (navigator.language || '').toLowerCase();
+        if (lang.endsWith('-us')) return 'US';
+        if (lang.endsWith('-gb')) return 'GB';
+        if (lang.endsWith('-es') || lang.startsWith('es')) return 'ES';
+        if (lang.endsWith('-fr') || lang.startsWith('fr')) return 'FR';
+        if (lang.endsWith('-de') || lang.startsWith('de')) return 'DE';
+        if (lang.endsWith('-pt') || lang.startsWith('pt')) {
+          if (lang.includes('br')) return 'BR';
+          return 'PT';
+        }
+        if (lang.endsWith('-cn') || lang.startsWith('zh')) return 'CN';
+        if (lang.endsWith('-jp') || lang.startsWith('ja')) return 'JP';
+        if (lang.endsWith('-in') || lang.startsWith('hi')) return 'IN';
+        if (lang.endsWith('-ng') || lang.startsWith('yo')) return 'NG';
+        if (lang.endsWith('-ca')) return 'CA';
+        if (lang.endsWith('-au')) return 'AU';
+      } catch (_) {}
+
+      return 'US'; // Default fallback
+    }
+
+    function onCountryChange(countryCode) {
+      if (!countryCode) return;
+      const mapping = COUNTRY_MAPS[countryCode];
+      if (mapping) {
+        document.getElementById('language').value = mapping.language;
+        document.getElementById('currency').value = mapping.currency;
+      }
+    }
+
     function renderDots() {
       const container = document.getElementById('progress-dots');
       container.innerHTML = '';
       for (let i = 1; i <= TOTAL_STEPS; i++) {
         const dot = document.createElement('div');
-        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-cyan-400' : i < currentStep ? 'bg-cyan-700' : 'bg-white/20'}`;
+        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-[#FE3C72]' : i < currentStep ? 'bg-[#9e1f42]' : 'bg-white/20'}`;
         container.appendChild(dot);
       }
     }
 
     function restorePreferences() {
+      const savedCountry = localStorage.getItem('country');
       const savedLang = localStorage.getItem('language');
       const savedCurr = localStorage.getItem('currency');
+
+      if (savedCountry) {
+        document.getElementById('country').value = savedCountry;
+      } else {
+        const detected = detectCountry();
+        document.getElementById('country').value = detected;
+        onCountryChange(detected);
+      }
+
       if (savedLang) document.getElementById('language').value = savedLang;
       if (savedCurr) document.getElementById('currency').value = savedCurr;
     }

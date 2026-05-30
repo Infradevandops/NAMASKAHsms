@@ -317,7 +317,7 @@ function openVoiceServiceModal() {
             <div style="background:var(--bg-card,#1e293b);max-width:500px;width:90%;max-height:80vh;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;">
                 <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1);">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div><h2 style="margin:0;font-size:20px;font-weight:700;">Select Service</h2><p style="margin:4px 0 0;font-size:13px;color:var(--text-muted, #9CA3AF);">Select a platform for voice verification — ${_voiceServices.length} available</p></div>
+                        <div><h2 style="margin:0;font-size:20px;font-weight:700;">Select Service</h2><p style="margin:4px 0 0;font-size:13px;color:var(--text-muted, #9CA3AF);">Select a platform for voice verification - ${_voiceServices.length} available</p></div>
                         <button onclick="closeVoiceModal()" style="background:rgba(255,255,255,0.1);border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--text-muted, #9CA3AF);font-size:16px;">✕</button>
                     </div>
                     <div style="margin-top:12px;"><input type="text" id="voice-modal-search" placeholder="Search service..." oninput="renderVoiceModalList(this.value)" style="width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--text-primary, #21262D);font-size:14px;outline:none;"></div>
@@ -576,7 +576,7 @@ async function createVerification() {
         document.getElementById('phone-number').textContent = data.phone_number;
         updateProgress(3);
         startWaiting();
-        window.toast.success('Number assigned — waiting for call...');
+        window.toast.success('Number assigned - waiting for call...');
 
     } catch (error) {
         console.error('Error:', error);
@@ -779,7 +779,7 @@ async function loadAreaCodes() {
         const codes = data.area_codes || [];
         if (!codes.length) throw new Error('Empty');
         sel.innerHTML = '<option value="">Any Area Code (Fastest)</option>' +
-            codes.map(c => `<option value="${c.area_code}">${c.area_code}${c.state ? ' — ' + c.state : ''}</option>`).join('');
+            codes.map(c => `<option value="${c.area_code}">${c.area_code}${c.state ? ' - ' + c.state : ''}</option>`).join('');
     } catch (e) {
         sel.innerHTML = '<option value="">Any Area Code (Fastest)</option>';
     }

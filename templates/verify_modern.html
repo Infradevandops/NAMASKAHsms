@@ -93,6 +93,7 @@
                     onclick="openImmersiveModal('service')" readonly
                     aria-label="Search and select a service for verification"
                     style="width:100%; padding:10px 36px 10px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px; box-sizing:border-box; cursor:pointer; background:#fff;" />
+                <div id="service-loading-spinner" style="display:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; border:2px solid #FE3C72; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; pointer-events:none; z-index:9;"></div>
                 <button id="service-retry-btn" onclick="retryLoadServices()"
                     style="display:none; position:absolute; right:8px; top:50%; transform:translateY(-50%); background:var(--primary-light,#fff0f0); border:1px solid var(--primary,#FE3C72); color:var(--primary,#FE3C72); border-radius:6px; padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; z-index:10;">
                     Retry
@@ -214,16 +215,12 @@
 
         <!-- Scanning Animation -->
         <div class="scanning-container" id="scanning-container">
-            <div class="scanning-dot"></div>
-            <div class="timer-ring-wrapper">
-                <svg class="timer-ring-svg" width="40" height="40" viewBox="0 0 40 40">
-                    <circle class="timer-ring-bg" cx="20" cy="20" r="16"/>
-                    <circle class="timer-ring-fill" id="timer-ring-fill" cx="20" cy="20" r="16"/>
-                </svg>
-                <div>
-                    <div class="scanning-text">Scanning for SMS...</div>
-                    <div class="scanning-service" id="scanning-service-name"></div>
-                </div>
+            <div class="radar-pulse-ring">
+                <div style="font-size: 28px; z-index: 2;">📡</div>
+            </div>
+            <div>
+                <div class="scanning-text" id="scanning-text-state">Establishing secure connection...</div>
+                <div class="scanning-service" id="scanning-service-name"></div>
             </div>
             <div class="scanning-time">
                 <strong><span id="elapsed-time">0</span>s</strong> elapsed &nbsp;·&nbsp;
@@ -828,6 +825,14 @@ function _buildServiceItems(services) {
 // If API is down, the platform should show an error, not fake data
 
 async function loadServices() {
+    const input = document.getElementById('service-search-input');
+    const spinner = document.getElementById('service-loading-spinner');
+    if (input) {
+        input.classList.add('skeleton-loader');
+        input.placeholder = 'Loading services from provider...';
+    }
+    if (spinner) spinner.style.display = 'block';
+
     try {
         await window.ServiceStore.init();
 
@@ -838,6 +843,12 @@ async function loadServices() {
 
         _modalItems['service'] = _buildServiceItems(services);
         console.log(`✅ Loaded ${services.length} services from TextVerified API`);
+
+        if (input) {
+            input.classList.remove('skeleton-loader');
+            input.placeholder = 'Search services e.g. Telegram, WhatsApp...';
+        }
+        if (spinner) spinner.style.display = 'none';
 
         // Hide retry button on success
         const retryBtn = document.getElementById('service-retry-btn');
@@ -851,6 +862,11 @@ async function loadServices() {
             }
         });
     } catch (error) {
+        if (input) {
+            input.classList.remove('skeleton-loader');
+            input.placeholder = 'Services unavailable - please refresh page';
+        }
+        if (spinner) spinner.style.display = 'none';
         console.error('❌ Failed to load services from TextVerified API:', error);
 
         // Show error to user - DO NOT use fallback
@@ -859,10 +875,8 @@ async function loadServices() {
         );
 
         // Disable service selection
-        const input = document.getElementById('service-search-input');
         if (input) {
             input.disabled = true;
-            input.placeholder = 'Services unavailable - please refresh page';
             input.onclick = null;  // Remove click handler
             input.style.cursor = 'not-allowed';  // Visual feedback
         }
@@ -1146,6 +1160,18 @@ function startPolling() {
                     if (elapsedEl) elapsedEl.textContent = elapsedSec + 's elapsed';
                     if (remainEl) remainEl.textContent = remainingSec + 's left';
                     if (progressFill) progressFill.style.width = Math.min(100, (elapsedSec / 120 * 100)) + '%';
+
+                    // Update scanning status text dynamically
+                    const scanStateEl = document.getElementById('scanning-text-state');
+                    if (scanStateEl) {
+                        if (elapsedSec < 5) {
+                            scanStateEl.textContent = 'Establishing secure connection...';
+                        } else if (elapsedSec < 15) {
+                            scanStateEl.textContent = 'Awaiting response from service...';
+                        } else {
+                            scanStateEl.textContent = 'Listening for incoming SMS...';
+                        }
+                    }
 
                     updateTimerRing(elapsedSec, 120);
 

@@ -141,3 +141,44 @@ def test_register_returns_redirect_to_welcome():
     assert response.status_code in [200, 201]
     data = response.json()
     assert data.get("redirect") == "/welcome"
+
+
+def test_onboarding_status_put_endpoint():
+    """Verify authenticated PUT /api/auth/onboarding-status updates the user's step."""
+    unique_email = f"onboard_put_{uuid.uuid4().hex[:8]}@test.com"
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": unique_email,
+            "password": _TEST_PASSWORD,
+            "terms_accepted": True,
+        },
+    )
+    res = client.post(
+        "/api/auth/login",
+        json={"email": unique_email, "password": _TEST_PASSWORD},
+    )
+    token = res.json().get("access_token")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update step to 3
+    response = client.put(
+        "/api/auth/onboarding-status", headers=headers, json={"step": 3}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"status": "success", "step": 3}
+
+    # Verify updated step is persisted
+    get_response = client.get("/api/auth/onboarding-status", headers=headers)
+    assert get_response.status_code == 200
+    assert get_response.json()["step"] == 3
+
+
+def test_me_returns_tier():
+    """Verify /api/auth/me returns the user's subscription tier."""
+    token = _get_token()
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    data = response.json()
+    assert "tier" in data
+    assert data["tier"] == "freemium"
