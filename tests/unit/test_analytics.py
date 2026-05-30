@@ -69,11 +69,14 @@ def test_analytics_date_filter(client, db: Session, regular_user):
     """Test analytics date filtering with proper isolation."""
     # Clean state - use nested transaction for isolation
     from sqlalchemy import text
-    
+
     # Delete any existing verifications for this user
-    db.execute(text("DELETE FROM verifications WHERE user_id = :user_id"), {"user_id": regular_user.id})
+    db.execute(
+        text("DELETE FROM verifications WHERE user_id = :user_id"),
+        {"user_id": regular_user.id},
+    )
     db.commit()
-    
+
     # Add old verification (outside default 30-day range)
     old_date = datetime.utcnow() - timedelta(days=60)
     v_old = Verification(
@@ -86,24 +89,25 @@ def test_analytics_date_filter(client, db: Session, regular_user):
     # Manually set created_at AFTER adding to session
     db.add(v_old)
     db.flush()  # Flush to get ID but don't commit yet
-    
+
     # Update created_at directly in DB to bypass any ORM defaults
     db.execute(
         text("UPDATE verifications SET created_at = :created_at WHERE id = :id"),
-        {"created_at": old_date, "id": v_old.id}
+        {"created_at": old_date, "id": v_old.id},
     )
     db.commit()
     db.refresh(v_old)
 
     token = create_test_token(regular_user.id, regular_user.email)
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     # Query default range (30 days) - should not see old verification
     response = client.get("/api/analytics/summary", headers=headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["total_verifications"] == 0, \
-        f"Expected 0 verifications in last 30 days, got {data['total_verifications']}"
+    assert (
+        data["total_verifications"] == 0
+    ), f"Expected 0 verifications in last 30 days, got {data['total_verifications']}"
 
     # Query extended range (90 days) - should see old verification
     from_date = (datetime.utcnow() - timedelta(days=90)).isoformat()
@@ -112,8 +116,9 @@ def test_analytics_date_filter(client, db: Session, regular_user):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["total_verifications"] == 1, \
-        f"Expected 1 verification in last 90 days, got {data['total_verifications']}"
+    assert (
+        data["total_verifications"] == 1
+    ), f"Expected 1 verification in last 90 days, got {data['total_verifications']}"
 
 
 def test_real_time_stats(client, regular_user):
