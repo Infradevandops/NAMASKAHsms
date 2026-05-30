@@ -405,4 +405,155 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         } catch(e) { /* silent */ }
     })();
 </script>
+<script nonce="{{ request.state.csp_nonce }}">
+    // ============================================
+    // GLOBAL DASHBOARD TOUR LOGIC (Driver.js)
+    // ============================================
+    window.startDashboardTour = function() {
+        if (!window.driver) {
+            console.warn('Driver.js not loaded');
+            return;
+        }
+
+        const steps = [];
+
+        // Global Header Elements
+        if (document.querySelector('#currency-selector-btn')) {
+            steps.push({
+                element: '#currency-selector-btn',
+                popover: {
+                    title: '💱 Global Currency',
+                    description: 'Select your preferred currency here. All balances and prices will automatically convert.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            });
+        }
+
+        if (document.querySelector('.notification-bell-btn')) {
+            steps.push({
+                element: '.notification-bell-btn',
+                popover: {
+                    title: '🔔 Notifications',
+                    description: 'Stay updated with real-time alerts for SMS arrivals and system updates.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            });
+        }
+
+        // Dashboard-specific Elements
+        if (document.querySelector('#upgrade-btn') && document.querySelector('#upgrade-btn').style.display !== 'none') {
+            steps.push({
+                element: '#upgrade-btn',
+                popover: {
+                    title: '⚡ Choose Your Plan',
+                    description: 'Upgrade your subscription plan to unlock Pro features and discounted rates.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            });
+        }
+
+        if (document.querySelector('#new-verification-btn')) {
+            steps.push({
+                element: '#new-verification-btn',
+                popover: {
+                    title: '📱 Verify a Service',
+                    description: 'Click here to start a new SMS verification for Google, WhatsApp, Telegram, etc.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            });
+        }
+
+        // Sidebar Elements
+        if (document.querySelector('#tour-history-link')) {
+            steps.push({
+                element: '#tour-history-link',
+                popover: {
+                    title: '📜 View History',
+                    description: 'Check your previously rented numbers and their received SMS codes.',
+                    side: 'right',
+                    align: 'start'
+                }
+            });
+        }
+
+        if (document.querySelector('#tour-api-keys-link')) {
+            steps.push({
+                element: '#tour-api-keys-link',
+                popover: {
+                    title: '🔑 API Keys (Pro+)',
+                    description: 'Generate API keys to integrate our SMS engine directly into your software.',
+                    side: 'right',
+                    align: 'start'
+                }
+            });
+        }
+
+        if (document.querySelector('#tour-webhooks-link')) {
+            steps.push({
+                element: '#tour-webhooks-link',
+                popover: {
+                    title: '🪝 Webhooks (PAYG+)',
+                    description: 'Set up endpoints to receive SMS payloads in real-time as they arrive.',
+                    side: 'right',
+                    align: 'start'
+                }
+            });
+        }
+
+        if (steps.length === 0) return;
+
+        const driverObj = window.driver.driver({
+            showProgress: true,
+            allowClose: true,
+            showButtons: ['next', 'previous', 'close'],
+            animate: true,
+            steps: steps,
+            onDestroyStarted: () => {
+                if (!driverObj.hasNextStep() || confirm("Are you sure you want to skip the tour?")) {
+                    try { localStorage.setItem('nsk_tour_dashboard_v3_completed', 'true'); } catch (e) {}
+                    driverObj.destroy();
+                }
+            },
+            onHighlightStarted: (element) => {
+                const sidebarElements = ['tour-history-link', 'tour-api-keys-link', 'tour-webhooks-link'];
+                if (window.innerWidth <= 768) {
+                    const selectorId = element?.node?.id;
+                    const sidebar = document.getElementById('app-sidebar');
+                    if (selectorId && sidebarElements.includes(selectorId)) {
+                        if (sidebar && !sidebar.classList.contains('active')) {
+                            if (window.toggleSidebar) window.toggleSidebar();
+                        }
+                    } else {
+                        if (sidebar && sidebar.classList.contains('active')) {
+                            if (window.toggleSidebar) window.toggleSidebar();
+                        }
+                    }
+                }
+            }
+        });
+
+        driverObj.drive();
+    };
+
+    // Clean up abandoned v2 key from user's browser safely
+    try {
+        localStorage.removeItem('nsk_tour_dashboard_v2_completed');
+    } catch (e) {}
+
+    // Auto-start tour if not completed
+    try {
+        if (localStorage.getItem('nsk_tour_dashboard_v3_completed') !== 'true') {
+            // Wait for DOM and sidebar to fully initialize
+            setTimeout(() => {
+                if (window.startDashboardTour) {
+                    window.startDashboardTour();
+                }
+            }, 1000);
+        }
+    } catch (e) {}
+</script>
 {% endblock %}
