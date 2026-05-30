@@ -377,19 +377,8 @@
         const isSecure = window.location.protocol === 'https:';
         document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 
-        // Check onboarding status before redirecting
-        fetch('/api/user/me', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if (data && data.onboarding_completed === false) {
-                    window.location.href = '/welcome';
-                } else {
-                    window.location.href = '/dashboard';
-                }
-            })
-            .catch(() => {
-                window.location.href = '/dashboard';
-            });
+        // Always redirect to welcome on OAuth login
+        window.location.href = '/welcome';
     }
 
     document.getElementById('tab-login').addEventListener('click', () => { window.location.href = '/auth/login'; });

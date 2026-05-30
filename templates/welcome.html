@@ -24,7 +24,6 @@
       position: relative;
       overflow-x: hidden;
     }
-    /* Ambient neon glow */
     body::before {
       content: '';
       position: absolute;
@@ -37,46 +36,25 @@
       pointer-events: none;
       z-index: -1;
     }
-    .step-panel { display: none; opacity: 0; transition: opacity 0.4s ease; }
-    .step-panel.active { display: block; opacity: 1; }
-    .progress-dot { transition: all 0.3s ease; }
-    .select-card.active {
-      border-color: #FE3C72;
-      background-color: rgba(254, 60, 114, 0.08);
-      box-shadow: 0 0 20px rgba(254, 60, 114, 0.1);
-    }
-    .service-btn.active {
-      border-color: #FE3C72;
-      background-color: rgba(254, 60, 114, 0.1);
-      box-shadow: 0 0 20px rgba(254, 60, 114, 0.15);
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 text-white">
 
   <div class="w-full max-w-md relative z-10" id="wizard">
 
-    <!-- Progress bar -->
-    <div class="flex items-center justify-between mb-8 px-2">
-      <span id="step-label" class="text-zinc-400 text-sm font-medium tracking-wide">Step 1 of 6</span>
-      <div class="flex gap-2" id="progress-dots">
-        <!-- dots injected by JS -->
-      </div>
-      <button onclick="skipOnboarding()" class="text-zinc-500 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1" id="skip-btn">
-        Skip <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-      </button>
-    </div>
-
     <!-- Glassmorphism Card -->
     <div class="bg-white/[0.03] backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-8 sm:p-10 border border-white/10 relative overflow-hidden">
       <!-- Top edge highlight -->
       <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
+      <!-- Close X Button -->
+      <button onclick="skipOnboarding()" class="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors" title="Close and go to dashboard">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+      </button>
+
       <!-- Step 1: Language & Currency -->
-      <div class="step-panel active" id="step-1">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">🌍</div>
+      <div>
+        <div class="text-center mb-6 mt-2">
           <h1 class="text-2xl font-bold text-white mb-2">Welcome to VRENUM SMS</h1>
           <p class="text-zinc-400 text-sm">Choose your language and currency to get started</p>
         </div>
@@ -85,302 +63,71 @@
             <label class="block text-white font-semibold mb-2">Country <span class="text-red-400">*</span></label>
             <select id="country" onchange="onCountryChange(this.value)" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose country...</option>
-              <option value="US">🇺🇸 United States</option>
-              <option value="GB">🇬🇧 United Kingdom</option>
-              <option value="ES">🇪🇸 Spain</option>
-              <option value="FR">🇫🇷 France</option>
-              <option value="DE">🇩🇪 Germany</option>
-              <option value="PT">🇵🇹 Portugal</option>
-              <option value="BR">🇧🇷 Brazil</option>
-              <option value="CN">🇨🇳 China</option>
-              <option value="JP">🇯🇵 Japan</option>
-              <option value="IN">🇮🇳 India</option>
-              <option value="NG">🇳🇬 Nigeria</option>
-              <option value="CA">🇨🇦 Canada</option>
-              <option value="AU">🇦🇺 Australia</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+              <option value="ES">Spain</option>
+              <option value="FR">France</option>
+              <option value="DE">Germany</option>
+              <option value="PT">Portugal</option>
+              <option value="BR">Brazil</option>
+              <option value="CN">China</option>
+              <option value="JP">Japan</option>
+              <option value="IN">India</option>
+              <option value="NG">Nigeria</option>
+              <option value="CA">Canada</option>
+              <option value="AU">Australia</option>
             </select>
           </div>
           <div class="mb-4">
             <label class="block text-white font-semibold mb-2">Language <span class="text-red-400">*</span></label>
             <select id="language" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose language...</option>
-              <option value="en">🇺🇸 English</option>
-              <option value="es">🇪🇸 Español</option>
-              <option value="fr">🇫🇷 Français</option>
-              <option value="de">🇩🇪 Deutsch</option>
-              <option value="pt">🇵🇹 Português</option>
-              <option value="zh">🇨🇳 中文</option>
-              <option value="ja">🇯🇵 日本語</option>
-              <option value="ar">🇸🇦 العربية</option>
-              <option value="hi">🇮🇳 हिन्दी</option>
-              <option value="yo">🇳🇬 Yorùbá</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="pt">Português</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="ar">العربية</option>
+              <option value="hi">हिन्दी</option>
+              <option value="yo">Yorùbá</option>
             </select>
           </div>
           <div class="mb-6">
             <label class="block text-white font-semibold mb-2">Currency <span class="text-red-400">*</span></label>
             <select id="currency" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose currency...</option>
-              <option value="USD">🇺🇸 USD - US Dollar ($)</option>
-              <option value="EUR">🇪🇺 EUR - Euro (€)</option>
-              <option value="GBP">🇬🇧 GBP - British Pound (£)</option>
-              <option value="NGN">🇳🇬 NGN - Nigerian Naira (₦)</option>
-              <option value="INR">🇮🇳 INR - Indian Rupee (₹)</option>
-              <option value="CNY">🇨🇳 CNY - Chinese Yuan (¥)</option>
-              <option value="JPY">🇯🇵 JPY - Japanese Yen (¥)</option>
-              <option value="BRL">🇧🇷 BRL - Brazilian Real (R$)</option>
-              <option value="CAD">🇨🇦 CAD - Canadian Dollar (C$)</option>
-              <option value="AUD">🇦🇺 AUD - Australian Dollar (A$)</option>
+              <option value="USD">USD - US Dollar ($)</option>
+              <option value="EUR">EUR - Euro (€)</option>
+              <option value="GBP">GBP - British Pound (£)</option>
+              <option value="NGN">NGN - Nigerian Naira (₦)</option>
+              <option value="INR">INR - Indian Rupee (₹)</option>
+              <option value="CNY">CNY - Chinese Yuan (¥)</option>
+              <option value="JPY">JPY - Japanese Yen (¥)</option>
+              <option value="BRL">BRL - Brazilian Real (R$)</option>
+              <option value="CAD">CAD - Canadian Dollar (C$)</option>
+              <option value="AUD">AUD - Australian Dollar (A$)</option>
             </select>
           </div>
-          <button type="submit" class="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition">
-            Continue →
-          </button>
+          <div class="flex gap-3">
+            <button type="button" onclick="skipOnboarding()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
+              Skip
+            </button>
+            <button type="submit" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition">
+              Continue →
+            </button>
+          </div>
         </form>
       </div>
 
-      <!-- Step 2: Choose Plan / Upgrade -->
-      <div class="step-panel" id="step-2">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">⚡</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Choose Your Plan</h2>
-          <p class="text-zinc-400 text-sm">Select the plan that fits your verification needs.</p>
-        </div>
-        <div class="flex flex-col gap-3 mb-6">
-          <!-- Freemium -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-freemium-card" onclick="updatePlanCardSelection('freemium')">
-            <div class="flex items-center gap-3">
-              <input type="radio" name="plan-selection" value="freemium" checked class="accent-[#FE3C72] w-5 h-5">
-              <div>
-                <p class="text-white font-semibold">Freemium</p>
-                <p class="text-zinc-400 text-xs">Try it free, $2.63/SMS</p>
-              </div>
-            </div>
-            <span class="text-green-400 font-bold">$0</span>
-          </label>
-          <!-- PAYG -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-payg-card" onclick="updatePlanCardSelection('payg')">
-            <div class="flex items-center gap-3">
-              <input type="radio" name="plan-selection" value="payg" class="accent-[#FE3C72] w-5 h-5">
-              <div>
-                <p class="text-white font-semibold">Pay-As-You-Go</p>
-                <p class="text-zinc-400 text-xs">Pay per use, filter options</p>
-              </div>
-            </div>
-            <span class="text-[#FE3C72] font-bold">Flexible</span>
-          </label>
-          <!-- Pro -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-pro-card" onclick="updatePlanCardSelection('pro')">
-            <div class="flex items-center gap-3">
-              <input type="radio" name="plan-selection" value="pro" class="accent-[#FE3C72] w-5 h-5">
-              <div>
-                <p class="text-white font-semibold flex items-center gap-1">Pro <span class="bg-[#FE3C72]/20 text-[#FE3C72] text-[10px] px-2 py-0.5 rounded-full font-bold">POPULAR</span></p>
-                <p class="text-zinc-400 text-xs">API Keys, Webhooks, priority support</p>
-              </div>
-            </div>
-            <span class="text-amber-400 font-bold">$25<span class="text-[10px] font-normal">/mo</span></span>
-          </label>
-        </div>
-
-        <div id="plan-checkout-notice" class="hidden bg-amber-500/10 rounded-xl p-4 mb-6 border border-amber-500/30">
-          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Paid Plan selected</p>
-          <p class="text-zinc-300 text-xs">Clicking continue will redirect you to secure Paystack checkout to finalize upgrade.</p>
-        </div>
-
-        <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
-            ← Back
-          </button>
-          <button onclick="handlePlanSelection()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition" id="plan-next-btn">
-            Next →
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 3: Preferred Service Selection -->
-      <div class="step-panel" id="step-3">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">📱</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Preferred Platform</h2>
-          <p class="text-zinc-400 text-sm">Select the main service you want to verify.</p>
-        </div>
-        <div class="grid grid-cols-2 gap-3 mb-6">
-          <button onclick="selectService('Google')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Google">
-            <span class="text-2xl mb-1">🔍</span>
-            <span class="text-xs font-semibold">Google</span>
-          </button>
-          <button onclick="selectService('WhatsApp')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="WhatsApp">
-            <span class="text-2xl mb-1">💬</span>
-            <span class="text-xs font-semibold">WhatsApp</span>
-          </button>
-          <button onclick="selectService('Telegram')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Telegram">
-            <span class="text-2xl mb-1">✈️</span>
-            <span class="text-xs font-semibold">Telegram</span>
-          </button>
-          <button onclick="selectService('OpenAI')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="OpenAI">
-            <span class="text-2xl mb-1">🤖</span>
-            <span class="text-xs font-semibold">OpenAI / ChatGPT</span>
-          </button>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
-            ← Back
-          </button>
-          <button onclick="saveServiceAndAdvance()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition" id="service-next-btn">
-            Next →
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 4: View History -->
-      <div class="step-panel" id="step-4">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">📋</div>
-          <h2 class="text-2xl font-bold text-white mb-2">View Your History</h2>
-          <p class="text-zinc-400 text-sm">All past verifications, codes received, and spending are logged here.</p>
-        </div>
-        <div class="bg-white/5 rounded-xl p-4 mb-6 border border-[#FE3C72]/30">
-          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
-          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">History</strong> tab in the sidebar</p>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
-            ← Back
-          </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition">
-            Next →
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 5: API Keys (tier-aware) -->
-      <div class="step-panel" id="step-5">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">🔑</div>
-          <h2 class="text-2xl font-bold text-white mb-2">API Keys</h2>
-          <p class="text-zinc-400 text-sm">Integrate verifications directly into your app with our REST API.</p>
-        </div>
-        <div id="step5-pro" class="bg-white/5 rounded-xl p-4 mb-6 border border-[#FE3C72]/30 hidden">
-          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
-          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">API Keys</strong> → "Generate Key"</p>
-        </div>
-        <div id="step5-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-6 border border-amber-500/30 hidden">
-          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Pro feature</p>
-          <p class="text-zinc-300 text-sm">Upgrade to <strong class="text-white">Pro</strong> to unlock API access and generate up to 10 keys.</p>
-          <a href="/pricing" class="mt-2 inline-block text-amber-300 text-sm underline hover:text-amber-200">View plans →</a>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition">
-            ← Back
-          </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition">
-            Next →
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 6: Webhooks (tier-aware) -->
-      <div class="step-panel" id="step-6">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3">🔔</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Webhooks</h2>
-          <p class="text-zinc-400 text-sm">Get real-time HTTP callbacks when SMS codes arrive — no polling needed.</p>
-        </div>
-        <div id="step6-pro" class="bg-white/5 rounded-xl p-4 mb-4 border border-[#FE3C72]/30 hidden">
-          <p class="text-[#FE3C72] text-sm font-semibold mb-1">📍 Where to find it</p>
-          <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">Webhooks</strong> → "Add Endpoint"</p>
-        </div>
-        <div id="step6-upgrade" class="bg-amber-500/10 rounded-xl p-4 mb-4 border border-amber-500/30 hidden">
-          <p class="text-amber-300 text-sm font-semibold mb-1">⚡ Pro feature</p>
-          <p class="text-zinc-300 text-sm">Upgrade to <strong class="text-white">Pro</strong> to unlock webhooks and real-time delivery.</p>
-          <a href="/pricing" class="mt-2 inline-block text-amber-300 text-sm underline hover:text-amber-200">View plans →</a>
-        </div>
-        <div class="bg-green-500/10 rounded-xl p-4 mb-6 border border-green-500/30">
-          <p class="text-green-300 text-sm font-semibold">🎉 You're all set!</p>
-          <p class="text-zinc-300 text-sm mt-1">Head to your dashboard to start verifying.</p>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
-            ← Back
-          </button>
-          <button onclick="finishOnboarding()" class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] text-white font-bold transition">
-            Go to Dashboard 🚀
-          </button>
-        </div>
-      </div>
-
-    </div><!-- /card -->
-  </div><!-- /wizard -->
+    </div>
+  </div>
 
   <script nonce="{{ request.state.csp_nonce }}">
-    const TOTAL_STEPS = 6;
-    let currentStep = 1;
-    let userTier = 'freemium';
-    let selectedPreferredService = '';
-
-    // ── Init ──────────────────────────────────────────────────────────────────
-
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', () => {
       restorePreferences();
-      renderDots();
-      updatePlanCardSelection('freemium');
-
-      // Restore step from backend if authenticated
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          const res = await fetch('/api/auth/onboarding-status', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.completed) {
-              window.location.href = '/dashboard';
-              return;
-            }
-            if (data.step > 0 && data.step < TOTAL_STEPS) {
-              currentStep = data.step + 1;
-            }
-          }
-          // Fetch tier for steps 5 & 6
-          const meRes = await fetch('/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (meRes.ok) {
-            const me = await meRes.json();
-            userTier = me.tier || 'freemium';
-          }
-        } catch (_) { /* offline / unauthenticated — continue as guest */ }
-      }
-
-      showStep(currentStep);
     });
-
-    // ── Navigation ────────────────────────────────────────────────────────────
-
-    function showStep(n) {
-      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(`step-${n}`).classList.add('active');
-      document.getElementById('step-label').textContent = `Step ${n} of ${TOTAL_STEPS}`;
-      renderDots();
-      applyTierContent(n);
-    }
-
-    function nextStep() {
-      if (currentStep < TOTAL_STEPS) {
-        currentStep++;
-        persistStep(currentStep - 1); // Persist completed step
-        showStep(currentStep);
-      }
-    }
-
-    function prevStep() {
-      if (currentStep > 1) {
-        currentStep--;
-        showStep(currentStep);
-      }
-    }
-
-    // ── Step 1 form ───────────────────────────────────────────────────────────
 
     async function savePreferencesAndAdvance(e) {
       e.preventDefault();
@@ -406,124 +153,6 @@
         } catch (_) {}
       }
 
-      nextStep();
-    }
-
-    // ── Step 2: Plan Selection ─────────────────────────────────────────────────
-
-    function updatePlanCardSelection(plan) {
-      document.querySelectorAll('.select-card').forEach(c => c.classList.remove('active'));
-      document.getElementById(`plan-${plan}-card`).classList.add('active');
-      document.querySelector(`input[value="${plan}"]`).checked = true;
-
-      const notice = document.getElementById('plan-checkout-notice');
-      if (plan === 'pro') {
-        notice.classList.remove('hidden');
-      } else {
-        notice.classList.add('hidden');
-      }
-    }
-
-    async function handlePlanSelection() {
-      const selectedPlan = document.querySelector('input[name="plan-selection"]:checked').value;
-      const token = localStorage.getItem('access_token');
-      const btn = document.getElementById('plan-next-btn');
-
-      if (selectedPlan === 'freemium') {
-        nextStep();
-        return;
-      }
-
-      if (!token) {
-        // Unauthenticated fallback
-        nextStep();
-        return;
-      }
-
-      btn.disabled = true;
-
-      if (selectedPlan === 'payg') {
-        btn.textContent = 'Activating PAYG...';
-        try {
-          const res = await fetch(`/api/billing/upgrade?target_tier=payg`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            userTier = 'payg';
-          }
-        } catch (_) {}
-        btn.disabled = false;
-        btn.textContent = 'Continue →';
-        nextStep();
-      } else if (selectedPlan === 'pro') {
-        btn.textContent = 'Redirecting to Checkout...';
-        try {
-          const res = await fetch(`/api/billing/upgrade?target_tier=pro`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.authorization_url) {
-              window.location.href = data.authorization_url;
-              return;
-            }
-          }
-        } catch (_) {}
-        btn.disabled = false;
-        btn.textContent = 'Continue →';
-        nextStep();
-      }
-    }
-
-    // ── Step 3: Service Preference ─────────────────────────────────────────────
-
-    function selectService(service) {
-      selectedPreferredService = service;
-      document.querySelectorAll('.service-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.querySelector(`.service-btn[data-service="${service}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-      }
-    }
-
-    async function saveServiceAndAdvance() {
-      if (selectedPreferredService) {
-        localStorage.setItem('preferred_service', selectedPreferredService);
-
-        // Save preferred service to preference keys if endpoint exists
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          try {
-            await fetch('/api/user/preferences', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ preferred_service: selectedPreferredService })
-            });
-          } catch (_) {}
-        }
-      }
-      nextStep();
-    }
-
-    // ── Tier-aware content ────────────────────────────────────────────────────
-
-    function applyTierContent(step) {
-      const isPro = ['pro', 'custom'].includes(userTier);
-      if (step === 5) {
-        document.getElementById('step5-pro').classList.toggle('hidden', !isPro);
-        document.getElementById('step5-upgrade').classList.toggle('hidden', isPro);
-      }
-      if (step === 6) {
-        document.getElementById('step6-pro').classList.toggle('hidden', !isPro);
-        document.getElementById('step6-upgrade').classList.toggle('hidden', isPro);
-      }
-    }
-
-    // ── Completion ────────────────────────────────────────────────────────────
-
-    async function finishOnboarding() {
       await markComplete();
       window.location.href = '/dashboard';
     }
@@ -544,20 +173,6 @@
       } catch (_) {}
     }
 
-    async function persistStep(step) {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
-      try {
-        await fetch('/api/auth/onboarding-status', {
-          method: 'PUT',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step })
-        });
-      } catch (_) {}
-    }
-
-    // ── UI helpers ────────────────────────────────────────────────────────────
-
     const COUNTRY_MAPS = {
       US: { language: 'en', currency: 'USD' },
       GB: { language: 'en', currency: 'GBP' },
@@ -575,14 +190,11 @@
     };
 
     function detectCountry() {
-      // Try mapping by timezone
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (tz) {
           const tzLower = tz.toLowerCase();
-          if (tzLower.includes('america/new_york') || tzLower.includes('america/chicago') || tzLower.includes('america/denver') || tzLower.includes('america/los_angeles') || tzLower.includes('america/anchorage') || tzLower.includes('america/adak') || tzLower.includes('pacific/honolulu')) {
-            return 'US';
-          }
+          if (tzLower.includes('america/new_york') || tzLower.includes('america/chicago') || tzLower.includes('america/denver') || tzLower.includes('america/los_angeles') || tzLower.includes('america/anchorage') || tzLower.includes('america/adak') || tzLower.includes('pacific/honolulu')) return 'US';
           if (tzLower.includes('europe/london')) return 'GB';
           if (tzLower.includes('europe/madrid')) return 'ES';
           if (tzLower.includes('europe/paris')) return 'FR';
@@ -597,8 +209,6 @@
           if (tzLower.includes('australia/sydney') || tzLower.includes('australia/melbourne') || tzLower.includes('australia/brisbane') || tzLower.includes('australia/perth')) return 'AU';
         }
       } catch (_) {}
-
-      // Fallback to navigator language
       try {
         const lang = (navigator.language || '').toLowerCase();
         if (lang.endsWith('-us')) return 'US';
@@ -606,10 +216,7 @@
         if (lang.endsWith('-es') || lang.startsWith('es')) return 'ES';
         if (lang.endsWith('-fr') || lang.startsWith('fr')) return 'FR';
         if (lang.endsWith('-de') || lang.startsWith('de')) return 'DE';
-        if (lang.endsWith('-pt') || lang.startsWith('pt')) {
-          if (lang.includes('br')) return 'BR';
-          return 'PT';
-        }
+        if (lang.endsWith('-pt') || lang.startsWith('pt')) return lang.includes('br') ? 'BR' : 'PT';
         if (lang.endsWith('-cn') || lang.startsWith('zh')) return 'CN';
         if (lang.endsWith('-jp') || lang.startsWith('ja')) return 'JP';
         if (lang.endsWith('-in') || lang.startsWith('hi')) return 'IN';
@@ -617,8 +224,7 @@
         if (lang.endsWith('-ca')) return 'CA';
         if (lang.endsWith('-au')) return 'AU';
       } catch (_) {}
-
-      return 'US'; // Default fallback
+      return 'US';
     }
 
     function onCountryChange(countryCode) {
@@ -630,21 +236,10 @@
       }
     }
 
-    function renderDots() {
-      const container = document.getElementById('progress-dots');
-      container.innerHTML = '';
-      for (let i = 1; i <= TOTAL_STEPS; i++) {
-        const dot = document.createElement('div');
-        dot.className = `progress-dot w-2 h-2 rounded-full ${i === currentStep ? 'bg-primary shadow-[0_0_8px_rgba(254,60,114,0.8)]' : i < currentStep ? 'bg-primary/40' : 'bg-white/10'}`;
-        container.appendChild(dot);
-      }
-    }
-
     function restorePreferences() {
       const savedCountry = localStorage.getItem('country');
       const savedLang = localStorage.getItem('language');
       const savedCurr = localStorage.getItem('currency');
-
       if (savedCountry) {
         document.getElementById('country').value = savedCountry;
       } else {
@@ -652,11 +247,9 @@
         document.getElementById('country').value = detected;
         onCountryChange(detected);
       }
-
       if (savedLang) document.getElementById('language').value = savedLang;
       if (savedCurr) document.getElementById('currency').value = savedCurr;
     }
   </script>
-
 </body>
 </html>
