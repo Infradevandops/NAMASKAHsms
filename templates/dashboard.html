@@ -477,6 +477,8 @@ endblock %}
 
         const driverObj = window.driver.driver({
             showProgress: true,
+            allowClose: true,
+            showButtons: ['next', 'previous', 'close'],
             animate: true,
             steps: [
                 {
