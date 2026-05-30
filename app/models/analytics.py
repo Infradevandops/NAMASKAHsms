@@ -1,7 +1,16 @@
 """Analytics and reporting models."""
 
-from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Uuid,
+)
 
 from app.models.base import BaseModel
 
@@ -65,7 +74,7 @@ class ScheduledReport(BaseModel):
 
     __tablename__ = "scheduled_reports"
 
-    report_id = Column(UUID)
+    report_id = Column(Uuid)
     user_id = Column(String, nullable=False, index=True)
     report_data = Column(JSON)
     generated_at = Column(DateTime, nullable=False)
