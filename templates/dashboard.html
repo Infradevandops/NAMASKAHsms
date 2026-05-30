@@ -552,6 +552,9 @@ endblock %}
         driverObj.drive();
     };
 
+    // Clean up abandoned v1 key from user's browser
+    localStorage.removeItem('nsk_dashboard_tour_completed');
+
     // Auto-start tour if not completed
     if (localStorage.getItem('nsk_tour_dashboard_v2_completed') !== 'true') {
         // slight delay to let sidebar render
