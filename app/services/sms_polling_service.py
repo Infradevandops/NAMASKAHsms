@@ -144,6 +144,22 @@ class SMSPollingService:
             f"(timeout={timeout_seconds:.0f}s)"
         )
 
+        try:
+            from app.services.event_broadcaster import event_broadcaster
+
+            asyncio.create_task(
+                event_broadcaster.broadcast_verification_event(
+                    user_id=verification.user_id,
+                    event_type="progress",
+                    service_name=verification.service_name or "",
+                    verification_id=verification.id,
+                    status="polling_started",
+                    metadata={"provider": "textverified", "timeout": timeout_seconds},
+                )
+            )
+        except Exception:
+            pass
+
         # Notify user we're still waiting
         asyncio.create_task(
             self._notify_waiting(verification.user_id, verification.service_name)
@@ -231,6 +247,22 @@ class SMSPollingService:
             except Exception as e:
                 logger.warning(f"Telnyx polling error for {verification.id}: {e}")
 
+            try:
+                from app.services.event_broadcaster import event_broadcaster
+
+                asyncio.create_task(
+                    event_broadcaster.broadcast_verification_event(
+                        user_id=verification.user_id,
+                        event_type="progress",
+                        service_name=verification.service_name or "",
+                        verification_id=verification.id,
+                        status="polling",
+                        metadata={"provider": "telnyx"},
+                    )
+                )
+            except Exception:
+                pass
+
             await asyncio.sleep(delay)
 
         await self._handle_timeout(verification, db, reason="sms_timeout")
@@ -263,6 +295,22 @@ class SMSPollingService:
                     return
             except Exception as e:
                 logger.warning(f"5sim polling error for {verification.id}: {e}")
+
+            try:
+                from app.services.event_broadcaster import event_broadcaster
+
+                asyncio.create_task(
+                    event_broadcaster.broadcast_verification_event(
+                        user_id=verification.user_id,
+                        event_type="progress",
+                        service_name=verification.service_name or "",
+                        verification_id=verification.id,
+                        status="polling",
+                        metadata={"provider": "5sim"},
+                    )
+                )
+            except Exception:
+                pass
 
             await asyncio.sleep(delay)
 

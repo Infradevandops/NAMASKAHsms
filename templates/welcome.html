@@ -110,6 +110,10 @@
               <option value="AUD">AUD - Australian Dollar (A$)</option>
             </select>
           </div>
+
+          <!-- NEW: Payment Method Selection -->
+          <div id="payment-method-container" class="mb-6"></div>
+
           <div class="flex gap-3">
             <button type="button" onclick="skipOnboarding()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition">
               Skip
@@ -124,6 +128,7 @@
     </div>
   </div>
 
+  <script src="/static/js/components/payment-method-selector.js"></script>
   <script nonce="{{ request.state.csp_nonce }}">
     window.addEventListener('DOMContentLoaded', () => {
       restorePreferences();
@@ -134,6 +139,7 @@
       const country = document.getElementById('country').value;
       const language = document.getElementById('language').value;
       const currency = document.getElementById('currency').value;
+      const preferredPaymentMethod = localStorage.getItem('preferred_payment_method');
 
       localStorage.setItem('country', country);
       localStorage.setItem('language', language);
@@ -141,6 +147,9 @@
       document.cookie = `country=${country}; path=/; max-age=31536000`;
       document.cookie = `language=${language}; path=/; max-age=31536000`;
       document.cookie = `currency=${currency}; path=/; max-age=31536000`;
+      if (preferredPaymentMethod) {
+          document.cookie = `preferred_payment_method=${preferredPaymentMethod}; path=/; max-age=31536000`;
+      }
 
       const token = localStorage.getItem('access_token');
       if (token) {
@@ -233,6 +242,10 @@
       if (mapping) {
         document.getElementById('language').value = mapping.language;
         document.getElementById('currency').value = mapping.currency;
+      }
+      // Re-trigger payment method load if the country is changed
+      if (window.paymentMethodSelector) {
+          window.paymentMethodSelector.init();
       }
     }
 
