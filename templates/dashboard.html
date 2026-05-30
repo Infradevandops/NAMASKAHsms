@@ -527,7 +527,7 @@ endblock %}
             ],
             onDestroyStarted: () => {
                 if (!driverObj.hasNextStep() || confirm("Are you sure you want to skip the tour?")) {
-                    localStorage.setItem('nsk_tour_dashboard_v2_completed', 'true');
+                    try { localStorage.setItem('nsk_tour_dashboard_v2_completed', 'true'); } catch (e) {}
                     driverObj.destroy();
                 }
             },
@@ -552,17 +552,21 @@ endblock %}
         driverObj.drive();
     };
 
-    // Clean up abandoned v1 key from user's browser
-    localStorage.removeItem('nsk_dashboard_tour_completed');
+    // Clean up abandoned v1 key from user's browser safely
+    try {
+        localStorage.removeItem('nsk_dashboard_tour_completed');
+    } catch (e) {}
 
     // Auto-start tour if not completed
-    if (localStorage.getItem('nsk_tour_dashboard_v2_completed') !== 'true') {
-        // slight delay to let sidebar render
-        setTimeout(() => {
-            if (window.startDashboardTour) {
-                window.startDashboardTour();
-            }
-        }, 1000);
-    }
+    try {
+        if (localStorage.getItem('nsk_tour_dashboard_v2_completed') !== 'true') {
+            // slight delay to let sidebar render
+            setTimeout(() => {
+                if (window.startDashboardTour) {
+                    window.startDashboardTour();
+                }
+            }, 1000);
+        }
+    } catch (e) {}
 </script>
 {% endblock %}
