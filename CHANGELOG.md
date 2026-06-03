@@ -5,9 +5,66 @@ All notable changes to the Namaskah project.
 ## [Unreleased]
 
 ### In Progress
-- Test coverage improvement: 81.8% → 90% target
+- Test coverage improvement: 91.8% → 95% target
 - SDK libraries (Python, JavaScript) — deferred
 - Multi-region deployment (Q3 2026)
+
+---
+
+## [4.8.2] - May 18, 2026
+
+Driver.js Onboarding Tour - Non-Intrusive User Experience
+
+### Added
+- **Driver.js Tooltip Tour**: Non-intrusive 7-step guided tour replacing full-screen welcome wizard
+  - Auto-starts on first dashboard visit (1.5s delay for smooth UX)
+  - Arrows point to currency selector, tier badge, verify link, history, wallet
+  - Fully dismissible with skip button (marks completion in backend)
+  - Mobile responsive with brand styling (#FE3C72 pink, dark theme)
+  - Comprehensive error handling and graceful degradation
+- **Tour Implementation**: `static/js/onboarding-tour.js` (12KB) - main tour logic with caching
+- **Tour Styling**: `static/css/onboarding-tour.css` (3.8KB) - glassmorphic dark theme
+- **E2E Test Suite**: `tests/e2e/test_onboarding_tour.py` - 13 automated test scenarios
+- **Documentation**: Complete implementation guide with deployment procedures
+
+### Changed
+- **Login/Register Flow**: Now redirect directly to `/dashboard` (not `/welcome`)
+- **Driver.js Upgrade**: v1.0.1 → v1.3.1 (better features, bug fixes)
+- **Welcome Enforcement**: Removed forced redirect, tour auto-triggers on dashboard
+- **User Experience**: Direct dashboard access, optional tour (non-blocking)
+
+### Fixed
+- Removed full-screen welcome wizard interruption
+- Tour adapts to missing elements (no crashes)
+- Network failures handled gracefully
+- Mobile responsive issues fixed
+
+### Technical
+- Uses existing `/api/auth/onboarding-status` and `/api/auth/onboarding-complete` endpoints
+- No database migrations required (uses existing `onboarding_completed` field)
+- localStorage + sessionStorage caching for performance
+- CSP compliant (no inline handlers)
+- Graceful degradation if driver.js fails to load
+
+### Testing
+- 13 E2E test scenarios covering all functionality
+- Manual testing checklist in taskfile
+- Cross-browser compatibility verified (Chrome, Firefox, Safari, Edge)
+- Mobile testing (iPhone, Android)
+
+### Impact
+- ✅ Better UX: Non-intrusive vs forced wizard
+- ✅ Direct access: No interruption on dashboard
+- ✅ Feature discovery: Arrows guide users to key features
+- ✅ Mobile optimized: Responsive design for all devices
+- ✅ Production stable: Error handling, fallbacks, caching
+
+### Deployment
+- Commit: b824b3ee
+- Files Changed: 6 (1,595 insertions, 21 deletions)
+- Risk Level: LOW (graceful degradation, non-blocking, easily reversible)
+- Downtime: 0 minutes (hot reload)
+- Rollback: Tested and ready
 
 ---
 
