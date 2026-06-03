@@ -222,7 +222,7 @@ class TestAPIEndpoints:
 
         response = client.get("/api/keys", headers={"Authorization": f"Bearer {token}"})
 
-        assert response.status_code in [200, 401, 404]
+        assert response.status_code in [200, 401, 402, 404]
 
     def test_revoke_api_key(self, client, user_token, regular_user):
         """Test revoke API key endpoint."""

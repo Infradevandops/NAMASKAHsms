@@ -1,7 +1,7 @@
 """Tests for SMS forwarding email functionality."""
 
 from datetime import datetime, timezone
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -25,12 +25,12 @@ class TestForwardingEmail:
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@vrenum.app"
-            mock_email._send_smtp = Mock()
+            mock_email._send = AsyncMock(return_value=True)
 
             result = await _send_forwarding_email("user@example.com", sms_data)
 
             assert result is True
-            mock_email._send_smtp.assert_called_once()
+            mock_email._send.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_send_forwarding_email_test_message(self):
@@ -46,11 +46,12 @@ class TestForwardingEmail:
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@vrenum.app"
-            mock_email._send_smtp = Mock()
+            mock_email._send = AsyncMock(return_value=True)
 
             result = await _send_forwarding_email("user@example.com", sms_data)
 
             assert result is True
+            mock_email._send.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_send_forwarding_email_service_disabled(self):
@@ -82,7 +83,7 @@ class TestForwardingEmail:
         with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@vrenum.app"
-            mock_email._send_smtp = Mock(side_effect=Exception("SMTP error"))
+            mock_email._send = AsyncMock(side_effect=Exception("SMTP error"))
 
             result = await _send_forwarding_email("user@example.com", sms_data)
 
@@ -104,11 +105,12 @@ class TestForwardingEmail:
 
             captured_message = None
 
-            def capture_smtp(email, message):
+            async def capture_send(email, subject, html):
                 nonlocal captured_message
-                captured_message = message
+                captured_message = html
+                return True
 
-            mock_email._send_smtp = Mock(side_effect=capture_smtp)
+            mock_email._send = AsyncMock(side_effect=capture_send)
 
             await _send_forwarding_email("user@example.com", sms_data)
 

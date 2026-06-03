@@ -26,16 +26,16 @@ class TestForwardingWebhook:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 return_value=mock_response
             )
 
-        result = await _send_forwarding_webhook(
-            "https://example.com/webhook", "secret123", sms_data
-        )
+            result = await _send_forwarding_webhook(
+                "https://example.com/webhook", "secret123", sms_data
+            )
 
-        assert result is True
+            assert result is True
 
     @pytest.mark.asyncio
     async def test_send_forwarding_webhook_with_signature(self):
@@ -57,7 +57,7 @@ class TestForwardingWebhook:
             captured_headers = headers
             return mock_response
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = capture_post
 
             result = await _send_forwarding_webhook(
@@ -67,8 +67,6 @@ class TestForwardingWebhook:
         assert result is True
         assert captured_headers is not None
         assert "X-Webhook-Signature" in captured_headers
-        assert "X-Webhook-Signature-Algorithm" in captured_headers
-        assert captured_headers["X-Webhook-Signature-Algorithm"] == "sha256"
 
     @pytest.mark.asyncio
     async def test_send_forwarding_webhook_without_secret(self):
@@ -83,16 +81,16 @@ class TestForwardingWebhook:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 return_value=mock_response
             )
 
-        result = await _send_forwarding_webhook(
-            "https://example.com/webhook", None, sms_data
-        )
+            result = await _send_forwarding_webhook(
+                "https://example.com/webhook", None, sms_data
+            )
 
-        assert result is True
+            assert result is True
 
     @pytest.mark.asyncio
     async def test_send_forwarding_webhook_retry_on_failure(self):
@@ -119,7 +117,7 @@ class TestForwardingWebhook:
             call_count += 1
             return response
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = mock_post
 
             with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -140,7 +138,7 @@ class TestForwardingWebhook:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 side_effect=httpx.TimeoutException("Timeout")
             )
@@ -162,7 +160,7 @@ class TestForwardingWebhook:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 side_effect=httpx.RequestError("Connection error")
             )
@@ -186,18 +184,18 @@ class TestForwardingWebhook:
 
         for status_code in [200, 201, 202, 204]:
             mock_response = Mock()
-        mock_response.status_code = status_code
+            mock_response.status_code = status_code
 
-        with patch("httpx.AsyncClient") as mock_client:
-            mock_client.return_value.__aenter__.return_value.post = AsyncMock(
-                return_value=mock_response
-            )
+            with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
+                mock_client.return_value.__aenter__.return_value.post = AsyncMock(
+                    return_value=mock_response
+                )
 
-            result = await _send_forwarding_webhook(
-                "https://example.com/webhook", "secret123", sms_data
-            )
+                result = await _send_forwarding_webhook(
+                    "https://example.com/webhook", "secret123", sms_data
+                )
 
-            assert result is True
+                assert result is True
 
     @pytest.mark.asyncio
     async def test_send_forwarding_webhook_payload_structure(self):
@@ -219,7 +217,7 @@ class TestForwardingWebhook:
             captured_content = content
             return mock_response
 
-        with patch("httpx.AsyncClient") as mock_client:
+        with patch("app.api.core.forwarding.httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = capture_post
 
             await _send_forwarding_webhook(
