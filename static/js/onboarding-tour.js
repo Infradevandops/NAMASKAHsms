@@ -348,15 +348,18 @@
 
     // Initialize tour when DOM is ready
     function initTour() {
+        console.log('[OnboardingTour] initTour() called, readyState:', document.readyState);
         window.onboardingTour = new OnboardingTour();
         window.onboardingTour.init();
     }
 
+    console.log('[OnboardingTour] Module loaded, readyState:', document.readyState);
+
     if (document.readyState === 'loading') {
+        console.log('[OnboardingTour] Waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', initTour);
     } else {
+        console.log('[OnboardingTour] DOM already ready, calling initTour()...');
         initTour();
     }
-
-    console.log('[OnboardingTour] Module loaded');
 })();
