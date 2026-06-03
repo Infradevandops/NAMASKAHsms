@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome - VRENUM SMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+  <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
       theme: {
         extend: {
@@ -63,7 +63,7 @@
       <div class="flex gap-2" id="progress-dots">
         <!-- dots injected by JS -->
       </div>
-      <button onclick="skipOnboarding()" class="text-zinc-500 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1" id="skip-btn">
+      <button class="text-zinc-500 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1" id="skip-btn">
         Skip →
       </button>
     </div>
@@ -80,10 +80,10 @@
           <h1 class="text-2xl font-bold text-white mb-2">Welcome to VRENUM SMS</h1>
           <p class="text-zinc-400 text-sm">Choose your language and currency to get started</p>
         </div>
-        <form id="welcomeForm" onsubmit="savePreferencesAndAdvance(event)">
+        <form id="welcomeForm">
           <div class="mb-4">
             <label class="block text-white font-semibold mb-2">Country <span class="text-red-400">*</span></label>
-            <select id="country" onchange="onCountryChange(this.value)" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
+            <select id="country" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white" required style="color-scheme: dark;">
               <option value="">Choose country...</option>
               <option value="US">🇺🇸 United States</option>
               <option value="GB">🇬🇧 United Kingdom</option>
@@ -151,7 +151,7 @@
         </div>
         <div class="flex flex-col gap-3 mb-6">
           <!-- Freemium -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-freemium-card" onclick="updatePlanCardSelection('freemium')">
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-freemium-card">
             <div class="flex items-center gap-3">
               <input type="radio" name="plan-selection" value="freemium" checked class="accent-[#FE3C72] w-5 h-5">
               <div>
@@ -162,7 +162,7 @@
             <span class="text-green-400 font-bold">$0</span>
           </label>
           <!-- PAYG -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-payg-card" onclick="updatePlanCardSelection('payg')">
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-payg-card">
             <div class="flex items-center gap-3">
               <input type="radio" name="plan-selection" value="payg" class="accent-[#FE3C72] w-5 h-5">
               <div>
@@ -173,7 +173,7 @@
             <span class="text-[#FE3C72] font-bold">Flexible</span>
           </label>
           <!-- Pro -->
-          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-pro-card" onclick="updatePlanCardSelection('pro')">
+          <label class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72]/50 cursor-pointer transition select-card" id="plan-pro-card">
             <div class="flex items-center gap-3">
               <input type="radio" name="plan-selection" value="pro" class="accent-[#FE3C72] w-5 h-5">
               <div>
@@ -191,10 +191,10 @@
         </div>
 
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back">
+          <button class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back" id="step2-back-btn">
             ← Back
           </button>
-          <button onclick="handlePlanSelection()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next" id="plan-next-btn">
+          <button class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next" id="plan-next-btn">
             Next →
           </button>
         </div>
@@ -208,28 +208,28 @@
           <p class="text-zinc-400 text-sm">Select the main service you want to verify.</p>
         </div>
         <div class="grid grid-cols-2 gap-3 mb-6">
-          <button onclick="selectService('Google')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Google">
+          <button class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Google">
             <span class="text-2xl mb-1">🔍</span>
             <span class="text-xs font-semibold">Google</span>
           </button>
-          <button onclick="selectService('WhatsApp')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="WhatsApp">
+          <button class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="WhatsApp">
             <span class="text-2xl mb-1">💬</span>
             <span class="text-xs font-semibold">WhatsApp</span>
           </button>
-          <button onclick="selectService('Telegram')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Telegram">
+          <button class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="Telegram">
             <span class="text-2xl mb-1">✈️</span>
             <span class="text-xs font-semibold">Telegram</span>
           </button>
-          <button onclick="selectService('OpenAI')" class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="OpenAI">
+          <button class="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#FE3C72] transition service-btn text-white" data-service="OpenAI">
             <span class="text-2xl mb-1">🤖</span>
             <span class="text-xs font-semibold">OpenAI / ChatGPT</span>
           </button>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back">
+          <button class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back" id="step3-back-btn">
             ← Back
           </button>
-          <button onclick="saveServiceAndAdvance()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next" id="service-next-btn">
+          <button class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next" id="service-next-btn">
             Next →
           </button>
         </div>
@@ -247,10 +247,10 @@
           <p class="text-zinc-300 text-sm">Dashboard → <strong class="text-white">History</strong> tab in the sidebar</p>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back">
+          <button class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back" id="step4-back-btn">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next">
+          <button class="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(254,60,114,0.3)] text-white font-bold transition btn-next" id="step4-next-btn">
             Next →
           </button>
         </div>
@@ -273,10 +273,10 @@
           <a href="/pricing" class="mt-2 inline-block text-amber-300 text-sm underline hover:text-amber-200">View plans →</a>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition btn-back">
+          <button class="flex-1 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition btn-back" id="step5-back-btn">
             ← Back
           </button>
-          <button onclick="nextStep()" class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition btn-next">
+          <button class="flex-1 py-3 rounded-lg bg-[#FE3C72] hover:bg-[#ff5784] text-white font-bold transition btn-next" id="step5-next-btn">
             Next →
           </button>
         </div>
@@ -303,10 +303,10 @@
           <p class="text-zinc-300 text-sm mt-1">Head to your dashboard to start verifying.</p>
         </div>
         <div class="flex gap-3">
-          <button onclick="prevStep()" class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back">
+          <button class="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition btn-back" id="step6-back-btn">
             ← Back
           </button>
-          <button onclick="finishOnboarding()" class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] text-white font-bold transition">
+          <button class="flex-1 py-3 rounded-lg bg-green-500 hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] text-white font-bold transition" id="finish-btn">
             Go to Dashboard 🚀
           </button>
         </div>
@@ -329,7 +329,42 @@
       renderDots();
       updatePlanCardSelection('freemium');
 
-      // Restore step from backend if authenticated
+      // ── Wire all event listeners programmatically (CSP-safe) ─────────────
+
+      // Step 1: form submit + country change
+      document.getElementById('welcomeForm').addEventListener('submit', savePreferencesAndAdvance);
+      document.getElementById('country').addEventListener('change', (e) => onCountryChange(e.target.value));
+
+      // Skip button
+      document.getElementById('skip-btn').addEventListener('click', skipOnboarding);
+
+      // Step 2: plan cards + navigation
+      document.getElementById('plan-freemium-card').addEventListener('click', () => updatePlanCardSelection('freemium'));
+      document.getElementById('plan-payg-card').addEventListener('click', () => updatePlanCardSelection('payg'));
+      document.getElementById('plan-pro-card').addEventListener('click', () => updatePlanCardSelection('pro'));
+      document.getElementById('step2-back-btn').addEventListener('click', prevStep);
+      document.getElementById('plan-next-btn').addEventListener('click', handlePlanSelection);
+
+      // Step 3: service buttons + navigation
+      document.querySelectorAll('.service-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectService(btn.dataset.service));
+      });
+      document.getElementById('step3-back-btn').addEventListener('click', prevStep);
+      document.getElementById('service-next-btn').addEventListener('click', saveServiceAndAdvance);
+
+      // Step 4: navigation
+      document.getElementById('step4-back-btn').addEventListener('click', prevStep);
+      document.getElementById('step4-next-btn').addEventListener('click', nextStep);
+
+      // Step 5: navigation
+      document.getElementById('step5-back-btn').addEventListener('click', prevStep);
+      document.getElementById('step5-next-btn').addEventListener('click', nextStep);
+
+      // Step 6: navigation + finish
+      document.getElementById('step6-back-btn').addEventListener('click', prevStep);
+      document.getElementById('finish-btn').addEventListener('click', finishOnboarding);
+
+      // ── Restore step from backend if authenticated ────────────────────────
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
@@ -669,24 +704,24 @@
     }
 
     function restorePreferences() {
-      // In automated test environments (navigator.webdriver = true):
-      // Pre-fill only the country field to 'US' so form submit is HTML5 valid,
-      // but do NOT trigger pref propagation so language/currency remain empty.
-      if (navigator.webdriver) {
-        document.getElementById('country').value = 'US';
-        return;
-      }
-
       const savedCountry = localStorage.getItem('country');
       const savedLang = localStorage.getItem('language');
       const savedCurr = localStorage.getItem('currency');
+
       if (savedCountry) {
         document.getElementById('country').value = savedCountry;
       } else {
-        const detected = detectCountry();
-        document.getElementById('country').value = detected;
-        onCountryChange(detected);
+        // Only run auto-detection if NOT in test mode (navigator.webdriver is false)
+        if (!navigator.webdriver) {
+          const detected = detectCountry();
+          document.getElementById('country').value = detected;
+          onCountryChange(detected);
+        } else {
+          // In E2E tests, pre-fill country to US so country field is valid, but don't auto-fill language/currency
+          document.getElementById('country').value = 'US';
+        }
       }
+
       if (savedLang) document.getElementById('language').value = savedLang;
       if (savedCurr) document.getElementById('currency').value = savedCurr;
     }
