@@ -65,6 +65,9 @@ class APIKeyService:
 
     def generate_api_key(self, user_id: str, name: str) -> Tuple[str, APIKey]:
         """Generate a new API key for user."""
+        if not self.can_create_key(user_id):
+            raise ValueError("API key limit reached")
+
         # Generate secure key
         plain_key = f"nsk_{secrets.token_urlsafe(32)}"
 

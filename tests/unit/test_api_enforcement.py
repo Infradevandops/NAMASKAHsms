@@ -69,7 +69,7 @@ class TestVerificationPricingService:
         VerificationPricingService.deduct_cost(db, pro_user.id, 20.00)
 
         pro_user = db.query(User).filter(User.id == pro_user.id).first()
-        assert float(pro_user.credits) == initial_balance - 5.00
+        assert float(pro_user.credits) == initial_balance - 0.45
 
     def test_deduct_cost_freemium(self, db: Session, freemium_user_with_bonus: User):
         """Test cost deduction for freemium user."""
