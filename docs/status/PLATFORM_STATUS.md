@@ -1,15 +1,24 @@
 # Platform Status — VRENUM SMS
 
-**Version**: v4.8.1
+**Version**: v4.8.2
 **Status**: 🟢 Production Ready
-**Last Updated**: May 20, 2026
+**Last Updated**: June 3, 2026
 **Readiness**: 100/100
 
 ---
 
 ## Current State
 
-### Latest Version (v4.7.3) — May 17, 2026
+### Latest Version (v4.8.2) — June 3, 2026
+- ✅ Onboarding wizard fully restored — 6-step flow (language, currency, plan, platform, API keys, webhooks)
+- ✅ Removed unprofessional fixed "Tour" CTA button from dashboard header
+- ✅ CSP compliance: all inline `onclick=` handlers replaced with programmatic `addEventListener`
+- ✅ Missing `prevStep()` function added — back-button navigation now works across all steps
+- ✅ All 14 E2E onboarding tests passing (OB-24 → OB-32)
+- ✅ Tier-aware content on steps 5 & 6 (API Keys / Webhooks — upgrade CTA for freemium)
+- ✅ Dynamic Payment Method Selector on step 1 (location-based)
+
+### Previous Version (v4.8.1) — May 20, 2026
 - ✅ All 23 sidebar tabs production ready (100%)
 - ✅ Support tab — reply UI, live chat, KB search (14 tests)
 - ✅ Admin Dashboard — auto-refresh, CSV export, filtering (21 tests)
@@ -146,7 +155,7 @@
 
 ### P3 — Growth Features
 - SDK Libraries (Python, JavaScript) — ⏸️ Deferred
-- ~~Onboarding tour~~ ✅ Complete (v4.8.0)
+- ~~Onboarding tour~~ ✅ Complete — 6-step wizard restored, CSP-compliant (v4.8.2)
 - Mobile UI Phase 3
 
 ### P4 — Enterprise (Demand-triggered)
@@ -171,4 +180,5 @@
 
 **Platform Status**: 🟢 PRODUCTION READY
 **Confidence**: 98%
+**Last Updated**: June 3, 2026
 **Next Review**: Post-launch (30 days)
