@@ -79,6 +79,14 @@
                 return false;
             }
 
+            // ONE-TIME RESET: Clear old flags for v4.8.2 rollout
+            const tourVersion = localStorage.getItem('tour_version');
+            if (tourVersion !== '4.8.2') {
+                console.log('[OnboardingTour] Resetting for v4.8.2 rollout');
+                localStorage.removeItem('onboarding_tour_completed');
+                localStorage.setItem('tour_version', '4.8.2');
+            }
+
             // Check localStorage cache first (fast path)
             const cachedCompletion = localStorage.getItem('onboarding_tour_completed');
             console.log('[OnboardingTour] Cache check:', cachedCompletion);
