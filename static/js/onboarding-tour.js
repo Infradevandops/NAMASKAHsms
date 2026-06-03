@@ -79,12 +79,12 @@
                 return false;
             }
 
-            // ONE-TIME RESET: Clear old flags for v4.8.2 rollout (MUST happen FIRST)
+            // ONE-TIME RESET: Clear old flags for v4.8.3 rollout (MUST happen FIRST)
             const tourVersion = localStorage.getItem('tour_version');
-            if (tourVersion !== '4.8.2') {
-                console.log('[OnboardingTour] Resetting for v4.8.2 rollout');
+            if (tourVersion !== '4.8.3') {
+                console.log('[OnboardingTour] Resetting for v4.8.3 rollout');
                 localStorage.removeItem('onboarding_tour_completed');
-                localStorage.setItem('tour_version', '4.8.2');
+                localStorage.setItem('tour_version', '4.8.3');
             }
 
             // Check localStorage cache (AFTER version reset)
