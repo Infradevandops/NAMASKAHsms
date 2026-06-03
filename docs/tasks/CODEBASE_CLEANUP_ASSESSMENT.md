@@ -1,5 +1,5 @@
 # Codebase Cleanup Assessment
-**Date**: May 20, 2026
+**Date**: May 20, 2026 (Updated: June 3, 2026)
 **Version**: 4.7.3
 **Assessment Type**: Dead, Abandoned & Redundant Code Analysis
 
@@ -28,6 +28,7 @@
 **Issue**: Two middleware files with same purpose
 **Used By**: `main.py` imports `whitelabel_middleware.py` only
 **Action**: Delete `whitelabel.py`
+**Status**: ✅ **DONE** (June 3, 2026) — `whitelabel.py` deleted
 
 ```bash
 rm app/middleware/whitelabel.py
@@ -53,6 +54,7 @@ rm app/middleware/whitelabel.py
 
 **Issue**: Naming confusion - one is middleware, one is validators
 **Action**: Rename `tier_validation.py` → `tier_validators.py` for clarity
+**Status**: ✅ **DONE** (June 3, 2026) — Renamed for clarity
 
 ---
 
@@ -62,7 +64,7 @@ rm app/middleware/whitelabel.py
 - ✅ `email_notification_service.py` (Used in 3+ files)
 
 **Issue**: Two email services with overlapping functionality
-**Status**: Both actively used, needs consolidation
+**Status**: ✅ **DONE** (June 3, 2026) — Consolidated into `email_service.py` with compatibility wrapper in `email_notification_service.py`
 **Action**: Merge into single `email_service.py` with notification methods
 
 ---
@@ -111,6 +113,7 @@ rm app/middleware/whitelabel.py
 
 **Issue**: Test databases in root directory
 **Action**: Delete root-level `.db` files (should be in `data/` or gitignored)
+**Status**: ✅ **DONE** (June 3, 2026) — All root `.db` files deleted
 
 ```bash
 rm namaskah_fallback.db test.db test_migration.db
@@ -128,6 +131,7 @@ rm namaskah_fallback.db test.db test_migration.db
 
 **Issue**: Large cache directory committed to repo
 **Action**: Add to `.gitignore`, delete from repo
+**Status**: ✅ **DONE** (June 3, 2026) — `.hypothesis/` added to `.gitignore` and deleted from tracking
 
 ```bash
 echo ".hypothesis/" >> .gitignore
@@ -461,19 +465,19 @@ find . -type f -size +1M -not -path "./.git/*" -exec ls -lh {} \;
 ## ✅ Cleanup Checklist
 
 ### Immediate Actions
-- [ ] Delete test databases from root
-- [ ] Delete `.hypothesis/` cache
+- [x] Delete test databases from root ✅ (June 3, 2026)
+- [x] Delete `.hypothesis/` cache ✅ (June 3, 2026)
 - [ ] ~~Delete `logs/app.log`~~ ✅ **KEEP** - Actively used
-- [ ] Update `.gitignore` (exclude rotated logs only)
+- [x] Update `.gitignore` (exclude rotated logs only) ✅ (June 3, 2026)
 
 ### Safe Deletions
-- [ ] Remove `app/middleware/whitelabel.py`
-- [ ] Rename `tier_validation.py` → `tier_validators.py`
+- [x] Remove `app/middleware/whitelabel.py` ✅ (June 3, 2026)
+- [x] Rename `tier_validation.py` → `tier_validators.py` ✅ (June 3, 2026)
 - [ ] Archive unused deployment configs
 
 ### Consolidation
 - [ ] Merge logging modules
-- [ ] Merge email services
+- [x] Merge email services ✅ (June 3, 2026)
 - [ ] Merge cache modules
 - [ ] Merge secrets modules
 

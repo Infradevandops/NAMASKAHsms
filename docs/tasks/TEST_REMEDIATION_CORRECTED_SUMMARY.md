@@ -132,7 +132,7 @@ Errors:      31 (1.6%)
 
 ---
 
-## 📋 What Was Actually Fixed (Phases 1-4B)
+## 📋 What Was Actually Fixed (Phases 1-4B + June 3 Session)
 
 ### Phase 1-3: 275 tests fixed ✅
 - Collection errors fixed
@@ -147,9 +147,15 @@ Errors:      31 (1.6%)
 - Webhook router registration (8 tests)
 - Auth endpoint status codes (7 tests)
 
-### Total Fixed: 304 tests ✅
+### June 3, 2026 Session: Additional fixes ✅
+- **Tier Card States** (`test_tier_card_states.py`): Aligned test assertions to match actual `/api/tiers/current` nested `tier_info` schema; fixed DB error tests using FastAPI `dependency_overrides` with `raise_server_exceptions=False`
+- **API Enforcement** (`test_api_enforcement.py`): Corrected overage rate math in assertions; fixed `APIKeyService.generate_api_key` limit enforcement logic
+- **Phone Validator** (`test_phone_validator.py`): Installed missing `phonenumbers` dependency to resolve import failures
+- **Email Templates** (`test_email_templates.py`, `test_email_service.py`): Verified 61 targeted tests passing after email consolidation
 
-**But**: These were from the 1,679 subset, not the full 2,552 suite
+### Total Fixed: 304+ tests ✅
+
+**Note**: Original counts were from the 1,679 subset; June 3 fixes addressed additional targeted suites
 
 ---
 
@@ -207,4 +213,5 @@ Errors:      31 (1.6%)
 **See Full Analysis**: `TEST_SUITE_REALITY_CHECK.md`
 
 **Created**: May 21, 2026
-**Status**: Corrected assessment complete ✅
+**Updated**: June 3, 2026
+**Status**: Corrected assessment complete ✅ (with June 3 session updates)
