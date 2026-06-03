@@ -46,10 +46,14 @@
             }
 
             // Wait for page to fully load, then start
+            console.log('[OnboardingTour] Scheduling tour start...');
             if (document.readyState === 'complete') {
+                console.log('[OnboardingTour] Page already loaded, starting in 1.5s');
                 setTimeout(() => this.start(), 1500); // 1.5s delay for smooth UX
             } else {
+                console.log('[OnboardingTour] Waiting for page load...');
                 window.addEventListener('load', () => {
+                    console.log('[OnboardingTour] Page loaded, starting in 1.5s');
                     setTimeout(() => this.start(), 1500);
                 });
             }
@@ -60,7 +64,9 @@
          */
         isDashboardPage() {
             const path = window.location.pathname;
-            return path === '/dashboard' || path === '/';
+            const isDash = path === '/dashboard' || path === '/'
+            console.log('[OnboardingTour] Path check:', path, '→', isDash);
+            return isDash;
         }
 
         /**
@@ -68,11 +74,16 @@
          */
         async shouldRunTour() {
             const token = localStorage.getItem('access_token');
-            if (!token) return false;
+            if (!token) {
+                console.log('[OnboardingTour] No token found');
+                return false;
+            }
 
             // Check localStorage cache first (fast path)
             const cachedCompletion = localStorage.getItem('onboarding_tour_completed');
+            console.log('[OnboardingTour] Cache check:', cachedCompletion);
             if (cachedCompletion === 'true') {
+                console.log('[OnboardingTour] Tour already completed (cached)');
                 return false;
             }
 
@@ -91,10 +102,12 @@
 
                 const data = await response.json();
                 const completed = data.completed || false;
+                console.log('[OnboardingTour] Backend status:', data);
 
                 // Cache result
                 if (completed) {
                     localStorage.setItem('onboarding_tour_completed', 'true');
+                    console.log('[OnboardingTour] Tour already completed (backend)');
                 }
 
                 return !completed;
