@@ -169,7 +169,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
-            "redirect": "/welcome",
+            "redirect": "/dashboard",
             "user": {
                 "id": str(user.id),
                 "email": user.email,
@@ -284,7 +284,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "redirect": "/welcome",
+            "redirect": "/dashboard",
             "user": {
                 "id": str(user.id),
                 "email": user.email,

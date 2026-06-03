@@ -41,8 +41,10 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 })();
 </script>
 <script src="/static/js/i18n.js?v=20260308j"></script>
-<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+<!-- Driver.js for Onboarding Tour -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+<link rel="stylesheet" href="/static/css/onboarding-tour.css">
 <link rel="stylesheet" href="/static/css/dark-mode-universal.css">
 <link rel="stylesheet" href="/static/css/notification_center_modal.css">
 <link rel="stylesheet" href="/static/css/notification-improvements.css">
@@ -307,6 +309,8 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <!-- Temporarily disabled: causing errors
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->
+<!-- Onboarding Tour -->
+<script src="/static/js/onboarding-tour.js"></script>
 <script nonce="{{ request.state.csp_nonce }}">
     // Load tier badge in header
     (async function loadHeaderTierBadge() {
@@ -382,22 +386,6 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         } catch(e) { /* silent */ }
     };
 
-    // Global Walkthrough Enforcement Dragnet
-    (async function enforceWalkthrough() {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-        // Don't intercept if they are already on welcome page (handled by template extending base.html directly, but just in case)
-        if (window.location.pathname.includes('/welcome')) return;
-
-        try {
-            const res = await fetch('/api/user/me', { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.onboarding_completed === false) {
-                    window.location.href = '/welcome';
-                }
-            }
-        } catch(e) { /* silent */ }
-    })();
+    // Removed: Welcome page enforcement - Now handled by onboarding-tour.js
 </script>
 {% endblock %}

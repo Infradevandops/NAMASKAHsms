@@ -1,0 +1,161 @@
+/**
+ * Onboarding Tour - Custom Styling
+ * Enhances driver.js default styles to match VRENUM brand
+ */
+
+/* Popover container */
+.driver-popover {
+    background: linear-gradient(135deg, rgba(11, 15, 25, 0.98), rgba(20, 25, 40, 0.98)) !important;
+    border: 1px solid rgba(254, 60, 114, 0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(254, 60, 114, 0.2) !important;
+    color: #ffffff !important;
+    max-width: 400px !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+/* Title */
+.driver-popover-title {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    margin-bottom: 12px !important;
+}
+
+/* Description */
+.driver-popover-description {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+}
+
+/* Buttons */
+.driver-popover-btn {
+    background: rgba(254, 60, 114, 0.1) !important;
+    border: 1px solid rgba(254, 60, 114, 0.3) !important;
+    color: #FE3C72 !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.driver-popover-btn:hover {
+    background: rgba(254, 60, 114, 0.2) !important;
+    border-color: #FE3C72 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Next button (primary) */
+.driver-popover-next-btn {
+    background: #FE3C72 !important;
+    border-color: #FE3C72 !important;
+    color: #ffffff !important;
+}
+
+.driver-popover-next-btn:hover {
+    background: #ff5784 !important;
+    box-shadow: 0 0 20px rgba(254, 60, 114, 0.4) !important;
+}
+
+/* Previous button */
+.driver-popover-prev-btn {
+    background: rgba(254, 60, 114, 0.1) !important;
+    border-color: rgba(254, 60, 114, 0.3) !important;
+    color: #FE3C72 !important;
+}
+
+/* Close button */
+.driver-popover-close-btn {
+    color: rgba(255, 255, 255, 0.5) !important;
+    transition: color 0.2s ease !important;
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.driver-popover-close-btn:hover {
+    color: #FE3C72 !important;
+    border-color: rgba(254, 60, 114, 0.3) !important;
+}
+
+/* Progress text */
+.driver-popover-progress-text {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 12px !important;
+}
+
+/* Arrow styling */
+.driver-popover-arrow {
+    border-color: rgba(11, 15, 25, 0.98) !important;
+}
+
+.driver-popover-arrow-side-top {
+    border-top-color: rgba(11, 15, 25, 0.98) !important;
+}
+
+.driver-popover-arrow-side-bottom {
+    border-bottom-color: rgba(11, 15, 25, 0.98) !important;
+}
+
+.driver-popover-arrow-side-left {
+    border-left-color: rgba(11, 15, 25, 0.98) !important;
+}
+
+.driver-popover-arrow-side-right {
+    border-right-color: rgba(11, 15, 25, 0.98) !important;
+}
+
+/* Highlighted element */
+.driver-active-element {
+    z-index: 10000 !important;
+}
+
+/* Overlay */
+.driver-overlay {
+    background: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .driver-popover {
+        max-width: 90vw !important;
+        margin: 10px !important;
+    }
+
+    .driver-popover-title {
+        font-size: 16px !important;
+    }
+
+    .driver-popover-description {
+        font-size: 13px !important;
+    }
+
+    .driver-popover-btn {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+    }
+}
+
+/* Animation */
+@keyframes driverFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.driver-popover {
+    animation: driverFadeIn 0.3s ease-out !important;
+}
+
+/* Footer (button container) */
+.driver-popover-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
