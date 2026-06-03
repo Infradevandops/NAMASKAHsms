@@ -13,25 +13,19 @@ class TestAnalyticsEndpoints:
     """Test analytics API endpoints."""
 
     @pytest.fixture
-    def client(self):
-        """Create test client."""
-        return TestClient(app)
-
-    @pytest.fixture
     def auth_headers_factory(self):
         """Mock auth headers."""
         return {"Authorization": "Bearer test_token"}
 
     @pytest.fixture
-    def mock_user_id(self):
+    def mock_user_id(self, regular_user):
         """Mock user ID dependency."""
 
-    def override():
-
-        return "test_user_123"
+        def override():
+            return regular_user.id
 
         app.dependency_overrides[get_current_user_id] = override
-        yield "test_user_123"
+        yield regular_user.id
         app.dependency_overrides.clear()
 
     def test_analytics_page_requires_auth(self, client):
@@ -87,13 +81,9 @@ class TestAnalyticsPageContent:
     """Test analytics page HTML content."""
 
     @pytest.fixture
-    def client(self):
-        return TestClient(app)
-
-    @pytest.fixture
-    def mock_user_id(self):
+    def mock_user_id(self, regular_user):
         def override():
-            return "test_user_123"
+            return regular_user.id
 
         app.dependency_overrides[get_current_user_id] = override
         yield
@@ -127,11 +117,6 @@ class TestAnalyticsPageContent:
 
 class TestAnalyticsErrorHandling:
     """Test analytics error handling."""
-
-    @pytest.fixture
-    def client(self):
-
-        return TestClient(app)
 
     def test_invalid_date_format(self, client):
         """Should handle invalid date format gracefully."""

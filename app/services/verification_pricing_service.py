@@ -12,7 +12,7 @@ class VerificationPricingService:
 
     @staticmethod
     def validate_and_calculate_cost(
-        db: Session, user_id: str, filters: dict = None
+        db: Session, user_id: str, filters: dict = None, provider_price: float = None
     ) -> dict:
         """Validate user can purchase and calculate cost."""
         if not filters:
@@ -22,7 +22,9 @@ class VerificationPricingService:
         if not user:
             raise ValueError("User not found")
 
-        cost_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
+        cost_info = PricingCalculator.calculate_sms_cost(
+            db, user_id, filters, provider_price=provider_price
+        )
 
         if not PricingCalculator.validate_balance(db, user_id, cost_info["total_cost"]):
             raise ValueError(
@@ -97,6 +99,10 @@ class VerificationPricingService:
         db.commit()
 
     @staticmethod
-    def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
+    def get_pricing_breakdown(
+        db: Session, user_id: str, filters: dict = None, provider_price: float = None
+    ) -> dict:
         """Get pricing breakdown for user."""
-        return PricingCalculator.get_pricing_breakdown(db, user_id, filters)
+        return PricingCalculator.get_pricing_breakdown(
+            db, user_id, filters, provider_price=provider_price
+        )

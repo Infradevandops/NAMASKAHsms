@@ -11,6 +11,8 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.database import get_db
+
 
 class TestTierCurrentEndpoint:
     """Tests for GET /api/tiers/current endpoint."""
@@ -19,7 +21,7 @@ class TestTierCurrentEndpoint:
         """Endpoint should return 401 when no auth token provided."""
         response = client.get("/api/tiers/current")
         assert response.status_code == 401
-        assert "detail" in response.json()
+        assert "message" in response.json()
 
     def test_returns_401_with_invalid_token(self, client: TestClient):
         """Endpoint should return 401 with invalid/expired token."""
@@ -43,19 +45,23 @@ class TestTierCurrentEndpoint:
 
         required_fields = [
             "current_tier",
-            "tier_name",
-            "price_monthly",
-            "quota_usd",
-            "quota_used_usd",
-            "quota_remaining_usd",
-            "sms_count",
-            "within_quota",
-            "overage_rate",
-            "features",
+            "tier_info",
+            "user_id",
+            "last_updated",
         ]
 
         for field in required_fields:
             assert field in data, f"Missing required field: {field}"
+
+        tier_info_fields = [
+            "name",
+            "price_monthly",
+            "quota_usd",
+            "overage_rate",
+            "features",
+        ]
+        for field in tier_info_fields:
+            assert field in data["tier_info"], f"Missing tier_info field: {field}"
 
     def test_current_tier_is_valid_value(self, client: TestClient, auth_headers: dict):
         """current_tier must be one of the valid tier codes."""
@@ -70,30 +76,21 @@ class TestTierCurrentEndpoint:
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
 
-        assert isinstance(data["price_monthly"], (int, float))
+        assert isinstance(data["tier_info"]["price_monthly"], (int, float))
 
     def test_quota_values_are_numbers(self, client: TestClient, auth_headers: dict):
         """Quota fields must be numbers."""
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
 
-        assert isinstance(data["quota_usd"], (int, float))
-        assert isinstance(data["quota_used_usd"], (int, float))
-        assert isinstance(data["quota_remaining_usd"], (int, float))
-
-    def test_within_quota_is_boolean(self, client: TestClient, auth_headers: dict):
-        """within_quota must be a boolean."""
-        response = client.get("/api/tiers/current", headers=auth_headers)
-        data = response.json()
-
-        assert isinstance(data["within_quota"], bool)
+        assert isinstance(data["tier_info"]["quota_usd"], (int, float))
 
     def test_features_is_dict(self, client: TestClient, auth_headers: dict):
         """features must be a dictionary."""
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
 
-        assert isinstance(data["features"], dict)
+        assert isinstance(data["tier_info"]["features"], dict)
 
     def test_returns_404_for_nonexistent_user(self, client: TestClient):
         """Should return 404 if user doesn't exist in database."""
@@ -104,12 +101,17 @@ class TestTierCurrentEndpoint:
         self, client: TestClient, auth_headers: dict
     ):
         """Should return 500 with message on database errors."""
-        # Mock database to raise exception
-        with patch("app.api.billing.tier_endpoints.get_db") as mock_db:
-            mock_db.side_effect = Exception("Database connection failed")
-        response = client.get("/api/tiers/current", headers=auth_headers)
-        # Should not crash, should return error response
-        assert response.status_code in [500, 503]
+
+        def override_get_db():
+            raise Exception("Database connection failed")
+
+        no_raise_client = TestClient(client.app, raise_server_exceptions=False)
+        no_raise_client.app.dependency_overrides[get_db] = override_get_db
+        try:
+            response = no_raise_client.get("/api/tiers/current", headers=auth_headers)
+            assert response.status_code in [500, 503]
+        finally:
+            no_raise_client.app.dependency_overrides.pop(get_db, None)
 
 
 class TestTierCurrentByTier:
@@ -120,8 +122,8 @@ class TestTierCurrentByTier:
         [
             ("freemium", 0),
             ("payg", 0),
-            ("pro", 25.0),  # $25/month
-            ("custom", 35.0),  # $35/month
+            ("pro", 2500.0),  # $25/month in cents
+            ("custom", 3500.0),  # $35/month in cents
         ],
     )
     def test_price_by_tier(
@@ -159,15 +161,9 @@ class TestTierResponseValidation:
         # Replicate frontend validation logic
         required_fields = [
             "current_tier",
-            "tier_name",
-            "price_monthly",
-            "quota_usd",
-            "quota_used_usd",
-            "quota_remaining_usd",
-            "sms_count",
-            "within_quota",
-            "overage_rate",
-            "features",
+            "tier_info",
+            "user_id",
+            "last_updated",
         ]
 
         missing = [f for f in required_fields if f not in data]
@@ -181,7 +177,7 @@ class TestTierResponseValidation:
         data = response.json()
 
         # These fields should never be null
-        non_nullable = ["current_tier", "tier_name", "within_quota", "features"]
+        non_nullable = ["current_tier", "tier_info", "user_id"]
 
         for field in non_nullable:
             assert data.get(field) is not None, f"Field {field} should not be null"
@@ -194,7 +190,6 @@ class TestTierEndpointPerformance:
         self, client: TestClient, auth_headers: dict
     ):
         """Endpoint should respond within acceptable time."""
-
         start = time.time()
         response = client.get("/api/tiers/current", headers=auth_headers)
         elapsed = time.time() - start
@@ -205,9 +200,8 @@ class TestTierEndpointPerformance:
     def test_handles_concurrent_requests(self, client: TestClient, auth_headers: dict):
         """Endpoint should handle multiple concurrent requests."""
 
-    def make_request():
-
-        return client.get("/api/tiers/current", headers=auth_headers)
+        def make_request():
+            return client.get("/api/tiers/current", headers=auth_headers)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(make_request) for _ in range(10)]

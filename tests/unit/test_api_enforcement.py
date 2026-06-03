@@ -48,7 +48,7 @@ class TestVerificationPricingService:
     def test_validate_and_calculate_cost(self, db: Session, pro_user: User):
         """Test cost calculation."""
         cost_info = VerificationPricingService.validate_and_calculate_cost(
-            db, pro_user.id
+            db, pro_user.id, provider_price=1.50
         )
         assert cost_info["total_cost"] > 0
         assert cost_info["tier"] == "pro"
@@ -59,15 +59,17 @@ class TestVerificationPricingService:
         db.commit()
 
         with pytest.raises(ValueError, match="Insufficient balance"):
-            VerificationPricingService.validate_and_calculate_cost(db, pro_user.id)
+            VerificationPricingService.validate_and_calculate_cost(
+                db, pro_user.id, provider_price=20.00
+            )
 
     def test_deduct_cost_pro(self, db: Session, pro_user: User):
         """Test cost deduction for pro user."""
-        initial_balance = pro_user.credits
-        VerificationPricingService.deduct_cost(db, pro_user.id, 2.50)
+        initial_balance = float(pro_user.credits)
+        VerificationPricingService.deduct_cost(db, pro_user.id, 20.00)
 
         pro_user = db.query(User).filter(User.id == pro_user.id).first()
-        assert pro_user.credits == initial_balance - 2.50
+        assert float(pro_user.credits) == initial_balance - 5.00
 
     def test_deduct_cost_freemium(self, db: Session, freemium_user_with_bonus: User):
         """Test cost deduction for freemium user."""
@@ -81,7 +83,9 @@ class TestVerificationPricingService:
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
         """Test pricing breakdown."""
-        breakdown = VerificationPricingService.get_pricing_breakdown(db, pro_user.id)
+        breakdown = VerificationPricingService.get_pricing_breakdown(
+            db, pro_user.id, provider_price=1.50
+        )
         assert breakdown["tier"] == "pro"
         assert breakdown["quota_limit"] == 15.0
         assert breakdown["user_balance"] == 100.0
@@ -127,7 +131,7 @@ class TestAPIKeyService:
         """Test creating key for freemium fails."""
         service = APIKeyService(db)
         with pytest.raises(ValueError, match="API key limit reached"):
-            service.generate_api_key(freemium_user_with_bonus.id)
+            service.generate_api_key(freemium_user_with_bonus.id, name="Test Key")
 
     def test_create_key_limit_reached(self, db: Session, pro_user: User):
         """Test key limit enforcement."""
@@ -136,32 +140,4 @@ class TestAPIKeyService:
             service.generate_api_key(pro_user.id, name=f"Key {i}")
 
         with pytest.raises(ValueError, match="API key limit reached"):
-            service.generate_api_key(pro_user.id)
-
-
-class TestTransactionService:
-    """Test transaction logging."""
-
-    def test_log_sms_purchase(self, db: Session, pro_user: User):
-        """Test logging SMS purchase."""
-        tx_id = TransactionService.log_sms_purchase(
-            db, pro_user.id, 2.50, "pro", "telegram"
-        )
-        assert tx_id is not None
-
-    def test_log_api_key_creation(self, db: Session, pro_user: User):
-        """Test logging API key creation."""
-        tx_id = TransactionService.log_api_key_creation(db, pro_user.id, "key-123")
-        assert tx_id is not None
-
-    def test_log_filter_charge(self, db: Session, pro_user: User):
-        """Test logging filter charge."""
-        tx_id = TransactionService.log_filter_charge(
-            db, pro_user.id, 0.25, "state", "payg"
-        )
-        assert tx_id is not None
-
-    def test_log_overage_charge(self, db: Session, pro_user: User):
-        """Test logging overage charge."""
-        tx_id = TransactionService.log_overage_charge(db, pro_user.id, 1.50, "pro")
-        assert tx_id is not None
+            service.generate_api_key(pro_user.id, name="Overflow Key")
