@@ -828,6 +828,6 @@ Certain features in the repository, especially in main.py, appear commented out�
 
 • Protect the application from exploitative attacks or overuse.
 
-• Usefulness:
+• Usefulness:  
 
 • Critical for application security.
