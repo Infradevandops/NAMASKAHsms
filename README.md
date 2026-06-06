@@ -754,3 +754,80 @@ MIT License - See [LICENSE](./LICENSE) file
 **Built with ❤️ by the Vrenum Team**
 
 **Ready to verify? [Get Started →](https://vrenum.app)**
+
+
+
+
+
+#Commented-Out Features
+
+Certain features in the repository, especially in main.py, appear commented out—disabling their functionalities until further development. Here’s what they are and their usefulness:
+
+1. Pricing Router and Features:
+
+• File Reference: app/api/verification/pricing_endpoints.py
+
+• How It’s Supposed to Work:
+
+• Integrates pricing logic to calculate SMS costs based on factors like region, SMS type, and delivery success rate.
+
+• Provides endpoints to check pricing in real-time.
+
+• Usefulness:
+
+• Essential for transparent billing.
+
+• Allows users to preview pricing details before sending messages or purchasing credit.
+
+• Comment Reason: Likely disabled due to incomplete or error-prone implementation.
+
+
+2. Whitelabel Router Integration:
+
+• Mentioned as Removed: “OLD whitelabel router removed” (comment in main.py).
+
+• How It’s Supposed to Work:
+
+• Allows businesses to brand the SMS services as their own (custom logo, themes, etc.).
+
+• Usefulness:
+
+• Critical for enterprise clients.
+
+• Adds value by enabling branded messaging.
+
+• Comment Reason: Feature might have required reengineering or was deprioritized.
+
+
+3. Disabled Analytics Features:
+
+• General Comment Reference: Analytics functionality seems partially implemented or disabled.
+
+• How It’s Supposed to Work:
+
+• Aggregates and visualizes user insights (e.g., usage, logs).
+
+• Tracks message success rates, quotas, and API hits.
+
+• Usefulness:
+
+• Improves client decision-making for optimizing campaigns.
+
+• Comment Reason: Possibly incomplete or awaiting integration with third-party tools.
+
+
+4. Deprecated Tasks and Middleware:
+
+• Disabled Middleware References:
+
+• Cross-Site Request Forgery (CSRF) or unified rate-limiting middleware.
+
+• Example comments imply no-recent maintenance.
+
+• How They’re Supposed to Work:
+
+• Protect the application from exploitative attacks or overuse.
+
+• Usefulness:
+
+• Critical for application security.
