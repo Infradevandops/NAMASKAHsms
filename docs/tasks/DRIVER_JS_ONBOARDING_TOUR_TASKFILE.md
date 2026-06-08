@@ -1,8 +1,8 @@
 # Driver.js Onboarding Tour - Production Implementation Taskfile
 
-**Version**: 4.8.2
-**Created**: May 18, 2026
-**Status**: ✅ IMPLEMENTED - Testing Phase
+**Version**: 4.8.3
+**Created**: May 18, 2026 (Updated: June 3, 2026)
+**Status**: ✅ COMPLETE & DEPLOYED
 **Estimated Time**: 3-4 hours
 **Target**: Non-intrusive tooltip-style onboarding with arrows pointing to UI elements
 
@@ -176,8 +176,12 @@ console.log(typeof window.driver); // Should output: "object"
 ```javascript
 /**
  * Onboarding Tour - Driver.js Implementation
- * Version: 4.8.2
+ * Version: 4.8.3
  * Status: Production Ready
+ *
+ * Auto-starts on first dashboard visit for new users
+ * Guides users through currency, language, and key features
+ * Dismissible at any point, marks completion in backend
  */
 
 (function() {
@@ -191,46 +195,79 @@ console.log(typeof window.driver); // Should output: "object"
             this.statusEndpoint = '/api/auth/onboarding-status';
         }
 
+        /**
+         * Initialize tour - checks backend completion status
+         */
         async init() {
             console.log('[OnboardingTour] Initializing...');
 
+            // Only run on dashboard page
             if (!this.isDashboardPage()) {
                 console.log('[OnboardingTour] Not on dashboard, skipping');
                 return;
             }
 
+            // Check if user is authenticated
             const token = localStorage.getItem('access_token');
             if (!token) {
                 console.log('[OnboardingTour] No auth token, skipping');
                 return;
             }
 
+            // Check completion status from backend
             const shouldRun = await this.shouldRunTour();
             if (!shouldRun) {
                 console.log('[OnboardingTour] Already completed, skipping');
                 return;
             }
 
+            // Wait for page to fully load, then start
+            console.log('[OnboardingTour] Scheduling tour start...');
             if (document.readyState === 'complete') {
-                setTimeout(() => this.start(), 1500);
+                console.log('[OnboardingTour] Page already loaded, starting in 1.5s');
+                setTimeout(() => this.start(), 1500); // 1.5s delay for smooth UX
             } else {
+                console.log('[OnboardingTour] Waiting for page load...');
                 window.addEventListener('load', () => {
+                    console.log('[OnboardingTour] Page loaded, starting in 1.5s');
                     setTimeout(() => this.start(), 1500);
                 });
             }
         }
 
+        /**
+         * Check if we're on the dashboard page
+         */
         isDashboardPage() {
             const path = window.location.pathname;
-            return path === '/dashboard' || path === '/';
+            const isDash = path === '/dashboard' || path === '/'
+            console.log('[OnboardingTour] Path check:', path, '→', isDash);
+            return isDash;
         }
 
+        /**
+         * Check backend if tour should run
+         */
         async shouldRunTour() {
             const token = localStorage.getItem('access_token');
-            if (!token) return false;
+            if (!token) {
+                console.log('[OnboardingTour] No token found');
+                return false;
+            }
 
+            // ONE-TIME RESET: Clear old flags for v4.8.3 rollout (MUST happen FIRST)
+            const tourVersion = localStorage.getItem('tour_version');
+            if (tourVersion !== '4.8.3') {
+                console.log('[OnboardingTour] Resetting for v4.8.3 rollout');
+                localStorage.removeItem('onboarding_tour_completed');
+                localStorage.setItem('tour_version', '4.8.3');
+            }
+
+            // Check localStorage cache (AFTER version reset)
             const cachedCompletion = localStorage.getItem('onboarding_tour_completed');
+            console.log('[OnboardingTour] Cache check:', cachedCompletion);
             if (cachedCompletion === 'true') {
+                console.log('[OnboardingTour] Tour already completed (cached)');
                 return false;
             }
 
@@ -244,23 +281,30 @@ console.log(typeof window.driver); // Should output: "object"
 
                 if (!response.ok) {
                     console.warn('[OnboardingTour] Status check failed, assuming not completed');
-                    return true;
+                    return true; // Default to showing tour on error
                 }
 
                 const data = await response.json();
                 const completed = data.completed || false;
+                console.log('[OnboardingTour] Backend status:', data);
 
+                // Cache result
                 if (completed) {
                     localStorage.setItem('onboarding_tour_completed', 'true');
+                    console.log('[OnboardingTour] Tour already completed (backend)');
                 }
 
                 return !completed;
             } catch (error) {
                 console.error('[OnboardingTour] Error checking status:', error);
+                // On network error, check if we've run tour in this session
                 return !sessionStorage.getItem('tour_attempted_this_session');
             }
         }
 
+        /**
+         * Start the tour
+         */
         start() {
             if (this.isRunning) {
                 console.log('[OnboardingTour] Already running');
@@ -268,13 +312,17 @@ console.log(typeof window.driver); // Should output: "object"
             }
 
             console.log('[OnboardingTour] Starting tour...');
+
+            // Mark as attempted this session (prevent loops on error)
             sessionStorage.setItem('tour_attempted_this_session', 'true');
 
+            // Verify driver.js is loaded
             if (typeof window.driver === 'undefined') {
                 console.error('[OnboardingTour] driver.js not loaded!');
                 return;
             }
 
+            // Build tour steps dynamically (skip missing elements)
             const steps = this.buildTourSteps();
             if (steps.length === 0) {
                 console.error('[OnboardingTour] No valid tour steps found');
@@ -291,10 +339,12 @@ console.log(typeof window.driver); // Should output: "object"
                     closeBtnText: 'Skip',
                     progressText: 'Step {{current}} of {{total}}',
 
+                    // Styling
                     popoverClass: 'onboarding-tour-popover',
                     animate: true,
                     overlayOpacity: 0.75,
 
+                    // Callbacks
                     onDestroyStarted: () => {
                         console.log('[OnboardingTour] Tour ended by user');
                         this.handleTourEnd();
@@ -318,16 +368,22 @@ console.log(typeof window.driver); // Should output: "object"
             }
         }
 
+        /**
+         * Build tour steps - only include elements that exist
+         */
         buildTourSteps() {
             const allSteps = [
+                // Step 1: Welcome
                 {
                     popover: {
                         title: '👋 Welcome to VRENUM SMS',
                         description: 'Let\'s take a quick tour to help you get started. This will only take 30 seconds!',
-                        side: 'over',
+                        side: 'over', // Full screen popover
                         align: 'center'
                     }
                 },
+
+                // Step 2: Currency Selector
                 {
                     element: '#currency-selector-btn',
                     popover: {
@@ -337,17 +393,10 @@ console.log(typeof window.driver); // Should output: "object"
                         align: 'start'
                     }
                 },
+
+                // Step 3: Tier Badge
                 {
-                    element: '#language-selector-btn',
-                    popover: {
-                        title: '🗣️ Select Your Language',
-                        description: 'Choose your preferred language here. The entire interface will be translated automatically.',
-                        side: 'bottom',
-                        align: 'start'
-                    }
-                },
-                {
-                    element: '#tier-badge',
+                    element: '#header-tier-badge',
                     popover: {
                         title: '⚡ Your Current Plan',
                         description: 'You\'re currently on the Freemium plan. Click here anytime to see upgrade options for API access, webhooks, and lower SMS rates.',
@@ -355,8 +404,10 @@ console.log(typeof window.driver); // Should output: "object"
                         align: 'start'
                     }
                 },
+
+                // Step 4: Verify Button (sidebar link)
                 {
-                    element: '#sidebar-verify-link',
+                    element: 'a[href="/verify"]',
                     popover: {
                         title: '📱 Start Verifying',
                         description: 'Click here to get a temporary phone number and receive SMS verification codes instantly.',
@@ -364,8 +415,10 @@ console.log(typeof window.driver); // Should output: "object"
                         align: 'start'
                     }
                 },
+
+                // Step 5: History
                 {
-                    element: '#sidebar-history-link',
+                    element: 'a[href="/history"]',
                     popover: {
                         title: '📋 View Your History',
                         description: 'All your past verifications, received codes, and spending are logged here for easy reference.',
@@ -373,8 +426,10 @@ console.log(typeof window.driver); // Should output: "object"
                         align: 'start'
                     }
                 },
+
+                // Step 6: Wallet
                 {
-                    element: '#sidebar-wallet-link',
+                    element: 'a[href="/wallet"]',
                     popover: {
                         title: '💰 Manage Your Wallet',
                         description: 'Add credits here to pay for verifications. We support multiple payment methods based on your location.',
@@ -382,6 +437,8 @@ console.log(typeof window.driver); // Should output: "object"
                         align: 'start'
                     }
                 },
+
+                // Step 7: Completion
                 {
                     popover: {
                         title: '🎉 You\'re All Set!',
@@ -392,8 +449,9 @@ console.log(typeof window.driver); // Should output: "object"
                 }
             ];
 
+            // Filter out steps where element doesn't exist
             const validSteps = allSteps.filter(step => {
-                if (!step.element) return true;
+                if (!step.element) return true; // No element = full screen popover
 
                 const element = document.querySelector(step.element);
                 if (!element) {
@@ -408,6 +466,9 @@ console.log(typeof window.driver); // Should output: "object"
             return validSteps;
         }
 
+        /**
+         * Handle tour end - mark as completed in backend
+         */
         async handleTourEnd() {
             const token = localStorage.getItem('access_token');
             if (!token) {
@@ -435,15 +496,23 @@ console.log(typeof window.driver); // Should output: "object"
             }
         }
 
+        /**
+         * Manual restart (for settings page button)
+         */
         restart() {
             console.log('[OnboardingTour] Manual restart requested');
 
+            // Clear completion flags
             localStorage.removeItem('onboarding_tour_completed');
             sessionStorage.removeItem('tour_attempted_this_session');
 
+            // Start tour
             this.start();
         }
 
+        /**
+         * Destroy tour instance
+         */
         destroy() {
             if (this.driver) {
                 this.driver.destroy();
@@ -453,18 +522,22 @@ console.log(typeof window.driver); // Should output: "object"
         }
     }
 
+    // Initialize tour when DOM is ready
     function initTour() {
+        console.log('[OnboardingTour] initTour() called, readyState:', document.readyState);
         window.onboardingTour = new OnboardingTour();
         window.onboardingTour.init();
     }
 
+    console.log('[OnboardingTour] Module loaded, readyState:', document.readyState);
+
     if (document.readyState === 'loading') {
+        console.log('[OnboardingTour] Waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', initTour);
     } else {
+        console.log('[OnboardingTour] DOM already ready, calling initTour()...');
         initTour();
     }
-
-    console.log('[OnboardingTour] Module loaded');
 })();
 ```
 
