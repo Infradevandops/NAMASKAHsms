@@ -1,55 +1,55 @@
-# Multi-stage build for optimized production container
+# VRENUM SMS - Production Dockerfile
+# Multi-stage build for optimized image
 
-# Build stage
+# =============================================================================
+# Stage 1: Builder
+# =============================================================================
 FROM python:3.11-slim as builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Production stage
-FROM python:3.11-slim as production
+# =============================================================================
+# Stage 2: Production
+# =============================================================================
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser -d /home/appuser -m appuser
-
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y \
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder stage
-COPY --from=builder /root/.local /home/appuser/.local
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY . .
 
-# Set PATH to include user packages
-ENV PATH=/home/appuser/.local/bin:$PATH
+# Create directories
+RUN mkdir -p /app/logs /app/uploads /app/data
 
-# Switch to non-root user
-USER appuser
+# Environment
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
-
-# Resource limits
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 EXPOSE 8000
 
-# Run migrations then start app
-CMD ["/bin/bash", "-c", "python -c 'from app.core.database import Base, engine; from app.models import user, verification, transaction, subscription_tier; Base.metadata.create_all(bind=engine)' && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WORKERS:-2}"]
+# Start script
+CMD ["sh", "-c", "alembic upgrade head && gunicorn main:app -w ${WORKERS:-2} -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --timeout 120 --access-logfile - --error-logfile -"]

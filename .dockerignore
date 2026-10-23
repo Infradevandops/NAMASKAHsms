@@ -1,0 +1,63 @@
+# VRENUM SMS - Docker Ignore
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+.hypothesis
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Local data
+data/
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*
+!.env.production.example
+
+# Backups
+backups/
+
+# Certificates (mounted at runtime)
+certs/
+
+# Uploads (mounted at runtime)
+uploads/
+
+# Node (if any frontend build)
+node_modules/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.bak
