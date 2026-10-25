@@ -120,12 +120,24 @@ class TierManager:
         if new_tier not in valid_tiers:
             return False
 
+        old_tier = user.subscription_tier or "freemium"
         user.subscription_tier = new_tier
         if expires_at:
             user.tier_expires_at = expires_at
 
         self.db.commit()
         logger.info(f"User {user_id} upgraded to {new_tier} tier")
+
+        try:
+            from app.services.event_tracking_service import EventTrackingService
+            EventTrackingService(self.db).track_tier_change(
+                user_id=user_id,
+                from_tier=old_tier,
+                to_tier=new_tier,
+            )
+        except Exception as _e:
+            logger.warning(f"Tier change tracking failed (non-critical): {_e}")
+
         return True
 
     def downgrade_user_tier(self, user_id: str, reason: str = "manual") -> bool:
@@ -134,11 +146,23 @@ class TierManager:
         if not user:
             return False
 
+        old_tier = user.subscription_tier or "freemium"
         user.subscription_tier = "freemium"
         user.tier_expires_at = None
 
         self.db.commit()
         logger.info(f"User {user_id} downgraded to freemium tier - reason: {reason}")
+
+        try:
+            from app.services.event_tracking_service import EventTrackingService
+            EventTrackingService(self.db).track_tier_change(
+                user_id=user_id,
+                from_tier=old_tier,
+                to_tier="freemium",
+            )
+        except Exception as _e:
+            logger.warning(f"Tier change tracking failed (non-critical): {_e}")
+
         return True
 
     def get_all_tiers(self) -> List[Dict]:

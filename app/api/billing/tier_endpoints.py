@@ -102,6 +102,17 @@ async def upgrade_tier(
             user.subscription_tier = target_tier
             db.commit()
 
+            # Track tier change event
+            try:
+                from app.services.event_tracking_service import EventTrackingService
+                EventTrackingService(db).track_tier_change(
+                    user_id=user_id,
+                    from_tier=current_tier,
+                    to_tier=target_tier,
+                )
+            except Exception as _e:
+                logger.warning(f"Tier change tracking failed (non-critical): {_e}")
+
             # Send tier upgrade email (non-blocking)
             try:
                 import asyncio

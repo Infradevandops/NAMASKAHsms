@@ -156,7 +156,7 @@ class TestUpgradeUserTier:
         result = tier_manager.upgrade_user_tier("user123", "pro")
         assert result is True
         assert mock_user.subscription_tier == "pro"
-        mock_db.commit.assert_called_once()
+        mock_db.commit.assert_called()
 
     def test_upgrades_with_expiry(self, tier_manager, mock_db, mock_user):
         mock_db.query().filter().first.return_value = mock_user
@@ -184,7 +184,7 @@ class TestDowngradeUserTier:
         assert result is True
         assert mock_user.subscription_tier == "freemium"
         assert mock_user.tier_expires_at is None
-        mock_db.commit.assert_called_once()
+        mock_db.commit.assert_called()
 
     def test_returns_false_for_nonexistent_user(self, tier_manager, mock_db):
         mock_db.query().filter().first.return_value = None
