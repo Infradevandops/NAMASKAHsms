@@ -32,7 +32,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy Python packages from builder
 COPY --from=builder /root/.local /root/.local
+
+# CRITICAL: Set PATH before any commands that need installed packages
 ENV PATH=/root/.local/bin:$PATH
+
+# Verify gunicorn is accessible
+RUN which gunicorn && gunicorn --version
 
 # Copy application code
 COPY . .

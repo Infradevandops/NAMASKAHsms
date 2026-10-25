@@ -308,6 +308,7 @@ class EmailService:
     # ── HTML templates ────────────────────────────────────────────────────────
 
     def _receipt_html(self, d: Dict[str, Any]) -> str:
+        greeting = self._greeting(d.get("user_name"))
         return f"""
         <html>
         <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
@@ -322,6 +323,7 @@ class EmailService:
               </tr>
               <tr>
                 <td style="padding:40px;">
+                  {greeting}
                   <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">✅ Payment Successful</h2>
                   <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Your account has been credited successfully.</p>
                   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;overflow:hidden;margin-bottom:24px;">
@@ -353,6 +355,7 @@ class EmailService:
                       </td>
                     </tr>
                   </table>
+                  {self._unsub_footer()}
                 </td>
               </tr>
               <tr>
@@ -367,6 +370,7 @@ class EmailService:
         """
 
     def _failed_html(self, d: Dict[str, Any]) -> str:
+        greeting = self._greeting(d.get("user_name"))
         return f"""
         <html>
         <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
@@ -380,6 +384,7 @@ class EmailService:
               </tr>
               <tr>
                 <td style="padding:40px;">
+                  {greeting}
                   <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">❌ Payment Failed</h2>
                   <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Your payment could not be processed.</p>
                   <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border-radius:12px;overflow:hidden;margin-bottom:24px;">
@@ -403,6 +408,7 @@ class EmailService:
                       </td>
                     </tr>
                   </table>
+                  {self._unsub_footer()}
                 </td>
               </tr>
               <tr>
@@ -417,6 +423,7 @@ class EmailService:
         """
 
     def _refund_html(self, d: Dict[str, Any]) -> str:
+        greeting = self._greeting(d.get("user_name"))
         return f"""
         <html>
         <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
@@ -457,6 +464,7 @@ class EmailService:
                       </td>
                     </tr>
                   </table>
+                  {self._unsub_footer()}
                 </td>
               </tr>
               <tr>

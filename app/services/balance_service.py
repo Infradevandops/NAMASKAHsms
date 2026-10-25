@@ -229,24 +229,42 @@ class BalanceService:
                 logger.error(f"Failed to send verification notifications: {e}")
 
             # Low balance alert email (non-blocking)
+            # Skips admin accounts — admins use TextVerified balance, not wallet credits.
+            # Respects per-user NotificationSettings (email_on_low_balance + threshold).
             try:
-                threshold = float(getattr(user, "low_balance_threshold", 1.0) or 1.0)
-                if new_balance <= threshold and getattr(
-                    user, "email_on_low_balance", True
-                ):
-                    from app.services.email_notification_service import (
-                        EmailNotificationService,
-                    )
+                if not user.is_admin:
+                    from app.models.user import NotificationSettings
 
-                    _notif = EmailNotificationService(db)
-                    asyncio.create_task(
-                        _notif.send_low_balance_alert_email(
-                            user_email=user.email,
-                            current_balance=new_balance,
-                            threshold=threshold,
-                            user_name=user.email.split("@")[0],
-                        )
+                    notif_settings = (
+                        db.query(NotificationSettings)
+                        .filter(NotificationSettings.user_id == user.id)
+                        .first()
                     )
+                    threshold = float(
+                        notif_settings.low_balance_threshold
+                        if notif_settings
+                        else 1.0
+                    )
+                    alert_enabled = (
+                        notif_settings.email_on_low_balance
+                        if notif_settings
+                        else True
+                    )
+                    if alert_enabled and new_balance <= threshold:
+                        from app.services.email_service import email_service
+
+                        display_name = (
+                            getattr(user, "display_name", None)
+                            or user.email.split("@")[0]
+                        )
+                        asyncio.create_task(
+                            email_service.send_low_balance_alert_email(
+                                user_email=user.email,
+                                current_balance=new_balance,
+                                threshold=threshold,
+                                user_name=display_name,
+                            )
+                        )
             except Exception as _e:
                 logger.warning(f"Low balance alert email failed (non-critical): {_e}")
             return True, None

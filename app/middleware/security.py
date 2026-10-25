@@ -39,7 +39,8 @@ class SecurityHeadersMiddleware:
             f"default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com "
             f"https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net "
-            f"https://cdn.tailwindcss.com https://cdnjs.cloudflare.com"
+            f"https://cdn.tailwindcss.com https://cdnjs.cloudflare.com "
+            f"https://www.sabilytics.com"
         )
 
         if is_testing:
@@ -52,7 +53,7 @@ class SecurityHeadersMiddleware:
             "https://unpkg.com; img-src 'self' data: https: "
             "https://cdn.simpleicons.org; connect-src 'self' "
             "https://api.paystack.co https://checkout.paystack.com "
-            "https://min-api.cryptocompare.com; "
+            "https://min-api.cryptocompare.com https://www.sabilytics.com; "
             "frame-src https://checkout.paystack.com; object-src 'none'; "
             "base-uri 'self';"
         )
@@ -69,7 +70,10 @@ class SecurityHeadersMiddleware:
                     "geolocation=(), microphone=(), camera=()"
                 )
                 headers["Cross-Origin-Opener-Policy"] = "same-origin"
-                if is_production:
+                forwarded_proto = dict(scope.get("headers", [])).get(
+                    b"x-forwarded-proto", b""
+                ).decode()
+                if is_production and forwarded_proto == "https":
                     headers["Strict-Transport-Security"] = (
                         "max-age=31536000; includeSubDomains"
                     )

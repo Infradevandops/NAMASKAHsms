@@ -232,7 +232,24 @@ def ensure_admin_user():
                 f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})"
             )
 
-            # ALWAYS update password on startup to ensure it matches env var
+            # Check if password is already correct
+            if existing_admin.password_hash:
+                try:
+                    if verify_password(admin_password, existing_admin.password_hash):
+                        logger.info("✅ Admin password already correct")
+                        # Still ensure admin flags are set
+                        if not existing_admin.is_admin or existing_admin.is_suspended or existing_admin.is_banned:
+                            existing_admin.is_admin = True
+                            existing_admin.is_suspended = False
+                            existing_admin.is_banned = False
+                            db.commit()
+                            logger.info("✅ Admin flags updated")
+                        return
+                except Exception as e:
+                    logger.debug(f"Password verification error: {e}")
+
+            # Password doesn't match or hash is missing - update it
+            logger.info("🔄 Updating admin password...")
             old_hash_preview = (
                 existing_admin.password_hash[:30]
                 if existing_admin.password_hash
@@ -257,10 +274,8 @@ def ensure_admin_user():
             logger.info(f"   Credits: {existing_admin.credits}")
             logger.info(f"   Old hash: {old_hash_preview}...")
             logger.info(f"   New hash: {new_hash_preview}...")
-            logger.info(f"   Password length: {len(admin_password)} chars")
 
             # Verify the password works
-
             if verify_password(admin_password, existing_admin.password_hash):
                 logger.info("✅ Password verification successful!")
             else:
@@ -295,7 +310,6 @@ def ensure_admin_user():
         logger.info(f"   Hash: {admin_user.password_hash[:30]}...")
 
         # Verify the password works
-
         if verify_password(admin_password, admin_user.password_hash):
             logger.info("✅ Password verification successful!")
         else:

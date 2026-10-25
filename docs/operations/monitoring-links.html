@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vrenum Monitoring Links</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e; 
+            color: #fff; 
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { 
+            color: #e91e63; 
+            margin-bottom: 30px; 
+            font-size: 28px;
+        }
+        .link-card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #0f3460;
+        }
+        .link-info h3 { 
+            font-size: 14px; 
+            color: #94a3b8; 
+            margin-bottom: 6px;
+        }
+        .link-info a { 
+            color: #60a5fa; 
+            text-decoration: none; 
+            font-size: 15px;
+            word-break: break-all;
+        }
+        .link-info a:hover { text-decoration: underline; }
+        .copy-btn {
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+        .copy-btn:hover { background: #c2185b; transform: scale(1.05); }
+        .copy-btn.copied { background: #10b981; }
+        .icon { margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Vrenum Monitoring Links</h1>
+        
+        <div class="link-card">
+            <div class="link-info">
+                <h3><span class="icon">📊</span>Dashboard</h3>
+                <a href="https://vrenum.app/health/dashboard" target="_blank">https://vrenum.app/health/dashboard</a>
+            </div>
+            <button class="copy-btn" onclick="copyLink(this, 'https://vrenum.app/health/dashboard')">Copy</button>
+        </div>
+
+        <div class="link-card">
+            <div class="link-info">
+                <h3><span class="icon">🔍</span>Health API</h3>
+                <a href="https://vrenum.app/api/monitoring/health/detailed" target="_blank">https://vrenum.app/api/monitoring/health/detailed</a>
+            </div>
+            <button class="copy-btn" onclick="copyLink(this, 'https://vrenum.app/api/monitoring/health/detailed')">Copy</button>
+        </div>
+
+        <div class="link-card">
+            <div class="link-info">
+                <h3><span class="icon">📈</span>Metrics</h3>
+                <a href="https://vrenum.app/api/monitoring/metrics" target="_blank">https://vrenum.app/api/monitoring/metrics</a>
+            </div>
+            <button class="copy-btn" onclick="copyLink(this, 'https://vrenum.app/api/monitoring/metrics')">Copy</button>
+        </div>
+
+        <div class="link-card">
+            <div class="link-info">
+                <h3><span class="icon">⚠️</span>Alerts</h3>
+                <a href="https://vrenum.app/api/monitoring/alerts" target="_blank">https://vrenum.app/api/monitoring/alerts</a>
+            </div>
+            <button class="copy-btn" onclick="copyLink(this, 'https://vrenum.app/api/monitoring/alerts')">Copy</button>
+        </div>
+
+        <div class="link-card">
+            <div class="link-info">
+                <h3><span class="icon">🔧</span>Services Status</h3>
+                <a href="https://vrenum.app/api/monitoring/services" target="_blank">https://vrenum.app/api/monitoring/services</a>
+            </div>
+            <button class="copy-btn" onclick="copyLink(this, 'https://vrenum.app/api/monitoring/services')">Copy</button>
+        </div>
+    </div>
+
+    <script>
+        function copyLink(btn, url) {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

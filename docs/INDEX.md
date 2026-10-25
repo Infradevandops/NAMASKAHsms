@@ -9,9 +9,10 @@
 ## 📚 Quick Navigation
 
 ### 🎯 Start Here
-- **[Platform Status](../PLATFORM_STATUS.md)** — Current version, metrics, readiness
-- **[Platform Assessment](./PLATFORM_ASSESSMENT.md)** — Technical scorecard
+- **[Ops Summary](./status/OPS_SUMMARY.md)** — Infrastructure health, email wiring, revenue tracking, Sentry guide
+- **[Platform Status](./status/PLATFORM_STATUS.md)** — Current version, metrics, readiness
 - **[Changelog](../CHANGELOG.md)** — Version history
+- **[Email Setup](./operations/EMAIL_SETUP.md)** — How to configure sending, DNS records, scaling plan
 
 ### 🚀 Recent Implementations
 - **[Stable Fixes Summary](../STABLE_FIXES_SUMMARY.md)** — UI fixes (navigation, dark mode) - May 21

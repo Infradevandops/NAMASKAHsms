@@ -136,18 +136,23 @@ async def lifespan(app):
             async def start_daily_snapshot_loop():
                 while True:
                     try:
-                        from app.core.database import SessionLocal
+                        from app.core.database import get_session_local
                         from app.services.target_tracking_service import (
                             TargetTrackingService,
                         )
 
-                        async with SessionLocal() as db:
+                        # Use sync session correctly
+                        SessionLocal = get_session_local()
+                        db = SessionLocal()
+                        try:
                             service = TargetTrackingService(db)
                             snapshot = await service.record_daily_snapshot()
                             if snapshot:
                                 startup_logger.info(
                                     f"✅ Midnight growth snapshot recorded for {snapshot.snapshot_date}"
                                 )
+                        finally:
+                            db.close()
                     except Exception as e:
                         startup_logger.error(f"❌ Daily snapshot failed: {e}")
 

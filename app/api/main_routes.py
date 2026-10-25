@@ -959,3 +959,37 @@ async def admin_alerts_page(
     return templates.TemplateResponse(
         "admin/alerts.html", {"request": request, "user": user}
     )
+
+
+@router.get("/sitemap.xml", response_class="application/xml")
+async def sitemap(db: Session = Depends(get_db)):
+    """Generate dynamic sitemap from hardcoded list + DB services."""
+    from datetime import datetime
+    
+    # Static pages
+    urls = [
+        ("https://vrenum.app", datetime.now()),
+        ("https://vrenum.app/verify", datetime.now()),
+        ("https://vrenum.app/pricing", datetime.now()),
+        ("https://vrenum.app/how-it-works", datetime.now()),
+        ("https://vrenum.app/faq", datetime.now()),
+        ("https://vrenum.app/about", datetime.now()),
+        ("https://vrenum.app/contact", datetime.now()),
+        ("https://vrenum.app/privacy", datetime.now()),
+        ("https://vrenum.app/terms", datetime.now()),
+        ("https://vrenum.app/blog/whatsapp-verification", datetime.now()),
+        ("https://vrenum.app/blog/usa-virtual-phone-numbers", datetime.now()),
+        ("https://vrenum.app/blog/how-to-verify-whatsapp-without-phone-number", datetime.now()),
+        ("https://vrenum.app/blog/temporary-phone-number-for-telegram", datetime.now()),
+        ("https://vrenum.app/blog/best-sms-verification-services", datetime.now()),
+    ]
+    
+    # Generate XML
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for url, lastmod in urls:
+        xml += f'  <url>\n    <loc>{url}</loc>\n'
+        xml += f'    <lastmod>{lastmod.isoformat()}</lastmod>\n  </url>\n'
+    xml += '</urlset>'
+    
+    return xml

@@ -169,6 +169,27 @@ class RefundService:
                 f"reasons={reasons}"
             )
 
+            # Send refund notification email (non-blocking)
+            try:
+                import asyncio
+                from app.services.email_service import email_service
+                
+                display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+                asyncio.create_task(
+                    email_service.send_refund_notification(
+                        user.email,
+                        {
+                            "reference": verification.id,
+                            "amount": refund_amount,
+                            "reason": ", ".join(reasons),
+                            "new_balance": float(user.credits),
+                            "user_name": display_name
+                        }
+                    )
+                )
+            except Exception as _e:
+                logger.warning(f"Refund notification email failed (non-critical): {_e}")
+
             return {
                 "refund_issued": True,
                 "refund_amount": round(refund_amount, 2),

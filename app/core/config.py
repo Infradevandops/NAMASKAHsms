@@ -33,9 +33,26 @@ class Settings(BaseSettings):
     def jwt_expiry_hours(self) -> int:
         return self.jwt_expiration_hours
 
-    # Database settings
-    database_url: str = "sqlite:///./data/namaskah.db"
+    # Database settings - prioritize DATABASE_URL env var
+    database_url: str = ""
     database_echo: bool = False
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def set_database_url(cls, v):
+        """Prioritize DATABASE_URL env var, fallback to SQLite only in dev."""
+        import os
+        # Check environment variable first
+        env_url = os.getenv("DATABASE_URL")
+        if env_url:
+            return env_url
+        # Use provided value if set
+        if v:
+            return v
+        # Fallback to SQLite only in non-production
+        if os.getenv("ENVIRONMENT") == "production":
+            raise ValueError("DATABASE_URL must be set in production")
+        return "sqlite:///./data/namaskah.db"
 
     # Redis settings
     redis_url: str = "redis://localhost:6379/0"
@@ -49,6 +66,18 @@ class Settings(BaseSettings):
     resend_api_key: Optional[str] = None
     smtp_use_tls: bool = True
     from_email_address: Optional[str] = None
+
+    # Dedicated sending addresses — set these in .env.production
+    # from_email_address  → the address that appears in the From: header (e.g. hello@vrenum.app)
+    # support_email       → shown in email footers and error pages (e.g. support@vrenum.app)
+    # admin_notify_email  → where system alerts go (revenue-zero, DB down, etc.)
+    support_email: str = "support@vrenum.app"
+    admin_notify_email: Optional[str] = None  # falls back to admin_email if not set
+
+    @property
+    def effective_admin_notify_email(self) -> Optional[str]:
+        """Where to send system alerts — admin_notify_email or admin_email."""
+        return self.admin_notify_email or self.admin_email
 
     # Backward-compat aliases
     @property

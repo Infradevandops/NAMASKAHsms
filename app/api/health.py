@@ -1,6 +1,9 @@
 """Health check endpoints for monitoring."""
 
-from fastapi import APIRouter, Depends
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -132,3 +135,12 @@ async def check_app_health(db: Session = Depends(get_db)):
             "policy": "100% automatic refunds for failed/timeout SMS",
         },
     }
+
+
+@router.get("/dashboard", response_class=HTMLResponse)
+async def monitoring_dashboard(request: Request):
+    """Serve the monitoring dashboard HTML page."""
+    template_path = Path("templates/monitoring.html")
+    if template_path.exists():
+        return HTMLResponse(content=template_path.read_text())
+    return HTMLResponse(content="<h1>Monitoring dashboard not found</h1>", status_code=404)

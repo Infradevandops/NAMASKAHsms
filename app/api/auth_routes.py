@@ -93,11 +93,17 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
         try:
             password_match = bcrypt.checkpw(
-                login_data.password.encode("utf-8"), user.password_hash.encode("utf-8")
+                login_data.password.encode("utf-8"), user.password_hash.encode("utf-8") if isinstance(user.password_hash, str) else user.password_hash
             )
-        except (ValueError, Exception) as e:
+        except (ValueError, TypeError, Exception) as e:
             logger.warning(f"Password verification error for {user.email}: {e}")
-            password_match = False
+            try:
+                from passlib.context import CryptContext
+                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+                password_match = pwd_context.verify(login_data.password, user.password_hash)
+            except Exception as fallback_err:
+                logger.warning(f"Fallback password verification also failed: {fallback_err}")
+                password_match = False
 
         if not password_match:
             logger.warning(f"Invalid password for user: {user.email}")
@@ -213,10 +219,10 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
                 detail="Email already registered",
             )
 
-        # Hash password
-        password_hash = bcrypt.hashpw(
-            register_data.password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
+        # Hash password using passlib for consistency
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        password_hash = pwd_context.hash(register_data.password)
 
         # Validate terms acceptance
         if not register_data.terms_accepted:

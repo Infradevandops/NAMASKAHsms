@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vrenum Monitoring Dashboard</title>
+    <meta http-equiv="refresh" content="30">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-pink-500">Vrenum Monitoring</h1>
+                <p class="text-gray-400" id="timestamp">Loading...</p>
+            </div>
+            <div id="overall-status" class="px-4 py-2 rounded-full text-lg font-semibold">
+                Loading...
+            </div>
+        </header>
+
+        <!-- Alerts Section -->
+        <div id="alerts-section" class="mb-8 hidden">
+            <h2 class="text-xl font-semibold mb-4 text-red-400">⚠️ Active Alerts</h2>
+            <div id="alerts-container" class="space-y-2"></div>
+        </div>
+
+        <!-- Service Status Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div id="card-database" class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">Database</h3>
+                <p class="text-2xl font-bold" id="db-status">--</p>
+                <p class="text-sm text-gray-500" id="db-latency">--</p>
+            </div>
+            <div id="card-cache" class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">Cache</h3>
+                <p class="text-2xl font-bold" id="cache-status">--</p>
+                <p class="text-sm text-gray-500" id="cache-backend">--</p>
+            </div>
+            <div id="card-textverified" class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">TextVerified</h3>
+                <p class="text-2xl font-bold" id="tv-status">--</p>
+                <p class="text-sm text-gray-500" id="tv-balance">--</p>
+            </div>
+            <div id="card-system" class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">System</h3>
+                <p class="text-2xl font-bold" id="sys-status">--</p>
+                <p class="text-sm text-gray-500" id="sys-uptime">--</p>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <h2 class="text-xl font-semibold mb-4">📊 Platform Metrics</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">Total Users</h3>
+                <p class="text-3xl font-bold text-blue-400" id="total-users">--</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">New (24h)</h3>
+                <p class="text-3xl font-bold text-green-400" id="new-users">--</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">Active (24h)</h3>
+                <p class="text-3xl font-bold text-yellow-400" id="active-users">--</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-gray-400 text-sm">Verifications (24h)</h3>
+                <p class="text-3xl font-bold text-purple-400" id="verifications">--</p>
+            </div>
+        </div>
+
+        <!-- System Resources -->
+        <h2 class="text-xl font-semibold mb-4">💻 System Resources</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-400">Memory</span>
+                    <span id="memory-percent">--%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3">
+                    <div id="memory-bar" class="bg-blue-500 h-3 rounded-full" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1" id="memory-detail">-- / -- GB</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-400">CPU</span>
+                    <span id="cpu-percent">--%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3">
+                    <div id="cpu-bar" class="bg-green-500 h-3 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-400">Disk</span>
+                    <span id="disk-percent">--%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3">
+                    <div id="disk-bar" class="bg-yellow-500 h-3 rounded-full" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1" id="disk-detail">-- / -- GB</p>
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-sm">
+            Auto-refreshes every 30 seconds | <span id="version">v--</span>
+        </footer>
+    </div>
+
+    <script>
+        async function fetchData() {
+            try {
+                const [healthRes, metricsRes] = await Promise.all([
+                    fetch('/api/monitoring/health/detailed'),
+                    fetch('/api/monitoring/metrics')
+                ]);
+                
+                const health = await healthRes.json();
+                const metrics = await metricsRes.json();
+                
+                updateHealth(health);
+                updateMetrics(metrics);
+            } catch (e) {
+                console.error('Failed to fetch monitoring data:', e);
+            }
+        }
+
+        function updateHealth(data) {
+            // Timestamp
+            document.getElementById('timestamp').textContent = 
+                `Last updated: ${new Date(data.timestamp).toLocaleString()}`;
+            document.getElementById('version').textContent = `v${data.version}`;
+            
+            // Overall status
+            const statusEl = document.getElementById('overall-status');
+            const statusColors = {
+                healthy: 'bg-green-500',
+                degraded: 'bg-yellow-500',
+                unhealthy: 'bg-red-500'
+            };
+            statusEl.className = `px-4 py-2 rounded-full text-lg font-semibold ${statusColors[data.status] || 'bg-gray-500'}`;
+            statusEl.textContent = data.status.toUpperCase();
+            
+            // Alerts
+            const alertsSection = document.getElementById('alerts-section');
+            const alertsContainer = document.getElementById('alerts-container');
+            if (data.alerts && data.alerts.length > 0) {
+                alertsSection.classList.remove('hidden');
+                alertsContainer.innerHTML = data.alerts.map(a => 
+                    `<div class="bg-red-900/50 border border-red-500 rounded p-3 text-red-200">${a}</div>`
+                ).join('');
+            } else {
+                alertsSection.classList.add('hidden');
+            }
+            
+            // Service cards
+            const checks = data.checks;
+            
+            // Database
+            if (checks.database) {
+                document.getElementById('db-status').textContent = checks.database.status;
+                document.getElementById('db-latency').textContent = 
+                    checks.database.latency_ms ? `${checks.database.latency_ms}ms` : '--';
+                setCardColor('card-database', checks.database.status);
+            }
+            
+            // Cache
+            if (checks.cache) {
+                document.getElementById('cache-status').textContent = checks.cache.status;
+                document.getElementById('cache-backend').textContent = checks.cache.backend || '--';
+                setCardColor('card-cache', checks.cache.status);
+            }
+            
+            // TextVerified
+            if (checks.textverified) {
+                document.getElementById('tv-status').textContent = checks.textverified.status;
+                document.getElementById('tv-balance').textContent = checks.textverified.balance || '--';
+                setCardColor('card-textverified', checks.textverified.status);
+            }
+            
+            // System
+            if (checks.system) {
+                document.getElementById('sys-status').textContent = checks.system.status;
+                document.getElementById('sys-uptime').textContent = `Uptime: ${data.uptime}`;
+                setCardColor('card-system', checks.system.status);
+                
+                // Resource bars
+                const mem = checks.system.memory;
+                const disk = checks.system.disk;
+                
+                document.getElementById('memory-percent').textContent = `${mem.percent}%`;
+                document.getElementById('memory-bar').style.width = `${mem.percent}%`;
+                document.getElementById('memory-detail').textContent = `${mem.used_gb} / ${mem.total_gb} GB`;
+                setBarColor('memory-bar', mem.percent);
+                
+                document.getElementById('cpu-percent').textContent = `${checks.system.cpu_percent}%`;
+                document.getElementById('cpu-bar').style.width = `${checks.system.cpu_percent}%`;
+                setBarColor('cpu-bar', checks.system.cpu_percent);
+                
+                document.getElementById('disk-percent').textContent = `${disk.percent}%`;
+                document.getElementById('disk-bar').style.width = `${disk.percent}%`;
+                document.getElementById('disk-detail').textContent = `${disk.used_gb} / ${disk.total_gb} GB`;
+                setBarColor('disk-bar', disk.percent);
+            }
+        }
+
+        function updateMetrics(data) {
+            document.getElementById('total-users').textContent = data.users.total.toLocaleString();
+            document.getElementById('new-users').textContent = `+${data.users.new_24h}`;
+            document.getElementById('active-users').textContent = data.users.active_24h;
+            document.getElementById('verifications').textContent = data.verifications.last_24h;
+        }
+
+        function setCardColor(cardId, status) {
+            const card = document.getElementById(cardId);
+            card.classList.remove('border-green-500', 'border-yellow-500', 'border-red-500', 'border-2');
+            if (status === 'healthy' || status === 'ok') {
+                card.classList.add('border-2', 'border-green-500');
+            } else if (status === 'warning' || status === 'degraded') {
+                card.classList.add('border-2', 'border-yellow-500');
+            } else if (status === 'unhealthy' || status === 'error') {
+                card.classList.add('border-2', 'border-red-500');
+            }
+        }
+
+        function setBarColor(barId, percent) {
+            const bar = document.getElementById(barId);
+            bar.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
+            if (percent > 90) {
+                bar.classList.add('bg-red-500');
+            } else if (percent > 75) {
+                bar.classList.add('bg-yellow-500');
+            } else {
+                bar.classList.add('bg-green-500');
+            }
+        }
+
+        // Initial fetch
+        fetchData();
+    </script>
+</body>
+</html>

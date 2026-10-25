@@ -34,16 +34,21 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    """Get database URL from settings with resilient fallback."""
+    """Get database URL from environment or settings."""
     import os
 
     if os.getenv("USE_TEST_DB") == "true":
         return "sqlite:///./test.db"
 
+    # Prioritize DATABASE_URL environment variable
+    env_url = os.getenv("DATABASE_URL")
+    if env_url:
+        print(f"Using DATABASE_URL from environment: {env_url[:30]}...")
+        return env_url
+
+    # Fall back to settings
     url = settings.database_url
-    if "dpg-" in url and not os.getenv("DATABASE_URL"):
-        if os.getenv("ALLOW_SQLITE_FALLBACK") == "true":
-            return "sqlite:///./namaskah_fallback.db"
+    print(f"Using database_url from settings: {url[:30]}...")
     return url
 
 

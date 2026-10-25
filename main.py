@@ -42,6 +42,7 @@ from app.api.core.user_settings_endpoints import (
 )
 from app.api.core.waitlist import router as waitlist_router
 from app.api.core.webhooks import router as webhooks_router
+from app.api.core.monitoring import router as monitoring_router
 
 # OLD whitelabel router removed - using whitelabel_endpoints.py via core router
 # from app.api.core.whitelabel import router as whitelabel_router
@@ -196,6 +197,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(blacklist_router)
     fastapi_app.include_router(referrals_router, prefix="/api")
     fastapi_app.include_router(webhooks_router, prefix="/api")
+    fastapi_app.include_router(monitoring_router)  # Free monitoring dashboard
 
     # Contact form
     fastapi_app.include_router(contact_router)

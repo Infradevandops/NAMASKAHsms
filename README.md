@@ -561,69 +561,42 @@ graph TB
 
 ## Deployment
 
-### Docker Compose (Recommended)
+**For comprehensive deployment documentation, see [docs/deployment/](./docs/deployment/)**
+
+### Quick Start
 ```bash
 # Development
 docker-compose up
 
-# Production
-docker-compose -f docker-compose.production.yml up -d
+# Production (Linux Server)
+See docs/deployment/DEPLOYMENT_BEST_PRACTICES.md
 ```
 
-### Kubernetes
-```bash
-# Apply configuration
-kubectl apply -f k8s-deployment.yaml
-
-# Check status
-kubectl get pods -l app=namaskah-sms
-
-# View logs
-kubectl logs -f deployment/namaskah-sms
-```
-
-### Manual Deployment
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run with Gunicorn
-gunicorn main:app \
-  -w 4 \
-  -k uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
-  --access-logfile - \
-  --error-logfile -
-```
-
-### Render.com (Current Production)
-```yaml
-# render.yaml
-services:
-  - type: web
-    name: namaskah-sms
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2
-    envVars:
-      - key: DATABASE_URL
-      - key: SECRET_KEY
-      - key: JWT_SECRET_KEY
-```
+### Deployment Documentation
+- **[DEPLOYMENT_BEST_PRACTICES.md](./docs/deployment/DEPLOYMENT_BEST_PRACTICES.md)** - Complete Linux deployment guide
+- **[DEPLOYMENT_CHECKLIST.md](./docs/deployment/DEPLOYMENT_CHECKLIST.md)** - Verification checklist
+- **[DEPLOYMENT_QUICK_REFERENCE.md](./docs/deployment/DEPLOYMENT_QUICK_REFERENCE.md)** - Quick commands
+- **[SECURITY_AUDIT.md](./docs/deployment/SECURITY_AUDIT.md)** - Security audit report
 
 ---
 
 ## Documentation
 
-###  Getting Started
+### Deployment & Operations
+- **[docs/deployment/](./docs/deployment/)** - Deployment documentation
+  - [DEPLOYMENT_BEST_PRACTICES.md](./docs/deployment/DEPLOYMENT_BEST_PRACTICES.md) - Complete Linux deployment guide
+  - [DEPLOYMENT_CHECKLIST.md](./docs/deployment/DEPLOYMENT_CHECKLIST.md) - Verification checklist
+  - [DEPLOYMENT_QUICK_REFERENCE.md](./docs/deployment/DEPLOYMENT_QUICK_REFERENCE.md) - Quick commands
+  - [SECURITY_AUDIT.md](./docs/deployment/SECURITY_AUDIT.md) - Security audit report
+
+### Getting Started
 - **[CHANGELOG.md](./CHANGELOG.md)** - Version history and releases
-- **[PLATFORM_STATUS.md](./PLATFORM_STATUS.md)** - Current platform status
-- **[PRODUCTION_SETUP_CHECKLIST.md](./PRODUCTION_SETUP_CHECKLIST.md)** - Launch checklist
+- **[docs/INDEX.md](./docs/INDEX.md)** - Full documentation index
 
 ### Reference
-- **[PRICING_REFERENCE.md](./PRICING_REFERENCE.md)** - Definitive pricing guide
-- **[docs/INDEX.md](./docs/INDEX.md)** - Full documentation index
-- **[docs/PLATFORM_ASSESSMENT.md](./docs/PLATFORM_ASSESSMENT.md)** - Technical scorecard
+- **[docs/business/PRICING_REFERENCE.md](./docs/business/PRICING_REFERENCE.md)** - Definitive pricing guide
+- **[docs/operations/MONITORING.md](./docs/operations/MONITORING.md)** - Monitoring setup
+- **[docs/operations/PRODUCTION_MIGRATION_GUIDE.md](./docs/operations/PRODUCTION_MIGRATION_GUIDE.md)** - Migration guide
 
 ---
 

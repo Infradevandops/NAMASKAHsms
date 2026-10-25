@@ -228,11 +228,28 @@ class PaymentService:
             # Notify user
             try:
                 from app.services.notification_dispatcher import NotificationDispatcher
+                from app.services.email_service import email_service
 
                 dispatcher = NotificationDispatcher(self.db)
                 _fire(
                     dispatcher.notify_payment_completed(
                         user_id=user_id, amount=amount, new_balance=float(user.credits)
+                    )
+                )
+                
+                # Send payment receipt email with user name
+                display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+                _fire(
+                    email_service.send_payment_receipt(
+                        user.email,
+                        {
+                            "reference": reference,
+                            "amount_usd": amount,
+                            "credits_added": amount,
+                            "new_balance": float(user.credits),
+                            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+                            "user_name": display_name
+                        }
                     )
                 )
             except Exception as e:
