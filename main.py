@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
 
 from app.api.admin.alerts import router as alerts_router
+from app.api.admin.analytics import router as admin_analytics_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
@@ -40,6 +41,7 @@ from app.api.core.user_settings import auth_router as user_auth_router
 from app.api.core.user_settings_endpoints import (
     router as user_settings_endpoints_router,
 )
+from app.api.core.telegram import router as telegram_router
 from app.api.core.waitlist import router as waitlist_router
 from app.api.core.webhooks import router as webhooks_router
 from app.api.core.monitoring import router as monitoring_router
@@ -235,6 +237,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(user_insights_router)
     fastapi_app.include_router(quotas_router)
     fastapi_app.include_router(admin_router, prefix="/api")
+    fastapi_app.include_router(admin_analytics_router)
     fastapi_app.include_router(alerts_router)
     fastapi_app.include_router(mfa_router)
     fastapi_app.include_router(currencies_router)
@@ -243,6 +246,7 @@ def create_app() -> FastAPI:
         core_router
     )  # ✅ CORE ROUTER — no prefix, routers carry their own /api prefix
     fastapi_app.include_router(disputes_router)
+    fastapi_app.include_router(telegram_router)
     fastapi_app.include_router(gdpr_admin_router, prefix="/api")
     fastapi_app.include_router(billing_history_router)
     fastapi_app.include_router(analytics_reports_router)
