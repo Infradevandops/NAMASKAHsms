@@ -11,11 +11,13 @@
     }
 
     .telegram-card {
-        background: white;
+        background: var(--card-bg, #1e2130);
+        border: 1px solid var(--border-color, rgba(255,255,255,0.08));
         border-radius: 12px;
         padding: 2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         margin-bottom: 2rem;
+        color: var(--text-primary, #e2e8f0);
     }
 
     .telegram-header {
@@ -65,7 +67,7 @@
     }
 
     .connection-instructions {
-        background: #f8f9fa;
+        background: rgba(42, 171, 238, 0.08);
         border-left: 4px solid #2AABEE;
         padding: 1rem;
         border-radius: 4px;
@@ -82,20 +84,21 @@
     }
 
     .token-display {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
         border-radius: 4px;
         padding: 0.75rem;
         font-family: monospace;
         font-size: 0.875rem;
         word-break: break-all;
         margin: 1rem 0;
+        color: #2AABEE;
     }
 
     .filter-section {
         margin-top: 1.5rem;
         padding-top: 1.5rem;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid rgba(255,255,255,0.08);
     }
 
     .filter-chips {
@@ -110,9 +113,10 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: #e9ecef;
+        background: rgba(255,255,255,0.08);
         border-radius: 20px;
         font-size: 0.875rem;
+        color: var(--text-primary, #e2e8f0);
     }
 
     .chip-remove {
@@ -152,7 +156,7 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem;
-        background: #f8f9fa;
+        background: rgba(255,255,255,0.05);
         border-radius: 8px;
         margin: 1rem 0;
     }
@@ -173,7 +177,7 @@
     .connection-info-text p {
         margin: 0;
         font-size: 0.875rem;
-        color: #6c757d;
+        color: rgba(255,255,255,0.5);
     }
 </style>
 {% endblock %}
@@ -187,7 +191,7 @@
             </div>
             <div>
                 <h2 style="margin: 0;">Telegram Integration</h2>
-                <p style="margin: 0.25rem 0 0 0; color: #6c757d;">Receive SMS codes instantly in Telegram</p>
+                <p style="margin: 0.25rem 0 0 0; color: rgba(255,255,255,0.5);">Receive SMS codes instantly in Telegram</p>
             </div>
         </div>
 
@@ -239,7 +243,7 @@
 
     <div class="telegram-card" id="settings-card" style="display: none;">
         <h3>Forwarding Settings</h3>
-        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+        <p style="color: rgba(255,255,255,0.5); margin-bottom: 1.5rem;">
             Configure which SMS codes should be forwarded to Telegram
         </p>
 
