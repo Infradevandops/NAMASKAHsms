@@ -63,14 +63,17 @@ class TokenResponse(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """Login endpoint - consolidated and working."""
-    # Verify Turnstile token
+    # Verify Turnstile token (optional - may not be loaded on frontend)
     from app.core.turnstile import verify_turnstile
 
-    if not await verify_turnstile(login_data.turnstile_token):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bot verification failed. Please try again.",
-        )
+    if login_data.turnstile_token:
+        if not await verify_turnstile(login_data.turnstile_token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bot verification failed. Please try again.",
+            )
+    else:
+        logger.debug("Turnstile token not provided - skipping verification")
 
     try:
         # Find user by email
@@ -200,14 +203,17 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/register", response_model=TokenResponse)
 async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
     """Register endpoint - consolidated and working."""
-    # Verify Turnstile token
+    # Verify Turnstile token (optional - may not be loaded on frontend)
     from app.core.turnstile import verify_turnstile
 
-    if not await verify_turnstile(register_data.turnstile_token):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bot verification failed. Please try again.",
-        )
+    if register_data.turnstile_token:
+        if not await verify_turnstile(register_data.turnstile_token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bot verification failed. Please try again.",
+            )
+    else:
+        logger.debug("Turnstile token not provided - skipping verification")
 
     try:
         # Check if user already exists
