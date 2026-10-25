@@ -423,18 +423,26 @@
         }
 
         try {
+            // Get Turnstile token using the proper API
+            let turnstileToken = null;
+            if (window.turnstile) {
+                turnstileToken = window.turnstile.getResponse();
+                console.log('Turnstile token:', turnstileToken ? 'present' : 'missing');
+            }
+
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email,
                     password,
-                    turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || null
+                    turnstile_token: turnstileToken || null
                 })
             });
 
             await processLoginResponse(res);
         } catch (err) {
+            console.error('Login error:', err);
             showError("Connection error. Please try again.");
             btn.disabled = false;
             btn.textContent = "Sign In";
