@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.cache import cache_manager
 from app.core.dependencies import get_current_user, get_db
 from app.models.telegram import TelegramConnection, TelegramForwardingRule
 from app.models.user import User
@@ -122,9 +123,8 @@ async def connect_telegram(
     # Generate secure token
     token = secrets.token_urlsafe(32)
 
-    # Token stored in-memory for now; Redis persistence deferred with Telegram feature
-    # When Telegram is activated: store token in Redis with 10-min TTL
-    # await cache.set(f"tg:connect:{token}", current_user.id, ttl=600)
+    # Store token in Redis with 10-min TTL
+    cache_manager.set(f"tg:connect:{token}", str(current_user.id), ttl=600)
 
     # Get bot info
     bot_info = await telegram_service.get_bot_info()
@@ -294,34 +294,44 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
         if text.startswith("/start "):
             token = text.split(" ", 1)[1]
 
-            # Token verification deferred with Telegram feature activation
-            # When activated: look up user_id = await cache.get(f"tg:connect:{token}")
+            # Look up user_id from Redis token
+            user_id = cache_manager.get(f"tg:connect:{token}")
 
-            # Check if chat_id already connected
+            if not user_id:
+                await telegram_service.send_message(
+                    chat_id,
+                    "❌ Invalid or expired token. Please generate a new one from vrenum.app/telegram-settings.",
+                )
+                return {"ok": True}
+
+            # Consume token
+            cache_manager.delete(f"tg:connect:{token}")
+
+            # Upsert connection
             existing = (
                 db.query(TelegramConnection)
-                .filter(TelegramConnection.chat_id == chat_id)
+                .filter(TelegramConnection.user_id == user_id)
                 .first()
             )
 
             if existing:
-                # Reactivate connection
                 existing.active = True
+                existing.chat_id = chat_id
                 existing.username = username
                 existing.first_name = first_name
-                db.commit()
-
-                await telegram_service.send_message(
-                    chat_id, "✅ Connection reactivated! You'll receive SMS codes here."
-                )
+                existing.connected_at = datetime.utcnow()
             else:
-                # Create new connection
-                # User linking deferred with Telegram feature activation
-                # When activated: user_id = await cache.get(f"tg:connect:{token}")
-                await telegram_service.send_message(
-                    chat_id,
-                    "⚠️ Connection token system not yet implemented. Please use the web interface to complete setup.",
-                )
+                db.add(TelegramConnection(
+                    user_id=user_id,
+                    chat_id=chat_id,
+                    username=username,
+                    first_name=first_name,
+                    active=True,
+                    connected_at=datetime.utcnow(),
+                ))
+
+            db.commit()
+            await telegram_service.send_test_message(chat_id)
 
         # Handle /status command
         elif text == "/status":
