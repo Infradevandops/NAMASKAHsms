@@ -9,6 +9,61 @@ All notable changes to the Vrenum SMS project.
 - SDK libraries (Python, JavaScript) — Phase 8
 - Multi-region deployment (Q3 2026)
 - Tasks 016-018 (Revenue alerts, crypto recognition, digest emails) — Phase 8
+- Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
+
+---
+
+## [4.9.0] - October 25, 2026
+
+Phase 1 Analytics Complete + Telegram SMS Forwarding
+
+### Added
+- **Tier Change Event Tracking**: `track_tier_change()` wired into `tier_endpoints.py` (PAYG free upgrade) and `TierManager.upgrade_user_tier()` / `downgrade_user_tier()` — completes Phase 1 analytics
+- **Telegram SMS Forwarding**: Bot [@vrenum_sms_bot](https://t.me/vrenum_sms_bot) created and webhook registered at `https://vrenum.app/api/telegram/webhook`
+- **Telegram Router Mounted**: `app/api/core/telegram.py` registered in `main.py` (was missing — caused 404)
+- **Telegram Token Linking**: `/connect` now stores token in Redis (10-min TTL); `/start <token>` webhook handler looks up user from Redis, upserts `TelegramConnection`, consumes token (one-time use)
+- **Telegram Dark Theme**: Settings page (`/telegram`) fixed for dark dashboard — cards were invisible
+- **`TELEGRAM_BOT_TOKEN`**: Added to `config/.env.example` and `.env.production`
+
+### Changed
+- `TierManager.upgrade_user_tier()` captures `old_tier` before overwrite for accurate event data
+- `TierManager.downgrade_user_tier()` captures `old_tier` before overwrite for accurate event data
+- `tests/unit/test_tier_manager.py`: Updated 2 `assert_called_once()` → `assert_called()` (event tracking adds second commit)
+
+### Fixed
+- Telegram `/connect` endpoint was storing token in-memory (lost on restart) — now Redis-backed
+- Telegram `/start` webhook was sending error message instead of completing connection
+- Telegram settings page rendered blank on dark theme
+
+### Technical
+- Files modified: `app/api/billing/tier_endpoints.py`, `app/services/tier_manager.py`, `app/api/core/telegram.py`, `main.py`, `templates/telegram_settings.html`, `config/.env.example`, `tests/unit/test_tier_manager.py`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
+
+### Phase 1 Analytics — Now 100% Complete
+| Event | Location | Status |
+|---|---|---|
+| Signup | `auth_routes.py` | ✅ |
+| Login | `auth_routes.py` | ✅ |
+| Verification created | `purchase_endpoints.py` | ✅ |
+| Verification completed | `verification_status_service.py` | ✅ |
+| Payment | `payment_service.py` | ✅ |
+| Tier change | `tier_endpoints.py` + `tier_manager.py` | ✅ |
+
+### Telegram Setup Status
+- ✅ Bot created: @vrenum_sms_bot
+- ✅ Webhook registered: `https://vrenum.app/api/telegram/webhook`
+- ✅ Token stored in `.env.production`
+- ✅ Redis token linking implemented
+- ✅ Dark theme fixed
+- ⏳ End-to-end verification pending (see `docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md`)
+
+### Commits
+- `2e2553ea` feat: wire tier change event tracking to complete Phase 1 analytics
+- `fbad36c0` feat: complete Telegram SMS forwarding - Redis token linking + env placeholder
+- `d3049ccb` fix: mount telegram router in main.py
+- `0d4b9d15` fix: telegram settings page dark theme
 
 ---
 
