@@ -201,7 +201,7 @@
             <!-- Status will be loaded here -->
         </div>
 
-        <div id="connection-setup" style="display: none;">
+        <div id="connection-setup">
             <div class="connection-instructions">
                 <h4>📱 How to Connect</h4>
                 <ol>
@@ -296,10 +296,13 @@ let currentSettings = null;
 // Load connection status
 async function loadConnectionStatus() {
     try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            updateUI({ connected: false });
+            return;
+        }
         const response = await fetch('/api/telegram/status', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) throw new Error('Failed to load status');
@@ -308,18 +311,20 @@ async function loadConnectionStatus() {
         updateUI();
     } catch (error) {
         console.error('Error loading status:', error);
-        window.errorHandler?.showToast('Failed to load Telegram status', 'error');
+        updateUI({ connected: false });
     }
 }
 
 // Update UI based on connection status
-function updateUI() {
+function updateUI(status) {
+    if (status) connectionStatus = status;
+    const data = connectionStatus || { connected: false };
     const statusContainer = document.getElementById('connection-status-container');
     const setupSection = document.getElementById('connection-setup');
     const activeSection = document.getElementById('connection-active');
     const settingsCard = document.getElementById('settings-card');
 
-    if (connectionStatus.connected) {
+    if (data.connected) {
         // Show connected state
         statusContainer.innerHTML = `
             <div class="connection-status status-connected">
@@ -333,10 +338,10 @@ function updateUI() {
 
         // Update connection details
         const details = document.getElementById('connection-details');
-        if (connectionStatus.username) {
-            details.textContent = `Connected as @${connectionStatus.username}`;
+        if (data.username) {
+            details.textContent = `Connected as @${data.username}`;
         } else {
-            details.textContent = `Connected as ${connectionStatus.first_name || 'User'}`;
+            details.textContent = `Connected as ${data.first_name || 'User'}`;
         }
 
         // Load settings
@@ -358,10 +363,11 @@ function updateUI() {
 // Generate connection token
 document.getElementById('btn-generate-token').addEventListener('click', async () => {
     try {
+        const token = localStorage.getItem('access_token');
         const response = await fetch('/api/telegram/connect', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
