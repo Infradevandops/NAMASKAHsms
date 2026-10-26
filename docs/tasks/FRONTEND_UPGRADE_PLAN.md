@@ -800,15 +800,15 @@ Sprint 4 — Larger effort:
 
 | ID | Task | Sprint | Status |
 |---|---|---|---|
-| P1 | Remove Tailwind CDN | 4 | ⏳ |
+| P1 | Remove Tailwind CDN | 4 | ⏸️ (deferred — needs Node.js on CI) |
 | P2 | Fix double dark-mode-universal.css | 1 | ✅ |
 | P3 | Defer analytics / post-consent Sabilytics | 3 | ✅ |
-| P4 | Standardize cache-busting tokens | 4 | ⏳ |
+| P4 | Standardize cache-busting tokens | 4 | ✅ |
 | P5 | Remove dead real-time-dashboard.js | 1 | ✅ |
 | P6 | Move pwa-mobile.css to dashboard only | 3 | ✅ |
-| J1 | Extract verify inline JS to file | 4 | ⏳ |
+| J1 | Extract verify inline JS to file | 4 | ✅ |
 | J2 | Fix btn-primary color conflict | 3 | ✅ |
-| J3 | Deduplicate auth helpers | 4 | ⏳ |
+| J3 | Deduplicate auth helpers | 4 | ✅ |
 | J4 | Remove duplicate scroll-timeline.js | 1 | ✅ |
 | J5 | Remove/wire moduleLoader.js | 1 | ✅ (keep — used by main.js) |
 | U1 | Replace SW update confirm() | 2 | ✅ |

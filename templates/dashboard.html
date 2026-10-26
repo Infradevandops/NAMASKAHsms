@@ -6,11 +6,11 @@ endblock %}
 
 {% block content %}
 <!-- Design System CSS (consolidated) -->
-<link rel="stylesheet" href="/static/css/design-system.css?v=20260506">
+<link rel="stylesheet" href="/static/css/design-system.css?v={{ app_version }}">
 <!-- Legacy CSS for backward compatibility -->
-<link rel="stylesheet" href="/static/css/loading-animations.css?v=20260506">
-<link rel="stylesheet" href="/static/css/tier-colors.css?v=20260506">
-<link rel="stylesheet" href="/static/css/glassmorphism.css?v=20260518">
+<link rel="stylesheet" href="/static/css/loading-animations.css?v={{ app_version }}">
+<link rel="stylesheet" href="/static/css/tier-colors.css?v={{ app_version }}">
+<link rel="stylesheet" href="/static/css/glassmorphism.css?v={{ app_version }}">
 <style>
     @media (max-width: 640px) {
         .stats-grid {
@@ -174,13 +174,13 @@ endblock %}
 {% block scripts %}
 {{ super() }}
 <!-- ULTRA-STABLE DASHBOARD - Production Grade -->
-<script src="/static/js/dashboard-ultra-stable.js?v=20260208-ultra"></script>
+<script src="/static/js/dashboard-ultra-stable.js?v={{ app_version }}"></script>
 <script src="/static/js/pagination.js"></script>
 <script src="/static/js/service-store.js"></script>
 
 <!-- Core utilities (non-module for backward compatibility) -->
-<script type="module" src="/static/js/frontend-logger.js?v=20260112"></script>
-<script type="module" src="/static/js/response-validator.js?v=20260112"></script>
+<script type="module" src="/static/js/frontend-logger.js?v={{ app_version }}"></script>
+<script type="module" src="/static/js/response-validator.js?v={{ app_version }}"></script>
 
 <!-- New modular architecture -->
 <script type="module" nonce="{{ request.state.csp_nonce }}">
