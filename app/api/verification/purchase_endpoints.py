@@ -27,6 +27,7 @@ from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
+from app.services.event_tracking_service import EventTrackingService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -370,6 +371,19 @@ async def request_verification(
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
+
+            # Track verification event
+            try:
+                event_service = EventTrackingService(db)
+                event_service.track_verification(
+                    user_id=user_id,
+                    service_name=request.service,
+                    success=False,  # Initial creation, not success yet
+                    cost=actual_cost,
+                    event_data={"verification_id": str(verification.id), "country": request.country}
+                )
+            except Exception as e:
+                logger.warning(f"Failed to track verification event: {e}")
 
             # Step 2.3: Process automatic refunds (Surcharges/Overages)
             refund_service = RefundService()

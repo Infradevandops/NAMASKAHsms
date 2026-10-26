@@ -116,7 +116,7 @@
 ## How to Re-Register Webhook (if needed)
 
 ```bash
-curl "https://api.telegram.org/bot8668150393:AAHzemYB0HhHw96KGdO0S6IFiUs7uq_CqUo/setWebhook?url=https://vrenum.app/api/telegram/webhook"
+curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://vrenum.app/api/telegram/webhook"
 ```
 
 Expected response: `{"ok":true,"result":true,"description":"Webhook was set"}`
@@ -124,7 +124,7 @@ Expected response: `{"ok":true,"result":true,"description":"Webhook was set"}`
 ## How to Check Webhook Status
 
 ```bash
-curl "https://api.telegram.org/bot8668150393:AAHzemYB0HhHw96KGdO0S6IFiUs7uq_CqUo/getWebhookInfo"
+curl "https://api.telegram.org/bot<BOT_TOKEN>/getWebhookInfo"
 ```
 
 ---

@@ -214,7 +214,18 @@ class PaymentService:
 
             logger.info(f"Credited {amount} to user {user_id}")
 
-            # Fire-and-forget async tasks safely from sync context
+            # Track payment event
+            try:
+                from app.services.event_tracking_service import EventTrackingService
+                event_service = EventTrackingService(self.db)
+                event_service.track_payment(
+                    user_id=user_id,
+                    amount=amount,
+                    success=True,
+                    event_data={"reference": reference, "payment_method": "paystack"}
+                )
+            except Exception as e:
+                logger.warning(f"Failed to track payment event: {e}")
             def _fire(coro):
                 try:
                     loop = asyncio.get_event_loop()

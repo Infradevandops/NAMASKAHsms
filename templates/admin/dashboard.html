@@ -37,6 +37,7 @@
         <div class="tab-menu">
             <button class="tab-btn active" onclick="switchTab('overview')">Institutional Overview</button>
             <button class="tab-btn" onclick="switchTab('users')">User Intelligence</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">📊 Analytics</button>
             <button class="tab-btn" onclick="switchTab('history')">Verification Forensics</button>
             <button class="tab-btn" onclick="switchTab('pricing')">Pricing Governance</button>
             <button class="tab-btn" onclick="switchTab('audit')">Control & Audit</button>
@@ -103,7 +104,45 @@
             </div>
         </div>
 
-        <!-- Tab 2: User Intelligence -->
+        <!-- Tab 2.5: Analytics -->
+        <div id="page-analytics" class="tab-page">
+            <div class="content-grid">
+                <div class="glass-card">
+                    <h3 class="card-title">Overview Metrics</h3>
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Users</div>
+                            <div class="stat-value" id="analytics-total-users">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">New Users (30d)</div>
+                            <div class="stat-value" id="analytics-new-users">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Users (7d)</div>
+                            <div class="stat-value" id="analytics-active-users">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Success Rate</div>
+                            <div class="stat-value" id="analytics-success-rate">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <h3 class="card-title">At-Risk Users (Inactive 7+ days)</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Email</th><th>Last Activity</th><th>Days Inactive</th><th>Verifications</th></tr>
+                        </thead>
+                        <tbody id="at-risk-users-table"></tbody>
+                    </table>
+                </div>
+                <div class="glass-card">
+                    <h3 class="card-title">Live Events (Auto-refreshing)</h3>
+                    <div id="live-events-feed" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
         <div id="page-users" class="tab-page">
             <div class="content-grid" style="grid-template-columns: 1fr 2fr;">
                 <div class="glass-card">
@@ -305,6 +344,7 @@
     <script src="/static/js/admin/forensics.js"></script>
     <script src="/static/js/admin/compliance.js"></script>
     <script src="/static/js/admin/pricing.js"></script>
+    <script src="/static/js/admin/analytics.js"></script>
     <script>
         const ForensicsManager = window.ForensicsManager; // From forensics.js
 
@@ -363,6 +403,9 @@
             if (tab === 'overview') {
                 OverviewManager.init();
                 loadBalanceSyncStatus();
+            }
+            if (tab === 'analytics') {
+                AnalyticsManager.init();
             }
             if (tab === 'users') UsersManager.init();
             if (tab === 'history') ForensicsManager.loadHistory();

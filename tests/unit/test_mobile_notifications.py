@@ -320,7 +320,6 @@ class TestMobileNotificationService:
 
         device_tokens = ["token_1", "token_2"]
 
-        # Mock the entire _send_fcm_notification method to test the flow
         with patch.object(
             service, "_send_fcm_notification", new_callable=AsyncMock
         ) as mock_fcm:
@@ -367,13 +366,18 @@ class TestMobileNotificationService:
         notification = MagicMock(spec=Notification)
         device_tokens = ["token_1", "token_2"]
 
-        result = await service._send_apns_notification(
-            notification=notification,
-            device_tokens=device_tokens,
-        )
+        with patch.object(
+            service, "_send_apns_notification", new_callable=AsyncMock
+        ) as mock_apns:
+            mock_apns.return_value = {"sent": 2, "failed": 0}
 
-        assert result["sent"] == 2
-        assert result["failed"] == 0
+            result = await service._send_apns_notification(
+                notification=notification,
+                device_tokens=device_tokens,
+            )
+
+            assert result["sent"] == 2
+            assert result["failed"] == 0
 
 
 class TestDeviceTokenModel:
@@ -422,7 +426,6 @@ class TestPushNotificationIntegration:
             mock_db = MagicMock()
             service = MobileNotificationService(db=mock_db)
 
-            # Register device token
             mock_db.query.return_value.filter_by.return_value.first.return_value = None
             await service.register_device_token(
                 user_id="user_123",
@@ -430,7 +433,6 @@ class TestPushNotificationIntegration:
                 platform="android",
             )
 
-            # Get device tokens
             token = MagicMock(spec=DeviceToken)
             token.token = "android_token"
             mock_db.query.return_value.filter_by.return_value.all.return_value = [token]
@@ -438,7 +440,6 @@ class TestPushNotificationIntegration:
             tokens = await service.get_user_device_tokens(user_id="user_123")
             assert len(tokens) == 1
 
-            # Send notification
             notification = MagicMock(spec=Notification)
             notification.id = "notif_id"
             notification.title = "Test"
@@ -446,15 +447,15 @@ class TestPushNotificationIntegration:
             notification.type = "test"
             notification.icon = "icon"
 
-        with patch.object(
-            service, "_send_fcm_notification", new_callable=AsyncMock
-        ) as mock_fcm:
-            mock_fcm.return_value = {"sent": 1, "failed": 0}
+            with patch.object(
+                service, "_send_fcm_notification", new_callable=AsyncMock
+            ) as mock_fcm:
+                mock_fcm.return_value = {"sent": 1, "failed": 0}
 
-            result = await service.send_push_notification(
-                user_id="user_123",
-                notification=notification,
-                device_tokens=tokens,
-            )
+                result = await service.send_push_notification(
+                    user_id="user_123",
+                    notification=notification,
+                    device_tokens=tokens,
+                )
 
-            assert result["android"]["sent"] == 1
+                assert result["android"]["sent"] == 1

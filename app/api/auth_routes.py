@@ -18,6 +18,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
+from app.services.event_tracking_service import EventTrackingService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -172,6 +173,17 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         user.last_login = datetime.now(timezone.utc)
         db.commit()
 
+        # Track login event
+        try:
+            event_service = EventTrackingService(db)
+            event_service.track_login(
+                user_id=str(user.id),
+                ip_address=None,  # Would need request context to get this
+                user_agent=None
+            )
+        except Exception as e:
+            logger.warning(f"Failed to track login event: {e}")
+
         logger.info(f"Successful login: {user.email}")
 
         response_data = {
@@ -250,6 +262,16 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         db.add(user)
         db.commit()
         db.refresh(user)
+
+        # Track signup event
+        try:
+            event_service = EventTrackingService(db)
+            event_service.track_signup(
+                user_id=str(user.id),
+                event_data={"email": user.email}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to track signup event: {e}")
 
         # Send verification + welcome emails (non-blocking)
         try:

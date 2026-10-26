@@ -30,10 +30,18 @@ app.log
 *.sqlite
 *.sqlite3
 
-# Environment
+# Environment & Secrets
 .env
 .env.local
+.env.development
 .env.production
+.env.*.local
+.env.*.production
+.env.secret
+.env.secrets
+*.env
+!.env.example
+!.env.*.example
 
 # OS
 .DS_Store
@@ -55,12 +63,79 @@ htmlcov/
 # Generated / runtime
 server.log
 
-# Certificates (never commit private keys or certs)
+# Certificates & Keys (never commit private keys or certs)
 certs/
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.jks
+private_key*
+public_key*
+*.pub
 
 # Added by ggshield
 .cache_ggshield
 .kiro/
+
+# Secrets & Credentials (never commit)
+*.secret
+*.secrets
+secrets/
+.secrets/
+credentials/
+.credentials/
+config/secrets/
+config/.secrets/
+
+# API Keys & Tokens
+*_token*
+*_key*
+*_secret*
+*_password*
+*_credential*
+*_auth*
+.api_keys
+.tokens
+.credentials
+
+# Database credentials
+*_db_*
+*_database_*
+
+# OAuth & Third-party
+*google*
+*github*
+*facebook*
+*twitter*
+*telegram*
+*paystack*
+*stripe*
+*aws*
+*azure*
+*gcp*
+
+# Sensitive config files
+config.prod.json
+config.production.json
+settings.prod.py
+settings.production.py
+
+# SSH Keys
+.ssh/
+*.pem
+*.ppk
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# GPG Keys
+.gnupg/
+*.gpg
+*.asc
 
 # Database backups & exports (may contain sensitive data)
 render_backup_final/

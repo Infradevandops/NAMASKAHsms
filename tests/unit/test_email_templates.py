@@ -36,7 +36,6 @@ class TestTemplateVersioning:
         """Test updating template increments version."""
         service = EmailTemplateService()
 
-        # Simulate existing template
         template = Mock(
             id=1,
             version=1,
@@ -45,7 +44,6 @@ class TestTemplateVersioning:
             text_content="Old",
         )
 
-        # Update increments version
         template.version += 1
 
         assert template.version == 2
@@ -83,13 +81,12 @@ class TestTemplateVersioning:
         result = service.get_template_versions(mock_db_session, template_id=1, limit=10)
 
         assert len(result) == 3
-        assert result[0].version_number == 3  # Most recent first
+        assert result[0].version_number == 3
 
     def test_revert_to_previous_version(self, mock_db_session):
         """Test reverting to a previous version."""
         service = EmailTemplateService()
 
-        # Mock version to revert to
         old_version = Mock(
             template_id=1,
             version_number=2,
@@ -98,7 +95,6 @@ class TestTemplateVersioning:
             text_content="Old",
         )
 
-        # Mock current template
         current_template = Mock(
             id=1,
             version=3,
@@ -107,24 +103,21 @@ class TestTemplateVersioning:
             text_content="Current",
         )
 
-        # Simulate revert
         current_template.subject = old_version.subject
         current_template.html_content = old_version.html_content
         current_template.text_content = old_version.text_content
         current_template.version += 1
 
         assert current_template.subject == "Old Subject"
-        assert current_template.version == 4  # Incremented after revert
+        assert current_template.version == 4
 
 
 class TestTestEmail:
     """Test test email functionality."""
 
     @pytest.mark.asyncio
-    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
-    async def test_send_test_email_success(self, mock_send, mock_db_session):
+    async def test_send_test_email_success(self, mock_db_session):
         """Test sending test email successfully."""
-        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(
@@ -138,22 +131,20 @@ class TestTestEmail:
             template
         )
 
-        result = await service.send_test_email(
-            db=mock_db_session,
-            user_id="user_123",
-            template_name="welcome",
-            recipient_email="test@example.com",
-        )
+        with patch("app.services.email_service.email_service._send", new_callable=AsyncMock) as mock_send:
+            mock_send.return_value = True
+            result = await service.send_test_email(
+                db=mock_db_session,
+                user_id="user_123",
+                template_name="welcome",
+                recipient_email="test@example.com",
+            )
 
-        assert result is True
+            assert result is True
 
     @pytest.mark.asyncio
-    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
-    async def test_send_test_email_with_custom_variables(
-        self, mock_send, mock_db_session
-    ):
+    async def test_send_test_email_with_custom_variables(self, mock_db_session):
         """Test sending test email with custom variables."""
-        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(
@@ -174,15 +165,17 @@ class TestTestEmail:
             "support_email": "support@test.com",
         }
 
-        result = await service.send_test_email(
-            db=mock_db_session,
-            user_id="user_123",
-            template_name="welcome",
-            recipient_email="test@example.com",
-            test_variables=custom_vars,
-        )
+        with patch("app.services.email_service.email_service._send", new_callable=AsyncMock) as mock_send:
+            mock_send.return_value = True
+            result = await service.send_test_email(
+                db=mock_db_session,
+                user_id="user_123",
+                template_name="welcome",
+                recipient_email="test@example.com",
+                test_variables=custom_vars,
+            )
 
-        assert result is True
+            assert result is True
 
     def test_get_test_variables(self):
         """Test getting default test variables."""
@@ -347,7 +340,6 @@ class TestAcceptanceCriteria:
         """AC-1: Template versions are saved automatically."""
         service = EmailTemplateService()
 
-        # Simulate saving a version
         version = EmailTemplateVersion(
             template_id=1,
             version_number=2,
@@ -365,7 +357,6 @@ class TestAcceptanceCriteria:
         """AC-2: User can revert to previous version."""
         service = EmailTemplateService()
 
-        # Mock revert operation
         old_version = Mock(
             version_number=1,
             subject="Old",
@@ -374,7 +365,6 @@ class TestAcceptanceCriteria:
 
         current_template = Mock(version=3)
 
-        # Revert
         current_template.subject = old_version.subject
         current_template.html_content = old_version.html_content
         current_template.version += 1
@@ -383,10 +373,8 @@ class TestAcceptanceCriteria:
         assert current_template.version == 4
 
     @pytest.mark.asyncio
-    @patch("app.services.email_service.email_service._send", new_callable=AsyncMock)
-    async def test_ac3_test_email_sends(self, mock_send, mock_db_session):
+    async def test_ac3_test_email_sends(self, mock_db_session):
         """AC-3: Test email sends successfully."""
-        mock_send.return_value = True
         service = EmailTemplateService()
 
         template = Mock(
@@ -400,14 +388,16 @@ class TestAcceptanceCriteria:
             template
         )
 
-        result = await service.send_test_email(
-            db=mock_db_session,
-            user_id="user_123",
-            template_name="welcome",
-            recipient_email="test@example.com",
-        )
+        with patch("app.services.email_service.email_service._send", new_callable=AsyncMock) as mock_send:
+            mock_send.return_value = True
+            result = await service.send_test_email(
+                db=mock_db_session,
+                user_id="user_123",
+                template_name="welcome",
+                recipient_email="test@example.com",
+            )
 
-        assert result is True
+            assert result is True
 
     def test_ac4_analytics_show_metrics(self, mock_db_session):
         """AC-4: Analytics show open/click rates."""
@@ -431,7 +421,6 @@ class TestAcceptanceCriteria:
         assert hasattr(result, "clicked_count")
 
 
-# Fixtures
 @pytest.fixture
 def mock_db_session():
     """Mock database session."""
