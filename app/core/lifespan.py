@@ -36,7 +36,7 @@ async def lifespan(app):
         # Initialize database
         startup_logger.info("Initializing database...")
         Base.registry.configure()
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=engine, checkfirst=True)
         startup_logger.info("Database tables created successfully")
 
         # Create admin user if needed
