@@ -21,6 +21,10 @@ router = APIRouter(tags=["Pages"])
 TEMPLATES_DIR = Path("templates").resolve()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+# Inject app_version as a Jinja2 global so all templates can use {{ app_version }}
+from app.core.config import get_settings as _get_settings
+templates.env.globals["app_version"] = _get_settings().version.replace(".", "")
+
 
 @router.get("/favicon.ico", include_in_schema=False)
 async def favicon():

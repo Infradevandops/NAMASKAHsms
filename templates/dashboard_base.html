@@ -11,13 +11,12 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <!-- Force cache clear for i18n fix (one-time) -->
 <script nonce="{{ request.state.csp_nonce }}">
 (function() {
-    const I18N_FIX_VERSION = '20260308j';
+    const I18N_FIX_VERSION = '{{ app_version | default("4.9.0") }}';
     const lastVersion = localStorage.getItem('i18n_version');
 
     if (lastVersion !== I18N_FIX_VERSION) {
         console.log('🔄 Clearing old i18n cache...');
 
-        // Clear service worker caches
         if ('caches' in window) {
             caches.keys().then(names => {
                 names.forEach(name => {
@@ -29,9 +28,9 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
             });
         }
 
-        // Mark as updated
         localStorage.setItem('i18n_version', I18N_FIX_VERSION);
         console.log('✓ Cache cleared');
+    }
     }
 })();
 </script>

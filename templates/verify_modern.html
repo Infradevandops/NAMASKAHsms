@@ -985,7 +985,10 @@ async function createVerification() {
     }
 
     const btn = document.getElementById('get-number-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Creating...';
+    }
 
     try {
         const areaCode = VerificationFlow.selectedAreaCode || null;
@@ -1020,7 +1023,7 @@ async function createVerification() {
         const _svcLabel = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
         document.getElementById('scanning-service-name').textContent = _svcLabel;
 
-        if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
         updateProgress(3);
         startPolling();
 
@@ -1038,7 +1041,7 @@ async function createVerification() {
         console.error('Error:', error);
         const msg = error.message || 'Failed to create verification';
 
-        if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
 
         if (msg.includes('Out of stock') || msg.includes('unavailable')) {
             window.toast && window.toast.error(`${VerificationFlow.selectedService} is temporarily unavailable. Please try a different service.`);
@@ -1809,20 +1812,47 @@ function applyPreset(id) {
 async function saveCurrentAsPreset() {
     const svc = VerificationFlow.selectedService;
     if (!svc) return;
-    const name = prompt('Preset name (e.g. "WhatsApp NY")');
-    if (!name || !name.trim()) return;
+
+    const presetsSection = document.getElementById('presets-section');
+    if (document.getElementById('preset-name-input-row')) return;
+
+    const row = document.createElement('div');
+    row.id = 'preset-name-input-row';
+    row.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
+    row.innerHTML = `
+        <input id="preset-name-input" type="text" placeholder='e.g. "WhatsApp NY"'
+            style="flex:1;padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;"
+            onkeydown="if(event.key==='Enter')confirmSavePreset();if(event.key==='Escape')cancelSavePreset();">
+        <button onclick="confirmSavePreset()" style="background:#FE3C72;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Save</button>
+        <button onclick="cancelSavePreset()" style="background:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;">Cancel</button>
+    `;
+    presetsSection.appendChild(row);
+    setTimeout(() => document.getElementById('preset-name-input')?.focus(), 50);
+}
+
+function cancelSavePreset() {
+    document.getElementById('preset-name-input-row')?.remove();
+}
+
+async function confirmSavePreset() {
+    const input = document.getElementById('preset-name-input');
+    const name = (input?.value || '').trim();
+    if (!name) { input?.focus(); return; }
+    cancelSavePreset();
+    const svc = VerificationFlow.selectedService;
     try {
         const token = localStorage.getItem('access_token');
         const ac = document.getElementById('area-code-search-input')?.value || null;
         const res = await fetch('/api/presets/', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name.trim(), service_id: svc, country_id: 'US', area_code: ac || null })
+            body: JSON.stringify({ name, service_id: svc, country_id: 'US', area_code: ac || null })
         });
-        if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.detail || 'Failed to save'); return; }
+        if (!res.ok) { const d = await res.json().catch(()=>({})); window.toast?.error(d.detail || 'Failed to save'); return; }
         _presets.push(await res.json());
         renderPresets();
-    } catch(e) { alert('Failed to save preset'); }
+        window.toast?.success('Preset saved');
+    } catch(e) { window.toast?.error('Failed to save preset'); }
 }
 
 async function deletePreset(id) {

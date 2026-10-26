@@ -567,16 +567,13 @@
      * Show upgrade prompt when locked feature clicked
      */
     function showUpgradePrompt(requiredTier, featureName) {
-        const tierNames = {
-            'payg': 'Pay-As-You-Go',
-            'pro': 'Pro',
-            'custom': 'Custom'
-        };
-
-        const message = `${featureName} requires ${tierNames[requiredTier] || requiredTier.toUpperCase()} tier.\n\nUpgrade now to unlock this feature?`;
-
-        if (confirm(message)) {
-            window.location.href = '/pricing';
+        const tierNames = { 'payg': 'Pay-As-You-Go', 'pro': 'Pro', 'custom': 'Custom' };
+        const tierName = tierNames[requiredTier] || requiredTier.toUpperCase();
+        const clean = featureName.replace(/[\n\t]+/g, ' ').trim().split('  ')[0];
+        if (window.toast) {
+            window.toast.info(`${clean} requires ${tierName} — <a href="/pricing" style="color:white;font-weight:700;text-decoration:underline;">Upgrade →</a>`);
+        } else {
+            window.location.href = '/pricing?upgrade=' + requiredTier;
         }
     }
 
@@ -593,10 +590,7 @@
     }
 
     function logout() {
-        if (!confirm('Are you sure you want to logout?')) return;
-
         const token = localStorage.getItem('access_token');
-
         fetch('/api/auth/logout', {
             method: 'POST',
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
