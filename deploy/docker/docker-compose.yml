@@ -8,8 +8,8 @@ services:
   # =============================================================================
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
     container_name: vrenum-app
     restart: unless-stopped
     ports:

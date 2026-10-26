@@ -17,8 +17,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create user_events table if it doesn't exist
-    if not op.get_context().dialect.has_table(op.get_context().bind, 'user_events'):
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    tables = inspector.get_table_names()
+
+    if 'user_events' not in tables:
         op.create_table(
             'user_events',
             sa.Column('id', sa.String(36), nullable=False),
@@ -36,8 +39,7 @@ def upgrade() -> None:
         op.create_index('ix_user_events_event_type', 'user_events', ['event_type'])
         op.create_index('ix_user_events_created_at', 'user_events', ['created_at'])
 
-    # Create daily_user_snapshots table if it doesn't exist
-    if not op.get_context().dialect.has_table(op.get_context().bind, 'daily_user_snapshots'):
+    if 'daily_user_snapshots' not in tables:
         op.create_table(
             'daily_user_snapshots',
             sa.Column('id', sa.String(36), nullable=False),
@@ -55,8 +57,7 @@ def upgrade() -> None:
         )
         op.create_index('ix_daily_snapshots_date', 'daily_user_snapshots', ['snapshot_date'])
 
-    # Create feature_usage table if it doesn't exist
-    if not op.get_context().dialect.has_table(op.get_context().bind, 'feature_usage'):
+    if 'feature_usage' not in tables:
         op.create_table(
             'feature_usage',
             sa.Column('id', sa.String(36), nullable=False),
@@ -70,8 +71,7 @@ def upgrade() -> None:
         op.create_index('ix_feature_usage_user_id', 'feature_usage', ['user_id'])
         op.create_index('ix_feature_usage_feature_name', 'feature_usage', ['feature_name'])
 
-    # Create admin_alerts table if it doesn't exist
-    if not op.get_context().dialect.has_table(op.get_context().bind, 'admin_alerts'):
+    if 'admin_alerts' not in tables:
         op.create_table(
             'admin_alerts',
             sa.Column('id', sa.String(36), nullable=False),
