@@ -801,25 +801,25 @@ Sprint 4 — Larger effort:
 | ID | Task | Sprint | Status |
 |---|---|---|---|
 | P1 | Remove Tailwind CDN | 4 | ⏳ |
-| P2 | Fix double dark-mode-universal.css | 1 | ⏳ |
-| P3 | Defer analytics / post-consent Sabilytics | 3 | ⏳ |
+| P2 | Fix double dark-mode-universal.css | 1 | ✅ |
+| P3 | Defer analytics / post-consent Sabilytics | 3 | ✅ |
 | P4 | Standardize cache-busting tokens | 4 | ⏳ |
-| P5 | Remove dead real-time-dashboard.js | 1 | ⏳ |
-| P6 | Move pwa-mobile.css to dashboard only | 3 | ⏳ |
+| P5 | Remove dead real-time-dashboard.js | 1 | ✅ |
+| P6 | Move pwa-mobile.css to dashboard only | 3 | ✅ |
 | J1 | Extract verify inline JS to file | 4 | ⏳ |
-| J2 | Fix btn-primary color conflict | 3 | ⏳ |
+| J2 | Fix btn-primary color conflict | 3 | ✅ |
 | J3 | Deduplicate auth helpers | 4 | ⏳ |
-| J4 | Remove duplicate scroll-timeline.js | 1 | ⏳ |
-| J5 | Remove/wire moduleLoader.js | 1 | ⏳ |
-| U1 | Replace SW update confirm() | 2 | ⏳ |
-| U2 | Replace sidebar confirm() dialogs | 2 | ⏳ |
-| U3 | Replace preset prompt() | 2 | ⏳ |
-| U4 | Fix i18n version server-injected | 2 | ⏳ |
-| U5 | Add spinner to Get Number button | 2 | ⏳ |
-| C1 | Deduplicate cookie consent | 3 | ⏳ |
-| C2 | Add missing design system classes | 3 | ⏳ (part of J2) |
-| C3 | Audit glassmorphism.css | 3 | ⏳ |
-| S1 | Sanitize user_id in GA4 | 1 | ⏳ |
+| J4 | Remove duplicate scroll-timeline.js | 1 | ✅ |
+| J5 | Remove/wire moduleLoader.js | 1 | ✅ (keep — used by main.js) |
+| U1 | Replace SW update confirm() | 2 | ✅ |
+| U2 | Replace sidebar confirm() dialogs | 2 | ✅ |
+| U3 | Replace preset prompt() | 2 | ✅ |
+| U4 | Fix i18n version server-injected | 2 | ✅ |
+| U5 | Add spinner to Get Number button | 2 | ✅ |
+| C1 | Deduplicate cookie consent | 3 | ✅ |
+| C2 | Add missing design system classes | 3 | ✅ (part of J2) |
+| C3 | Audit glassmorphism.css | 3 | ✅ (used on both — kept) |
+| S1 | Sanitize user_id in GA4 | 1 | ✅ |
 | S2 | Document JWT localStorage risk | — | ⏳ |
 
 **Done when**: All Sprint 1–3 items complete. Sprint 4 items scheduled for next feature cycle.

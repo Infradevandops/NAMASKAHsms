@@ -74,7 +74,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/vrenum-ui.css">
-    <link rel="stylesheet" href="/static/css/pwa-mobile.css">
     {% include "includes/onesignal_sdk.html" %}
     {% block head_extra %}{% endblock %}
 
@@ -114,7 +113,6 @@
     <meta name="twitter:title" content="{% block twitter_title %}Vrenum - SMS Verification Platform{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Get instant USA phone numbers for SMS verification. 1,807+ services. Auto-refund guaranteed.{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}https://vrenum.app/static/images/og-image.png{% endblock %}">
-    <script async src="https://www.sabilytics.com/script.js" data-site="ek3athooftac" data-domain="vrenum.app"></script>
 </head>
 
 <body>
@@ -146,31 +144,7 @@
 
     {% block scripts %}{% endblock %}
 
-    <!-- Cookie Consent Banner -->
-    <div id="cookie-consent" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1f2937; color:white; padding:16px 24px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
-        <div style="max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-            <p style="margin:0; font-size:14px; flex:1; min-width:200px;">We use cookies to improve your experience. By continuing, you agree to our <a href="/cookies" style="color:#FE3C72; text-decoration:underline;">Cookie Policy</a>.</p>
-            <div style="display:flex; gap:8px;">
-                <button onclick="acceptCookies()" style="background:#FE3C72; color:white; border:none; padding:8px 20px; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px;">Accept</button>
-                <button onclick="declineCookies()" style="background:transparent; color:#9CA3AF; border:1px solid #4B5563; padding:8px 20px; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px;">Decline</button>
-            </div>
-        </div>
-    </div>
-    <script>
-        (function() {
-            if (!localStorage.getItem('cookie_consent')) {
-                document.getElementById('cookie-consent').style.display = 'block';
-            }
-        })();
-        function acceptCookies() {
-            localStorage.setItem('cookie_consent', 'accepted');
-            document.getElementById('cookie-consent').style.display = 'none';
-        }
-        function declineCookies() {
-            localStorage.setItem('cookie_consent', 'declined');
-            document.getElementById('cookie-consent').style.display = 'none';
-        }
-    </script>
+    {% include "includes/cookie_consent.html" %}
 
     <!-- Service Worker Registration + Update Prompt -->
     <script>
