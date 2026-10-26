@@ -8,8 +8,6 @@ window.USER_LOCALE = "{{ locale }}";
 console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANSLATIONS).length, 'keys');
 </script>
 
-<link rel="stylesheet" href="/static/css/dark-mode-universal.css">
-
 <!-- Force cache clear for i18n fix (one-time) -->
 <script nonce="{{ request.state.csp_nonce }}">
 (function() {
@@ -33,10 +31,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 
         // Mark as updated
         localStorage.setItem('i18n_version', I18N_FIX_VERSION);
-        console.log('✓ Cache cleared, reloading...');
-
-        // Force reload without cache
-        setTimeout(() => window.location.reload(true), 100);
+        console.log('✓ Cache cleared');
     }
 })();
 </script>
@@ -306,9 +301,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <script src="/static/js/currency-selector.js"></script>
 <script src="/static/js/sidebar-collapse.js"></script>
 <script src="/static/js/theme-toggle.js"></script>
-<!-- Temporarily disabled: causing errors
-<script src="/static/js/real-time-dashboard.js" defer></script>
--->
+
 <!-- Onboarding Tour -->
 <script src="/static/js/onboarding-tour.js"></script>
 <script nonce="{{ request.state.csp_nonce }}">

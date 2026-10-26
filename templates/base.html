@@ -85,7 +85,7 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-M15PBV1P55', {
-        'user_id': '{{ current_user.id if current_user is defined and current_user else "" }}',
+        'user_id': {{ (current_user.id if current_user is defined and current_user else "") | tojson }},
         'cookie_flags': 'SameSite=None;Secure'
       });
     </script>

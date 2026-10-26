@@ -697,7 +697,40 @@ a:hover {
 }
 
 /* ============================================
-   11. DARK MODE
+   11. MODAL CARD COMPONENTS
+   ============================================ */
+
+/* Verification type picker (SMS vs Voice modal) */
+.type-card {
+    background: var(--gray-50);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color var(--transition-base), background var(--transition-base);
+    font-family: var(--font-family);
+}
+.type-card:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+/* Upgrade tier picker cards */
+.upgrade-card {
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+    cursor: pointer;
+    transition: border-color var(--transition-base);
+}
+.upgrade-card:hover {
+    border-color: var(--color-primary);
+}
+
+/* ============================================
+   12. DARK MODE
    ============================================ */
 [data-theme="dark"] {
     --bg-body: #0f172a;
