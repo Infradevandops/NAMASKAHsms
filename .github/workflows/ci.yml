@@ -184,11 +184,11 @@ jobs:
           # Run stable core tests - gradually adding more
           # TODO: Fix remaining test suite issues
           pytest tests/unit/test_api_key_service.py \
-                 tests/unit/test_analytics_service_complete.py \
+                 tests/unit/test_analytics_service.py \
                  tests/unit/test_balance_service.py \
                  tests/unit/test_cache.py \
                  tests/unit/test_models.py \
-                 tests/unit/test_utils_complete.py \
+                 tests/unit/test_utils.py \
                  tests/unit/test_carrier_lookup.py \
                  tests/unit/test_phone_validator.py \
             --cov=app \
