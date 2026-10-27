@@ -3,8 +3,11 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import Column, DateTime, Index, String, Text, event
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON, Column, DateTime, Index, String, Text, event
+from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
+from sqlalchemy.dialects.postgresql import UUID
+
+JSONB = JSON().with_variant(PostgresJSONB, "postgresql")
 
 from app.models.base import Base
 
