@@ -349,10 +349,10 @@ To: b824b3ee
 Status: Success
 ```
 
-### Phase 3: Auto-Deploy (Render.com) ⏳
+### Phase 3: Auto-Deploy (GitHub Actions SSH) ✅
 ```
 Time: ~2-5 minutes after push
-Platform: Render.com
+Platform: DigitalOcean Linux VM
 Build: Automatic
 Deploy: Automatic
 URL: https://vrenum.app
@@ -448,7 +448,7 @@ git push origin main
 git reset --hard 25db0751
 git push origin main --force
 
-# Render.com will auto-deploy revert
+# GitHub Actions SSH deploy triggers automatically
 ```
 
 ### Emergency Hotfix (5 minutes)
@@ -522,7 +522,7 @@ styling.
 
 ### Immediate (Today)
 1. ✅ **DONE**: Code committed and pushed
-2. ⏳ **WAIT**: Monitor Render.com auto-deploy (~5 min)
+2. ✅ **AUTO-DEPLOY**: GitHub Actions SSH deploy triggers on push
 3. ⏳ **TEST**: Create test account in production
 4. ⏳ **VERIFY**: Tour auto-starts and works correctly
 5. ⏳ **CHECK**: Sentry for any errors
@@ -554,7 +554,7 @@ styling.
 - [x] Zero breaking changes
 
 ### ⏳ Deployment Success (In Progress)
-- [ ] Render.com auto-deploy completes
+- [ ] GitHub Actions SSH deploy completes
 - [ ] Production site loads without errors
 - [ ] Tour auto-starts for new users
 - [ ] Sentry shows zero errors
@@ -574,7 +574,7 @@ styling.
 ### Monitoring Dashboards
 - **Sentry**: https://dev-vp.sentry.io/issues/
 - **Better Stack**: https://uptime.betterstack.com/team/t545038/monitors/4422808
-- **Render Deploy**: https://render.com (check deployment status)
+- **Deploy**: GitHub Actions → `ssh root@169.255.57.146`
 
 ### Code References
 - **Tour Logic**: `static/js/onboarding-tour.js`

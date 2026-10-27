@@ -38,7 +38,7 @@ Namaskah:      $1.70 profit (68% margin)
 - **Database**: PostgreSQL (production) / SQLite (local)
 - **Cache**: Redis
 - **Frontend**: Vanilla JS + Jinja2 templates
-- **Hosting**: Render.com
+- **Hosting**: DigitalOcean Linux VM (Docker Compose)
 - **Monitoring**: Sentry
 
 ---
@@ -439,8 +439,8 @@ Namaskah:      $1.70 profit (68% margin)
 
 ### **Monitoring**
 - Sentry: https://dev-vp.sentry.io/issues/
-- Render: https://dashboard.render.com
-- Database: PostgreSQL on Render
+- Server: `ssh root@169.255.57.146`
+- Database: PostgreSQL on Neon
 
 ---
 

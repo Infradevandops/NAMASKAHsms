@@ -73,7 +73,7 @@ Client → FastAPI Gateway → Domain Routers → Business Services → Data Lay
 - **Backend**: Python 3.9, FastAPI, SQLAlchemy, Alembic
 - **Database**: PostgreSQL 13+, Redis 6+
 - **Frontend**: Vanilla JS, Alpine.js, Tailwind CSS
-- **Deployment**: Render.com (current), Docker/K8s ready
+- **Deployment**: DigitalOcean Linux VM, Docker Compose
 - **Monitoring**: Sentry, Better Stack, GA4
 
 ---
@@ -182,8 +182,9 @@ Client → FastAPI Gateway → Domain Routers → Business Services → Data Lay
 # 1. Push to GitHub
 git push origin main
 
-# 2. Render auto-deploys from main branch
-# Monitor: https://dashboard.render.com
+# 2. On server — pull and rebuild
+ssh root@169.255.57.146 "cd ~/vrenum && git pull origin main && docker compose up -d --build"
+# (GitHub Actions SSH deploy workflow also handles this automatically)
 
 # 3. Verify deployment
 curl https://vrenum.app/health
@@ -199,8 +200,8 @@ curl https://vrenum.app/api/health
 ```bash
 # If issues occur:
 git revert HEAD
-git push origin main --force
-# Monitor Render deployment
+git push origin main
+ssh root@169.255.57.146 "cd ~/vrenum && git pull origin main && docker compose up -d --build"
 # Verify rollback successful
 ```
 
@@ -221,10 +222,8 @@ git push origin main --force
 - **docs/TEST_NECESSITY_ANALYSIS.md** - Production reality check
 
 ### Deployment Docs
-- **PRODUCTION_SETUP_CHECKLIST.md** - Launch checklist
-- **render.yaml** - Render.com configuration
-- **docker-compose.yml** - Docker setup
-- **k8s-deployment.yaml** - Kubernetes configuration
+- **docs/deployment/** — deployment guides
+- **docker-compose.yml** — Docker Compose setup
 
 ---
 
@@ -365,7 +364,7 @@ git push origin main --force
 ✅ Git repository clean
 ✅ All changes committed
 ✅ Ready to push to origin/main
-✅ Render auto-deploy configured
+✅ SSH deploy workflow configured (GitHub Actions → server)
 ✅ Rollback plan ready
 
 ---
@@ -373,15 +372,15 @@ git push origin main --force
 ## 🚀 READY TO PUSH
 
 ```bash
-# Current status
-git log --oneline -1
-# 3f966133 chore: align platform version to 4.8.1, remediate unit tests, and purge redundant .bak files
-
 # Push to production
 git push origin main
+# GitHub Actions SSH deploy workflow triggers automatically on CI pass
+
+# Or deploy manually
+ssh root@169.255.57.146 "cd ~/vrenum && git pull origin main && docker compose up -d --build"
 
 # Monitor deployment
-# 1. Render dashboard: https://dashboard.render.com
+# 1. GitHub Actions: https://github.com/Infradevandops/NAMASKAHsms/actions
 # 2. Sentry: https://dev-vp.sentry.io/issues/
 # 3. Better Stack: https://uptime.betterstack.com/team/t545038/monitors/4422808
 # 4. App health: https://vrenum.app/health

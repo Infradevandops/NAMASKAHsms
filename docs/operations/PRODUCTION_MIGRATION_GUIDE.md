@@ -36,22 +36,18 @@ column users.credit_hold_amount does not exist
 
 ## 🚀 How to Run Migration
 
-### Option 1: Via Render Dashboard (Recommended)
-
-1. Go to your Render dashboard: https://dashboard.render.com
-2. Select your Namaskah service
-3. Go to **Shell** tab
-4. Run the following commands:
+### Option 1: Via SSH (Recommended)
 
 ```bash
-# Navigate to app directory
-cd /opt/render/project/src
-
-# Run migration
+ssh root@169.255.57.146
+cd ~/vrenum
 alembic upgrade head
 ```
 
-5. Restart the service from the dashboard
+Then restart the app:
+```bash
+docker compose up -d --build
+```
 
 ### Option 2: Via Local Script (If you have DB access)
 
@@ -116,7 +112,7 @@ After running the migration:
    ```
 
 3. **Test login**:
-   - Go to https://namaskahsms.onrender.com/login
+   - Go to https://vrenum.app/login
    - Try logging in with admin credentials
    - Should succeed without "Invalid credentials" error
 
