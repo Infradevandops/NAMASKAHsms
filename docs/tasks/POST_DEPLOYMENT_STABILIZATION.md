@@ -459,10 +459,10 @@ Day 2 (requires live server + Telegram account):
 | 1. Git on server | — | Task 6 prep | ⏳ |
 | 2. Fix corrupted migration | Task 1 (auto) | — | ⏳ |
 | 3. Telegram E2E | Task 1 (server live) | — | ⏳ |
-| 4. Root `.md` cleanup | — | 5, 6, 7 | ⏳ |
-| 5. urllib3 pin fix | — | 4, 6, 7 | ⏳ |
-| 6. Replace deploy workflow | — | 4, 5, 7 | ⏳ |
-| 7. Scrub Render from docs | — | 4, 5, 6 | ⏳ |
+| 4. Root `.md` cleanup | — | 5, 6, 7 | ✅ |
+| 5. urllib3 pin fix | — | 4, 6, 7 | ✅ |
+| 6. Replace deploy workflow | — | 4, 5, 7 | ✅ |
+| 7. Scrub Render from docs | — | 4, 5, 6 | ✅ |
 
 **Done when**: All 7 tasks checked off, `docs/status/PLATFORM_STATUS.md` Telegram rows → ✅,
 and a push to `main` triggers a successful automated deploy via SSH.

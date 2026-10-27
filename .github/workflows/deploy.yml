@@ -1,7 +1,6 @@
 name: Deploy to Production
 
 on:
-  # Task 2.3 — Gate on CI passing (not raw push)
   workflow_run:
     workflows: ["CI - Minimal & Reliable"]
     types: [completed]
@@ -16,80 +15,35 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Render
+    name: Deploy to Linux VM
     runs-on: ubuntu-latest
-
-    # Task 2.3 — Only deploy if CI passed (bypass allowed via manual dispatch)
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/vrenum
+            git pull origin main
+            docker compose up -d --build
+            echo "✅ Deploy complete"
 
-      - name: Validate deployment prerequisites
+      - name: Health check (12 retries × 15s)
         run: |
-          test -f render.yaml || (echo "❌ render.yaml missing" && exit 1)
-          test -f main.py || (echo "❌ main.py missing" && exit 1)
-          test -f requirements.txt || (echo "❌ requirements.txt missing" && exit 1)
-          echo "✅ All required files present"
-
-      - name: Trigger Render Deploy
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-            echo "❌ RENDER_DEPLOY_HOOK not set"
-            exit 1
-          fi
-          echo "🚀 Triggering Render deployment..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK")
-          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
-            echo "✅ Deployment triggered (HTTP $HTTP_CODE)"
-          else
-            echo "❌ Deployment trigger failed (HTTP $HTTP_CODE)"
-            exit 1
-          fi
-
-      - name: Wait and health check (blocking, 12 retries × 15s = 3 min)
-        run: |
-          PROD_URL="${{ secrets.PRODUCTION_URL }}"
-          if [ -z "$PROD_URL" ]; then
-            echo "⚠️ PRODUCTION_URL not set — skipping health check"
-            exit 0
-          fi
-          echo "🏥 Polling production health..."
           for i in {1..12}; do
-            if curl -f -s "${PROD_URL}/health" > /dev/null; then
-              echo "✅ Production is healthy (attempt $i)"
+            if curl -fs "${{ secrets.PRODUCTION_URL }}/health" > /dev/null; then
+              echo "✅ Production healthy (attempt $i)"
               exit 0
             fi
-            echo "Attempt $i/12 failed, retrying in 15s..."
+            echo "Attempt $i/12 — retrying in 15s..."
             sleep 15
           done
-          echo "❌ Health check failed after 12 attempts (3 minutes)"
+          echo "❌ Health check failed after 3 minutes"
           exit 1
-
-      # Task 2.1 — Automatic rollback on any failure
-      - name: Rollback on failure
-        if: failure()
-        env:
-          RENDER_ROLLBACK_HOOK: ${{ secrets.RENDER_ROLLBACK_HOOK }}
-        run: |
-          if [ -z "$RENDER_ROLLBACK_HOOK" ]; then
-            echo "⚠️ RENDER_ROLLBACK_HOOK not set — cannot auto-rollback"
-            exit 0
-          fi
-          echo "⏪ Deployment failed — triggering rollback..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$RENDER_ROLLBACK_HOOK")
-          echo "Rollback hook response: HTTP $HTTP_CODE"
-
-      - name: Deployment status
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Deployment completed successfully"
-          else
-            echo "❌ Deployment failed — rollback triggered"
-          fi

@@ -525,7 +525,7 @@ All routes handled by `GET /blog/{slug}` in `main_routes.py`.
 | API Docs (Swagger) | https://vrenum.app/docs |
 | Sentry | https://dev-vp.sentry.io/issues/ |
 | Better Stack | https://uptime.betterstack.com/team/t545038/monitors/4422808 |
-| Render Dashboard | https://dashboard.render.com |
+| Server (SSH) | `ssh root@169.255.57.146` |
 | GitHub Repo | https://github.com/Infradevandops/NAMASKAHsms |
 
 ### Critical Environment Variables
@@ -547,7 +547,7 @@ SENTRY_DSN=***
 
 ### SEO
 - [ ] https://vrenum.app/robots.txt — correct rules, vrenum.app domain
-- [ ] https://vrenum.app/sitemap.xml — 40 URLs, no onrender.com
+- [ ] https://vrenum.app/sitemap.xml — 40 URLs, no stale domains
 - [ ] https://vrenum.app/services/whatsapp — loads, shows price, has canonical
 - [ ] https://vrenum.app/blog/whatsapp-verification — loads correctly
 - [ ] https://vrenum.app/how-it-works — loads correctly
@@ -581,13 +581,16 @@ SENTRY_DSN=***
 
 ```bash
 # Rollback code — revert to previous stable version
-git reset --hard v4.7.2
-git push origin main --force
+git revert HEAD
+git push origin main
+
+# On server
+ssh root@169.255.57.146 "cd ~/vrenum && git pull origin main && docker compose up -d --build"
 
 # Rollback database — via Neon dashboard
 # console.neon.tech → your project → Restore → select point in time
 
-# Rollback env vars — restore from password manager → update Render env vars → restart
+# Rollback env vars — restore from password manager → update ~/vrenum/.env.production → force-recreate
 ```
 
 ---

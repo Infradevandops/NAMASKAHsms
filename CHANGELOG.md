@@ -8,8 +8,42 @@ All notable changes to the Vrenum SMS project.
 - Test coverage improvement: 81.48% → 90% target
 - SDK libraries (Python, JavaScript) — Phase 8
 - Multi-region deployment (Q3 2026)
-- Tasks 016-018 (Revenue alerts, crypto recognition, digest emails) — Phase 8
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
+
+---
+
+## [4.9.1] - October 25, 2026
+
+Email Compliance, Alerting & Revenue Integrity
+
+### Added
+- **Revenue-Zero Alert** (Task 016): `alerting_service.py` rewritten from stub to real implementation. Emails `admin_notify_email` at 18:00 UTC if today's credit transactions sum to $0. Catches silent Paystack outages before a full day of revenue is lost.
+- **Daily + Weekly Digest Scheduler** (Task 018): Two background loops in `lifespan.py` — daily digest fires at 08:00 UTC, weekly digest fires Monday 08:00 UTC. Queries each active non-admin user's unread notifications since last period and sends if any exist. Skips users with no unread activity.
+- **Crypto Revenue Recognition** (Task 017): `POST /admin/settlements/approve/{reference}` now calls `RevenueRecognitionService.recognize_revenue()` after crediting the user. Crypto deposits are now visible in admin dashboard revenue totals and P&L. Also fixed: endpoint was missing its `@router.post` decorator — was unreachable.
+- **Unsubscribe Footer** (Task 012): Added `_unsub_footer()` to `send_verification_email` and `send_password_reset` inline HTML. All 5 transactional email templates now CAN-SPAM compliant.
+- **Notification Dispatcher Email Fix** (Task 013): `_broadcast_notification` now uses `email_service` singleton instead of incorrectly instantiating `EmailNotificationService(db)`. Passes `display_name` instead of email prefix.
+- **Sitemap XML Fix** (Task 015): `/sitemap.xml` route now returns `Response(content=xml, media_type="application/xml")` — was returning a plain string with invalid `response_class="application/xml"` type.
+
+### Changed
+- `alerting_service.py`: Removed fake `print()` Slack/webhook stubs. Single real channel: email via `email_service`. `effective_admin_notify_email` property in config used as destination.
+- `lifespan.py`: 2 new background tasks added alongside existing 5 (SMS polling, refund enforcer, health audit, daily snapshot, rental expiry, abandoned payment cleanup).
+
+### Technical
+- Files modified: `app/services/alerting_service.py`, `app/core/lifespan.py`, `app/api/admin/actions.py`, `app/services/email_service.py`, `app/services/notification_dispatcher.py`, `app/api/main_routes.py`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
+
+### Tasks Completed
+| # | Task | Status |
+|---|------|--------|
+| 012 | `_unsub_footer()` on all 5 transactional templates | ✅ |
+| 013 | Notification dispatcher email wired correctly | ✅ |
+| 014 | Blog Sabilytics (already in base.html) | ✅ |
+| 015 | Dynamic sitemap XML response fix | ✅ |
+| 016 | Revenue-zero alert at 18:00 UTC | ✅ |
+| 017 | Crypto approval → revenue recognition | ✅ |
+| 018 | Daily + weekly digest scheduler | ✅ |
 
 ---
 

@@ -21,11 +21,13 @@ async def _authenticate_from_message(websocket: WebSocket) -> str:
     """
     Receive the first WebSocket message and extract the JWT token from it.
     Expects: {"type": "auth", "token": "<jwt>"}
-    Raises ValueError on failure.
+    Raises ValueError on auth failure, re-raises WebSocketDisconnect as-is.
     """
     try:
         raw = await websocket.receive_text()
         msg = json.loads(raw)
+    except WebSocketDisconnect:
+        raise
     except Exception:
         raise ValueError("Expected JSON auth message as first frame")
 
@@ -67,9 +69,12 @@ async def websocket_notifications(websocket: WebSocket):
     try:
         user_id = await _authenticate_from_message(websocket)
         logger.info(f"🔐 WebSocket auth successful: {user_id}")
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected before auth frame received")
+        return
     except Exception as e:
         logger.warning(f"❌ WebSocket auth failed: {e}")
-        await websocket.close(code=1008, reason="Authentication failed")
+        await websocket.send_json({"type": "error", "reason": "Authentication failed"})
         return
 
     # Register connection WITHOUT calling accept() again — already accepted above

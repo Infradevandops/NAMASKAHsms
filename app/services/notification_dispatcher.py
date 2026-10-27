@@ -44,16 +44,15 @@ class NotificationDispatcher:
             import asyncio
 
             from app.models.user import User
-            from app.services.email_notification_service import EmailNotificationService
+            from app.services.email_service import email_service
 
             user = self.db.query(User).filter(User.id == user_id).first()
             if user and hasattr(notification, "title"):
-                _notif_svc = EmailNotificationService(self.db)
                 asyncio.create_task(
-                    _notif_svc.send_notification_email(
+                    email_service.send_notification_email(
                         user_email=user.email,
                         notification=notification,
-                        user_name=user.email.split("@")[0],
+                        user_name=getattr(user, "display_name", None) or user.email.split("@")[0],
                     )
                 )
         except Exception as _e:

@@ -965,10 +965,12 @@ async def admin_alerts_page(
     )
 
 
-@router.get("/sitemap.xml", response_class="application/xml")
+@router.get("/sitemap.xml")
 async def sitemap(db: Session = Depends(get_db)):
     """Generate dynamic sitemap from hardcoded list + DB services."""
     from datetime import datetime
+
+    from fastapi.responses import Response
     
     # Static pages
     urls = [
@@ -995,5 +997,5 @@ async def sitemap(db: Session = Depends(get_db)):
         xml += f'  <url>\n    <loc>{url}</loc>\n'
         xml += f'    <lastmod>{lastmod.isoformat()}</lastmod>\n  </url>\n'
     xml += '</urlset>'
-    
-    return xml
+
+    return Response(content=xml, media_type="application/xml")

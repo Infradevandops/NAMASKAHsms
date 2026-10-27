@@ -138,6 +138,29 @@ class TierManager:
         except Exception as _e:
             logger.warning(f"Tier change tracking failed (non-critical): {_e}")
 
+        # Send tier upgrade email (non-blocking)
+        try:
+            import asyncio
+            from app.services.email_service import email_service
+
+            _features_map = {
+                "payg": ["Location filters (+$0.25)", "ISP filters (+$0.50)", "Pay only when you use"],
+                "pro": ["$15/mo quota included", "API access (10 keys)", "Location & ISP filters", "Priority support", "Affiliate program"],
+                "custom": ["$25/mo quota included", "Unlimited API keys", "Dedicated support", "Enhanced affiliate"],
+            }
+            display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+            asyncio.create_task(
+                email_service.send_tier_upgrade_email(
+                    user_email=user.email,
+                    old_tier=old_tier,
+                    new_tier=new_tier,
+                    new_features=_features_map.get(new_tier, []),
+                    user_name=display_name,
+                )
+            )
+        except Exception as _e:
+            logger.warning(f"Tier upgrade email failed (non-critical): {_e}")
+
         return True
 
     def downgrade_user_tier(self, user_id: str, reason: str = "manual") -> bool:

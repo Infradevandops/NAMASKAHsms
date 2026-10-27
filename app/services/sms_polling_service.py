@@ -118,18 +118,23 @@ class SMSPollingService:
             await self._poll_legacy(verification, db, timeout_seconds)
             return
 
-        # Build minimal object for sms.incoming()
+        # Use raw datetime objects — isoformat strings break sms.incoming() timeout
+        # calculation and the stale-SMS filter inside poll_sms_standard.
         class _TVVerif:
             def __init__(self, d, _created_at, _service_name="unknown"):
                 self.number = d["number"]
-                self.created_at = _created_at
+                self.created_at = _created_at          # datetime, not str
                 self.id = d["id"]
-                self.ends_at = d.get("ends_at")
+                self.ends_at = d.get("ends_at_dt")     # datetime, not str
                 self.service_name = _service_name
 
-        tv_obj = _TVVerif(
-            tv_details, verification.created_at, verification.service_name
+        # Prefer the DB created_at (already a datetime); fall back to TV's value.
+        created_at_dt = (
+            tv_details.get("created_at_dt")
+            or verification.created_at
         )
+
+        tv_obj = _TVVerif(tv_details, created_at_dt, verification.service_name)
 
         # Phase 11: Late-binding carrier enrichment
         if tv_details.get("carrier"):
@@ -227,14 +232,12 @@ class SMSPollingService:
             f"Polling {verification.id} via Telnyx (timeout={timeout_seconds:.0f}s)"
         )
 
+        # Compute interval once per session — avoids a DB query on every loop tick
+        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
         start_time = datetime.now(timezone.utc)
         while (
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
-            # Phase 12: Adaptive Intelligence
-            delay = self.adaptive.get_optimal_interval(
-                db, service=verification.service_name
-            )
 
             try:
                 messages = await adapter.check_messages(verification.activation_id)
@@ -276,14 +279,12 @@ class SMSPollingService:
             f"Polling {verification.id} via 5sim (timeout={timeout_seconds:.0f}s)"
         )
 
+        # Compute interval once per session — avoids a DB query on every loop tick
+        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
         start_time = datetime.now(timezone.utc)
         while (
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
-            # Phase 12: Adaptive Intelligence
-            delay = self.adaptive.get_optimal_interval(
-                db, service=verification.service_name
-            )
 
             try:
                 messages = await adapter.check_messages(verification.activation_id)

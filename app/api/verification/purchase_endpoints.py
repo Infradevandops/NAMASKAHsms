@@ -41,7 +41,8 @@ async def _get_provider_price(service: str) -> Optional[float]:
     """Look up the real TextVerified price for a service from cache/API.
 
     Returns the raw provider cost (before markup) or None if unavailable.
-    Logs a warning on failure so silent swallowing is visible in monitoring.
+    If the cached entry has a null price (cache poisoned by names-only fallback),
+    performs a single live pricing call for this specific service before giving up.
     """
     try:
         services = await _tv_service.get_services_list()
@@ -50,14 +51,67 @@ async def _get_provider_price(service: str) -> Optional[float]:
                 price = s.get("price")
                 if price is not None and price > 0:
                     return price
+                # Cache hit but price is null — names-only cache was served.
+                # Do a single live pricing call for just this service.
                 logger.warning(
-                    f"Provider returned null/zero price for service '{service}'"
+                    f"Cached price null for '{service}', attempting live pricing fetch"
                 )
-                return None
-        logger.warning(f"Service '{service}' not found in provider service list")
-        return None
+                return await _fetch_single_service_price(service)
+        # Service not found in list at all — try live fetch directly
+        logger.warning(f"Service '{service}' not found in provider list, attempting live fetch")
+        return await _fetch_single_service_price(service)
     except Exception as e:
         logger.error(f"Failed to fetch provider price for '{service}': {e}")
+        return None
+
+
+async def _fetch_single_service_price(service: str) -> Optional[float]:
+    """Fetch pricing for a single service directly from TextVerified API.
+
+    Used as a recovery path when the services cache has null prices.
+    Writes the result back into the cache entry for this service.
+    """
+    try:
+        if not _tv_service.enabled or _tv_service.client is None:
+            return None
+
+        import asyncio as _asyncio
+        try:
+            from textverified.data import NumberType, ReservationCapability
+        except ImportError:
+            return None
+
+        snap = await _asyncio.wait_for(
+            _asyncio.to_thread(
+                _tv_service.client.verifications.pricing,
+                service_name=service,
+                area_code=False,
+                carrier=False,
+                number_type=NumberType.MOBILE,
+                capability=ReservationCapability.SMS,
+            ),
+            timeout=8.0,
+        )
+        price = float(snap.price) if snap and snap.price else None
+        if price and price > 0:
+            logger.info(f"Live price fetch succeeded for '{service}': ${price}")
+            # Patch the cache entry so the next request is served from cache
+            try:
+                from app.core.unified_cache import cache as _cache
+                from app.services.textverified_service import _SERVICES_CACHE_KEY, _SERVICES_TTL
+                cached = await _cache.get(_SERVICES_CACHE_KEY)
+                if cached:
+                    for entry in cached:
+                        if entry.get("id") == service:
+                            entry["price"] = price
+                            entry["cost"] = price
+                            break
+                    await _cache.set(_SERVICES_CACHE_KEY, cached, _SERVICES_TTL)
+            except Exception as patch_err:
+                logger.warning(f"Cache patch failed for '{service}': {patch_err}")
+        return price
+    except Exception as e:
+        logger.error(f"Live price fetch failed for '{service}': {e}")
         return None
 
 

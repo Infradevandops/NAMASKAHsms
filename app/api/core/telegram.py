@@ -331,7 +331,15 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
                 ))
 
             db.commit()
-            await telegram_service.send_test_message(chat_id)
+
+            greeting = first_name or username or "there"
+            await telegram_service.send_message(
+                chat_id,
+                f"✅ *Connected successfully, {greeting}!*\n\n"
+                "Your Vrenum account is now linked. You'll receive SMS verification "
+                "codes here instantly as they arrive.\n\n"
+                "Use /status to check your connection or /stop to disconnect.",
+            )
 
         # Handle /status command
         elif text == "/status":

@@ -3,6 +3,7 @@
 import asyncio
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from app.core.database import engine
 from app.core.init_admin import init_admin_user
@@ -276,6 +277,90 @@ async def lifespan(app):
 
             asyncio.create_task(start_abandoned_payment_cleanup())
             startup_logger.info("✅ Abandoned payment cleanup started (hourly)")
+
+            # Revenue-zero alert (daily at 18:00 UTC)
+            async def start_revenue_zero_monitor():
+                while True:
+                    try:
+                        now = datetime.now(timezone.utc)
+                        # Sleep until next 18:00 UTC
+                        target = now.replace(hour=18, minute=0, second=0, microsecond=0)
+                        if now >= target:
+                            target = target.replace(day=target.day + 1)
+                        await asyncio.sleep((target - now).total_seconds())
+
+                        from app.core.database import SessionLocal
+                        from app.services.alerting_service import alerting_service
+                        with SessionLocal() as db:
+                            fired = await alerting_service.check_revenue_zero(db)
+                            if fired:
+                                startup_logger.warning("🚨 Revenue-zero alert fired")
+                    except Exception as e:
+                        startup_logger.error(f"Revenue-zero monitor error: {e}")
+                    await asyncio.sleep(3600)  # retry after 1h on error
+
+            asyncio.create_task(start_revenue_zero_monitor())
+            startup_logger.info("✅ Revenue-zero monitor started (daily at 18:00 UTC)")
+
+            # Daily + weekly digest emails
+            async def start_digest_scheduler():
+                while True:
+                    try:
+                        from datetime import timedelta
+                        now = datetime.now(timezone.utc)
+                        # Sleep until next 08:00 UTC
+                        target = now.replace(hour=8, minute=0, second=0, microsecond=0)
+                        if now >= target:
+                            target += timedelta(days=1)
+                        await asyncio.sleep((target - now).total_seconds())
+
+                        now = datetime.now(timezone.utc)
+                        from app.core.database import SessionLocal
+                        from app.models.notification import Notification
+                        from app.models.user import User
+                        from app.services.email_service import email_service
+
+                        is_monday = now.weekday() == 0
+                        cutoff = now - timedelta(days=7 if is_monday else 1)
+
+                        with SessionLocal() as db:
+                            users = db.query(User).filter(
+                                User.is_active.is_(True),
+                                User.is_admin.is_(False),
+                            ).all()
+                            for user in users:
+                                try:
+                                    notifs = (
+                                        db.query(Notification)
+                                        .filter(
+                                            Notification.user_id == user.id,
+                                            Notification.is_read.is_(False),
+                                            Notification.created_at >= cutoff,
+                                        )
+                                        .order_by(Notification.created_at.desc())
+                                        .limit(20)
+                                        .all()
+                                    )
+                                    if not notifs:
+                                        continue
+                                    name = getattr(user, "display_name", None)
+                                    if is_monday:
+                                        stats = {"unread_notifications": len(notifs)}
+                                        await email_service.send_weekly_digest_email(
+                                            user.email, notifs, stats, user_name=name
+                                        )
+                                    else:
+                                        await email_service.send_daily_digest_email(
+                                            user.email, notifs, user_name=name
+                                        )
+                                except Exception as ue:
+                                    startup_logger.warning(f"Digest failed for {user.id}: {ue}")
+                    except Exception as e:
+                        startup_logger.error(f"Digest scheduler error: {e}")
+                    # Loop back — next sleep calculated at top
+
+            asyncio.create_task(start_digest_scheduler())
+            startup_logger.info("✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

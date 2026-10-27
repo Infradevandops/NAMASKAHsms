@@ -222,6 +222,7 @@ class EmailService:
                       If you didn't create a Vrenum account, you can safely ignore this email.
                     </p>
                   </div>
+                  {self._unsub_footer()}
                 </td>
               </tr>
               <tr>
@@ -287,6 +288,7 @@ class EmailService:
                       Your password will not change.
                     </p>
                   </div>
+                  {self._unsub_footer()}
                 </td>
               </tr>
               <!-- Footer -->

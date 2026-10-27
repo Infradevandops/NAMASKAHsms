@@ -718,7 +718,7 @@ MIT License - See [LICENSE](./LICENSE) file
 
 - **FastAPI** - Modern Python web framework
 - **Paystack** - Payment processing
-- **Render.com** - Hosting platform
+- **DigitalOcean** - Linux VM hosting (Docker Compose)
 
 ---
 

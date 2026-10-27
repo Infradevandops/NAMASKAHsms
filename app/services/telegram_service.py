@@ -110,9 +110,9 @@ class TelegramService:
             # Check service filter
             if (
                 rules.service_filter
-                and verification.service not in rules.service_filter
+                and verification.service_name not in rules.service_filter
             ):
-                logger.debug(f"Service {verification.service} not in filter, skipping")
+                logger.debug(f"Service {verification.service_name} not in filter, skipping")
                 return False
 
             # Check country filter
@@ -136,13 +136,13 @@ class TelegramService:
         else:
             time_str = "just now"
 
-        message = f"""🔔 **SMS Code Received**
+        message = f"""🔔 *SMS Code Received*
 
-Service: {verification.service or 'Unknown'}
+Service: {verification.service_name or 'Unknown'}
 Country: {verification.country or 'Unknown'} {flag}
-Number: {verification.phone_number or 'N/A'}
+Number: `{verification.phone_number or 'N/A'}`
 
-Code: **{verification.sms_code or 'Pending'}**
+*Code: `{verification.sms_code or 'Pending'}`*
 
 Received: {time_str}
 Verification ID: #{verification.id}

@@ -7,7 +7,6 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.verification import Verification
-from app.services.auto_refund_service import AutoRefundService
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -87,39 +86,20 @@ async def cancel_verification(
                         f"Provider cancellation failed for {verification.provider}: {provider_error}"
                     )
 
-        # 2. Mark as failed in DB
+        # 2. Mark as cancelled in DB — this internally calls AutoRefundService
+        # and commits. Do NOT call process_verification_refund again after this.
         from app.services.verification_status_service import (
             mark_verification_cancelled_by_user,
         )
 
         await mark_verification_cancelled_by_user(db, verification)
 
-        # 3. Process refund immediately
-        refund_service = AutoRefundService(db)
-        refund_result = await refund_service.process_verification_refund(
-            verification_id, "cancelled"
-        )
-
-        if refund_result:
-            logger.info(
-                f"Verification {verification_id} cancelled with refund: ${refund_result['refund_amount']:.2f}"
-            )
-            return {
-                "success": True,
-                "message": "Verification cancelled and refunded",
-                "verification_id": verification_id,
-                "refund_amount": refund_result["refund_amount"],
-                "new_balance": refund_result["new_balance"],
-            }
-        else:
-            logger.warning(
-                f"Refund failed for cancelled verification {verification_id}"
-            )
-            return {
-                "success": True,
-                "message": "Verification cancelled (refund pending)",
-                "verification_id": verification_id,
-            }
+        logger.info(f"Verification {verification_id} cancelled with refund")
+        return {
+            "success": True,
+            "message": "Verification cancelled and refunded",
+            "verification_id": verification_id,
+        }
 
     except Exception as e:
         db.rollback()

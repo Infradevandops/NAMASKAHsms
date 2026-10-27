@@ -84,7 +84,10 @@ class VerificationStatusService:
 
             if verification.activation_id:
                 try:
-                    # Multi-provider status bridge
+                    # Read-only status bridge: only update DB if the verification
+                    # has already reached a terminal state on the provider side.
+                    # Active pending verifications are owned by sms_polling_service
+                    # (background task) — writing here would race against it.
                     provider = verification.provider or "textverified"
                     incoming_code = None
                     incoming_text = None
@@ -122,45 +125,34 @@ class VerificationStatusService:
                             incoming_text = messages[-1].text
                             new_status = "completed"
 
+                    # Only write to DB if the provider reports a terminal state
+                    # that the background poller hasn't caught yet (e.g. worker died).
+                    # Never write "completed" here — that path belongs to the poller.
                     old_status = verification.status
+                    is_terminal = new_status in ("failed", "timeout", "cancelled", "expired")
 
-                    if incoming_code and incoming_code != verification.sms_code:
-                        # Success path
-                        from app.services.verification_status_service import (
-                            mark_sms_code_received,
-                        )
-
-                        await mark_sms_code_received(
-                            self.db, verification, incoming_code, incoming_text
-                        )
-                    elif new_status != old_status:
+                    if is_terminal and new_status != old_status:
                         verification.status = new_status
                         verification.updated_at = datetime.now(timezone.utc)
                         self.db.commit()
 
-                    if old_status != verification.status:
                         logger.info(
-                            f"Verification {verification_id} ({provider}) status changed: {old_status} -> {verification.status}"
+                            f"Verification {verification_id} ({provider}) terminal state "
+                            f"detected by status endpoint: {old_status} -> {new_status}"
                         )
 
-                        # Terminal failure handling
-                        if verification.status in ["failed", "timeout", "cancelled"]:
-                            from app.services.auto_refund_service import (
-                                AutoRefundService,
-                            )
+                        from app.services.auto_refund_service import AutoRefundService
+                        refund_service = AutoRefundService(self.db)
+                        await refund_service.process_verification_refund(
+                            verification_id, new_status
+                        )
 
-                            refund_service = AutoRefundService(self.db)
-                            await refund_service.process_verification_refund(
-                                verification_id, verification.status
-                            )
-
-                        # Update base_response with new status/text
                         base_response["status"] = verification.status
-                        base_response["sms_code"] = verification.sms_code
-                        base_response["sms_text"] = verification.sms_text
-                        base_response["updated_at"] = (
-                            verification.updated_at.isoformat()
-                        )
+                        base_response["updated_at"] = verification.updated_at.isoformat()
+
+                    # Surface code if already written by the background poller
+                    base_response["sms_code"] = verification.sms_code
+                    base_response["sms_text"] = verification.sms_text
 
                 except Exception as e:
                     logger.error(
@@ -168,12 +160,6 @@ class VerificationStatusService:
                     )
 
             return base_response
-
-        except Exception as e:
-            logger.error(f"Status polling failed for {verification_id}: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Status polling failed: {str(e)}"
-            )
 
         except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")

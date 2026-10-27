@@ -1,94 +1,101 @@
 """Alerting and notification service."""
 
 import logging
-from datetime import datetime
-from typing import Dict, List
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class AlertingService:
-    """Advanced alerting and notification system."""
-
-    def __init__(self):
-        self.alert_channels = {
-            "email": True,
-            "slack": True,
-            "webhook": True,
-            "sms": False,
-        }
-        self.alert_rules = {
-            "critical": {"cooldown": 300, "escalation": True},
-            "warning": {"cooldown": 900, "escalation": False},
-            "info": {"cooldown": 1800, "escalation": False},
-        }
+    """Alerting system — email admin on critical business events."""
 
     async def send_alert(self, alert: Dict) -> bool:
-        """Send alert through configured channels."""
+        """Route alert to configured channels (email only for now)."""
         try:
-            if self.alert_channels["email"]:
-                await self._send_email_alert(alert)
-            if self.alert_channels["slack"]:
-                await self._send_slack_alert(alert)
-            if self.alert_channels["webhook"]:
-                await self._send_webhook_alert(alert)
+            await self._send_email_alert(alert)
             return True
         except Exception as e:
-            logger.error(f"Alert sending failed: {e}", exc_info=True)
+            logger.error(f"Alert sending failed: {e}")
             return False
 
-    async def _send_email_alert(self, alert: Dict):
-        """Send email alert."""
-        print(f"📧 Email Alert: {alert['message']}")
-        logger.info("Email alert", extra={"alert_message": alert["message"]})
+    async def _send_email_alert(self, alert: Dict) -> None:
+        from app.core.config import get_settings
+        from app.services.email_service import email_service
 
-    async def _send_slack_alert(self, alert: Dict):
-        """Send Slack alert."""
-        severity_emoji = {"info": "ℹ️", "warning": "⚠️", "critical": "🚨"}.get(
-            alert.get("severity"), "ℹ️"
-        )
-        print(f"💬 Slack Alert: {severity_emoji} {alert['message']}")
-        logger.info(
-            "Slack alert",
-            extra={
-                "severity": alert.get("severity"),
-                "alert_message": alert["message"],
-            },
-        )
+        settings = get_settings()
+        admin_email = settings.effective_admin_notify_email
+        if not admin_email:
+            logger.warning("No admin_notify_email configured — alert dropped")
+            return
 
-    async def _send_webhook_alert(self, alert: Dict):
-        """Send webhook alert."""
-        print(f"🔗 Webhook Alert: {alert.get('type')} - {alert['message']}")
-        logger.info(
-            "Webhook alert",
-            extra={"alert_type": alert.get("type"), "alert_message": alert["message"]},
+        severity = alert.get("severity", "info")
+        emoji = {"info": "ℹ️", "warning": "⚠️", "critical": "🚨"}.get(severity, "ℹ️")
+        subject = f"{emoji} [{severity.upper()}] {alert.get('type', 'Alert')} — Vrenum"
+        html = (
+            f"<h2>{emoji} {alert.get('type', 'System Alert')}</h2>"
+            f"<p>{alert.get('message', '')}</p>"
+            f"<p style='color:#9ca3af;font-size:12px;'>Severity: {severity} · "
+            f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}</p>"
         )
+        await email_service._send(admin_email, subject, html)
+        logger.info(f"Alert emailed to {admin_email}: {alert.get('message', '')}")
+
+    async def check_revenue_zero(self, db) -> bool:
+        """Fire a critical alert if today's revenue is $0 at or after 18:00 UTC.
+        Returns True if alert was fired.
+        """
+        now = datetime.now(timezone.utc)
+        if now.hour < 18:
+            return False
+
+        try:
+            from sqlalchemy import text
+            result = db.execute(
+                text(
+                    "SELECT COALESCE(SUM(amount), 0) FROM transactions "
+                    "WHERE type = 'credit' AND created_at >= CURRENT_DATE"
+                )
+            ).scalar()
+            if float(result or 0) == 0.0:
+                await self.send_alert({
+                    "type": "revenue_zero",
+                    "severity": "critical",
+                    "message": (
+                        f"No revenue recorded today ({now.strftime('%Y-%m-%d')}). "
+                        "Paystack webhook may be down or payment flow is broken."
+                    ),
+                })
+                return True
+        except Exception as e:
+            logger.error(f"Revenue-zero check failed: {e}")
+        return False
 
     async def process_alert_batch(self, alerts: List[Dict]) -> Dict:
         """Process multiple alerts with deduplication."""
         if not alerts:
             return {"sent": 0, "deduplicated": 0}
 
-        grouped_alerts = {}
+        grouped: Dict[str, List] = {}
         for alert in alerts:
-            key = f"{alert['type']}_{alert['severity']}"
-            if key not in grouped_alerts:
-                grouped_alerts[key] = []
-            grouped_alerts[key].append(alert)
+            key = f"{alert['type']}_{alert.get('severity', 'info')}"
+            grouped.setdefault(key, []).append(alert)
 
-        sent_count = 0
-        deduplicated_count = 0
-
-        for group, group_alerts in grouped_alerts.items():
+        sent = 0
+        deduped = 0
+        for group_alerts in grouped.values():
             if len(group_alerts) > 1:
-                summary_alert = group_alerts[0].copy()
-                summary_alert["message"] = (
-                    f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
-                )
-                await self.send_alert(summary_alert)
-                deduplicated_count += len(group_alerts) - 1
+                summary = group_alerts[0].copy()
+                summary["message"] = f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                await self.send_alert(summary)
+                deduped += len(group_alerts) - 1
             else:
                 await self.send_alert(group_alerts[0])
-            sent_count += 1
+            sent += 1
 
-        return {"sent": sent_count, "deduplicated": deduplicated_count}
+        return {"sent": sent, "deduplicated": deduped}
+
+
+alerting_service = AlertingService()

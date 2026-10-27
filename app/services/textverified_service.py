@@ -243,8 +243,20 @@ class TextVerifiedService:
                     if s["id"] not in seen:
                         seen[s["id"]] = s
                 deduped = list(seen.values())
-                logger.info(f"Returning {len(deduped)} services from cache")
-                return deduped
+                # Validate: if this cache was poisoned with null prices, evict it
+                # so the next request re-fetches live pricing.
+                has_prices = any(s.get("price") is not None for s in deduped)
+                if not has_prices:
+                    logger.warning(
+                        "Services cache contains only null prices — evicting poisoned cache"
+                    )
+                    try:
+                        await cache.set(_SERVICES_CACHE_KEY, None, 1)  # expire immediately
+                    except Exception:
+                        pass
+                else:
+                    logger.info(f"Returning {len(deduped)} services from cache")
+                    return deduped
         except Exception as e:
             logger.warning(f"Cache read failed: {e}")
 
@@ -298,13 +310,26 @@ class TextVerifiedService:
                     priced = await asyncio.wait_for(
                         self._fetch_prices_inline(unique_services), timeout=12.0
                     )
-                    try:
-                        await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
-                        await cache.set(
-                            _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
+                    # Only write to the long-lived cache if ALL entries have real prices.
+                    # Partial pricing (some None) must not poison the 24h cache.
+                    fully_priced = [r for r in priced if r.get("price") is not None]
+                    if len(fully_priced) == len(priced):
+                        try:
+                            await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
+                            await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                        except Exception as e:
+                            logger.warning(f"Failed to cache services: {e}")
+                    else:
+                        # Partial: cache names-only (short TTL), background fills prices
+                        logger.warning(
+                            f"Inline pricing partial: {len(fully_priced)}/{len(priced)} priced. "
+                            "Caching names only, background task will fill prices."
                         )
-                    except Exception as e:
-                        logger.warning(f"Failed to cache services: {e}")
+                        try:
+                            await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                        except Exception as e:
+                            logger.warning(f"Failed to cache services: {e}")
+                        asyncio.create_task(self._fetch_and_cache_pricing(unique_services))
                     return priced
                 except (asyncio.TimeoutError, Exception) as e:
                     logger.warning(
@@ -312,6 +337,9 @@ class TextVerifiedService:
                     )
 
                 # Fallback: return without prices, background fetch
+                # CRITICAL: Do NOT write null-price entries to _SERVICES_CACHE_KEY (24h).
+                # Only write to _SERVICES_NAMES_CACHE_KEY so _get_provider_price can
+                # detect the null and trigger a live single-service fetch.
                 result = [
                     {
                         "id": s.service_name,
@@ -583,6 +611,8 @@ class TextVerifiedService:
         """Get full VerificationExpanded details from TextVerified.
 
         Use this to read the real state, ends_at, and action flags.
+        created_at_dt / ends_at_dt are raw datetime objects — use these
+        when constructing objects passed to poll_sms_standard().
         """
         if not self.enabled:
             return {}
@@ -597,7 +627,9 @@ class TextVerifiedService:
                 "carrier": getattr(tv, "carrier", None)
                 or getattr(tv, "carrier_name", None),
                 "created_at": tv.created_at.isoformat(),
+                "created_at_dt": tv.created_at,   # raw datetime for sms.incoming()
                 "ends_at": tv.ends_at.isoformat(),
+                "ends_at_dt": tv.ends_at,          # raw datetime for timeout calc
                 "total_cost": tv.total_cost,
                 "can_cancel": tv.cancel.can_cancel,
                 "can_report": tv.report.can_report,

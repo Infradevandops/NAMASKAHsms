@@ -117,6 +117,7 @@ async def cancel_settlement(
         raise HTTPException(status_code=500, detail="Failed to cancel settlement")
 
 
+@router.post("/settlements/approve/{reference}")
 async def approve_settlement(
     reference: str,
     admin_id: str = Depends(require_admin),
@@ -156,6 +157,20 @@ async def approve_settlement(
                 tx.status = "completed"
 
             db.commit()
+
+            # Wire crypto revenue into recognition table so dashboard totals include it
+            try:
+                from app.services.revenue_recognition_service import RevenueRecognitionService
+                if tx:
+                    await RevenueRecognitionService(db).recognize_revenue(
+                        transaction_id=tx.id,
+                        gross_amount=float(intent.amount_usd),
+                        provider_cost=0.0,
+                        tax_jurisdiction="US",
+                    )
+            except Exception as rev_err:
+                logger.warning(f"Revenue recognition failed for {reference} (non-critical): {rev_err}")
+
             return {
                 "status": "success",
                 "message": f"Settled ${intent.amount_usd} to {user.email}",
