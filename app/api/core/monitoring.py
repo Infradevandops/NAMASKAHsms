@@ -91,9 +91,11 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
                 else float(balance_data.get("balance", balance_data.get("credits", 0)))
             )
             checks["textverified"] = {
-                "status": "healthy"
-                if balance > THRESHOLDS["textverified_balance"]
-                else "warning",
+                "status": (
+                    "healthy"
+                    if balance > THRESHOLDS["textverified_balance"]
+                    else "warning"
+                ),
                 "balance": f"${balance:.2f}",
                 "enabled": True,
             }

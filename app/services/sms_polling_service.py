@@ -570,9 +570,7 @@ class SMSPollingService:
                         extracted_code = (
                             hyphen[-1].replace("-", "")
                             if hyphen
-                            else plain[-1]
-                            if plain
-                            else None
+                            else plain[-1] if plain else None
                         )
 
                     if extracted_code:

@@ -66,9 +66,9 @@ class SecurityHeadersMiddleware:
                 headers["X-XSS-Protection"] = "1; mode=block"
                 headers["Content-Security-Policy"] = csp_policy
                 headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-                headers[
-                    "Permissions-Policy"
-                ] = "geolocation=(), microphone=(), camera=()"
+                headers["Permissions-Policy"] = (
+                    "geolocation=(), microphone=(), camera=()"
+                )
                 headers["Cross-Origin-Opener-Policy"] = "same-origin"
                 forwarded_proto = (
                     dict(scope.get("headers", []))
@@ -76,9 +76,9 @@ class SecurityHeadersMiddleware:
                     .decode()
                 )
                 if is_production and forwarded_proto == "https":
-                    headers[
-                        "Strict-Transport-Security"
-                    ] = "max-age=31536000; includeSubDomains"
+                    headers["Strict-Transport-Security"] = (
+                        "max-age=31536000; includeSubDomains"
+                    )
             await send(message)
 
         await self.app(scope, receive, send_with_headers)

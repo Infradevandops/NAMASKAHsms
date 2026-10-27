@@ -98,9 +98,11 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         try:
             password_match = bcrypt.checkpw(
                 login_data.password.encode("utf-8"),
-                user.password_hash.encode("utf-8")
-                if isinstance(user.password_hash, str)
-                else user.password_hash,
+                (
+                    user.password_hash.encode("utf-8")
+                    if isinstance(user.password_hash, str)
+                    else user.password_hash
+                ),
             )
         except (ValueError, TypeError, Exception) as e:
             logger.warning(f"Password verification error for {user.email}: {e}")

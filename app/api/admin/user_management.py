@@ -427,9 +427,7 @@ async def get_user_activity(
                 "action_type": (
                     "admin_action"
                     if "admin" in log.action
-                    else "tier_change"
-                    if "tier" in log.action
-                    else "login"
+                    else "tier_change" if "tier" in log.action else "login"
                 ),
                 "description": log.action.replace("_", " ").title(),
                 "metadata": log.details,

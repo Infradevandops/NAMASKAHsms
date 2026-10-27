@@ -198,9 +198,11 @@ def get_cohort_analysis(
                         2,
                     ),
                     "day_30_retention": round(
-                        (day_30_retention / cohort_size * 100)
-                        if cohort_size > 0
-                        else 0,
+                        (
+                            (day_30_retention / cohort_size * 100)
+                            if cohort_size > 0
+                            else 0
+                        ),
                         2,
                     ),
                 }
@@ -256,9 +258,9 @@ def get_at_risk_users(
                     "user_id": str(user.id),
                     "email": user.email,
                     "credits": float(user.credits),
-                    "last_activity": last_event.created_at.isoformat()
-                    if last_event
-                    else None,
+                    "last_activity": (
+                        last_event.created_at.isoformat() if last_event else None
+                    ),
                     "verification_count": verification_count,
                     "days_inactive": (
                         datetime.now(timezone.utc)

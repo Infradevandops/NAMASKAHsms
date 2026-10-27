@@ -90,23 +90,23 @@ async def check_area_code_availability(
         }
 
         if status == "available":
-            response[
-                "message"
-            ] = f"{area_code} is available for {service} based on recent activity."
+            response["message"] = (
+                f"{area_code} is available for {service} based on recent activity."
+            )
 
         elif status == "unknown":
-            response[
-                "message"
-            ] = f"No availability data yet for {area_code} + {service}. You can proceed \u2014 if unavailable, you won't be charged."
+            response["message"] = (
+                f"No availability data yet for {area_code} + {service}. You can proceed \u2014 if unavailable, you won't be charged."
+            )
             # Show unknowns their alternatives as well just in case they decide to switch.
             response["alternatives"] = await _build_alternatives(
                 db, service, area_code, supported_strings
             )
 
         elif status == "unavailable":
-            response[
-                "message"
-            ] = f"{area_code} is not available for {service}. Select from nearby area codes."
+            response["message"] = (
+                f"{area_code} is not available for {service}. Select from nearby area codes."
+            )
             response["alternatives"] = await _build_alternatives(
                 db, service, area_code, supported_strings
             )

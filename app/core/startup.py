@@ -228,7 +228,9 @@ def ensure_admin_user():
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
+            logger.info(
+                f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})"
+            )
 
             # Check if password is already correct
             if existing_admin.password_hash:

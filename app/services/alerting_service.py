@@ -91,9 +91,9 @@ class AlertingService:
         for group_alerts in grouped.values():
             if len(group_alerts) > 1:
                 summary = group_alerts[0].copy()
-                summary[
-                    "message"
-                ] = f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                summary["message"] = (
+                    f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                )
                 await self.send_alert(summary)
                 deduped += len(group_alerts) - 1
             else:

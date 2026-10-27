@@ -310,9 +310,9 @@ class ProviderRouter:
                             "city": city_for_provider,
                         }
                         if secondary.name == "textverified":
-                            secondary_kwargs[
-                                "selected_from_alternatives"
-                            ] = selected_from_alternatives
+                            secondary_kwargs["selected_from_alternatives"] = (
+                                selected_from_alternatives
+                            )
                             secondary_kwargs["original_request"] = original_request
 
                         result = await secondary.purchase_number(**secondary_kwargs)

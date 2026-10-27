@@ -154,9 +154,9 @@ class VerificationStatusService:
                         )
 
                         base_response["status"] = verification.status
-                        base_response[
-                            "updated_at"
-                        ] = verification.updated_at.isoformat()
+                        base_response["updated_at"] = (
+                            verification.updated_at.isoformat()
+                        )
 
                     # Surface code if already written by the background poller
                     base_response["sms_code"] = verification.sms_code
