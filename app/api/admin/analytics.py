@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.verification import Verification
-from app.models.transaction import Transaction
 from app.services.event_tracking_service import EventTrackingService
 
 router = APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])

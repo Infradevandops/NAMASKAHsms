@@ -238,8 +238,8 @@ class PaymentService:
 
             # Notify user
             try:
-                from app.services.notification_dispatcher import NotificationDispatcher
                 from app.services.email_service import email_service
+                from app.services.notification_dispatcher import NotificationDispatcher
 
                 dispatcher = NotificationDispatcher(self.db)
                 _fire(

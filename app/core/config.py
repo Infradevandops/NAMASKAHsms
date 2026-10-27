@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     def set_database_url(cls, v):
         """Prioritize DATABASE_URL env var, fallback to SQLite only in dev."""
         import os
+
         # Check environment variable first
         env_url = os.getenv("DATABASE_URL")
         if env_url:

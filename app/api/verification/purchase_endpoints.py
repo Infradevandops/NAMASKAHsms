@@ -19,6 +19,7 @@ from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
 from app.services.balance_service import BalanceService
+from app.services.event_tracking_service import EventTrackingService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.pricing_calculator import PricingCalculator
@@ -27,7 +28,6 @@ from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
-from app.services.event_tracking_service import EventTrackingService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -98,7 +98,10 @@ async def _fetch_single_service_price(service: str) -> Optional[float]:
             # Patch the cache entry so the next request is served from cache
             try:
                 from app.core.unified_cache import cache as _cache
-                from app.services.textverified_service import _SERVICES_CACHE_KEY, _SERVICES_TTL
+                from app.services.textverified_service import (
+                    _SERVICES_CACHE_KEY,
+                    _SERVICES_TTL,
+                )
                 cached = await _cache.get(_SERVICES_CACHE_KEY)
                 if cached:
                     for entry in cached:

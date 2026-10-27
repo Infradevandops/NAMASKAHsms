@@ -160,7 +160,9 @@ async def approve_settlement(
 
             # Wire crypto revenue into recognition table so dashboard totals include it
             try:
-                from app.services.revenue_recognition_service import RevenueRecognitionService
+                from app.services.revenue_recognition_service import (
+                    RevenueRecognitionService,
+                )
                 if tx:
                     await RevenueRecognitionService(db).recognize_revenue(
                         transaction_id=tx.id,

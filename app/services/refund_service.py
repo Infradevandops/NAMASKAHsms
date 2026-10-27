@@ -122,6 +122,7 @@ class RefundService:
                 # Send refund notification email (non-blocking)
                 try:
                     import asyncio
+
                     from app.services.email_service import email_service
 
                     display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
@@ -193,6 +194,7 @@ class RefundService:
             # Send refund notification email (non-blocking)
             try:
                 import asyncio
+
                 from app.services.email_service import email_service
                 
                 display_name = getattr(user, "display_name", None) or user.email.split("@")[0]

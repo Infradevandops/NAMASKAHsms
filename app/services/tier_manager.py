@@ -141,6 +141,7 @@ class TierManager:
         # Send tier upgrade email (non-blocking)
         try:
             import asyncio
+
             from app.services.email_service import email_service
 
             _features_map = {

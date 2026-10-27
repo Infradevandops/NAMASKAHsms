@@ -77,8 +77,8 @@ from .tax_report import (
 from .telegram import TelegramConnection, TelegramForwardingRule
 from .transaction import PaymentLog, Transaction
 from .user import NotificationSettings, Referral, Subscription, User, Webhook
-from .user_preference import UserPreference
 from .user_event import UserEvent
+from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
 from .whitelabel_models import (

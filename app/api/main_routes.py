@@ -23,6 +23,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Inject app_version as a Jinja2 global so all templates can use {{ app_version }}
 from app.core.config import get_settings as _get_settings
+
 templates.env.globals["app_version"] = _get_settings().version.replace(".", "")
 
 
@@ -971,7 +972,7 @@ async def sitemap(db: Session = Depends(get_db)):
     from datetime import datetime
 
     from fastapi.responses import Response
-    
+
     # Static pages
     urls = [
         ("https://vrenum.app", datetime.now()),
