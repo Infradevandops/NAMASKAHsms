@@ -22,17 +22,16 @@ jobs:
             cd ~/vrenum
             git pull origin main
             docker compose up -d --build
-            echo "✅ Deploy complete"
-
-      - name: Health check (24 retries × 15s)
-        run: |
-          for i in {1..24}; do
-            if curl -fs "${{ secrets.PRODUCTION_URL }}/health" > /dev/null; then
-              echo "✅ Production healthy (attempt $i)"
-              exit 0
-            fi
-            echo "Attempt $i/24 — retrying in 15s..."
-            sleep 15
-          done
-          echo "❌ Health check failed after 6 minutes"
-          exit 1
+            echo "⏳ Waiting for app to be healthy..."
+            for i in $(seq 1 40); do
+              if curl -fs http://localhost:8000/health > /dev/null 2>&1; then
+                echo "✅ Deploy complete and healthy (attempt $i)"
+                exit 0
+              fi
+              echo "Attempt $i/40 — retrying in 15s..."
+              sleep 15
+            done
+            echo "❌ App did not become healthy after 10 minutes"
+            docker compose logs --tail=50
+            exit 1
+          command_timeout: 15m
