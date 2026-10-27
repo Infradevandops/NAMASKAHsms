@@ -125,7 +125,9 @@ class RefundService:
 
                     from app.services.email_service import email_service
 
-                    display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+                    display_name = (
+                        getattr(user, "display_name", None) or user.email.split("@")[0]
+                    )
                     asyncio.create_task(
                         email_service.send_refund_notification(
                             user.email,
@@ -135,11 +137,13 @@ class RefundService:
                                 "reason": ", ".join(reasons),
                                 "new_balance": float(user.credits),
                                 "user_name": display_name,
-                            }
+                            },
                         )
                     )
                 except Exception as _e:
-                    logger.warning(f"Refund notification email failed (non-critical): {_e}")
+                    logger.warning(
+                        f"Refund notification email failed (non-critical): {_e}"
+                    )
 
                 return {
                     "refund_issued": True,
@@ -196,8 +200,10 @@ class RefundService:
                 import asyncio
 
                 from app.services.email_service import email_service
-                
-                display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+
+                display_name = (
+                    getattr(user, "display_name", None) or user.email.split("@")[0]
+                )
                 asyncio.create_task(
                     email_service.send_refund_notification(
                         user.email,
@@ -206,8 +212,8 @@ class RefundService:
                             "amount": refund_amount,
                             "reason": ", ".join(reasons),
                             "new_balance": float(user.credits),
-                            "user_name": display_name
-                        }
+                            "user_name": display_name,
+                        },
                     )
                 )
             except Exception as _e:

@@ -58,7 +58,9 @@ class EventTrackingService:
             user_agent,
         )
 
-    def track_signup(self, user_id: str, event_data: Optional[Dict] = None) -> UserEvent:
+    def track_signup(
+        self, user_id: str, event_data: Optional[Dict] = None
+    ) -> UserEvent:
         """Track user signup event."""
         return self.track_event(
             user_id=user_id,
@@ -89,7 +91,9 @@ class EventTrackingService:
         event_data: Optional[Dict] = None,
     ) -> UserEvent:
         """Track verification event."""
-        event_type = UserEvent.VERIFICATION_SUCCESS if success else UserEvent.VERIFICATION_FAILED
+        event_type = (
+            UserEvent.VERIFICATION_SUCCESS if success else UserEvent.VERIFICATION_FAILED
+        )
         return self.track_event(
             user_id=user_id,
             event_type=event_type,
@@ -108,7 +112,9 @@ class EventTrackingService:
         event_data: Optional[Dict] = None,
     ) -> UserEvent:
         """Track tier upgrade/downgrade event."""
-        event_type = UserEvent.TIER_UPGRADE if to_tier > from_tier else UserEvent.TIER_DOWNGRADE
+        event_type = (
+            UserEvent.TIER_UPGRADE if to_tier > from_tier else UserEvent.TIER_DOWNGRADE
+        )
         return self.track_event(
             user_id=user_id,
             event_type=event_type,
@@ -127,7 +133,9 @@ class EventTrackingService:
         event_data: Optional[Dict] = None,
     ) -> UserEvent:
         """Track payment event."""
-        event_type = UserEvent.PAYMENT_COMPLETED if success else UserEvent.PAYMENT_FAILED
+        event_type = (
+            UserEvent.PAYMENT_COMPLETED if success else UserEvent.PAYMENT_FAILED
+        )
         return self.track_event(
             user_id=user_id,
             event_type=event_type,
@@ -220,7 +228,9 @@ class EventTrackingService:
 
             # Get event type breakdown
             event_types = (
-                self.db.query(UserEvent.event_type, __import__("sqlalchemy").func.count())
+                self.db.query(
+                    UserEvent.event_type, __import__("sqlalchemy").func.count()
+                )
                 .group_by(UserEvent.event_type)
                 .all()
             )

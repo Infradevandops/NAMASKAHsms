@@ -129,7 +129,12 @@ class VerificationStatusService:
                     # that the background poller hasn't caught yet (e.g. worker died).
                     # Never write "completed" here — that path belongs to the poller.
                     old_status = verification.status
-                    is_terminal = new_status in ("failed", "timeout", "cancelled", "expired")
+                    is_terminal = new_status in (
+                        "failed",
+                        "timeout",
+                        "cancelled",
+                        "expired",
+                    )
 
                     if is_terminal and new_status != old_status:
                         verification.status = new_status
@@ -142,13 +147,16 @@ class VerificationStatusService:
                         )
 
                         from app.services.auto_refund_service import AutoRefundService
+
                         refund_service = AutoRefundService(self.db)
                         await refund_service.process_verification_refund(
                             verification_id, new_status
                         )
 
                         base_response["status"] = verification.status
-                        base_response["updated_at"] = verification.updated_at.isoformat()
+                        base_response[
+                            "updated_at"
+                        ] = verification.updated_at.isoformat()
 
                     # Surface code if already written by the background poller
                     base_response["sms_code"] = verification.sms_code

@@ -197,9 +197,9 @@ class DocumentService:
                     )
 
                     if document_type in ["passport", "license", "id_card"]:
-                        extracted_data["document_analysis"] = (
-                            await self._analyze_id_document(img)
-                        )
+                        extracted_data[
+                            "document_analysis"
+                        ] = await self._analyze_id_document(img)
                     elif document_type == "selfie":
                         extracted_data["face_analysis"] = await self._analyze_selfie(
                             img

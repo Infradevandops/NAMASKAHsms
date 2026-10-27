@@ -92,6 +92,7 @@ async def mark_sms_code_received(
     # Track verification success event
     try:
         from app.services.event_tracking_service import EventTrackingService
+
         event_service = EventTrackingService(db)
         event_service.track_verification(
             user_id=str(verification.user_id),
@@ -101,11 +102,12 @@ async def mark_sms_code_received(
             event_data={
                 "verification_id": str(verification.id),
                 "country": verification.country,
-                "sms_code": sms_code[:4] if sms_code else None
-            }
+                "sms_code": sms_code[:4] if sms_code else None,
+            },
         )
     except Exception as e:
         from app.core.logging import get_logger
+
         logger = get_logger(__name__)
         logger.warning(f"Failed to track verification success event: {e}")
 

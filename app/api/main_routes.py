@@ -986,17 +986,20 @@ async def sitemap(db: Session = Depends(get_db)):
         ("https://vrenum.app/terms", datetime.now()),
         ("https://vrenum.app/blog/whatsapp-verification", datetime.now()),
         ("https://vrenum.app/blog/usa-virtual-phone-numbers", datetime.now()),
-        ("https://vrenum.app/blog/how-to-verify-whatsapp-without-phone-number", datetime.now()),
+        (
+            "https://vrenum.app/blog/how-to-verify-whatsapp-without-phone-number",
+            datetime.now(),
+        ),
         ("https://vrenum.app/blog/temporary-phone-number-for-telegram", datetime.now()),
         ("https://vrenum.app/blog/best-sms-verification-services", datetime.now()),
     ]
-    
+
     # Generate XML
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for url, lastmod in urls:
-        xml += f'  <url>\n    <loc>{url}</loc>\n'
-        xml += f'    <lastmod>{lastmod.isoformat()}</lastmod>\n  </url>\n'
-    xml += '</urlset>'
+        xml += f"  <url>\n    <loc>{url}</loc>\n"
+        xml += f"    <lastmod>{lastmod.isoformat()}</lastmod>\n  </url>\n"
+    xml += "</urlset>"
 
     return Response(content=xml, media_type="application/xml")

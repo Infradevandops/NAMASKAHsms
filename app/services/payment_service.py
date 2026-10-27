@@ -217,15 +217,17 @@ class PaymentService:
             # Track payment event
             try:
                 from app.services.event_tracking_service import EventTrackingService
+
                 event_service = EventTrackingService(self.db)
                 event_service.track_payment(
                     user_id=user_id,
                     amount=amount,
                     success=True,
-                    event_data={"reference": reference, "payment_method": "paystack"}
+                    event_data={"reference": reference, "payment_method": "paystack"},
                 )
             except Exception as e:
                 logger.warning(f"Failed to track payment event: {e}")
+
             def _fire(coro):
                 try:
                     loop = asyncio.get_event_loop()
@@ -247,9 +249,11 @@ class PaymentService:
                         user_id=user_id, amount=amount, new_balance=float(user.credits)
                     )
                 )
-                
+
                 # Send payment receipt email with user name
-                display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+                display_name = (
+                    getattr(user, "display_name", None) or user.email.split("@")[0]
+                )
                 _fire(
                     email_service.send_payment_receipt(
                         user.email,
@@ -258,9 +262,11 @@ class PaymentService:
                             "amount_usd": amount,
                             "credits_added": amount,
                             "new_balance": float(user.credits),
-                            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-                            "user_name": display_name
-                        }
+                            "timestamp": datetime.now(timezone.utc).strftime(
+                                "%Y-%m-%d %H:%M UTC"
+                            ),
+                            "user_name": display_name,
+                        },
                     )
                 )
             except Exception as e:

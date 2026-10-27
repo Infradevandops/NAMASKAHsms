@@ -105,6 +105,7 @@ async def upgrade_tier(
             # Track tier change event
             try:
                 from app.services.event_tracking_service import EventTrackingService
+
                 EventTrackingService(db).track_tier_change(
                     user_id=user_id,
                     from_tier=current_tier,

@@ -163,6 +163,7 @@ async def approve_settlement(
                 from app.services.revenue_recognition_service import (
                     RevenueRecognitionService,
                 )
+
                 if tx:
                     await RevenueRecognitionService(db).recognize_revenue(
                         transaction_id=tx.id,
@@ -171,7 +172,9 @@ async def approve_settlement(
                         tax_jurisdiction="US",
                     )
             except Exception as rev_err:
-                logger.warning(f"Revenue recognition failed for {reference} (non-critical): {rev_err}")
+                logger.warning(
+                    f"Revenue recognition failed for {reference} (non-critical): {rev_err}"
+                )
 
             return {
                 "status": "success",

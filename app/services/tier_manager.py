@@ -130,6 +130,7 @@ class TierManager:
 
         try:
             from app.services.event_tracking_service import EventTrackingService
+
             EventTrackingService(self.db).track_tier_change(
                 user_id=user_id,
                 from_tier=old_tier,
@@ -145,11 +146,28 @@ class TierManager:
             from app.services.email_service import email_service
 
             _features_map = {
-                "payg": ["Location filters (+$0.25)", "ISP filters (+$0.50)", "Pay only when you use"],
-                "pro": ["$15/mo quota included", "API access (10 keys)", "Location & ISP filters", "Priority support", "Affiliate program"],
-                "custom": ["$25/mo quota included", "Unlimited API keys", "Dedicated support", "Enhanced affiliate"],
+                "payg": [
+                    "Location filters (+$0.25)",
+                    "ISP filters (+$0.50)",
+                    "Pay only when you use",
+                ],
+                "pro": [
+                    "$15/mo quota included",
+                    "API access (10 keys)",
+                    "Location & ISP filters",
+                    "Priority support",
+                    "Affiliate program",
+                ],
+                "custom": [
+                    "$25/mo quota included",
+                    "Unlimited API keys",
+                    "Dedicated support",
+                    "Enhanced affiliate",
+                ],
             }
-            display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
+            display_name = (
+                getattr(user, "display_name", None) or user.email.split("@")[0]
+            )
             asyncio.create_task(
                 email_service.send_tier_upgrade_email(
                     user_email=user.email,
@@ -179,6 +197,7 @@ class TierManager:
 
         try:
             from app.services.event_tracking_service import EventTrackingService
+
             EventTrackingService(self.db).track_tier_change(
                 user_id=user_id,
                 from_tier=old_tier,

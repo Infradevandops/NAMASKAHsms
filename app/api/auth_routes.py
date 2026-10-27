@@ -97,16 +97,24 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
         try:
             password_match = bcrypt.checkpw(
-                login_data.password.encode("utf-8"), user.password_hash.encode("utf-8") if isinstance(user.password_hash, str) else user.password_hash
+                login_data.password.encode("utf-8"),
+                user.password_hash.encode("utf-8")
+                if isinstance(user.password_hash, str)
+                else user.password_hash,
             )
         except (ValueError, TypeError, Exception) as e:
             logger.warning(f"Password verification error for {user.email}: {e}")
             try:
                 from passlib.context import CryptContext
+
                 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-                password_match = pwd_context.verify(login_data.password, user.password_hash)
+                password_match = pwd_context.verify(
+                    login_data.password, user.password_hash
+                )
             except Exception as fallback_err:
-                logger.warning(f"Fallback password verification also failed: {fallback_err}")
+                logger.warning(
+                    f"Fallback password verification also failed: {fallback_err}"
+                )
                 password_match = False
 
         if not password_match:
@@ -179,7 +187,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             event_service.track_login(
                 user_id=str(user.id),
                 ip_address=None,  # Would need request context to get this
-                user_agent=None
+                user_agent=None,
             )
         except Exception as e:
             logger.warning(f"Failed to track login event: {e}")
@@ -239,6 +247,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
 
         # Hash password using passlib for consistency
         from passlib.context import CryptContext
+
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         password_hash = pwd_context.hash(register_data.password)
 
@@ -267,8 +276,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         try:
             event_service = EventTrackingService(db)
             event_service.track_signup(
-                user_id=str(user.id),
-                event_data={"email": user.email}
+                user_id=str(user.id), event_data={"email": user.email}
             )
         except Exception as e:
             logger.warning(f"Failed to track signup event: {e}")

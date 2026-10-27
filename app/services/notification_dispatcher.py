@@ -52,7 +52,8 @@ class NotificationDispatcher:
                     email_service.send_notification_email(
                         user_email=user.email,
                         notification=notification,
-                        user_name=getattr(user, "display_name", None) or user.email.split("@")[0],
+                        user_name=getattr(user, "display_name", None)
+                        or user.email.split("@")[0],
                     )
                 )
         except Exception as _e:

@@ -14,13 +14,20 @@ class UserEvent(Base):
 
     __tablename__ = "user_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: __import__("uuid").uuid4())
+    id = Column(
+        UUID(as_uuid=True), primary_key=True, default=lambda: __import__("uuid").uuid4()
+    )
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     event_type = Column(String(50), nullable=False, index=True)
     event_data = Column(JSONB, nullable=True, default={})
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+    )
 
     __table_args__ = (
         Index("idx_user_event_type", "user_id", "event_type"),

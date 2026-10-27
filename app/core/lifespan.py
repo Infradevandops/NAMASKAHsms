@@ -291,6 +291,7 @@ async def lifespan(app):
 
                         from app.core.database import SessionLocal
                         from app.services.alerting_service import alerting_service
+
                         with SessionLocal() as db:
                             fired = await alerting_service.check_revenue_zero(db)
                             if fired:
@@ -307,6 +308,7 @@ async def lifespan(app):
                 while True:
                     try:
                         from datetime import timedelta
+
                         now = datetime.now(timezone.utc)
                         # Sleep until next 08:00 UTC
                         target = now.replace(hour=8, minute=0, second=0, microsecond=0)
@@ -324,10 +326,14 @@ async def lifespan(app):
                         cutoff = now - timedelta(days=7 if is_monday else 1)
 
                         with SessionLocal() as db:
-                            users = db.query(User).filter(
-                                User.is_active.is_(True),
-                                User.is_admin.is_(False),
-                            ).all()
+                            users = (
+                                db.query(User)
+                                .filter(
+                                    User.is_active.is_(True),
+                                    User.is_admin.is_(False),
+                                )
+                                .all()
+                            )
                             for user in users:
                                 try:
                                     notifs = (
@@ -354,13 +360,17 @@ async def lifespan(app):
                                             user.email, notifs, user_name=name
                                         )
                                 except Exception as ue:
-                                    startup_logger.warning(f"Digest failed for {user.id}: {ue}")
+                                    startup_logger.warning(
+                                        f"Digest failed for {user.id}: {ue}"
+                                    )
                     except Exception as e:
                         startup_logger.error(f"Digest scheduler error: {e}")
                     # Loop back — next sleep calculated at top
 
             asyncio.create_task(start_digest_scheduler())
-            startup_logger.info("✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)")
+            startup_logger.info(
+                "✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)"
+            )
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

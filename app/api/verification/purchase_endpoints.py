@@ -58,7 +58,9 @@ async def _get_provider_price(service: str) -> Optional[float]:
                 )
                 return await _fetch_single_service_price(service)
         # Service not found in list at all — try live fetch directly
-        logger.warning(f"Service '{service}' not found in provider list, attempting live fetch")
+        logger.warning(
+            f"Service '{service}' not found in provider list, attempting live fetch"
+        )
         return await _fetch_single_service_price(service)
     except Exception as e:
         logger.error(f"Failed to fetch provider price for '{service}': {e}")
@@ -76,6 +78,7 @@ async def _fetch_single_service_price(service: str) -> Optional[float]:
             return None
 
         import asyncio as _asyncio
+
         try:
             from textverified.data import NumberType, ReservationCapability
         except ImportError:
@@ -102,6 +105,7 @@ async def _fetch_single_service_price(service: str) -> Optional[float]:
                     _SERVICES_CACHE_KEY,
                     _SERVICES_TTL,
                 )
+
                 cached = await _cache.get(_SERVICES_CACHE_KEY)
                 if cached:
                     for entry in cached:
@@ -437,7 +441,10 @@ async def request_verification(
                     service_name=request.service,
                     success=False,  # Initial creation, not success yet
                     cost=actual_cost,
-                    event_data={"verification_id": str(verification.id), "country": request.country}
+                    event_data={
+                        "verification_id": str(verification.id),
+                        "country": request.country,
+                    },
                 )
             except Exception as e:
                 logger.warning(f"Failed to track verification event: {e}")

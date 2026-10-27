@@ -228,9 +228,7 @@ def ensure_admin_user():
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            logger.info(
-                f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})"
-            )
+            logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
 
             # Check if password is already correct
             if existing_admin.password_hash:
@@ -238,7 +236,11 @@ def ensure_admin_user():
                     if verify_password(admin_password, existing_admin.password_hash):
                         logger.info("✅ Admin password already correct")
                         # Still ensure admin flags are set
-                        if not existing_admin.is_admin or existing_admin.is_suspended or existing_admin.is_banned:
+                        if (
+                            not existing_admin.is_admin
+                            or existing_admin.is_suspended
+                            or existing_admin.is_banned
+                        ):
                             existing_admin.is_admin = True
                             existing_admin.is_suspended = False
                             existing_admin.is_banned = False

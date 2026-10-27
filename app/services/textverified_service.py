@@ -251,7 +251,9 @@ class TextVerifiedService:
                         "Services cache contains only null prices — evicting poisoned cache"
                     )
                     try:
-                        await cache.set(_SERVICES_CACHE_KEY, None, 1)  # expire immediately
+                        await cache.set(
+                            _SERVICES_CACHE_KEY, None, 1
+                        )  # expire immediately
                     except Exception:
                         pass
                 else:
@@ -316,7 +318,9 @@ class TextVerifiedService:
                     if len(fully_priced) == len(priced):
                         try:
                             await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
-                            await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                            await cache.set(
+                                _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
+                            )
                         except Exception as e:
                             logger.warning(f"Failed to cache services: {e}")
                     else:
@@ -326,10 +330,14 @@ class TextVerifiedService:
                             "Caching names only, background task will fill prices."
                         )
                         try:
-                            await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                            await cache.set(
+                                _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
+                            )
                         except Exception as e:
                             logger.warning(f"Failed to cache services: {e}")
-                        asyncio.create_task(self._fetch_and_cache_pricing(unique_services))
+                        asyncio.create_task(
+                            self._fetch_and_cache_pricing(unique_services)
+                        )
                     return priced
                 except (asyncio.TimeoutError, Exception) as e:
                     logger.warning(
@@ -627,9 +635,9 @@ class TextVerifiedService:
                 "carrier": getattr(tv, "carrier", None)
                 or getattr(tv, "carrier_name", None),
                 "created_at": tv.created_at.isoformat(),
-                "created_at_dt": tv.created_at,   # raw datetime for sms.incoming()
+                "created_at_dt": tv.created_at,  # raw datetime for sms.incoming()
                 "ends_at": tv.ends_at.isoformat(),
-                "ends_at_dt": tv.ends_at,          # raw datetime for timeout calc
+                "ends_at_dt": tv.ends_at,  # raw datetime for timeout calc
                 "total_cost": tv.total_cost,
                 "can_cancel": tv.cancel.can_cancel,
                 "can_report": tv.report.can_report,

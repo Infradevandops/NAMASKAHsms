@@ -44,7 +44,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     """Comprehensive health check with all service statuses."""
     checks = {}
     alerts = []
-    
+
     # 1. Database health
     try:
         start = datetime.now()
@@ -63,6 +63,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     # 2. Redis/Cache health
     try:
         from app.core.unified_cache import cache
+
         start = datetime.now()
         await cache.set("health_check", "ok", ttl=10)
         result = await cache.get("health_check")
@@ -80,12 +81,19 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     # 3. TextVerified provider health
     try:
         from app.services.textverified_service import TextVerifiedService
+
         tv = TextVerifiedService()
         if tv.enabled:
             balance_data = await tv.get_balance()
-            balance = float(balance_data) if not isinstance(balance_data, dict) else float(balance_data.get("balance", balance_data.get("credits", 0)))
+            balance = (
+                float(balance_data)
+                if not isinstance(balance_data, dict)
+                else float(balance_data.get("balance", balance_data.get("credits", 0)))
+            )
             checks["textverified"] = {
-                "status": "healthy" if balance > THRESHOLDS["textverified_balance"] else "warning",
+                "status": "healthy"
+                if balance > THRESHOLDS["textverified_balance"]
+                else "warning",
                 "balance": f"${balance:.2f}",
                 "enabled": True,
             }
@@ -103,7 +111,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
         cpu = psutil.cpu_percent(interval=0.1)
-        
+
         checks["system"] = {
             "status": "healthy",
             "memory": {
@@ -119,7 +127,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
             "cpu_percent": cpu,
             "load_avg": os.getloadavg() if hasattr(os, "getloadavg") else None,
         }
-        
+
         if memory.percent > THRESHOLDS["memory_percent"]:
             alerts.append(f"Memory usage high: {memory.percent}%")
         if disk.percent > THRESHOLDS["disk_percent"]:
@@ -131,8 +139,10 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
 
     # Overall status
     unhealthy = [k for k, v in checks.items() if v.get("status") == "unhealthy"]
-    warnings = [k for k, v in checks.items() if v.get("status") in ("warning", "degraded")]
-    
+    warnings = [
+        k for k, v in checks.items() if v.get("status") in ("warning", "degraded")
+    ]
+
     if unhealthy:
         overall = "unhealthy"
     elif warnings:
@@ -158,37 +168,56 @@ async def get_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     last_24h = now - timedelta(hours=24)
     last_7d = now - timedelta(days=7)
-    
+
     # User metrics
     total_users = db.query(func.count(User.id)).scalar() or 0
-    new_users_24h = db.query(func.count(User.id)).filter(User.created_at >= last_24h).scalar() or 0
-    new_users_7d = db.query(func.count(User.id)).filter(User.created_at >= last_7d).scalar() or 0
-    
+    new_users_24h = (
+        db.query(func.count(User.id)).filter(User.created_at >= last_24h).scalar() or 0
+    )
+    new_users_7d = (
+        db.query(func.count(User.id)).filter(User.created_at >= last_7d).scalar() or 0
+    )
+
     # Verification metrics
     total_verifications = db.query(func.count(Verification.id)).scalar() or 0
-    verifications_24h = db.query(func.count(Verification.id)).filter(
-        Verification.created_at >= last_24h
-    ).scalar() or 0
-    
-    successful_24h = db.query(func.count(Verification.id)).filter(
-        Verification.created_at >= last_24h,
-        Verification.status == "completed"
-    ).scalar() or 0
-    
-    success_rate = (successful_24h / verifications_24h * 100) if verifications_24h > 0 else 0
-    
+    verifications_24h = (
+        db.query(func.count(Verification.id))
+        .filter(Verification.created_at >= last_24h)
+        .scalar()
+        or 0
+    )
+
+    successful_24h = (
+        db.query(func.count(Verification.id))
+        .filter(Verification.created_at >= last_24h, Verification.status == "completed")
+        .scalar()
+        or 0
+    )
+
+    success_rate = (
+        (successful_24h / verifications_24h * 100) if verifications_24h > 0 else 0
+    )
+
     # Revenue metrics (last 24h)
-    revenue_24h = db.query(func.sum(Transaction.amount)).filter(
-        Transaction.created_at >= last_24h,
-        Transaction.status == "completed",
-        Transaction.transaction_type == "credit"
-    ).scalar() or 0
-    
+    revenue_24h = (
+        db.query(func.sum(Transaction.amount))
+        .filter(
+            Transaction.created_at >= last_24h,
+            Transaction.status == "completed",
+            Transaction.transaction_type == "credit",
+        )
+        .scalar()
+        or 0
+    )
+
     # Active users (users with verifications in last 24h)
-    active_users = db.query(func.count(func.distinct(Verification.user_id))).filter(
-        Verification.created_at >= last_24h
-    ).scalar() or 0
-    
+    active_users = (
+        db.query(func.count(func.distinct(Verification.user_id)))
+        .filter(Verification.created_at >= last_24h)
+        .scalar()
+        or 0
+    )
+
     # Tier distribution
     tier_counts = dict(
         db.query(User.subscription_tier, func.count(User.id))
@@ -226,84 +255,106 @@ async def get_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
 async def get_active_alerts(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Get all active alerts and warnings."""
     alerts = []
-    
+
     # Check TextVerified balance
     try:
         from app.services.textverified_service import TextVerifiedService
+
         tv = TextVerifiedService()
         if tv.enabled:
             balance_data = await tv.get_balance()
-            balance = float(balance_data.get("balance", 0)) if isinstance(balance_data, dict) else float(balance_data)
+            balance = (
+                float(balance_data.get("balance", 0))
+                if isinstance(balance_data, dict)
+                else float(balance_data)
+            )
             if balance <= 1.0:
-                alerts.append({
-                    "severity": "critical",
-                    "service": "textverified",
-                    "message": f"TextVerified balance critically low: ${balance:.2f}",
-                    "action": "Top up immediately at textverified.com",
-                })
+                alerts.append(
+                    {
+                        "severity": "critical",
+                        "service": "textverified",
+                        "message": f"TextVerified balance critically low: ${balance:.2f}",
+                        "action": "Top up immediately at textverified.com",
+                    }
+                )
             elif balance <= THRESHOLDS["textverified_balance"]:
-                alerts.append({
-                    "severity": "warning",
-                    "service": "textverified",
-                    "message": f"TextVerified balance low: ${balance:.2f}",
-                    "action": "Consider topping up soon",
-                })
+                alerts.append(
+                    {
+                        "severity": "warning",
+                        "service": "textverified",
+                        "message": f"TextVerified balance low: ${balance:.2f}",
+                        "action": "Consider topping up soon",
+                    }
+                )
     except Exception:
         pass
-    
+
     # Check system resources
     memory = psutil.virtual_memory()
     if memory.percent > 90:
-        alerts.append({
-            "severity": "critical",
-            "service": "system",
-            "message": f"Memory usage critical: {memory.percent}%",
-            "action": "Restart services or add memory",
-        })
+        alerts.append(
+            {
+                "severity": "critical",
+                "service": "system",
+                "message": f"Memory usage critical: {memory.percent}%",
+                "action": "Restart services or add memory",
+            }
+        )
     elif memory.percent > THRESHOLDS["memory_percent"]:
-        alerts.append({
-            "severity": "warning",
-            "service": "system",
-            "message": f"Memory usage high: {memory.percent}%",
-            "action": "Monitor closely",
-        })
-    
+        alerts.append(
+            {
+                "severity": "warning",
+                "service": "system",
+                "message": f"Memory usage high: {memory.percent}%",
+                "action": "Monitor closely",
+            }
+        )
+
     disk = psutil.disk_usage("/")
     if disk.percent > THRESHOLDS["disk_percent"]:
-        alerts.append({
-            "severity": "warning",
-            "service": "system",
-            "message": f"Disk usage high: {disk.percent}%",
-            "action": "Clean up old logs/data",
-        })
-    
+        alerts.append(
+            {
+                "severity": "warning",
+                "service": "system",
+                "message": f"Disk usage high: {disk.percent}%",
+                "action": "Clean up old logs/data",
+            }
+        )
+
     # Check Redis
     try:
         from app.core.unified_cache import cache
+
         if not cache.redis_client:
-            alerts.append({
-                "severity": "warning",
-                "service": "cache",
-                "message": "Redis unavailable, using in-memory fallback",
-                "action": "Check Redis connection settings",
-            })
+            alerts.append(
+                {
+                    "severity": "warning",
+                    "service": "cache",
+                    "message": "Redis unavailable, using in-memory fallback",
+                    "action": "Check Redis connection settings",
+                }
+            )
     except Exception:
         pass
-    
+
     # Check for failed payments in last hour
     last_hour = datetime.now(timezone.utc) - timedelta(hours=1)
-    failed_payments = db.query(func.count(PaymentLog.id)).filter(
-        PaymentLog.created_at >= last_hour,
-        PaymentLog.state == "failed"
-    ).scalar() or 0
-    
+    failed_payments = (
+        db.query(func.count(PaymentLog.id))
+        .filter(PaymentLog.created_at >= last_hour, PaymentLog.state == "failed")
+        .scalar()
+        or 0
+    )
+
     if failed_payments > 5:
-        alerts.append({
-            "severity": "warning",
-            "service": "payments",
-            "message": f"{failed_payments} failed payments in last hour",
-            "action": "Check Paystack dashboard",
-        })
+        alerts.append(
+            {
+                "severity": "warning",
+                "service": "payments",
+                "message": f"{failed_payments} failed payments in last hour",
+                "action": "Check Paystack dashboard",
+            }
+        )
 
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -316,33 +367,39 @@ async def get_active_alerts(db: Session = Depends(get_db)) -> Dict[str, Any]:
 async def get_service_status() -> Dict[str, Any]:
     """Quick status check of all external services."""
     services = {}
-    
+
     # TextVerified
     try:
         from app.services.textverified_service import TextVerifiedService
+
         tv = TextVerifiedService()
         services["textverified"] = {
             "enabled": tv.enabled,
             "status": "ok" if tv.enabled else "disabled",
         }
     except Exception as e:
-        services["textverified"] = {"enabled": False, "status": "error", "error": str(e)}
-    
+        services["textverified"] = {
+            "enabled": False,
+            "status": "error",
+            "error": str(e),
+        }
+
     # Paystack
     services["paystack"] = {
         "enabled": bool(settings.paystack_secret_key),
         "status": "configured" if settings.paystack_secret_key else "not_configured",
     }
-    
+
     # Email (Resend)
     services["email"] = {
         "enabled": bool(settings.resend_api_key),
         "status": "configured" if settings.resend_api_key else "not_configured",
     }
-    
+
     # Redis
     try:
         from app.core.unified_cache import cache
+
         backend = "redis" if cache.redis_client else "memory"
         services["redis"] = {
             "enabled": cache.redis_client is not None,
@@ -351,7 +408,7 @@ async def get_service_status() -> Dict[str, Any]:
         }
     except Exception:
         services["redis"] = {"enabled": False, "status": "error"}
-    
+
     # Sentry
     services["sentry"] = {
         "enabled": bool(settings.sentry_dsn),
@@ -374,12 +431,12 @@ def _get_uptime() -> str:
     days = delta.days
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, _ = divmod(remainder, 60)
-    
+
     parts = []
     if days:
         parts.append(f"{days}d")
     if hours:
         parts.append(f"{hours}h")
     parts.append(f"{minutes}m")
-    
+
     return " ".join(parts)

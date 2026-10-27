@@ -241,14 +241,10 @@ class BalanceService:
                         .first()
                     )
                     threshold = float(
-                        notif_settings.low_balance_threshold
-                        if notif_settings
-                        else 1.0
+                        notif_settings.low_balance_threshold if notif_settings else 1.0
                     )
                     alert_enabled = (
-                        notif_settings.email_on_low_balance
-                        if notif_settings
-                        else True
+                        notif_settings.email_on_low_balance if notif_settings else True
                     )
                     if alert_enabled and new_balance <= threshold:
                         from app.services.email_service import email_service

@@ -31,9 +31,7 @@ def get_analytics_overview(
         # New users (last 30 days)
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         new_users_30d = (
-            db.query(User)
-            .filter(User.created_at >= thirty_days_ago)
-            .count()
+            db.query(User).filter(User.created_at >= thirty_days_ago).count()
         )
 
         # Active users (had event in last 7 days)
@@ -50,9 +48,7 @@ def get_analytics_overview(
 
         # Successful verifications
         successful_verifications = (
-            db.query(Verification)
-            .filter(Verification.status == "completed")
-            .count()
+            db.query(Verification).filter(Verification.status == "completed").count()
         )
 
         # Success rate
@@ -75,9 +71,7 @@ def get_analytics_overview(
 
         # Average verification cost
         avg_cost = (
-            db.query(func.avg(Verification.cost))
-            .filter(Verification.cost > 0)
-            .scalar()
+            db.query(func.avg(Verification.cost)).filter(Verification.cost > 0).scalar()
             or 0
         )
 
@@ -144,8 +138,14 @@ def get_cohort_analysis(
                 db.query(UserEvent)
                 .filter(
                     UserEvent.user_id.in_(user_ids),
-                    UserEvent.created_at >= datetime.combine(cohort_date, datetime.min.time()).replace(tzinfo=timezone.utc),
-                    UserEvent.created_at < datetime.combine(cohort_date + timedelta(days=1), datetime.min.time()).replace(tzinfo=timezone.utc),
+                    UserEvent.created_at
+                    >= datetime.combine(cohort_date, datetime.min.time()).replace(
+                        tzinfo=timezone.utc
+                    ),
+                    UserEvent.created_at
+                    < datetime.combine(
+                        cohort_date + timedelta(days=1), datetime.min.time()
+                    ).replace(tzinfo=timezone.utc),
                 )
                 .distinct(UserEvent.user_id)
                 .count()
@@ -155,8 +155,14 @@ def get_cohort_analysis(
                 db.query(UserEvent)
                 .filter(
                     UserEvent.user_id.in_(user_ids),
-                    UserEvent.created_at >= datetime.combine(cohort_date, datetime.min.time()).replace(tzinfo=timezone.utc),
-                    UserEvent.created_at < datetime.combine(cohort_date + timedelta(days=7), datetime.min.time()).replace(tzinfo=timezone.utc),
+                    UserEvent.created_at
+                    >= datetime.combine(cohort_date, datetime.min.time()).replace(
+                        tzinfo=timezone.utc
+                    ),
+                    UserEvent.created_at
+                    < datetime.combine(
+                        cohort_date + timedelta(days=7), datetime.min.time()
+                    ).replace(tzinfo=timezone.utc),
                 )
                 .distinct(UserEvent.user_id)
                 .count()
@@ -166,20 +172,39 @@ def get_cohort_analysis(
                 db.query(UserEvent)
                 .filter(
                     UserEvent.user_id.in_(user_ids),
-                    UserEvent.created_at >= datetime.combine(cohort_date, datetime.min.time()).replace(tzinfo=timezone.utc),
-                    UserEvent.created_at < datetime.combine(cohort_date + timedelta(days=30), datetime.min.time()).replace(tzinfo=timezone.utc),
+                    UserEvent.created_at
+                    >= datetime.combine(cohort_date, datetime.min.time()).replace(
+                        tzinfo=timezone.utc
+                    ),
+                    UserEvent.created_at
+                    < datetime.combine(
+                        cohort_date + timedelta(days=30), datetime.min.time()
+                    ).replace(tzinfo=timezone.utc),
                 )
                 .distinct(UserEvent.user_id)
                 .count()
             )
 
-            result.append({
-                "cohort_date": str(cohort_date),
-                "cohort_size": cohort_size,
-                "day_1_retention": round((day_1_retention / cohort_size * 100) if cohort_size > 0 else 0, 2),
-                "day_7_retention": round((day_7_retention / cohort_size * 100) if cohort_size > 0 else 0, 2),
-                "day_30_retention": round((day_30_retention / cohort_size * 100) if cohort_size > 0 else 0, 2),
-            })
+            result.append(
+                {
+                    "cohort_date": str(cohort_date),
+                    "cohort_size": cohort_size,
+                    "day_1_retention": round(
+                        (day_1_retention / cohort_size * 100) if cohort_size > 0 else 0,
+                        2,
+                    ),
+                    "day_7_retention": round(
+                        (day_7_retention / cohort_size * 100) if cohort_size > 0 else 0,
+                        2,
+                    ),
+                    "day_30_retention": round(
+                        (day_30_retention / cohort_size * 100)
+                        if cohort_size > 0
+                        else 0,
+                        2,
+                    ),
+                }
+            )
 
         return {"cohorts": result}
     except Exception as e:
@@ -223,19 +248,24 @@ def get_at_risk_users(
 
             # Get verification count
             verification_count = (
-                db.query(Verification)
-                .filter(Verification.user_id == user.id)
-                .count()
+                db.query(Verification).filter(Verification.user_id == user.id).count()
             )
 
-            result.append({
-                "user_id": str(user.id),
-                "email": user.email,
-                "credits": float(user.credits),
-                "last_activity": last_event.created_at.isoformat() if last_event else None,
-                "verification_count": verification_count,
-                "days_inactive": (datetime.now(timezone.utc) - (last_event.created_at if last_event else user.created_at)).days,
-            })
+            result.append(
+                {
+                    "user_id": str(user.id),
+                    "email": user.email,
+                    "credits": float(user.credits),
+                    "last_activity": last_event.created_at.isoformat()
+                    if last_event
+                    else None,
+                    "verification_count": verification_count,
+                    "days_inactive": (
+                        datetime.now(timezone.utc)
+                        - (last_event.created_at if last_event else user.created_at)
+                    ).days,
+                }
+            )
 
         return {"at_risk_users": result, "count": len(result)}
     except Exception as e:
@@ -256,23 +286,21 @@ def get_live_events(
         if event_type:
             query = query.filter(UserEvent.event_type == event_type)
 
-        events = (
-            query.order_by(UserEvent.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+        events = query.order_by(UserEvent.created_at.desc()).limit(limit).all()
 
         result = []
         for event in events:
             user = db.query(User).filter(User.id == event.user_id).first()
-            result.append({
-                "id": str(event.id),
-                "user_id": str(event.user_id),
-                "user_email": user.email if user else "Unknown",
-                "event_type": event.event_type,
-                "event_data": event.event_data,
-                "created_at": event.created_at.isoformat(),
-            })
+            result.append(
+                {
+                    "id": str(event.id),
+                    "user_id": str(event.user_id),
+                    "user_email": user.email if user else "Unknown",
+                    "event_type": event.event_type,
+                    "event_data": event.event_data,
+                    "created_at": event.created_at.isoformat(),
+                }
+            )
 
         return {"events": result, "count": len(result)}
     except Exception as e:
@@ -320,11 +348,13 @@ def get_daily_revenue(
 
         result = []
         for date, revenue, count in daily_revenue:
-            result.append({
-                "date": str(date),
-                "revenue": float(revenue or 0),
-                "transaction_count": count,
-            })
+            result.append(
+                {
+                    "date": str(date),
+                    "revenue": float(revenue or 0),
+                    "transaction_count": count,
+                }
+            )
 
         return {"daily_revenue": result}
     except Exception as e:
@@ -354,11 +384,13 @@ def get_popular_services(
 
         result = []
         for service, count, avg_cost in popular:
-            result.append({
-                "service": service,
-                "count": count,
-                "avg_cost": float(avg_cost or 0),
-            })
+            result.append(
+                {
+                    "service": service,
+                    "count": count,
+                    "avg_cost": float(avg_cost or 0),
+                }
+            )
 
         return {"popular_services": result}
     except Exception as e:

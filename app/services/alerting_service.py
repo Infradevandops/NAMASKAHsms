@@ -53,6 +53,7 @@ class AlertingService:
 
         try:
             from sqlalchemy import text
+
             result = db.execute(
                 text(
                     "SELECT COALESCE(SUM(amount), 0) FROM transactions "
@@ -60,14 +61,16 @@ class AlertingService:
                 )
             ).scalar()
             if float(result or 0) == 0.0:
-                await self.send_alert({
-                    "type": "revenue_zero",
-                    "severity": "critical",
-                    "message": (
-                        f"No revenue recorded today ({now.strftime('%Y-%m-%d')}). "
-                        "Paystack webhook may be down or payment flow is broken."
-                    ),
-                })
+                await self.send_alert(
+                    {
+                        "type": "revenue_zero",
+                        "severity": "critical",
+                        "message": (
+                            f"No revenue recorded today ({now.strftime('%Y-%m-%d')}). "
+                            "Paystack webhook may be down or payment flow is broken."
+                        ),
+                    }
+                )
                 return True
         except Exception as e:
             logger.error(f"Revenue-zero check failed: {e}")
@@ -88,7 +91,9 @@ class AlertingService:
         for group_alerts in grouped.values():
             if len(group_alerts) > 1:
                 summary = group_alerts[0].copy()
-                summary["message"] = f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                summary[
+                    "message"
+                ] = f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
                 await self.send_alert(summary)
                 deduped += len(group_alerts) - 1
             else:

@@ -123,16 +123,13 @@ class SMSPollingService:
         class _TVVerif:
             def __init__(self, d, _created_at, _service_name="unknown"):
                 self.number = d["number"]
-                self.created_at = _created_at          # datetime, not str
+                self.created_at = _created_at  # datetime, not str
                 self.id = d["id"]
-                self.ends_at = d.get("ends_at_dt")     # datetime, not str
+                self.ends_at = d.get("ends_at_dt")  # datetime, not str
                 self.service_name = _service_name
 
         # Prefer the DB created_at (already a datetime); fall back to TV's value.
-        created_at_dt = (
-            tv_details.get("created_at_dt")
-            or verification.created_at
-        )
+        created_at_dt = tv_details.get("created_at_dt") or verification.created_at
 
         tv_obj = _TVVerif(tv_details, created_at_dt, verification.service_name)
 
@@ -233,12 +230,13 @@ class SMSPollingService:
         )
 
         # Compute interval once per session — avoids a DB query on every loop tick
-        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
+        delay = self.adaptive.get_optimal_interval(
+            db, service=verification.service_name
+        )
         start_time = datetime.now(timezone.utc)
         while (
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
-
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
@@ -280,12 +278,13 @@ class SMSPollingService:
         )
 
         # Compute interval once per session — avoids a DB query on every loop tick
-        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
+        delay = self.adaptive.get_optimal_interval(
+            db, service=verification.service_name
+        )
         start_time = datetime.now(timezone.utc)
         while (
             datetime.now(timezone.utc) - start_time
         ).total_seconds() < timeout_seconds:
-
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
@@ -571,7 +570,9 @@ class SMSPollingService:
                         extracted_code = (
                             hyphen[-1].replace("-", "")
                             if hyphen
-                            else plain[-1] if plain else None
+                            else plain[-1]
+                            if plain
+                            else None
                         )
 
                     if extracted_code:

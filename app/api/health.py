@@ -143,4 +143,6 @@ async def monitoring_dashboard(request: Request):
     template_path = Path("templates/monitoring.html")
     if template_path.exists():
         return HTMLResponse(content=template_path.read_text())
-    return HTMLResponse(content="<h1>Monitoring dashboard not found</h1>", status_code=404)
+    return HTMLResponse(
+        content="<h1>Monitoring dashboard not found</h1>", status_code=404
+    )
