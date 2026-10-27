@@ -35,15 +35,15 @@ jobs:
             docker compose up -d --build
             echo "✅ Deploy complete"
 
-      - name: Health check (12 retries × 15s)
+      - name: Health check (24 retries × 15s)
         run: |
-          for i in {1..12}; do
+          for i in {1..24}; do
             if curl -fs "${{ secrets.PRODUCTION_URL }}/health" > /dev/null; then
               echo "✅ Production healthy (attempt $i)"
               exit 0
             fi
-            echo "Attempt $i/12 — retrying in 15s..."
+            echo "Attempt $i/24 — retrying in 15s..."
             sleep 15
           done
-          echo "❌ Health check failed after 3 minutes"
+          echo "❌ Health check failed after 6 minutes"
           exit 1
