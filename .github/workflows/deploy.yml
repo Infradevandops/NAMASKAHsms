@@ -23,7 +23,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cp .env.production .env
-            docker compose up -d --build
+            docker compose up -d --build --force-recreate
             echo "⏳ Waiting for app to be healthy..."
             for i in $(seq 1 40); do
               if curl -fs http://localhost:8000/health > /dev/null 2>&1; then
