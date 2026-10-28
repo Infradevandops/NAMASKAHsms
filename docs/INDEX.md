@@ -1,7 +1,7 @@
 # VRENUM SMS - DOCUMENTATION INDEX
 
-**Last Updated**: May 18, 2026  
-**Status**: Consolidated & Organized
+**Last Updated**: October 26, 2026  
+**Status**: Current
 
 ---
 
@@ -33,16 +33,14 @@
 
 ### Status & Planning
 - **[docs/status/PLATFORM_STATUS.md](./status/PLATFORM_STATUS.md)** - Current platform status ⭐ START HERE
-- **[docs/status/PHASE1_STATUS.md](./status/PHASE1_STATUS.md)** - Phase 1 Analytics status
-- **[docs/status/ASSESSMENT_SUMMARY.md](./status/ASSESSMENT_SUMMARY.md)** - Latest assessment
+- **[docs/status/OPS_SUMMARY.md](./status/OPS_SUMMARY.md)** - Ops runbook: deploy, infra, emails, revenue, SEO
 
 ### Deployment & Operations
 - **[docs/deployment/DEPLOYMENT_BEST_PRACTICES.md](./deployment/DEPLOYMENT_BEST_PRACTICES.md)** - Complete deployment guide
 - **[docs/deployment/DEPLOYMENT_CHECKLIST.md](./deployment/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
 - **[docs/deployment/DEPLOYMENT_QUICK_REFERENCE.md](./deployment/DEPLOYMENT_QUICK_REFERENCE.md)** - Quick commands
 - **[docs/deployment/SECURITY_AUDIT.md](./deployment/SECURITY_AUDIT.md)** - Security audit report
-- **[docs/deployment/PHASE1_ACTION_PLAN.md](./deployment/PHASE1_ACTION_PLAN.md)** - Phase 1 implementation plan
-- **[docs/deployment/VERIFICATION_CHECKLIST.md](./deployment/VERIFICATION_CHECKLIST.md)** - Verification procedures
+
 
 ### Operations & Monitoring
 - **[docs/operations/MONITORING.md](./operations/MONITORING.md)** - Monitoring setup and configuration
@@ -73,6 +71,7 @@
 - **[docs/features/KYC_DOCUMENT_VIEWER.md](./features/KYC_DOCUMENT_VIEWER.md)** - KYC features
 - **[docs/features/USAGE_QUOTAS.md](./features/USAGE_QUOTAS.md)** - Quota system
 - **[docs/features/USER_MANAGEMENT_ACTIVITY_TIMELINE.md](./features/USER_MANAGEMENT_ACTIVITY_TIMELINE.md)** - User management
+- **[docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md](./features/TELEGRAM_ACCEPTANCE_CRITERIA.md)** - Telegram forwarding E2E criteria
 
 ### Archive (Historical)
 - **[docs/archive/](./archive/)** - Old documentation (for reference only)
@@ -88,6 +87,9 @@
 
 **Understand the current status**
 → [docs/status/PLATFORM_STATUS.md](./status/PLATFORM_STATUS.md)
+
+**Ops runbook (deploy, infra, emails)**
+→ [docs/status/OPS_SUMMARY.md](./status/OPS_SUMMARY.md)
 
 **Set up monitoring**
 → [docs/operations/MONITORING.md](./operations/MONITORING.md)
@@ -106,9 +108,6 @@
 
 **Troubleshoot issues**
 → [docs/operations/LOGS_GUIDE.md](./operations/LOGS_GUIDE.md)
-
-**Understand Phase 1 Analytics**
-→ [docs/status/PHASE1_STATUS.md](./status/PHASE1_STATUS.md)
 
 **See what's coming next**
 → [docs/business/PROJECT_VISION.md](./business/PROJECT_VISION.md)
@@ -249,9 +248,9 @@ docs/
 ## 📝 DOCUMENTATION NOTES
 
 ### Status
-- ✅ All documentation is current and up-to-date
-- ✅ All links are verified and working
-- ✅ All information is accurate as of May 18, 2026
+- ✅ Core docs current as of October 26, 2026
+- ⚠️ `docs/archive/` and `docs/tasks/` contain historical files — do not treat as current
+- ⚠️ Several links in INDEX.md previously pointed to files that don't exist (`PHASE1_STATUS.md`, `ASSESSMENT_SUMMARY.md`, `PHASE1_ACTION_PLAN.md`, `VERIFICATION_CHECKLIST.md`, `QUICK_START.md`) — removed
 
 ### Organization
 - Docs are organized by category for easy navigation

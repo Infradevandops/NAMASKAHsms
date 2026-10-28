@@ -1,6 +1,6 @@
 # PLATFORM STATUS - AUTHORITATIVE SOURCE
 
-**Last Updated**: October 25, 2026
+**Last Updated**: October 26, 2026
 **Current Version**: 4.9.1
 **Overall Status**: ✅ Production Ready
 
@@ -44,7 +44,7 @@ VRENUM SMS is production-ready. All 18 open tasks are complete. Phase 1 Analytic
 
 ---
 
-## BACKGROUND SERVICES (7 active)
+## BACKGROUND SERVICES (8 active)
 
 | Service | Interval | Purpose |
 |---------|----------|---------|
@@ -56,21 +56,22 @@ VRENUM SMS is production-ready. All 18 open tasks are complete. Phase 1 Analytic
 | Abandoned payment cleanup | 1 hour | Mark stale Paystack checkouts |
 | Revenue-zero monitor | Daily 18:00 UTC | Alert admin if $0 revenue today |
 | Digest scheduler | Daily 08:00 UTC | Send daily/weekly notification digests |
+| **Stock monitor** | **15 min** | **TextVerified service availability → Redis `services:stock`** |
 
 ---
 
 ## OPEN TASKS
 
-All 18 tasks complete. No open items.
+All 18 tasks complete. One pending verification item:
+- ⏳ Telegram E2E flow — bot created, webhook registered, Redis token linking done. Needs live test with real Telegram account.
 
 ---
 
 ## NEXT STEPS
 
 ### Immediate
-1. Deploy v4.9.1 to production
-2. Verify Telegram E2E flow (see `docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md`)
-3. Set `ADMIN_NOTIFY_EMAIL` in `.env.production` for revenue-zero alerts
+1. Verify Telegram E2E flow (see `docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md`)
+2. Confirm `ADMIN_NOTIFY_EMAIL` is set in `.env.production`
 
 ### Short Term (Phase 2 Analytics)
 1. Cohort analysis dashboard visualizations

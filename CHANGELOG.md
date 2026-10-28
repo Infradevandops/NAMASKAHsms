@@ -1076,3 +1076,133 @@ v1 API Routes: 231
 Affiliate Program: Active (approval flow complete)
 Fraud Scoring: Real heuristics (10 countries, 6 services)
 409 Errors: 0%
+
+---
+
+## [4.8.3] - June 3, 2026
+
+Driver.js Onboarding Tour + Email Consolidation + Test Fixes
+
+### Added
+- Driver.js onboarding tour (7-step non-intrusive tooltip tour replacing forced /welcome wizard)
+  - Auto-starts on first dashboard visit (1.5s delay), never repeats
+  - Steps: currency selector, tier badge, verify, history, wallet
+  - Mobile responsive, brand-styled, CSP compliant
+  - `static/js/onboarding-tour.js`, `static/css/onboarding-tour.css`
+  - 13 E2E tests in `tests/e2e/test_onboarding_tour.py`
+- Whitelabel email default templates upgraded with branded HTML (all 7: welcome, verification_code, payment_success, payment_failed, low_balance, tier_upgrade, password_reset)
+
+### Changed
+- Login/register now redirect directly to `/dashboard` (removed forced `/welcome` redirect)
+- Upgraded driver.js from v1.0.1 to v1.3.1
+- Email service consolidated: `email_notification_service.py` merged into `email_service.py`; compatibility wrapper left in place so all imports continue to work
+- `send_test_email` in whitelabel now calls real `email_service._send()` instead of logging a TODO
+
+### Fixed
+- `test_tier_card_states.py`: aligned assertions to actual `/api/tiers/current` nested `tier_info` schema
+- `test_api_enforcement.py`: corrected overage rate math; fixed `APIKeyService.generate_api_key` limit enforcement
+- `test_phone_validator.py`: installed missing `phonenumbers` dependency
+- 61 targeted email template tests passing after consolidation
+
+---
+
+## [4.8.2] - May 21, 2026
+
+Test Remediation + CI Stabilization
+
+### Fixed
+- 304+ tests fixed across phases 1–4B:
+  - Collection errors, bcrypt hash fixtures, missing routes, import errors (Phase 1–3: 275 tests)
+  - User model field rename `tier` → `subscription_tier` (Phase 4A: 14 tests)
+  - Webhook router registration, auth endpoint status codes (Phase 4B: 15 tests)
+- CI pipeline restored to clean collection (2,338 tests, 0 errors)
+- Corrected test suite documentation: actual suite was 2,552 tests at 60.4% pass rate (not 1,679 at 91.8% as previously documented)
+
+### Technical
+- Active test pass rate (excluding deselected): 80.9%
+- Core domains stable: auth 90%+, payments 85%+, verification 90%+
+- E2E failures isolated to missing Playwright install (not code issues)
+
+---
+
+## [4.8.1] - May 21, 2026
+
+Post-Deployment Stabilization Sprint
+
+### Added
+- Git repo initialised on production server (`~/vrenum/Vrenum/`) — deploys now use `git pull` instead of manual `scp`
+- GitHub Actions SSH deploy workflow replacing dead Render deploy hook
+  - `appleboy/ssh-action@v1.0.3`, `command_timeout: 30m`, health check loop (40×15s)
+- SSH deploy key (`github_deploy`) added to server authorized_keys + GitHub secret `SERVER_SSH_KEY`
+
+### Fixed
+- Corrupted `alembic/versions/add_user_events_analytics.py` on server overwritten by `git reset --hard`
+- `urllib3` pin updated from `>=1.25.4,<1.27` to `>=2.0.0,<3.0.0` (resolves pip conflict with botocore)
+- All Render.com references scrubbed from live docs (deploy path, dashboard links, `/opt/render/` paths)
+- Root-level markdown clutter moved to `docs/archive/root-cleanup/` (40+ files)
+
+### Changed
+- Deploy method: rsync from Mac → GitHub Actions CI/CD push-to-deploy
+- Server repo path: `~/vrenum/` → `~/vrenum/Vrenum/` (git repo nested inside `~/vrenum/`)
+- `docker-compose.yml` added to git (was server-only, at risk from `git clean -fd`)
+- `env_file: .env.production` in docker-compose to bypass docker compose automatic `.env` substitution
+
+---
+
+## [4.8.0] - May 19, 2026
+
+Email Wiring — All Templates Branded and Wired
+
+### Added
+- `send_welcome_email`: triggered on register, includes unsubscribe footer
+- `send_tier_upgrade_email`: old → new tier, feature checklist, CTA to dashboard
+- `_greeting()` and `_unsub_footer()` helpers added to `email_service.py`
+- Shared branded constants (`_HEADER`, `_FOOTER`, `_PINK_BTN`, `_UNSUB`) across all notification templates
+
+### Fixed
+- All 6 notification templates converted from broken string concatenation to f-strings with proper variable wiring
+- All 6 notification templates rebranded with pink gradient header + Vrenum footer
+- `send_verification_initiated_email` wired to `purchase_endpoints.py`
+- `send_verification_completed_email` wired to `sms_polling_service.py`
+- `send_welcome_email` wired to `auth_routes.py` register endpoint (non-blocking)
+
+### Technical
+- 18 email templates across 3 layers all branded and functional
+- Transactional: `email_service.py` (7 templates)
+- Notification: consolidated into `email_service.py` (6 templates)
+- Whitelabel: `email_template_service.py` (7 templates)
+
+---
+
+## Frontend Upgrade Plan — Delivered Items (May–June 2026)
+
+The following frontend improvements were completed across v4.7–v4.8 sprints:
+
+### Performance
+- Removed double `dark-mode-universal.css` load from `dashboard_base.html`
+- Removed dead `real-time-dashboard.js` commented script tag
+- Deferred analytics: Sabilytics now loads post-cookie-consent (not on every page load)
+- Standardised cache-busting version tokens via server-injected `asset_version`
+- Moved `pwa-mobile.css` out of public pages (dashboard only)
+
+### JS Architecture
+- Extracted verify page inline JS (~1,200 lines) to `static/js/verification-flow.js`
+- Fixed `btn-primary` color conflict: removed `injectStyles()` from `dashboard-ultra-stable.js`, styles moved to `design-system.css`
+- Deduplicated `getAuthToken`/`getAuthHeaders` — `dashboard-ultra-stable.js` now delegates to `window.AuthHelpers`
+- Removed duplicate `scroll-timeline.js`
+
+### UX
+- Replaced service worker `confirm()` update dialog with non-blocking toast banner
+- Replaced sidebar `confirm()` dialogs with toast notifications (upgrade prompt) and direct action (logout)
+- Replaced preset `prompt()` with inline input row (Enter to save, Escape to cancel)
+- Fixed i18n version as server-injected variable (was hardcoded `'20260308j'`)
+- Added spinner to "Get Number" button during verification creation
+
+### CSS / Design System
+- Deduplicated cookie consent banner into `templates/includes/cookie_consent.html`
+- Added missing `.type-card` and `.upgrade-card` classes to `design-system.css`
+- Sanitised `current_user.id` in GA4 template using `| tojson` filter
+
+### Not delivered (deferred)
+- Tailwind CDN → CLI build (requires Node.js on CI — deferred)
+- JWT localStorage → httpOnly cookie migration (architectural change — tracked as future security sprint)
