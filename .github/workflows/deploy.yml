@@ -22,7 +22,6 @@ jobs:
             cd ~/vrenum/Vrenum
             git fetch origin main
             git reset --hard origin/main
-            cp .env.production .env
             docker compose up -d --build --force-recreate
             echo "⏳ Waiting for app to be healthy..."
             for i in $(seq 1 40); do
