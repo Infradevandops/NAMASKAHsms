@@ -10,12 +10,40 @@ services:
     env_file:
       - .env
     volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
-      - ./static:/app/static
+      - /root/vrenum/logs:/app/logs
+      - /root/vrenum/uploads:/app/uploads
+      - /root/vrenum/static:/app/static
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  nginx:
+    image: vrenum-nginx
+    container_name: vrenum-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /root/vrenum/logs/nginx:/var/log/nginx
+      - vrenum_certbot_webroot:/var/www/certbot:ro
+      - /root/vrenum/static:/app/static:ro
+      - /root/vrenum/certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+
+  certbot:
+    image: certbot/certbot
+    container_name: vrenum-certbot
+    restart: unless-stopped
+    volumes:
+      - /root/vrenum/certs:/etc/letsencrypt
+      - vrenum_certbot_webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  vrenum_certbot_webroot:
+    external: true
