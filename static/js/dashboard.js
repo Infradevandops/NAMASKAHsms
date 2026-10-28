@@ -154,7 +154,7 @@ async function loadUserData() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch('/api/user/profile', {
+    const response = await fetch('/api/user/me', {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
@@ -224,7 +224,7 @@ async function loadBalance() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch('/api/user/balance', {
+    const response = await fetch('/api/billing/balance', {
       headers: { 'Cache-Control': 'no-cache' },
       signal: controller.signal
     });
@@ -691,7 +691,7 @@ async function loadRentalsView() {
   if (!rentalsListEl) return;
 
   try {
-    const response = await fetch('/api/rentals');
+    const response = await fetch('/api/rentals/active');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const rentals = data.rentals || data || [];
@@ -739,7 +739,7 @@ async function loadProfileView() {
   if (!profileContainerEl) return;
 
   try {
-    const response = await fetch('/api/user/profile', {
+    const response = await fetch('/api/user/me', {
       credentials: 'include'
     });
     if (!response.ok) {

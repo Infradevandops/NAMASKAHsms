@@ -79,6 +79,16 @@ verify:
 	 if [ "$$STATUS" = "200" ]; then echo "  ✅ /static/js/verification-flow.js → $$STATUS"; \
 	 else echo "  ❌ /static/js/verification-flow.js → $$STATUS"; exit 1; fi
 
+	@echo "[8/9] User profile endpoint requires auth"
+	@STATUS=$$(curl -s -o /dev/null -w "%{http_code}" $(PROD)/api/user/me); \
+	 if [ "$$STATUS" = "401" ]; then echo "  ✅ /api/user/me → $$STATUS (auth gated)"; \
+	 else echo "  ❌ /api/user/me → $$STATUS (expected 401)"; exit 1; fi
+
+	@echo "[9/9] Rentals endpoint requires auth"
+	@STATUS=$$(curl -s -o /dev/null -w "%{http_code}" $(PROD)/api/rentals/active); \
+	 if [ "$$STATUS" = "401" ]; then echo "  ✅ /api/rentals/active → $$STATUS (auth gated)"; \
+	 else echo "  ❌ /api/rentals/active → $$STATUS (expected 401)"; exit 1; fi
+
 	@echo ""
 	@echo "✅ All smoke checks passed — $(PROD) is healthy"
 
