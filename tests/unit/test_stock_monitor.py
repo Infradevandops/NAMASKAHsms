@@ -72,16 +72,30 @@ async def test_build_stock_map_out_of_stock_zero_price():
 
 
 @pytest.mark.asyncio
-async def test_build_stock_map_slug_normalisation():
-    """Service name is lowercased and spaces replaced with underscores."""
+async def test_build_stock_map_slug_uses_id_field():
+    """Stock map uses id field (matching ServiceStore item.value), falls back to name."""
     from app.services.stock_monitor import build_stock_map
 
-    services = _make_services([("Google Play", "2.00")])
+    services = [{"id": "whatsapp", "name": "Whatsapp", "price": "2.63"}]
     with patch("app.services.stock_monitor.cache") as mock_cache:
         mock_cache.get = AsyncMock(return_value=services)
         result = await build_stock_map()
 
-    assert "google_play" in result
+    assert "whatsapp" in result
+    assert result["whatsapp"]["available"] is True
+
+
+@pytest.mark.asyncio
+async def test_build_stock_map_slug_normalisation():
+    """Service id is lowercased and stripped."""
+    from app.services.stock_monitor import build_stock_map
+
+    services = [{"id": "GooglePlay", "name": "Google Play", "price": "2.00"}]
+    with patch("app.services.stock_monitor.cache") as mock_cache:
+        mock_cache.get = AsyncMock(return_value=services)
+        result = await build_stock_map()
+
+    assert "googleplay" in result
 
 
 @pytest.mark.asyncio

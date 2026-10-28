@@ -28,7 +28,8 @@ async def build_stock_map() -> Dict[str, dict]:
 
         stock_map = {}
         for svc in services:
-            slug = (svc.get("name") or "").lower().replace(" ", "_")
+            # Use id field directly — matches what ServiceStore uses as item.value
+            slug = (svc.get("id") or svc.get("name") or "").lower().strip()
             if not slug:
                 continue
             price = svc.get("price")

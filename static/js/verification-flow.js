@@ -26,13 +26,16 @@ async function _loadStockMap() {
 }
 function _getStockDot(serviceSlug) {
     if (!_stockMap || !Object.keys(_stockMap).length) return '';
-    const key = (serviceSlug || '').toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const info = _stockMap[key];
+    const key = (serviceSlug || '').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const info = _stockMap[key] || _stockMap[(serviceSlug || '').toLowerCase()];
     if (!info) return '';
     const available = info.available;
     const color = available ? '#10b981' : '#ef4444';
-    const title = available ? 'In stock' : 'Out of stock';
-    return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};margin-left:6px;vertical-align:middle;flex-shrink:0;" title="${title}"></span>`;
+    const label = available ? 'In stock' : 'Out of stock';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;vertical-align:middle;flex-shrink:0;">`
+        + `<span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>`
+        + `<span style="font-size:11px;color:${color};font-weight:500;">${label}</span>`
+        + `</span>`;
 }
 
 /**
