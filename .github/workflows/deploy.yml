@@ -20,7 +20,9 @@ jobs:
           script: |
             set -e
             cd ~/vrenum
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
             docker compose up -d --build
             echo "⏳ Waiting for app to be healthy..."
             for i in $(seq 1 40); do
