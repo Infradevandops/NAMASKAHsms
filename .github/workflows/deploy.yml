@@ -35,4 +35,4 @@ jobs:
             echo "❌ App did not become healthy after 10 minutes"
             docker compose logs --tail=50
             exit 1
-          command_timeout: 15m
+          command_timeout: 30m
