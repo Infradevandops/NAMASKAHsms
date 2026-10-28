@@ -9,11 +9,23 @@ from fastapi import APIRouter, Depends
 from app.core.dependencies import get_current_user
 from app.core.unified_cache import cache
 from app.models.user import User
+from app.services.stock_monitor import get_stock_map
 
 logger = logging.getLogger(__name__)
 from fastapi import HTTPException
 
 router = APIRouter(prefix="/services", tags=["services"])
+
+
+@router.get("/stock")
+async def get_services_stock():
+    """Get real-time stock availability for all services. No auth required."""
+    try:
+        data = await get_stock_map()
+        return data or {"services": {}, "available": 0, "total": 0}
+    except Exception as e:
+        logger.error(f"Error in get_services_stock: {e}", exc_info=True)
+        return {"services": {}, "available": 0, "total": 0}
 
 
 @router.get("/status")

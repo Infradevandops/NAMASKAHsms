@@ -13,6 +13,28 @@ const VerificationFlow = {
     tierRank: { freemium: 0, payg: 1, pro: 2, custom: 3 }
 };
 
+// Service stock availability map — loaded once on page init
+let _stockMap = {};
+async function _loadStockMap() {
+    try {
+        const res = await fetch('/api/services/stock');
+        if (res.ok) {
+            const data = await res.json();
+            _stockMap = data.services || {};
+        }
+    } catch (e) { /* non-critical */ }
+}
+function _getStockDot(serviceSlug) {
+    if (!_stockMap || !Object.keys(_stockMap).length) return '';
+    const key = (serviceSlug || '').toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const info = _stockMap[key];
+    if (!info) return '';
+    const available = info.available;
+    const color = available ? '#10b981' : '#ef4444';
+    const title = available ? 'In stock' : 'Out of stock';
+    return `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};margin-left:6px;vertical-align:middle;flex-shrink:0;" title="${title}"></span>`;
+}
+
 /**
  * Central tier-gating function. Call this whenever tier changes or service is selected.
  * Controls: upsell, subscribed-tip, advanced-options, area-code lock, carrier lock.
@@ -231,7 +253,7 @@ function renderImmersiveItem(item, isPinned) {
                     <img src="${iconUrl}" onerror="this.style.display='none'">
                 </div>
                 <div class="list-item-info">
-                    <div class="list-item-name">${item.label}</div>
+                    <div class="list-item-name">${item.label}${_getStockDot(item.value)}</div>
                 </div>
                 <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
                     <i class="ph${isPinned ? '-fill' : ''} ph-push-pin"></i>
@@ -526,7 +548,7 @@ async function loadServices() {
     if (spinner) spinner.style.display = 'block';
 
     try {
-        await window.ServiceStore.init();
+        await Promise.all([window.ServiceStore.init(), _loadStockMap()]);
 
         const services = window.ServiceStore.getAll();
         if (!services || services.length === 0) {

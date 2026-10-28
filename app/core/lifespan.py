@@ -371,6 +371,11 @@ async def lifespan(app):
             startup_logger.info(
                 "✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)"
             )
+
+            from app.services.stock_monitor import run_stock_monitor
+
+            asyncio.create_task(run_stock_monitor())
+            startup_logger.info("✅ Service stock monitor started (15-min refresh)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 
