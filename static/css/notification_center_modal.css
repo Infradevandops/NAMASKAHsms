@@ -453,3 +453,130 @@
         font-size: 11px;
     }
 }
+
+/* Dark theme overrides */
+html.dark-mode .notification-modal-panel {
+    background: var(--bg-card, #1e2433);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-modal-header {
+    border-bottom-color: var(--border-color, #2d3748);
+}
+
+html.dark-mode .notification-modal-header h2 {
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-modal-close {
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .notification-modal-close:hover {
+    background: var(--bg-card, #1e293b);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-modal-content {
+    background: var(--bg-card, #1e2433);
+}
+
+html.dark-mode .notification-modal-sidebar {
+    background: var(--bg-body, #151b2d);
+    border-right-color: var(--border-color, #2d3748);
+}
+
+html.dark-mode .notification-filters h3,
+html.dark-mode .notification-categories h3 {
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .filter-group label {
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .filter-group select {
+    background: var(--bg-card, #1e2433);
+    border-color: var(--border-color, #2d3748);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-categories {
+    border-top-color: var(--border-color, #2d3748);
+}
+
+html.dark-mode .category-item {
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .category-item:hover {
+    background: var(--bg-card, #1e293b);
+}
+
+html.dark-mode .category-count {
+    background: var(--bg-card, #1e293b);
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .notification-modal-toolbar {
+    border-bottom-color: var(--border-color, #2d3748);
+}
+
+html.dark-mode .notification-search {
+    background: var(--bg-body, #151b2d);
+    border-color: var(--border-color, #2d3748);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-toolbar-actions button {
+    background: var(--bg-card, #1e2433);
+    border-color: var(--border-color, #2d3748);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-toolbar-actions button:hover {
+    background: var(--bg-card, #1e293b);
+}
+
+html.dark-mode .notification-modal-item {
+    border-bottom-color: var(--border-color, #2d3748);
+}
+
+html.dark-mode .notification-modal-item:hover {
+    background: var(--bg-card, #1e293b);
+}
+
+html.dark-mode .notification-modal-item.unread {
+    background: rgba(6, 182, 212, 0.08);
+}
+
+html.dark-mode .notification-modal-item-title {
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .notification-modal-item-message {
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .notification-modal-item-meta {
+    color: var(--text-muted, #64748b);
+}
+
+html.dark-mode .notification-type {
+    background: var(--bg-card, #1e293b);
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .notification-modal-item-actions button {
+    color: var(--text-muted, #94a3b8);
+}
+
+html.dark-mode .notification-modal-item-actions button:hover {
+    background: var(--bg-card, #1e293b);
+    color: var(--text-primary, #e2e8f0);
+}
+
+html.dark-mode .empty-state,
+html.dark-mode .loading {
+    color: var(--text-muted, #94a3b8);
+}

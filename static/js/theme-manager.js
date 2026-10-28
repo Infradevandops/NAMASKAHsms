@@ -50,9 +50,11 @@ class ThemeManager {
     // Apply new theme
     if (theme === this.DARK_MODE) {
       html.classList.add(this.DARK_MODE_CLASS);
+      html.setAttribute('data-theme', 'dark');
       localStorage.setItem(this.STORAGE_KEY, this.DARK_MODE);
     } else {
       html.classList.add(this.LIGHT_MODE_CLASS);
+      html.setAttribute('data-theme', 'light');
       localStorage.setItem(this.STORAGE_KEY, this.LIGHT_MODE);
     }
 
