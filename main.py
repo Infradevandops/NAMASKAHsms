@@ -42,6 +42,7 @@ from app.api.core.user_settings_endpoints import (
     router as user_settings_endpoints_router,
 )
 from app.api.core.telegram import router as telegram_router
+from app.api.core.services import router as services_router
 from app.api.core.waitlist import router as waitlist_router
 from app.api.core.webhooks import router as webhooks_router
 from app.api.core.monitoring import router as monitoring_router
@@ -233,6 +234,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(textverified_balance_router)
     fastapi_app.include_router(balance_sync_router)
+    fastapi_app.include_router(services_router, prefix="/api")
     fastapi_app.include_router(waitlist_router)
     fastapi_app.include_router(user_insights_router)
     fastapi_app.include_router(quotas_router)
