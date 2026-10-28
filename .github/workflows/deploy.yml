@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd ~/vrenum
+            cd ~/vrenum/Vrenum
             git fetch origin main
             git reset --hard origin/main
             docker compose up -d --build
