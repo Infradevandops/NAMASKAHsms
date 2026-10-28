@@ -34,6 +34,7 @@
 ### Status & Planning
 - **[docs/status/PLATFORM_STATUS.md](./status/PLATFORM_STATUS.md)** - Current platform status ⭐ START HERE
 - **[docs/status/OPS_SUMMARY.md](./status/OPS_SUMMARY.md)** - Ops runbook: deploy, infra, emails, revenue, SEO
+- **[docs/status/ACTIVE_SPRINT.md](./status/ACTIVE_SPRINT.md)** - Current sprint: operational priorities
 
 ### Deployment & Operations
 - **[docs/deployment/DEPLOYMENT_BEST_PRACTICES.md](./deployment/DEPLOYMENT_BEST_PRACTICES.md)** - Complete deployment guide
