@@ -55,8 +55,7 @@ endblock %}
             <button id="usage-btn" class="btn btn-primary"
                 aria-label="View your usage statistics">View Usage</button>
             <button id="upgrade-btn" class="btn btn-primary"
-                aria-label="Upgrade your subscription plan"
-                onclick="window.location.href='/settings?tab=billing'">Upgrade</button>
+                aria-label="Upgrade your subscription plan">Upgrade</button>
         </div>
     </div>
 </div>
@@ -173,7 +172,7 @@ endblock %}
 
 {% block scripts %}
 {{ super() }}
-<!-- ULTRA-STABLE DASHBOARD - Production Grade -->
+<script src="/static/js/formatMoney.js?v={{ app_version }}"></script>
 <script src="/static/js/dashboard-ultra-stable.js?v={{ app_version }}"></script>
 <script src="/static/js/pagination.js"></script>
 <script src="/static/js/service-store.js"></script>
@@ -404,67 +403,17 @@ endblock %}
     // INITIALIZATION
     // ============================================
     function initDashboard() {
-        // Load widgets
         loadAnalytics();
         loadActivity();
-
-        // Set up periodic refresh
         setInterval(() => {
-            if (hasAuthToken()) {
-                loadAnalytics();
-            }
+            if (hasAuthToken()) loadAnalytics();
         }, TIMEOUTS.REFRESH_INTERVAL);
     }
 
-    // Start initialization
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initDashboard);
     } else {
         initDashboard();
     }
-
-    // Update tier card with live data
-    (async function() {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-        try {
-            const ctrl = new AbortController();
-            const tid = setTimeout(() => ctrl.abort(), 8000);
-            const res = await fetch('/api/v1/billing/tiers/current', {
-                headers: { 'Authorization': `Bearer ${token}` },
-                signal: ctrl.signal
-            });
-            clearTimeout(tid);
-            if (!res.ok) return;
-            const d = await res.json();
-            const tier = d.current_tier || 'freemium';
-            const names = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
-            const prices = { freemium: formatMoney(0) + '/month', payg: formatMoney(0) + '/month', pro: formatMoney(25) + '/month', custom: formatMoney(35) + '/month' };
-            const features = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
-
-            // Use i18n-aware content updates
-            const tierNameEl = document.getElementById('tier-name');
-            const tierPriceEl = document.getElementById('tier-price');
-            const tierFeaturesEl = document.getElementById('tier-features-list');
-
-            if (tierNameEl) {
-                tierNameEl.removeAttribute('data-i18n');
-                tierNameEl.textContent = names[tier] || tier;
-            }
-            if (tierPriceEl) {
-                tierPriceEl.textContent = prices[tier] || '';
-            }
-            if (tierFeaturesEl) {
-                tierFeaturesEl.textContent = features[tier] || '';
-            }
-            // Hide Upgrade button on highest tier
-            const upgradeBtn = document.getElementById('upgrade-btn');
-            if (upgradeBtn && tier === 'custom') {
-                upgradeBtn.style.display = 'none';
-            }
-        } catch(e) {
-            console.error('Failed to load tier data:', e);
-        }
-    })();
 </script>
 {% endblock %}

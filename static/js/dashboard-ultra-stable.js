@@ -327,12 +327,41 @@
 
     function init() {
         console.log('🚀 Initializing Ultra-Stable Dashboard...');
-
         initButtons();
-
+        loadTierCard();
         console.log('✅ Dashboard initialized successfully');
-        console.log('📱 All buttons are functional');
-        console.log('🎯 Business flows ready');
+    }
+
+    async function loadTierCard() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const ctrl = new AbortController();
+            setTimeout(() => ctrl.abort(), 8000);
+            const res = await fetch('/api/v1/billing/tiers/current', {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: ctrl.signal
+            });
+            if (!res.ok) return;
+            const d = await res.json();
+            const tier = (d.current_tier || d.tier || 'freemium').toLowerCase();
+            const names   = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
+            const prices  = { freemium: '$0/month', payg: '$0/month', pro: '$25/month', custom: '$35/month' };
+            const feats   = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
+
+            const nameEl = document.getElementById('tier-name');
+            const priceEl = document.getElementById('tier-price');
+            const featEl = document.getElementById('tier-features-list');
+            if (nameEl) nameEl.textContent = names[tier] || tier;
+            if (priceEl) priceEl.textContent = prices[tier] || '';
+            if (featEl) featEl.textContent = feats[tier] || '';
+
+            // Hide Upgrade on highest tier
+            const upgradeBtn = document.getElementById('upgrade-btn');
+            if (upgradeBtn && tier === 'custom') upgradeBtn.style.display = 'none';
+        } catch (e) {
+            // Tier card stays as skeleton — non-fatal
+        }
     }
 
     // Initialize when DOM is ready
