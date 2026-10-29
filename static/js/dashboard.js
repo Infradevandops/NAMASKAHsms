@@ -69,9 +69,10 @@ function setupEventListeners() {
   document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
   document.getElementById('dropdown-logout')?.addEventListener('click', handleLogout);
 
-  // Verification modal
-  document.getElementById('new-verification-btn')?.addEventListener('click', openVerificationModal);
-  document.getElementById('quick-verification-btn')?.addEventListener('click', openVerificationModal);
+  // Verification modal — handled by dashboard-ultra-stable.js (openModal)
+  // Do NOT re-attach here; ultra-stable sets .onclick directly and owns this button
+  // document.getElementById('new-verification-btn') — intentionally skipped
+  // document.getElementById('quick-verification-btn') — intentionally skipped
   document.getElementById('verification-close-btn')?.addEventListener('click', closeVerificationModal);
   document.getElementById('step1-cancel')?.addEventListener('click', closeVerificationModal);
   document.getElementById('step1-next')?.addEventListener('click', () => goToVerificationStep(2));
