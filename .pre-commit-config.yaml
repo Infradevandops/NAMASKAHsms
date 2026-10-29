@@ -1,17 +1,15 @@
 repos:
   # Gitleaks - Detect secrets in git history
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.0
+    rev: 2ca41cc1372d1e939a6a879f18cdc19fc1cac1ce  # frozen: v8.30.0
     hooks:
       - id: gitleaks
         name: Detect secrets with gitleaks
-        entry: gitleaks detect --source . --verbose --exit-code 1
-        language: system
-        stages: [commit]
+        stages: [pre-commit]
 
   # Detect Private Key
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: detect-private-key
         name: Detect private keys
@@ -31,7 +29,7 @@ repos:
 
   # Bandit - Security linter for Python
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
+    rev: 92ae8b82fb422a639f0ed8d99e96cea769594e08  # frozen: 1.9.4
     hooks:
       - id: bandit
         name: Bandit security check
@@ -49,7 +47,7 @@ repos:
 
   # Flake8 - Linter
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+    rev: 960c1d286190804104f7255b97da034446fdaac3  # frozen: 7.5.0
     hooks:
       - id: flake8
         name: Lint with flake8
@@ -66,7 +64,7 @@ repos:
 
   # Mypy - Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+    rev: 2834ec6639549dd6796205c8f011dedcd587288b  # frozen: v2.4.0
     hooks:
       - id: mypy
         name: Type check with mypy
@@ -75,7 +73,7 @@ repos:
 
   # YAML validation
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.33.0
+    rev: cba56bcde1fdd01c1deb3f945e69764c291a6530  # frozen: v1.38.0
     hooks:
       - id: yamllint
         name: Lint YAML files
@@ -83,7 +81,7 @@ repos:
 
   # JSON validation
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: check-json
         name: Check JSON syntax
