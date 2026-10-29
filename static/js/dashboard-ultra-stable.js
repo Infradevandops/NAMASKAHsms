@@ -335,6 +335,13 @@
     async function loadTierCard() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
+
+        // Show from cache immediately
+        const cached = localStorage.getItem('nsk_tier_cache');
+        if (cached) {
+            try { _applyTierCard(JSON.parse(cached).tier); } catch (e) {}
+        }
+
         try {
             const ctrl = new AbortController();
             setTimeout(() => ctrl.abort(), 8000);
@@ -345,23 +352,25 @@
             if (!res.ok) return;
             const d = await res.json();
             const tier = (d.current_tier || d.tier || 'freemium').toLowerCase();
-            const names   = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
-            const prices  = { freemium: '$0/month', payg: '$0/month', pro: '$25/month', custom: '$35/month' };
-            const feats   = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
-
-            const nameEl = document.getElementById('tier-name');
-            const priceEl = document.getElementById('tier-price');
-            const featEl = document.getElementById('tier-features-list');
-            if (nameEl) nameEl.textContent = names[tier] || tier;
-            if (priceEl) priceEl.textContent = prices[tier] || '';
-            if (featEl) featEl.textContent = feats[tier] || '';
-
-            // Hide Upgrade on highest tier
-            const upgradeBtn = document.getElementById('upgrade-btn');
-            if (upgradeBtn && tier === 'custom') upgradeBtn.style.display = 'none';
+            localStorage.setItem('nsk_tier_cache', JSON.stringify({ ts: Date.now(), tier }));
+            _applyTierCard(tier);
         } catch (e) {
-            // Tier card stays as skeleton — non-fatal
+            // Tier card stays from cache or skeleton — non-fatal
         }
+    }
+
+    function _applyTierCard(tier) {
+        const names   = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
+        const prices  = { freemium: '$0/month', payg: '$0/month', pro: '$25/month', custom: '$35/month' };
+        const feats   = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
+        const nameEl  = document.getElementById('tier-name');
+        const priceEl = document.getElementById('tier-price');
+        const featEl  = document.getElementById('tier-features-list');
+        if (nameEl)  nameEl.textContent  = names[tier]  || tier;
+        if (priceEl) priceEl.textContent = prices[tier] || '';
+        if (featEl)  featEl.textContent  = feats[tier]  || '';
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        if (upgradeBtn && tier === 'custom') upgradeBtn.style.display = 'none';
     }
 
     // Initialize when DOM is ready

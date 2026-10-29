@@ -403,11 +403,38 @@ endblock %}
     // INITIALIZATION
     // ============================================
     function initDashboard() {
-        loadAnalytics();
-        loadActivity();
+        // Show tier from cache immediately — eliminates skeleton flash
+        const cached = localStorage.getItem('nsk_tier_cache');
+        if (cached) {
+            try {
+                const { tier } = JSON.parse(cached);
+                _applyTierCard(tier);
+            } catch (e) {}
+        }
+
+        // Fire all 3 data loads in parallel — single render pass
+        Promise.all([
+            loadAnalytics(),
+            loadActivity(),
+        ]);
+
         setInterval(() => {
             if (hasAuthToken()) loadAnalytics();
         }, TIMEOUTS.REFRESH_INTERVAL);
+    }
+
+    function _applyTierCard(tier) {
+        const names   = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
+        const prices  = { freemium: '$0/month', payg: '$0/month', pro: '$25/month', custom: '$35/month' };
+        const feats   = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
+        const nameEl  = document.getElementById('tier-name');
+        const priceEl = document.getElementById('tier-price');
+        const featEl  = document.getElementById('tier-features-list');
+        if (nameEl)  nameEl.textContent  = names[tier]  || tier;
+        if (priceEl) priceEl.textContent = prices[tier] || '';
+        if (featEl)  featEl.textContent  = feats[tier]  || '';
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        if (upgradeBtn && tier === 'custom') upgradeBtn.style.display = 'none';
     }
 
     if (document.readyState === 'loading') {
