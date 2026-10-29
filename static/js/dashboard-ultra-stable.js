@@ -139,9 +139,8 @@
     }
 
     function openModal() {
-        createVerificationModal();
-        document.getElementById('verification-modal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        // Direct navigation is more reliable cross-browser than injected modal
+        window.location.href = '/verify';
     }
 
     function closeModal() {
