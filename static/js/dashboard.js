@@ -73,19 +73,6 @@ function setupEventListeners() {
   // Do NOT re-attach here; ultra-stable sets .onclick directly and owns this button
   // document.getElementById('new-verification-btn') — intentionally skipped
   // document.getElementById('quick-verification-btn') — intentionally skipped
-  document.getElementById('verification-close-btn')?.addEventListener('click', closeVerificationModal);
-  document.getElementById('step1-cancel')?.addEventListener('click', closeVerificationModal);
-  document.getElementById('step1-next')?.addEventListener('click', () => goToVerificationStep(2));
-  document.getElementById('step2-back')?.addEventListener('click', () => goToVerificationStep(1));
-  document.getElementById('step2-next')?.addEventListener('click', () => goToVerificationStep(3));
-  document.getElementById('step3-back')?.addEventListener('click', () => goToVerificationStep(2));
-  document.getElementById('step3-purchase')?.addEventListener('click', purchaseVerification);
-  document.getElementById('step4-close')?.addEventListener('click', closeVerificationModal);
-
-  // Area code and service selects
-  document.getElementById('area-code-select')?.addEventListener('change', onAreaCodeChange);
-  document.getElementById('service-select')?.addEventListener('change', onServiceChange);
-  document.getElementById('carrier-select')?.addEventListener('change', onCarrierChange);
 
   // Close modals on Escape key
   document.addEventListener('keydown', function (e) {
@@ -858,69 +845,15 @@ async function loadSettingsView() {
 }
 
 /**
- * Setup Credit Handlers (Modal & Payment)
+ * Setup Credit Handlers
+ * #credits-modal does not exist on dashboard — Add Credits goes to /wallet.
+ * ultra-stable owns the add-credits-btn .onclick.
+ * This function is kept as a no-op to avoid breaking the setupEventListeners() call.
  */
 function setupCreditHandlers() {
-  const modal = document.getElementById('credits-modal');
-  const openBtns = [document.getElementById('quick-credits-btn'), document.getElementById('add-credits-btn')];
-  const closeBtns = [document.getElementById('credits-close-btn'), document.getElementById('credits-cancel-btn')];
-  const proceedBtn = document.getElementById('credits-proceed-btn');
-  const customInput = document.getElementById('credit-amount');
-  const packages = document.querySelectorAll('.package');
-
-  let selectedAmount = 0;
-
-  function openModal() {
-    if (modal) modal.classList.add('show');
-  }
-
-  function closeModal() {
-    if (modal) modal.classList.remove('show');
-    packages.forEach(p => p.classList.remove('selected'));
-    if (customInput) customInput.value = '';
-    selectedAmount = 0;
-  }
-
-  openBtns.forEach(btn => btn?.addEventListener('click', openModal));
-  closeBtns.forEach(btn => btn?.addEventListener('click', closeModal));
-
-  packages.forEach(pkg => {
-    pkg.addEventListener('click', () => {
-      packages.forEach(p => p.classList.remove('selected'));
-      pkg.classList.add('selected');
-      selectedAmount = parseFloat(pkg.dataset.amount);
-      if (customInput) customInput.value = '';
-    });
-  });
-
-  customInput?.addEventListener('input', () => {
-    packages.forEach(p => p.classList.remove('selected'));
-    selectedAmount = parseFloat(customInput.value);
-  });
-
-  proceedBtn?.addEventListener('click', async () => {
-    if (!selectedAmount || selectedAmount < 1) {
-      showToast('Please select an amount (minimum $1)', 'warning');
-      return;
-    }
-
-    try {
-      const originalText = proceedBtn.innerHTML;
-      proceedBtn.innerHTML = '<div class="spinner-small"></div> Processing...';
-      proceedBtn.disabled = true;
-
-      const result = await api.initializePayment(selectedAmount);
-      if (result.authorization_url) {
-        window.location.href = result.authorization_url;
-      } else {
-        throw new Error('No payment URL returned');
-      }
-    } catch (e) {
-      showToast(e.message, 'error');
-      proceedBtn.disabled = false;
-      proceedBtn.innerHTML = 'Proceed to Payment';
-    }
-  });
+  // credits-modal is not present on the dashboard page.
+  // ultra-stable.js handles add-credits-btn → /wallet.
+  // Full payment modal lives on /wallet page only.
 }
 
 /**
@@ -981,37 +914,6 @@ export { loadAreaCodes, loadServices, updatePricing, purchaseVerification, setup
 /**
  * Initialize Primary Action Buttons
  */
-function initPrimaryButtons() {
-  // Add Credits Button
-  const addCreditsBtn = document.getElementById('add-credits-btn');
-  if (addCreditsBtn) {
-    addCreditsBtn.addEventListener('click', () => {
-      window.location.href = '/pricing';
-    });
-  }
-
-  // View Usage Button
-  const usageBtn = document.getElementById('usage-btn');
-  if (usageBtn) {
-    usageBtn.addEventListener('click', () => {
-      window.location.href = '/analytics';
-    });
-  }
-
-  // Upgrade Button
-  const upgradeBtn = document.getElementById('upgrade-btn');
-  if (upgradeBtn) {
-    upgradeBtn.addEventListener('click', () => {
-      window.location.href = '/pricing';
-    });
-  }
-
-  console.log('✅ Primary buttons initialized');
-}
-
-// Initialize on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPrimaryButtons);
-} else {
-  initPrimaryButtons();
-}
+// Primary buttons (Add Credits, View Usage, Upgrade) are owned by
+// dashboard-ultra-stable.js which sets .onclick directly.
+// initPrimaryButtons intentionally removed to prevent overwrite.
