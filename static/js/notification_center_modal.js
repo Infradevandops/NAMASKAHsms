@@ -138,7 +138,12 @@ class NotificationCenterModal {
 
     async loadCategories() {
         try {
-            const response = await fetch('/api/notifications/categories');
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            const response = await fetch('/api/notifications/categories', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) return;
             const data = await response.json();
             this.renderCategories(data.categories);
         } catch (error) {

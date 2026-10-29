@@ -4,16 +4,15 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from app.core.cache import get_redis
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
 from app.models import Verification
 from app.services.adaptive_polling import AdaptivePollingService
-from app.services.auto_refund_service import AutoRefundService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.purchase_intelligence import PurchaseIntelligenceService
-from app.services.refund_policy_enforcer import refund_policy_enforcer
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -454,6 +453,22 @@ class SMSPollingService:
     ):
         from app.core.constants import FailureReason
         from app.services.verification_status_service import mark_verification_failed
+
+        # Distributed lock — prevent duplicate processing by multiple gunicorn workers
+        try:
+            redis = get_redis()
+            if redis:
+                lock_key = f"lock:verification_timeout:{verification.id}"
+                acquired = redis.set(lock_key, "1", nx=True, ex=30)  # type: ignore[func-returns-value]
+                if not acquired:
+                    logger.info(
+                        f"Timeout for {verification.id} already being handled by another worker, skipping"
+                    )
+                    return
+        except Exception as e:
+            logger.warning(
+                f"Redis lock unavailable for {verification.id}, proceeding without lock: {e}"
+            )
 
         # Calculate reason
         failure_reason = FailureReason.SMS_NOT_DELIVERED
