@@ -382,6 +382,31 @@ async def request_verification(
                         "credits_charged": False,
                     },
                 )
+            except AreaCodeUnavailableException:
+                raise
+            except Exception:
+                # Re-raise so outer except catches it — but first check for ProviderError
+                raise
+
+        except AreaCodeUnavailableException:
+            raise
+        except Exception as provider_err:
+            from app.services.providers.provider_errors import ProviderError
+
+            if isinstance(provider_err, ProviderError):
+                db.rollback()
+                logger.warning(
+                    f"Provider error [{provider_err.category}]: {provider_err.internal}"
+                )
+                raise HTTPException(
+                    status_code=(
+                        503
+                        if provider_err.category not in ("no_inventory_country",)
+                        else 422
+                    ),
+                    detail=provider_err.user_message,
+                )
+            raise
 
             # —— Success path: purchase_result is populated ——
             if purchase_result.fallback_applied:

@@ -13,6 +13,7 @@ from app.services.providers.base_provider import (
     PurchaseResult,
     SMSProvider,
 )
+from app.services.providers.provider_errors import ProviderError
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -89,7 +90,36 @@ class TextVerifiedAdapter(SMSProvider):
 
         except Exception as e:
             logger.error(f"TextVerified purchase failed (capability={capability}): {e}")
-            raise RuntimeError(f"TextVerified purchase failed: {e}")
+            msg = str(e).lower()
+            if any(
+                k in msg
+                for k in (
+                    "no numbers",
+                    "out of stock",
+                    "no inventory",
+                    "unavailable",
+                    "not available",
+                    "sold out",
+                    "no activations",
+                )
+            ):
+                raise ProviderError("no_inventory_country", str(e))
+            if any(k in msg for k in ("timeout", "timed out", "read timeout")):
+                raise ProviderError("timeout", str(e))
+            if any(
+                k in msg
+                for k in (
+                    "connection",
+                    "unreachable",
+                    "network",
+                    "refused",
+                    "502",
+                    "503",
+                    "504",
+                )
+            ):
+                raise ProviderError("provider_unreachable", str(e))
+            raise ProviderError("malformed_response", str(e))
 
     async def check_messages(
         self, order_id: str, created_after=None

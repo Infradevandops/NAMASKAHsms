@@ -16,7 +16,7 @@ class ProviderError(Exception):
     USER_MESSAGES = {
         "timeout": "Verification is taking longer than expected. Please try again.",
         "no_inventory_city": None,  # Not an error — handled as city_honoured=False
-        "no_inventory_country": "No numbers available for this country right now. Please try again later.",
+        "no_inventory_country": "No numbers available for this service right now. Please try a different service or try again later.",
         "unsupported_country": "This country is not currently supported.",
         "unsupported_service": "This service is not currently supported.",
         "provider_unreachable": "Verification service is temporarily unavailable. Please try again.",
@@ -41,7 +41,6 @@ class ProviderError(Exception):
     def is_reroutable(self) -> bool:
         """True if this error should trigger provider failover."""
         return self.category in (
-            "no_inventory_country",
             "provider_unreachable",
             "timeout",
             "not_configured",
@@ -55,4 +54,8 @@ class ProviderError(Exception):
     @property
     def is_terminal(self) -> bool:
         """True if this error should surface to user immediately without rerouting."""
-        return self.category in ("unsupported_country", "unsupported_service")
+        return self.category in (
+            "unsupported_country",
+            "unsupported_service",
+            "no_inventory_country",
+        )
