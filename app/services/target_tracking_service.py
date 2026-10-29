@@ -146,3 +146,30 @@ class TargetTrackingService:
             "projected_date": projected_date,
             "status": "On Track" if daily_velocity >= 12.0 else "Behind",
         }
+
+    async def check_month_end_target(self) -> bool:
+        """Check if current month's revenue is below target. Fires alert if so.
+        Returns True if alert was fired.
+        """
+        from app.models.revenue_recognition import RevenueRecognition
+        from app.services.alerting_service import alerting_service
+        from sqlalchemy import select as sa_select, func
+
+        now = datetime.now(timezone.utc)
+        month_str = now.strftime("%Y-%m")
+
+        target = await self.get_active_target(month_str)
+        revenue_target = float(target.revenue_target) if target else 0.0
+
+        if revenue_target <= 0:
+            return False
+
+        actual_q = sa_select(
+            func.coalesce(func.sum(RevenueRecognition.gross_amount), 0.0)
+        ).where(RevenueRecognition.revenue_period == month_str)
+        actual_revenue = float(self.db.execute(actual_q).scalar() or 0.0)
+
+        if actual_revenue < revenue_target:
+            await alerting_service.send_target_miss_alert(month_str, actual_revenue, revenue_target)
+            return True
+        return False

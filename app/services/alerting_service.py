@@ -103,4 +103,27 @@ class AlertingService:
         return {"sent": sent, "deduplicated": deduped}
 
 
+    async def send_margin_alert(self, margin_pct: float, revenue: float, tv_cost: float) -> None:
+        await self.send_alert({
+            "type": "margin_below_threshold",
+            "severity": "critical",
+            "message": (
+                f"TextVerified margin is {margin_pct:.1f}% this week — below 15% threshold. "
+                f"Platform revenue: ${revenue:.2f} | TV cost: ${tv_cost:.2f}. "
+                "Check TextVerified pricing or billing immediately."
+            ),
+        })
+
+    async def send_target_miss_alert(self, month: str, actual: float, target: float) -> None:
+        shortfall = target - actual
+        await self.send_alert({
+            "type": "monthly_target_missed",
+            "severity": "warning",
+            "message": (
+                f"Month {month} closed below revenue target. "
+                f"Actual: ${actual:.2f} | Target: ${target:.2f} | Shortfall: ${shortfall:.2f}."
+            ),
+        })
+
+
 alerting_service = AlertingService()

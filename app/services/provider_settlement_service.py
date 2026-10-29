@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
@@ -17,6 +17,8 @@ from app.models.provider_settlement import (
 from app.models.transaction import Transaction
 
 logger = get_logger(__name__)
+
+MARGIN_ALERT_THRESHOLD = 0.15  # alert if margin drops below 15%
 
 
 class ProviderSettlementService:
@@ -358,6 +360,61 @@ class ProviderSettlementService:
             logger.error(f"Settlement reconciliation failed: {str(e)}")
             self.db.rollback()
             raise
+
+    async def check_margin(self, db: Session) -> Dict:
+        """Compare platform revenue vs TextVerified cost for the past 7 days.
+        Returns margin data and fires an alert if margin < 15%.
+        """
+        from app.models.verification import Verification
+        from app.services.textverified_service import TextVerifiedService
+
+        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+        # Platform revenue: sum of verification costs charged to users
+        from sqlalchemy import select as sa_select
+        revenue_q = sa_select(func.coalesce(func.sum(Verification.cost), 0.0)).where(
+            Verification.created_at >= week_ago,
+            Verification.status.in_(["completed", "timeout", "failed"]),
+        )
+        platform_revenue = float(db.execute(revenue_q).scalar() or 0.0)
+
+        # TextVerified cost: current balance delta (balance at start of week minus now)
+        # We use the cached balance snapshot if available, otherwise fetch live
+        tv = TextVerifiedService()
+        balance_data = await tv.get_balance()
+        tv_balance_now = balance_data.get("balance", 0.0)
+
+        # Fetch balance from 7 days ago from Redis cache key (best effort)
+        tv_cost = 0.0
+        try:
+            from app.core.cache import get_redis
+            redis = get_redis()
+            if redis:
+                cached_start = redis.get("tv:balance_week_start")
+                if cached_start:
+                    tv_balance_start = float(cached_start)
+                    tv_cost = max(0.0, tv_balance_start - tv_balance_now)
+                # Always refresh the weekly start snapshot
+                redis.setex("tv:balance_week_start", 7 * 86400, str(tv_balance_now))
+        except Exception as e:
+            logger.warning(f"Could not read TV balance cache: {e}")
+
+        margin_pct = ((platform_revenue - tv_cost) / platform_revenue * 100) if platform_revenue > 0 else 100.0
+
+        logger.info(
+            f"Weekly margin check: revenue=${platform_revenue:.2f} tv_cost=${tv_cost:.2f} margin={margin_pct:.1f}%"
+        )
+
+        if platform_revenue > 0 and margin_pct < (MARGIN_ALERT_THRESHOLD * 100):
+            from app.services.alerting_service import alerting_service
+            await alerting_service.send_margin_alert(margin_pct, platform_revenue, tv_cost)
+
+        return {
+            "platform_revenue": platform_revenue,
+            "tv_cost": tv_cost,
+            "margin_pct": margin_pct,
+            "alert_fired": platform_revenue > 0 and margin_pct < (MARGIN_ALERT_THRESHOLD * 100),
+        }
 
     async def get_settlement_summary(self, provider_id: str, year: int) -> Dict:
         """Get settlement summary for provider for year.
