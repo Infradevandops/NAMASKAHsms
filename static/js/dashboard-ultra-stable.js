@@ -157,9 +157,8 @@
         // New Verification Button
         const newVerifyBtn = document.getElementById('new-verification-btn');
         if (newVerifyBtn) {
-            newVerifyBtn.onclick = function(e) {
-                e.preventDefault();
-                openModal();
+            newVerifyBtn.onclick = function() {
+                window.location.href = '/verify';
             };
             console.log('✅ New Verification button initialized');
         }
@@ -167,9 +166,8 @@
         // Quick Verification Button (if exists)
         const quickVerifyBtn = document.getElementById('quick-verification-btn');
         if (quickVerifyBtn) {
-            quickVerifyBtn.onclick = function(e) {
-                e.preventDefault();
-                openModal();
+            quickVerifyBtn.onclick = function() {
+                window.location.href = '/verify';
             };
         }
 
