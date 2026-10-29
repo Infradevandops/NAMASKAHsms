@@ -418,6 +418,7 @@ class NotificationSystem {
 
             this.websocket.onmessage = (event) => {
                 try {
+                    if (event.data === 'pong') return;
                     const message = JSON.parse(event.data);
                     this.handleWebSocketMessage(message);
                 } catch (error) {

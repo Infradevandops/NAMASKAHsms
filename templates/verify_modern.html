@@ -5,11 +5,11 @@
 
 {% block head_extra %}
 {{ super() }}
-<link rel="stylesheet" href="/static/css/verification-design-system.css">
-<link rel="stylesheet" href="/static/css/sms-polling-ui.css">
+<link rel="stylesheet" href="/static/css/verification-design-system.css?v={{ app_version }}">
+<link rel="stylesheet" href="/static/css/sms-polling-ui.css?v={{ app_version }}">
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-<script src="/static/js/service-store.js"></script>
-<script src="/static/js/sms-arrival-sound.js"></script>
+<script src="/static/js/service-store.js?v={{ app_version }}"></script>
+<script src="/static/js/sms-arrival-sound.js?v={{ app_version }}"></script>
 <style>
     .verification-container {
         animation: slideUp 0.3s ease-out;
@@ -327,5 +327,5 @@
 </div>
 
 <script src="/static/js/verification-flow.js?v={{ app_version | default('490') }}"></script>
-<script src="/static/js/components/sms-websocket.js"></script>
+<script src="/static/js/components/sms-websocket.js?v={{ app_version }}"></script>
 {% endblock %}

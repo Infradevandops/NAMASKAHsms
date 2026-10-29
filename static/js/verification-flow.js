@@ -292,8 +292,7 @@ function renderImmersiveItem(item, isPinned) {
         const stockColor = available ? '#10b981' : '#ef4444';
         const stockLabel = available ? 'In stock' : 'Out of stock';
         const priceStr = item.price > 0 ? `$${parseFloat(item.price).toFixed(2)}` : '';
-        const rateStr = item.success_rate != null ? `${item.success_rate}%` : '';
-        const demandBadge = item.demand === 'high'
+        const rateStr = item.success_rate != null ? `${item.success_rate}% success` : '';
             ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">High demand</span>`
             : '';
         const capBadge = item.capability === 'voice'
@@ -316,7 +315,7 @@ function renderImmersiveItem(item, isPinned) {
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                         ${priceStr ? `<span style="font-size:12px;font-weight:600;color:#374151;">${priceStr}</span>` : ''}
-                        ${rateStr ? `<span style="font-size:11px;color:#6b7280;">${rateStr} success</span>` : ''}
+                        ${rateStr ? `<span style="font-size:11px;color:#6b7280;">${rateStr}</span>` : ''}
                     </div>
                 </div>
                 <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
