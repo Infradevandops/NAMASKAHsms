@@ -42,8 +42,18 @@ function _getStockDot(serviceSlug) {
         + `</span>`;
 }
 
-/**
- * Central tier-gating function. Call this whenever tier changes or service is selected.
+function chooseMethod(method) {
+    if (method === 'voice') {
+        window.location.href = '/voice-verify';
+        return;
+    }
+    // SMS — show progress + step 1
+    document.getElementById('step-0-card').style.display = 'none';
+    document.getElementById('progress-indicator').style.display = 'block';
+    document.getElementById('step-1-card').style.display = 'block';
+}
+
+ Call this whenever tier changes or service is selected.
  * Controls: upsell, subscribed-tip, advanced-options, area-code lock, carrier lock.
  */
 function applyTierGating() {
@@ -821,8 +831,11 @@ async function createVerification() {
 
         if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
 
-        if (msg.includes('Out of stock') || msg.includes('unavailable')) {
-            window.toast && window.toast.error(`${VerificationFlow.selectedService} is temporarily unavailable. Please try a different service.`);
+        if (msg.includes('Out of stock') || msg.includes('unavailable') || msg.includes('out_of_stock') || msg.includes('no numbers')) {
+            // Mark service as out of stock in local map so dot updates
+            const slug = (serviceId || '').toLowerCase();
+            if (_stockMap[slug]) _stockMap[slug].available = false;
+            window.toast && window.toast.error(`${VerificationFlow.selectedService} is out of stock. Please try a different service.`);
         } else if (msg.includes('Insufficient')) {
             window.toast && window.toast.error('Insufficient balance. Please add credits to your wallet.');
         } else {
@@ -1182,8 +1195,13 @@ function resetFlow() {
     // UI resets
     clearServiceSelection();
     document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
-    document.getElementById('step-1-card').classList.add('active');
-    updateProgress(0);
+
+    // Go back to method picker
+    document.getElementById('step-0-card').style.display = 'block';
+    document.getElementById('progress-indicator').style.display = 'none';
+    document.getElementById('step-1-card').style.display = 'none';
+    document.getElementById('step-2-card').style.display = 'none';
+    document.getElementById('step-3-card').style.display = 'none';
 
     const acInput = document.getElementById('area-code-search-input');
     if (acInput) acInput.value = '';
@@ -1194,8 +1212,7 @@ function resetFlow() {
     document.getElementById('code-received').style.display = 'none';
     const fw = document.getElementById('fallback-warning');
     if (fw) fw.remove();
-    updateProgress(1);
-    document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('step-0-card').scrollIntoView({ behavior: 'smooth' });
 }
 
 function showError(title, message) {

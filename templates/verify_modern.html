@@ -41,12 +41,33 @@
 <div class="verification-container">
     <!-- Header -->
     <div class="verification-header">
-        <h1>SMS Verification</h1>
-        <p>Get instant SMS codes for any service. Fast, reliable, and secure.</p>
+        <h1>New Verification</h1>
+        <p>Get instant verification codes. Fast, reliable, and secure.</p>
     </div>
 
-    <!-- Progress Indicator -->
-    <div class="verification-progress">
+    <!-- Step 0: SMS vs Voice picker -->
+    <div class="verification-card" id="step-0-card">
+        <h2>Choose Verification Method</h2>
+        <p style="color:var(--text-muted,#6b7280);margin-bottom:24px;">How would you like to receive your code?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <button type="button" onclick="chooseMethod('sms')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 16px;background:#fff;border:2px solid #e5e7eb;border-radius:14px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onmouseover="this.style.borderColor='#FE3C72';this.style.boxShadow='0 0 0 3px rgba(254,60,114,0.1)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                <span style="font-size:36px;">📱</span>
+                <span style="font-size:16px;font-weight:700;color:#111827;">SMS</span>
+                <span style="font-size:12px;color:#6b7280;">~30 seconds</span>
+            </button>
+            <button type="button" onclick="chooseMethod('voice')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 16px;background:#fff;border:2px solid #e5e7eb;border-radius:14px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onmouseover="this.style.borderColor='#6366f1';this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                <span style="font-size:36px;">📞</span>
+                <span style="font-size:16px;font-weight:700;color:#111827;">Voice Call</span>
+                <span style="font-size:12px;color:#6b7280;">2–5 minutes</span>
+            </button>
+        </div>
+        <div style="margin-top:20px;">
+            <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Progress Indicator (hidden until method chosen) -->
+    <div class="verification-progress" id="progress-indicator" style="display:none;">
         <div class="progress-steps">
             <div class="progress-step active" id="step-1">
                 <span class="step-number">1</span>
@@ -71,7 +92,7 @@
     </div>
 
     <!-- Step 1: Service Selection -->
-    <div class="verification-card" id="step-1-card">
+    <div class="verification-card" id="step-1-card" style="display:none;">
         <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
 
