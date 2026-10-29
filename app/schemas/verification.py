@@ -38,6 +38,10 @@ class VerificationRequest(BaseModel):
         max_length=36,
         description="UUID v4 idempotency key",
     )
+    max_price: Optional[float] = Field(
+        default=None,
+        description="Maximum price willing to pay. Purchase rejected if TV price exceeds this.",
+    )
     selected_from_alternatives: Optional[bool] = Field(
         default=False,
         description="Phase 6.4: track if user picked alternative",

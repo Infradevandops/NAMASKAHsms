@@ -12,6 +12,38 @@ All notable changes to the Vrenum SMS project.
 
 ---
 
+## [4.9.2] - October 29, 2026
+
+Service Intelligence — Enriched Stock Display & Price Guard
+
+### Added
+- **Service categories**: Services grouped by Social, Dating, Finance, Tech, Delivery, Streaming, Shopping in the service picker. TV gives no classification — categories are hardcoded by us based on service slug.
+- **Price per service**: Displayed next to each service in the picker. Pulled from TV pricing cache.
+- **Success rate**: 7-day success rate per service computed from our own `verifications` table. Shown as "87% success" under service name.
+- **Demand indicator**: `attempts_24h >= 10` → amber "High demand" badge. Warns users a service may sell out fast.
+- **Capability badge**: Voice-capable services show "Voice" or "SMS+Voice" badge.
+- **`max_price` guard**: Purchase request now accepts `max_price`. If TV price exceeds it at purchase time, returns 409 with clear message. Frontend passes `displayed_price * 1.10` (10% tolerance). Protects users from silent price spikes.
+- **`GET /api/services/stock`** now returns `category`, `success_rate`, `attempts_24h`, `demand` per service.
+
+### Changed
+- Service picker groups by category when browsing, flat list when searching
+- `renderImmersiveItem` shows price + success rate + stock dot + badges in a clean two-line layout
+- `_getStockInfo()` helper extracted from `_getStockDot()` for reuse
+
+### Technical
+- Files: `app/api/core/services.py`, `app/schemas/verification.py`, `app/api/verification/purchase_endpoints.py`, `static/js/verification-flow.js`
+- No DB migrations required
+- No new dependencies
+- Backward compatible: 100%
+
+### SDK Findings (TextVerified)
+- `Service` object: only `service_name` + `capability`. No count, no category.
+- `price = null` is the only out-of-stock signal.
+- `max_price` on `NewVerificationRequest` is supported — rejects purchase if TV price exceeds it.
+- Backorder system exists for rentals only, not verifications.
+
+---
+
 ## [4.9.1] - October 25, 2026
 
 Email Compliance, Alerting & Revenue Integrity

@@ -24,10 +24,14 @@ async function _loadStockMap() {
         }
     } catch (e) { /* non-critical */ }
 }
-function _getStockDot(serviceSlug) {
-    if (!_stockMap || !Object.keys(_stockMap).length) return '';
+function _getStockInfo(serviceSlug) {
+    if (!_stockMap || !Object.keys(_stockMap).length) return null;
     const key = (serviceSlug || '').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    const info = _stockMap[key] || _stockMap[(serviceSlug || '').toLowerCase()];
+    return _stockMap[key] || _stockMap[(serviceSlug || '').toLowerCase()] || null;
+}
+
+function _getStockDot(serviceSlug) {
+    const info = _getStockInfo(serviceSlug);
     if (!info) return '';
     const available = info.available;
     const color = available ? '#10b981' : '#ef4444';
@@ -213,8 +217,22 @@ function renderImmersiveList(type, query = '') {
     if (type === 'service') {
         const pinned = filtered.filter(i => _pinnedServices.includes(i.value));
         const recent = filtered.filter(i => !_pinnedServices.includes(i.value) && _recentServices.includes(i.value));
-        const popular = filtered.filter(i => !_pinnedServices.includes(i.value) && !_recentServices.includes(i.value) && i.popular);
-        const others = filtered.filter(i => !_pinnedServices.includes(i.value) && !_recentServices.includes(i.value) && !i.popular);
+
+        // Category grouping (only when not searching)
+        const _CAT_LABELS = {
+            social: '💬 Social & Messaging',
+            dating: '❤️ Dating',
+            finance: '💳 Finance & Crypto',
+            tech: '💻 Tech & Productivity',
+            delivery: '🚗 Delivery & Travel',
+            streaming: '🎮 Gaming & Streaming',
+            shopping: '🛍️ Shopping',
+            other: '📱 Other Services',
+        };
+
+        const remaining = filtered.filter(i =>
+            !_pinnedServices.includes(i.value) && !_recentServices.includes(i.value)
+        );
 
         if (pinned.length > 0) {
             html += `<div class="modal-list-section">
@@ -228,17 +246,26 @@ function renderImmersiveList(type, query = '') {
                 ${recent.map(i => renderImmersiveItem(i, false)).join('')}
             </div>`;
         }
-        if (popular.length > 0) {
-            html += `<div class="modal-list-section">
-                <div class="list-section-title">POPULAR</div>
-                ${popular.map(i => renderImmersiveItem(i, false)).join('')}
-            </div>`;
-        }
-        if (others.length > 0) {
-            html += `<div class="modal-list-section">
-                <div class="list-section-title">ALL SERVICES</div>
-                ${others.map(i => renderImmersiveItem(i, false)).join('')}
-            </div>`;
+
+        if (normalizedQuery) {
+            // Flat list when searching
+            html += remaining.map(i => renderImmersiveItem(i, false)).join('');
+        } else {
+            // Group by category
+            const byCategory = {};
+            for (const item of remaining) {
+                const cat = item.category || 'other';
+                if (!byCategory[cat]) byCategory[cat] = [];
+                byCategory[cat].push(item);
+            }
+            const catOrder = ['social', 'dating', 'finance', 'tech', 'delivery', 'streaming', 'shopping', 'other'];
+            for (const cat of catOrder) {
+                if (!byCategory[cat] || byCategory[cat].length === 0) continue;
+                html += `<div class="modal-list-section">
+                    <div class="list-section-title">${_CAT_LABELS[cat] || cat.toUpperCase()}</div>
+                    ${byCategory[cat].map(i => renderImmersiveItem(i, false)).join('')}
+                </div>`;
+            }
         }
     } else {
         html = filtered.map(i => renderImmersiveItem(i, false)).join('');
@@ -250,13 +277,37 @@ function renderImmersiveList(type, query = '') {
 function renderImmersiveItem(item, isPinned) {
     if (_modalType === 'service') {
         const iconUrl = _getServiceIcon(item.value);
+        const stockInfo = _getStockInfo(item.value) || {};
+        const available = stockInfo.available !== false;
+        const stockColor = available ? '#10b981' : '#ef4444';
+        const stockLabel = available ? 'In stock' : 'Out of stock';
+        const priceStr = item.price > 0 ? `$${parseFloat(item.price).toFixed(2)}` : '';
+        const rateStr = item.success_rate != null ? `${item.success_rate}%` : '';
+        const demandBadge = item.demand === 'high'
+            ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">High demand</span>`
+            : '';
+        const capBadge = item.capability === 'voice'
+            ? `<span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">Voice</span>`
+            : item.capability === 'sms_and_voice'
+            ? `<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">SMS+Voice</span>`
+            : '';
+
         return `
             <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
                 <div class="list-item-icon">
                     <img src="${iconUrl}" onerror="this.style.display='none'">
                 </div>
-                <div class="list-item-info">
-                    <div class="list-item-name">${item.label}${_getStockDot(item.value)}</div>
+                <div class="list-item-info" style="flex:1;min-width:0;">
+                    <div class="list-item-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
+                        ${item.label}
+                        <span style="width:7px;height:7px;border-radius:50%;background:${stockColor};flex-shrink:0;margin-left:6px;"></span>
+                        <span style="font-size:11px;color:${stockColor};font-weight:500;">${stockLabel}</span>
+                        ${demandBadge}${capBadge}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+                        ${priceStr ? `<span style="font-size:12px;font-weight:600;color:#374151;">${priceStr}</span>` : ''}
+                        ${rateStr ? `<span style="font-size:11px;color:#6b7280;">${rateStr} success</span>` : ''}
+                    </div>
                 </div>
                 <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
                     <i class="ph${isPinned ? '-fill' : ''} ph-push-pin"></i>
@@ -519,7 +570,6 @@ function _lsSet(key, data) {
 
 function _buildServiceItems(services) {
     const popularIds = ['telegram', 'whatsapp', 'google', 'facebook', 'instagram', 'twitter', 'discord', 'tinder'];
-    // Deduplicate by id (backend should already dedup, but safety net)
     const seen = new Set();
     const unique = services.filter(s => {
         const key = (s.id || '').toLowerCase();
@@ -528,13 +578,21 @@ function _buildServiceItems(services) {
         return true;
     });
     return [
-        ...unique.map(s => ({
-            value: s.id,
-            label: s.name || s.id,
-            price: s.price,
-            popular: popularIds.includes(s.id.toLowerCase())
-        })),
-        { value: '__other__', label: 'Other (type name)', price: 0, popular: false }
+        ...unique.map(s => {
+            const slug = (s.id || '').toLowerCase();
+            const stockInfo = _getStockInfo(slug) || {};
+            return {
+                value: s.id,
+                label: s.name || s.id,
+                price: s.price,
+                popular: popularIds.includes(slug),
+                category: stockInfo.category || 'other',
+                success_rate: stockInfo.success_rate ?? null,
+                demand: stockInfo.demand || 'normal',
+                capability: s.capability || 'sms',
+            };
+        }),
+        { value: '__other__', label: 'Other (type name)', price: 0, popular: false, category: 'other' }
     ];
 }
 
@@ -723,7 +781,10 @@ async function createVerification() {
                 country: 'US',
                 capability: 'sms',
                 area_codes: areaCode ? [areaCode] : [],
-                carriers: carrier ? [carrier] : []
+                carriers: carrier ? [carrier] : [],
+                max_price: VerificationFlow.selectedServicePrice
+                    ? parseFloat((VerificationFlow.selectedServicePrice * 1.10).toFixed(2))
+                    : null
             })
         });
 

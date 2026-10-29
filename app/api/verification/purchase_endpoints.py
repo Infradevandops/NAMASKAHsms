@@ -302,6 +302,13 @@ async def request_verification(
 
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
 
+        # max_price guard — reject if TV price exceeds what user expected
+        if request.max_price is not None and sms_cost > request.max_price:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Price changed: expected ${request.max_price:.2f}, current price is ${sms_cost:.2f}. Please refresh and try again.",
+            )
+
         # Check user has sufficient balance using unified service
         balance_check = await BalanceService.check_sufficient_balance(
             user_id, sms_cost, db
