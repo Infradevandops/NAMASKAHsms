@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import httpx
 from sqlalchemy.orm import Session
@@ -90,7 +90,8 @@ class TelegramService:
         connection = (
             db.query(TelegramConnection)
             .filter(
-                TelegramConnection.user_id == user_id, TelegramConnection.active == True
+                TelegramConnection.user_id == user_id,
+                TelegramConnection.active.is_(True),
             )
             .first()
         )
@@ -112,7 +113,9 @@ class TelegramService:
                 rules.service_filter
                 and verification.service_name not in rules.service_filter
             ):
-                logger.debug(f"Service {verification.service_name} not in filter, skipping")
+                logger.debug(
+                    f"Service {verification.service_name} not in filter, skipping"
+                )
                 return False
 
             # Check country filter

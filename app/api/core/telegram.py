@@ -200,7 +200,7 @@ async def update_telegram_settings(
         db.query(TelegramConnection)
         .filter(
             TelegramConnection.user_id == current_user.id,
-            TelegramConnection.active == True,
+            TelegramConnection.active.is_(True),
         )
         .first()
     )
@@ -247,7 +247,7 @@ async def send_test_message(
         db.query(TelegramConnection)
         .filter(
             TelegramConnection.user_id == current_user.id,
-            TelegramConnection.active == True,
+            TelegramConnection.active.is_(True),
         )
         .first()
     )
@@ -321,14 +321,16 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
                 existing.first_name = first_name
                 existing.connected_at = datetime.utcnow()
             else:
-                db.add(TelegramConnection(
-                    user_id=user_id,
-                    chat_id=chat_id,
-                    username=username,
-                    first_name=first_name,
-                    active=True,
-                    connected_at=datetime.utcnow(),
-                ))
+                db.add(
+                    TelegramConnection(
+                        user_id=user_id,
+                        chat_id=chat_id,
+                        username=username,
+                        first_name=first_name,
+                        active=True,
+                        connected_at=datetime.utcnow(),
+                    )
+                )
 
             db.commit()
 
