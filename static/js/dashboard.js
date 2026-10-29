@@ -339,6 +339,8 @@ function openVerificationModal() {
     loadAreaCodes();
     loadCarriers();
     goToVerificationStep(1);
+  } else {
+    window.location.href = '/verify';
   }
 }
 

@@ -252,16 +252,16 @@
 
 /* Enhanced notification dropdown */
 .notification-dropdown {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
+    position: fixed;
+    top: 68px;
+    right: 16px;
     width: 380px;
     max-height: 500px;
     background: white;
     border-radius: 16px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(0, 0, 0, 0.08);
-    z-index: 1000;
+    z-index: 9999;
     overflow: hidden;
     transform: translateY(-10px);
     opacity: 0;
