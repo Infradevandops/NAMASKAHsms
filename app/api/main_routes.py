@@ -22,9 +22,26 @@ TEMPLATES_DIR = Path("templates").resolve()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Inject app_version as a Jinja2 global so all templates can use {{ app_version }}
+import subprocess
+
 from app.core.config import get_settings as _get_settings
 
-templates.env.globals["app_version"] = _get_settings().version.replace(".", "")
+
+def _get_asset_version() -> str:
+    """Git commit hash as cache buster — changes on every deploy."""
+    try:
+        return (
+            subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL
+            )
+            .decode()
+            .strip()
+        )
+    except Exception:
+        return _get_settings().version.replace(".", "")
+
+
+templates.env.globals["app_version"] = _get_asset_version()
 
 
 @router.get("/favicon.ico", include_in_schema=False)
