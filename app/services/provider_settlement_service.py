@@ -372,6 +372,7 @@ class ProviderSettlementService:
 
         # Platform revenue: sum of verification costs charged to users
         from sqlalchemy import select as sa_select
+
         revenue_q = sa_select(func.coalesce(func.sum(Verification.cost), 0.0)).where(
             Verification.created_at >= week_ago,
             Verification.status.in_(["completed", "timeout", "failed"]),
@@ -388,6 +389,7 @@ class ProviderSettlementService:
         tv_cost = 0.0
         try:
             from app.core.cache import get_redis
+
             redis = get_redis()
             if redis:
                 cached_start = redis.get("tv:balance_week_start")
@@ -399,7 +401,11 @@ class ProviderSettlementService:
         except Exception as e:
             logger.warning(f"Could not read TV balance cache: {e}")
 
-        margin_pct = ((platform_revenue - tv_cost) / platform_revenue * 100) if platform_revenue > 0 else 100.0
+        margin_pct = (
+            ((platform_revenue - tv_cost) / platform_revenue * 100)
+            if platform_revenue > 0
+            else 100.0
+        )
 
         logger.info(
             f"Weekly margin check: revenue=${platform_revenue:.2f} tv_cost=${tv_cost:.2f} margin={margin_pct:.1f}%"
@@ -407,13 +413,17 @@ class ProviderSettlementService:
 
         if platform_revenue > 0 and margin_pct < (MARGIN_ALERT_THRESHOLD * 100):
             from app.services.alerting_service import alerting_service
-            await alerting_service.send_margin_alert(margin_pct, platform_revenue, tv_cost)
+
+            await alerting_service.send_margin_alert(
+                margin_pct, platform_revenue, tv_cost
+            )
 
         return {
             "platform_revenue": platform_revenue,
             "tv_cost": tv_cost,
             "margin_pct": margin_pct,
-            "alert_fired": platform_revenue > 0 and margin_pct < (MARGIN_ALERT_THRESHOLD * 100),
+            "alert_fired": platform_revenue > 0
+            and margin_pct < (MARGIN_ALERT_THRESHOLD * 100),
         }
 
     async def get_settlement_summary(self, provider_id: str, year: int) -> Dict:
