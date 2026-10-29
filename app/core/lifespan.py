@@ -389,7 +389,9 @@ async def lifespan(app):
                         await asyncio.sleep((target - now).total_seconds())
 
                         from app.core.database import SessionLocal
-                        from app.services.provider_settlement_service import ProviderSettlementService
+                        from app.services.provider_settlement_service import (
+                            ProviderSettlementService,
+                        )
 
                         with SessionLocal() as db:
                             svc = ProviderSettlementService(db)
@@ -403,40 +405,55 @@ async def lifespan(app):
                     await asyncio.sleep(3600)  # retry after 1h on error
 
             asyncio.create_task(start_margin_reconciliation_loop())
-            startup_logger.info("✅ TV margin reconciliation started (weekly Monday 09:00 UTC)")
+            startup_logger.info(
+                "✅ TV margin reconciliation started (weekly Monday 09:00 UTC)"
+            )
 
             # Month-end revenue target alert (last day of month 20:00 UTC)
             async def start_month_end_target_loop():
                 while True:
                     try:
-                        from datetime import timedelta
                         import calendar
+                        from datetime import timedelta
+
                         now = datetime.now(timezone.utc)
                         # Last day of current month at 20:00 UTC
                         last_day = calendar.monthrange(now.year, now.month)[1]
-                        target = now.replace(day=last_day, hour=20, minute=0, second=0, microsecond=0)
+                        target = now.replace(
+                            day=last_day, hour=20, minute=0, second=0, microsecond=0
+                        )
                         if now >= target:
                             # Already past — aim for next month's last day
                             next_month = now.replace(day=1) + timedelta(days=32)
-                            last_day = calendar.monthrange(next_month.year, next_month.month)[1]
-                            target = next_month.replace(day=last_day, hour=20, minute=0, second=0, microsecond=0)
+                            last_day = calendar.monthrange(
+                                next_month.year, next_month.month
+                            )[1]
+                            target = next_month.replace(
+                                day=last_day, hour=20, minute=0, second=0, microsecond=0
+                            )
                         await asyncio.sleep((target - now).total_seconds())
 
                         from app.core.database import get_session_local
-                        from app.services.target_tracking_service import TargetTrackingService
+                        from app.services.target_tracking_service import (
+                            TargetTrackingService,
+                        )
 
                         SessionLocal = get_session_local()
                         with SessionLocal() as db:
                             svc = TargetTrackingService(db)
                             fired = await svc.check_month_end_target()
                             if fired:
-                                startup_logger.warning("🚨 Month-end revenue target alert fired")
+                                startup_logger.warning(
+                                    "🚨 Month-end revenue target alert fired"
+                                )
                     except Exception as e:
                         startup_logger.error(f"Month-end target check error: {e}")
                     await asyncio.sleep(3600)  # retry after 1h on error
 
             asyncio.create_task(start_month_end_target_loop())
-            startup_logger.info("✅ Month-end revenue target alert started (last day of month 20:00 UTC)")
+            startup_logger.info(
+                "✅ Month-end revenue target alert started (last day of month 20:00 UTC)"
+            )
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 

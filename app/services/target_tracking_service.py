@@ -151,9 +151,11 @@ class TargetTrackingService:
         """Check if current month's revenue is below target. Fires alert if so.
         Returns True if alert was fired.
         """
+        from sqlalchemy import func
+        from sqlalchemy import select as sa_select
+
         from app.models.revenue_recognition import RevenueRecognition
         from app.services.alerting_service import alerting_service
-        from sqlalchemy import select as sa_select, func
 
         now = datetime.now(timezone.utc)
         month_str = now.strftime("%Y-%m")
@@ -170,6 +172,8 @@ class TargetTrackingService:
         actual_revenue = float(self.db.execute(actual_q).scalar() or 0.0)
 
         if actual_revenue < revenue_target:
-            await alerting_service.send_target_miss_alert(month_str, actual_revenue, revenue_target)
+            await alerting_service.send_target_miss_alert(
+                month_str, actual_revenue, revenue_target
+            )
             return True
         return False
