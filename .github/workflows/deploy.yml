@@ -45,9 +45,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: CF_ZONE_ID,CF_API_TOKEN
           script: |
-            CF_ZONE_ID="${{ secrets.CF_ZONE_ID }}"
-            CF_API_TOKEN="${{ secrets.CF_API_TOKEN }}"
             if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ]; then
               echo "⚠️ CF secrets not set — skipping purge"
               exit 0
@@ -55,7 +54,10 @@ jobs:
             RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
               -H "Authorization: Bearer ${CF_API_TOKEN}" \
               -H "Content-Type: application/json" \
-              --data '{"purge_everything":true}' 2>/dev/null || echo '{}')
+              --data '{"purge_everything":true}')
             echo "CF purge response: $RESPONSE"
             echo "$RESPONSE" | python3 -c "import sys,json; r=json.load(sys.stdin); print('✅ CF cache purged' if r.get('success') else f'⚠️ CF purge: {r}')" 2>/dev/null || echo "⚠️ CF purge unparseable"
           command_timeout: 2m
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
