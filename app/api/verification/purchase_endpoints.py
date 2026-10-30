@@ -398,6 +398,15 @@ async def request_verification(
                 logger.warning(
                     f"Provider error [{provider_err.category}]: {provider_err.internal}"
                 )
+                try:
+                    await notification_dispatcher.notify_verification_failed(
+                        user_id=user_id,
+                        verification_id="unknown",
+                        service=request.service,
+                        reason=provider_err.user_message,
+                    )
+                except Exception:
+                    pass
                 raise HTTPException(
                     status_code=(
                         503
@@ -407,7 +416,6 @@ async def request_verification(
                     detail=provider_err.user_message,
                 )
             raise
-
             # —— Success path: purchase_result is populated ——
             if purchase_result.fallback_applied:
                 logger.warning(

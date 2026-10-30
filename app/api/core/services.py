@@ -187,13 +187,26 @@ async def get_services_stock(db: Session = Depends(get_db)):
         for slug, info in services.items():
             stat = stats.get(slug, {})
             attempts_24h = stat.get("attempts_24h", 0)
+            success_rate = stat.get("success_rate")  # None = no data, not 0%
             enriched[slug] = {
                 **info,
                 "category": _get_category(slug),
-                "success_rate": stat.get("success_rate"),
+                "success_rate": success_rate,
                 "attempts_24h": attempts_24h,
                 "demand": "high" if attempts_24h >= 10 else "normal",
             }
+
+        # Sort within each category: available first, then by success_rate desc
+        # Services with no data (None) rank below those with real rates
+        # Out-of-stock services sink to the bottom
+        def _sort_key(item):
+            info = item[1]
+            available = 1 if info.get("available") else 0
+            rate = info.get("success_rate")
+            rate_score = rate if rate is not None else -1
+            return (available, rate_score)
+
+        enriched = dict(sorted(enriched.items(), key=_sort_key, reverse=True))
 
         return {
             **data,

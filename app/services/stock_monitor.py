@@ -17,10 +17,34 @@ logger = get_logger(__name__)
 _STOCK_CACHE_KEY = "services:stock"
 _STOCK_CACHE_TTL = 900  # 15 minutes
 _TV_SERVICES_KEY = "tv:services_list"
+_OUTCOME_TTL = 600  # 10 min — short enough to recover when TV restocks
+
+
+async def record_purchase_outcome(service_slug: str, success: bool) -> None:
+    """Record a real purchase outcome to correct stale price-based availability."""
+    try:
+        key = f"services:outcome:{service_slug.lower()}"
+        await cache.set(
+            key,
+            {"available": success, "ts": datetime.now(timezone.utc).isoformat()},
+            _OUTCOME_TTL,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to record purchase outcome for {service_slug}: {e}")
+
+
+async def get_purchase_outcome(service_slug: str) -> bool | None:
+    """Return last known purchase outcome, or None if no recent data."""
+    try:
+        data = await cache.get(f"services:outcome:{service_slug.lower()}")
+        return data["available"] if data else None
+    except Exception:
+        return None
 
 
 async def build_stock_map() -> Dict[str, dict]:
-    """Build availability map from cached TextVerified services list."""
+    """Build availability map from cached TextVerified services list,
+    corrected by real purchase outcomes."""
     try:
         services = await cache.get(_TV_SERVICES_KEY)
         if not services:
@@ -28,13 +52,18 @@ async def build_stock_map() -> Dict[str, dict]:
 
         stock_map = {}
         for svc in services:
-            # Use id field directly — matches what ServiceStore uses as item.value
             slug = (svc.get("id") or svc.get("name") or "").lower().strip()
             if not slug:
                 continue
             price = svc.get("price")
+            # Price > 0 means TV lists it — but check real outcome first
+            outcome = await get_purchase_outcome(slug)
+            if outcome is not None:
+                available = outcome  # Real purchase result overrides price signal
+            else:
+                available = price is not None and float(price) > 0
             stock_map[slug] = {
-                "available": price is not None and float(price) > 0,
+                "available": available,
                 "price": price,
                 "provider": "textverified",
             }

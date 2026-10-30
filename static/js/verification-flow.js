@@ -271,6 +271,15 @@ function renderImmersiveList(type, query = '') {
             const catOrder = ['social', 'dating', 'finance', 'tech', 'delivery', 'streaming', 'shopping', 'other'];
             for (const cat of catOrder) {
                 if (!byCategory[cat] || byCategory[cat].length === 0) continue;
+                // Sort within category: available first, then by success_rate desc, no-data last
+                byCategory[cat].sort((a, b) => {
+                    const aAvail = (a.available !== false) ? 1 : 0;
+                    const bAvail = (b.available !== false) ? 1 : 0;
+                    if (aAvail !== bAvail) return bAvail - aAvail;
+                    const aRate = a.success_rate != null ? a.success_rate : -1;
+                    const bRate = b.success_rate != null ? b.success_rate : -1;
+                    return bRate - aRate;
+                });
                 html += `<div class="modal-list-section">
                     <div class="list-section-title">${_CAT_LABELS[cat] || cat.toUpperCase()}</div>
                     ${byCategory[cat].map(i => renderImmersiveItem(i, false)).join('')}
@@ -595,6 +604,7 @@ function _buildServiceItems(services) {
                 label: s.name || s.id,
                 price: s.price,
                 popular: popularIds.includes(slug),
+                available: stockInfo.available !== false,
                 category: stockInfo.category || 'other',
                 success_rate: stockInfo.success_rate ?? null,
                 demand: stockInfo.demand || 'normal',

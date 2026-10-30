@@ -68,7 +68,7 @@ class TextVerifiedAdapter(SMSProvider):
                     original_request=original_request,
                 )
 
-            return PurchaseResult(
+            purchase = PurchaseResult(
                 phone_number=result["phone_number"],
                 order_id=result["id"],
                 cost=result["cost"],
@@ -87,9 +87,16 @@ class TextVerifiedAdapter(SMSProvider):
                 routing_reason=f"country=US capability={capability}",
                 tv_object=result.get("tv_object"),  # CRITICAL: Needed for polling
             )
+            from app.services.stock_monitor import record_purchase_outcome
+
+            await record_purchase_outcome(service, True)
+            return purchase
 
         except Exception as e:
             logger.error(f"TextVerified purchase failed (capability={capability}): {e}")
+            from app.services.stock_monitor import record_purchase_outcome
+
+            await record_purchase_outcome(service, False)
             msg = str(e).lower()
             if any(
                 k in msg
