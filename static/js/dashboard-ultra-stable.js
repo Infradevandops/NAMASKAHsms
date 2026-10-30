@@ -154,14 +154,7 @@
     // ============================================
 
     function initButtons() {
-        // New Verification Button
-        const newVerifyBtn = document.getElementById('new-verification-btn');
-        if (newVerifyBtn) {
-            newVerifyBtn.onclick = function() {
-                window.location.href = '/verify';
-            };
-            console.log('✅ New Verification button initialized');
-        }
+        // New Verification Button — owned by dashboard.html inline script (CF-cache immune)
 
         // Quick Verification Button (if exists)
         const quickVerifyBtn = document.getElementById('quick-verification-btn');

@@ -444,4 +444,19 @@ endblock %}
         initDashboard();
     }
 </script>
+<script nonce="{{ request.state.csp_nonce }}">
+(function() {
+    function _fixVerifyBtn() {
+        var btn = document.getElementById('new-verification-btn');
+        if (btn) btn.onclick = function() { window.location.href = '/verify'; };
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _fixVerifyBtn);
+    } else {
+        _fixVerifyBtn();
+    }
+    setTimeout(_fixVerifyBtn, 0);
+    setTimeout(_fixVerifyBtn, 300);
+})();
+</script>
 {% endblock %}
