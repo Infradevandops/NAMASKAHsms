@@ -7,7 +7,7 @@ Stores a lightweight availability map in Redis for fast frontend reads.
 
 import asyncio
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 
 from app.core.logging import get_logger
 from app.core.unified_cache import cache
@@ -33,7 +33,7 @@ async def record_purchase_outcome(service_slug: str, success: bool) -> None:
         logger.warning(f"Failed to record purchase outcome for {service_slug}: {e}")
 
 
-async def get_purchase_outcome(service_slug: str) -> bool | None:
+async def get_purchase_outcome(service_slug: str) -> Optional[bool]:
     """Return last known purchase outcome, or None if no recent data."""
     try:
         data = await cache.get(f"services:outcome:{service_slug.lower()}")
