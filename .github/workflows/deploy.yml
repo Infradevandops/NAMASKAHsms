@@ -41,11 +41,8 @@ jobs:
       - name: Purge Cloudflare cache
         if: success()
         run: |
-          HTTP_CODE=$(curl -s -o /tmp/cf_resp.txt -w "%{http_code}" -X POST \
-            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
-            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}' --max-time 15 2>/dev/null || echo "000")
-          BODY=$(cat /tmp/cf_resp.txt 2>/dev/null || echo "{}")
-          echo "HTTP: $HTTP_CODE | Body: $BODY"
-          [ "$HTTP_CODE" = "200" ] && echo "✅ CF cache purged" || echo "⚠️ CF purge HTTP $HTTP_CODE"
+          # Note: GH Actions runners are blocked from api.cloudflare.com
+          # Cache busting is handled by ?v={{ app_version }} query strings on all static assets
+          # Manual purge: CF Dashboard -> vrenum.app -> Caching -> Purge Cache -> Prefix -> vrenum.app/static/
+          echo "ℹ️ CF auto-purge skipped (runner network restriction). Static assets use ?v= cache busters."
+          echo "✅ Deploy complete. New JS/CSS will be served via versioned URLs."
