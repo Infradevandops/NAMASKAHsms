@@ -40,20 +40,22 @@ jobs:
 
       - name: Purge Cloudflare cache
         if: success()
-        env:
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: |
-          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ]; then
-            echo "⚠️ CF secrets not set — skipping purge (nginx ?v= busters handle cache)"
-            exit 0
-          fi
-          curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
-            -H "Authorization: Bearer ${CF_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}' -o /tmp/cf_purge.json -w "%{http_code}" > /tmp/cf_status.txt 2>&1 || true
-          STATUS=$(cat /tmp/cf_status.txt 2>/dev/null || echo "000")
-          BODY=$(cat /tmp/cf_purge.json 2>/dev/null || echo "{}")
-          echo "CF purge HTTP status: $STATUS"
-          echo "CF purge response: $BODY"
-          python3 -c "import json; r=json.loads('$BODY' or '{}'); print('✅ CF cache purged' if r.get('success') else f'⚠️ CF purge result: {r}')" 2>/dev/null || echo "⚠️ CF purge response unparseable (status: $STATUS)"
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            CF_ZONE_ID="${{ secrets.CF_ZONE_ID }}"
+            CF_API_TOKEN="${{ secrets.CF_API_TOKEN }}"
+            if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ]; then
+              echo "⚠️ CF secrets not set — skipping purge"
+              exit 0
+            fi
+            RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data '{"purge_everything":true}' 2>/dev/null || echo '{}')
+            echo "CF purge response: $RESPONSE"
+            echo "$RESPONSE" | python3 -c "import sys,json; r=json.load(sys.stdin); print('✅ CF cache purged' if r.get('success') else f'⚠️ CF purge: {r}')" 2>/dev/null || echo "⚠️ CF purge unparseable"
+          command_timeout: 2m
