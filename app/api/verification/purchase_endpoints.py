@@ -416,179 +416,179 @@ async def request_verification(
                     detail=provider_err.user_message,
                 )
             raise
-            # —— Success path: purchase_result is populated ——
-            if purchase_result.fallback_applied:
-                logger.warning(
-                    f"Provider fallback applied for user {user_id}: "
-                    f"requested={purchase_result.requested_area_code or 'Any'}, "
-                    f"assigned={purchase_result.assigned_area_code or 'Any'}"
+        # —— Success path: purchase_result is populated ——
+        actual_cost = sms_cost
+        if purchase_result.fallback_applied:
+            logger.warning(
+                f"Provider fallback applied for user {user_id}: "
+                f"requested={purchase_result.requested_area_code or 'Any'}, "
+                f"assigned={purchase_result.assigned_area_code or 'Any'}"
+            )
+            try:
+                await notification_dispatcher.notify_area_code_fallback(
+                    user_id=user_id,
+                    verification_id="pending",
+                    service=request.service,
+                    requested_area_code=purchase_result.requested_area_code,
+                    assigned_area_code=purchase_result.assigned_area_code,
+                    same_state=purchase_result.same_state_fallback,
                 )
-                try:
-                    await notification_dispatcher.notify_area_code_fallback(
-                        user_id=user_id,
-                        verification_id="pending",
-                        service=request.service,
-                        requested_area_code=purchase_result.requested_area_code,
-                        assigned_area_code=purchase_result.assigned_area_code,
-                        same_state=purchase_result.same_state_fallback,
-                    )
-                except Exception:
-                    pass  # Notification failure is non-fatal
+            except Exception:
+                pass  # Notification failure is non-fatal
 
-            # Step 2.2: Create verification record
-            actual_cost = sms_cost
-            logger.info(f"Creating verification record for user {user_id}")
-            verification = Verification(
+        # Step 2.2: Create verification record
+        logger.info(f"Creating verification record for user {user_id}")
+        verification = Verification(
+            user_id=user_id,
+            service_name=request.service,
+            phone_number=purchase_result.phone_number,
+            country=request.country,
+            capability=request.capability,
+            cost=actual_cost,
+            provider=purchase_result.provider,
+            activation_id=purchase_result.order_id,
+            status="pending",
+            idempotency_key=final_idempotency_key,
+            requested_area_code=area_code,
+            requested_carrier=None,
+            operator=purchase_result.operator,
+            assigned_area_code=purchase_result.assigned_area_code,
+            assigned_carrier=None,
+            fallback_applied=purchase_result.fallback_applied,
+            same_state_fallback=purchase_result.same_state_fallback,
+            retry_attempts=purchase_result.retry_attempts,
+            area_code_matched=purchase_result.area_code_matched,
+            carrier_matched=True,
+            real_carrier=None,
+            carrier_surcharge=0.0,
+            area_code_surcharge=0.0,
+            voip_rejected=purchase_result.voip_rejected,
+            created_at=datetime.now(timezone.utc),
+            selected_from_alternatives=request.selected_from_alternatives,
+            original_request=request.original_request,
+            routing_reason=purchase_result.routing_reason,
+            city_honoured=purchase_result.city_honoured,
+            city_note=purchase_result.city_note,
+        )
+        db.add(verification)
+        db.flush()  # Get the ID before commit
+
+        # Track verification event
+        try:
+            event_service = EventTrackingService(db)
+            event_service.track_verification(
                 user_id=user_id,
                 service_name=request.service,
-                phone_number=purchase_result.phone_number,
-                country=request.country,
-                capability=request.capability,
+                success=False,  # Initial creation, not success yet
                 cost=actual_cost,
-                provider=purchase_result.provider,
-                activation_id=purchase_result.order_id,
-                status="pending",
-                idempotency_key=final_idempotency_key,
-                requested_area_code=area_code,
-                requested_carrier=None,
-                operator=purchase_result.operator,
-                assigned_area_code=purchase_result.assigned_area_code,
-                assigned_carrier=None,
-                fallback_applied=purchase_result.fallback_applied,
-                same_state_fallback=purchase_result.same_state_fallback,
-                retry_attempts=purchase_result.retry_attempts,
-                area_code_matched=purchase_result.area_code_matched,
-                carrier_matched=True,
-                real_carrier=None,
-                carrier_surcharge=0.0,
-                area_code_surcharge=0.0,
-                voip_rejected=purchase_result.voip_rejected,
+                event_data={
+                    "verification_id": str(verification.id),
+                    "country": request.country,
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Failed to track verification event: {e}")
+
+        # Step 2.3: Process automatic refunds (Surcharges/Overages)
+        refund_service = RefundService()
+        refund_result = await refund_service.process_refund(verification, user, db)
+
+        if refund_result["refund_issued"]:
+            logger.info(
+                f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
+                f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
+            )
+            actual_cost -= refund_result["refund_amount"]
+
+        # Step 2.4: Deduct credits
+        old_balance = float(user.credits or 0)
+        if user.is_admin:
+            # [Existing Admin logic...]
+            difference = -actual_cost
+            user.credits -= actual_cost
+
+            from app.core.constants import TransactionType
+            from app.models.balance_transaction import BalanceTransaction
+
+            balance_tx = BalanceTransaction(
+                user_id=user.id,
+                amount=difference,
+                type=TransactionType.DEBIT,
+                description=f"Purchase: {request.service}",
+                balance_after=float(user.credits),
                 created_at=datetime.now(timezone.utc),
-                selected_from_alternatives=request.selected_from_alternatives,
-                original_request=request.original_request,
-                routing_reason=purchase_result.routing_reason,
-                city_honoured=purchase_result.city_honoured,
-                city_note=purchase_result.city_note,
             )
-            db.add(verification)
-            db.flush()  # Get the ID before commit
+            db.add(balance_tx)
 
-            # Track verification event
-            try:
-                event_service = EventTrackingService(db)
-                event_service.track_verification(
-                    user_id=user_id,
-                    service_name=request.service,
-                    success=False,  # Initial creation, not success yet
-                    cost=actual_cost,
-                    event_data={
-                        "verification_id": str(verification.id),
-                        "country": request.country,
-                    },
+            # Legacy Transaction (for History/Analytics)
+            from app.models.transaction import Transaction
+
+            legacy_tx = Transaction(
+                user_id=user.id,
+                amount=difference,
+                type="sms_purchase",
+                description=f"SMS verification for {request.service}",
+                service=request.service,
+                status="completed",
+                reference=f"sms_{verification.id}",
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(legacy_tx)
+
+            db.flush()
+            verification.debit_transaction_id = balance_tx.id
+        else:
+            if use_free_verification:
+                user.free_verifications = type(user.free_verifications)(
+                    float(user.free_verifications) - 1.0
                 )
-            except Exception as e:
-                logger.warning(f"Failed to track verification event: {e}")
-
-            # Step 2.3: Process automatic refunds (Surcharges/Overages)
-            refund_service = RefundService()
-            refund_result = await refund_service.process_refund(verification, user, db)
-
-            if refund_result["refund_issued"]:
-                logger.info(
-                    f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
-                    f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
-                )
-                actual_cost -= refund_result["refund_amount"]
-
-            # Step 2.4: Deduct credits
-            old_balance = float(user.credits or 0)
-            if user.is_admin:
-                # [Existing Admin logic...]
-                difference = -actual_cost
-                user.credits -= actual_cost
-
-                from app.core.constants import TransactionType
-                from app.models.balance_transaction import BalanceTransaction
-
-                balance_tx = BalanceTransaction(
-                    user_id=user.id,
-                    amount=difference,
-                    type=TransactionType.DEBIT,
-                    description=f"Purchase: {request.service}",
-                    balance_after=float(user.credits),
-                    created_at=datetime.now(timezone.utc),
-                )
-                db.add(balance_tx)
-
-                # Legacy Transaction (for History/Analytics)
-                from app.models.transaction import Transaction
-
-                legacy_tx = Transaction(
-                    user_id=user.id,
-                    amount=difference,
-                    type="sms_purchase",
-                    description=f"SMS verification for {request.service}",
-                    service=request.service,
-                    status="completed",
-                    reference=f"sms_{verification.id}",
-                    created_at=datetime.now(timezone.utc),
-                )
-                db.add(legacy_tx)
-
                 db.flush()
-                verification.debit_transaction_id = balance_tx.id
-            else:
-                if use_free_verification:
-                    user.free_verifications = type(user.free_verifications)(
-                        float(user.free_verifications) - 1.0
-                    )
-                    db.flush()
 
-                success, error = await BalanceService.deduct_credits_for_verification(
-                    db=db,
-                    user=user,
-                    verification=verification,
-                    cost=actual_cost,
-                    service_name=request.service,
-                    country_code=request.country,
-                )
-                if not success:
-                    raise HTTPException(status_code=402, detail=error)
-
-            # --- INSTITUTIONAL TELEMETRY ---
-            # Fire-and-forget logging to Purchase Intelligence (Now with Transaction ID)
-            asyncio.create_task(
-                PurchaseIntelligenceService.log_outcome(
-                    service=request.service,
-                    assigned_code=purchase_result.assigned_area_code or "",
-                    requested_code=area_code,
-                    matched=purchase_result.area_code_matched if area_code else True,
-                    user_id=user_id,
-                    verification_id=str(verification.id),
-                    provider=purchase_result.provider,
-                    country=request.country,
-                    provider_cost=purchase_result.cost,
-                    user_price=actual_cost,
-                    debit_transaction_id=verification.debit_transaction_id,
-                )
+            success, error = await BalanceService.deduct_credits_for_verification(
+                db=db,
+                user=user,
+                verification=verification,
+                cost=actual_cost,
+                service_name=request.service,
+                country_code=request.country,
             )
-            verification.cost = type(verification.cost)(actual_cost)
+            if not success:
+                raise HTTPException(status_code=402, detail=error)
 
-            logger.info(f"Verification record created with ID: {verification.id}")
+        # --- INSTITUTIONAL TELEMETRY ---
+        # Fire-and-forget logging to Purchase Intelligence (Now with Transaction ID)
+        asyncio.create_task(
+            PurchaseIntelligenceService.log_outcome(
+                service=request.service,
+                assigned_code=purchase_result.assigned_area_code or "",
+                requested_code=area_code,
+                matched=purchase_result.area_code_matched if area_code else True,
+                user_id=user_id,
+                verification_id=str(verification.id),
+                provider=purchase_result.provider,
+                country=request.country,
+                provider_cost=purchase_result.cost,
+                user_price=actual_cost,
+                debit_transaction_id=verification.debit_transaction_id,
+            )
+        )
+        verification.cost = type(verification.cost)(actual_cost)
 
-            new_balance = float(user.credits)
+        logger.info(f"Verification record created with ID: {verification.id}")
 
-            # Notify user of credit deduction
-            try:
-                await notification_dispatcher.notify_verification_started(
-                    user_id=user_id,
-                    verification_id=str(verification.id),
-                    service=request.service,
-                    phone_number=purchase_result.phone_number,
-                    cost=actual_cost,
-                )
-            except (TypeError, AttributeError) as e:
-                logger.warning(f"Failed to send verification notification: {e}")
+        new_balance = float(user.credits)
+
+        # Notify user of credit deduction
+        try:
+            await notification_dispatcher.notify_verification_started(
+                user_id=user_id,
+                verification_id=str(verification.id),
+                service=request.service,
+                phone_number=purchase_result.phone_number,
+                cost=actual_cost,
+            )
+        except (TypeError, AttributeError) as e:
+            logger.warning(f"Failed to send verification notification: {e}")
 
         except HTTPException:
             raise

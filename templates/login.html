@@ -7,6 +7,20 @@
 {% block head_extra %}
 {{ super() }}
 <style>
+    /* Auth page nav */
+    .auth-nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        background: var(--bg-card, #fff); border-bottom: 1px solid var(--border-color, #e5e7eb);
+        padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
+    }
+    [data-theme="dark"] .auth-nav { background: #1e293b; border-color: #334155; }
+    .auth-nav-brand { background: #FE3C72; color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; }
+    .auth-nav-links { display: flex; gap: 16px; align-items: center; }
+    .auth-nav-links a { color: var(--text-muted, #6b7280); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .auth-nav-links a:hover { color: #FE3C72; }
+    .auth-nav-home { display: flex; align-items: center; gap: 6px; }
+    .auth-nav-home svg { width: 16px; height: 16px; }
+
     /* Dark mode support */
     [data-theme="dark"] .auth-container {
         background: #1e293b;
@@ -80,7 +94,7 @@
 
     .auth-container {
         max-width: 440px;
-        margin: 20px auto;
+        margin: 80px auto 20px;
         background: var(--bg-card, white);
         padding: 40px;
         border-radius: 16px;
@@ -291,12 +305,24 @@
 {% endblock %}
 
 {% block public_content %}
+<!-- Auth Nav -->
+<nav class="auth-nav">
+    <a href="/" class="auth-nav-brand">VRENUM SMS</a>
+    <div class="auth-nav-links">
+        <a href="/" class="auth-nav-home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="/pricing">Pricing</a>
+        <a href="/faq">FAQ</a>
+    </div>
+</nav>
+
 <div class="auth-container">
     <!-- Brand header -->
     <div style="text-align:center; margin-bottom:28px;">
-        <a href="/" style="display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; margin-bottom:16px;">VRENUM SMS</a>
-        <h1 style="font-size:22px;font-weight:800;color:#21262D;margin:0;">Welcome back</h1>
-        <p style="font-size:14px;color:#9CA3AF;margin:4px 0 0;">Sign in to your vrenum.app account</p>
+        <h1 style="font-size:22px;font-weight:800;color:var(--text-primary, #21262D);margin:0 0 4px;">Welcome back</h1>
+        <p style="font-size:14px;color:var(--text-muted, #9CA3AF);margin:0;">Sign in to your vrenum.app account</p>
     </div>
 
     <div class="auth-tabs">
