@@ -39,7 +39,7 @@ jobs:
           command_timeout: 30m
 
       - name: Purge Cloudflare cache
-        if: success() && secrets.CF_API_TOKEN != ''
+        if: success()
         env:
           CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
