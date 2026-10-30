@@ -389,28 +389,64 @@ class TextVerifiedService:
         )
 
     async def _fetch_prices_inline(self, services) -> list:
-        """Fetch real prices for all services inline (called with timeout)."""
+        """Fetch real prices + quantity for all services inline.
+        Calls TV API directly to capture quantity field the SDK drops.
+        """
         sem = asyncio.Semaphore(10)
+
+        def _raw_pricing(service_name: str) -> dict:
+            """Call TV pricing endpoint directly to get quantity field."""
+            try:
+                from textverified.data import NumberType, ReservationCapability
+
+                self.client.refresh_bearer()
+                resp = self.client.session.post(
+                    f"{self.client.base_url}/api/pub/v2/verifications/pricing",
+                    headers={
+                        "Authorization": f"Bearer {self.client.bearer.token}",
+                        "User-Agent": self.client.user_agent,
+                    },
+                    json={
+                        "serviceName": service_name,
+                        "areaCode": False,
+                        "carrier": False,
+                        "numberType": "mobile",
+                        "capability": "sms",
+                    },
+                    timeout=8.0,
+                )
+                if resp.ok:
+                    data = resp.json()
+                    # data may be nested under 'data' key
+                    payload = data.get("data", data)
+                    return {
+                        "price": payload.get("price"),
+                        "quantity": payload.get("quantity")
+                        or payload.get("qty")
+                        or payload.get("availableCount")
+                        or payload.get("count"),
+                        "raw": payload,
+                    }
+                return {"price": None, "quantity": None}
+            except Exception as e:
+                logger.debug(f"Raw pricing failed for {service_name}: {e}")
+                return {"price": None, "quantity": None}
 
         async def _price(s) -> dict:
             async with sem:
                 try:
-                    snap = await asyncio.wait_for(
-                        asyncio.to_thread(
-                            self.client.verifications.pricing,
-                            service_name=s.service_name,
-                            area_code=False,
-                            carrier=False,
-                            number_type=NumberType.MOBILE,
-                            capability=ReservationCapability.SMS,
-                        ),
+                    raw = await asyncio.wait_for(
+                        asyncio.to_thread(_raw_pricing, s.service_name),
                         timeout=8.0,
                     )
+                    price = raw.get("price")
+                    qty = raw.get("quantity")
                     return {
                         "id": s.service_name,
                         "name": s.service_name.title(),
-                        "price": float(snap.price),
-                        "cost": float(snap.price),
+                        "price": float(price) if price is not None else None,
+                        "cost": float(price) if price is not None else None,
+                        "quantity": int(qty) if qty is not None else None,
                     }
                 except Exception:
                     return {
@@ -418,11 +454,14 @@ class TextVerifiedService:
                         "name": s.service_name.title(),
                         "price": None,
                         "cost": None,
+                        "quantity": None,
                     }
 
         results = await asyncio.gather(*[_price(s) for s in services])
+        priced = sum(1 for r in results if r["price"] is not None)
+        with_qty = sum(1 for r in results if r.get("quantity") is not None)
         logger.info(
-            f"Inline pricing: {sum(1 for r in results if r['price'] is not None)}/{len(results)} priced"
+            f"Inline pricing: {priced}/{len(results)} priced, {with_qty} with quantity"
         )
         return list(results)
 

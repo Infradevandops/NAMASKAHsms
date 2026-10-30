@@ -56,6 +56,7 @@ async def build_stock_map() -> Dict[str, dict]:
             if not slug:
                 continue
             price = svc.get("price")
+            qty = svc.get("quantity")  # from raw TV API, None if SDK didn't capture it
             # Price > 0 means TV lists it — but check real outcome first
             outcome = await get_purchase_outcome(slug)
             if outcome is not None:
@@ -65,6 +66,7 @@ async def build_stock_map() -> Dict[str, dict]:
             stock_map[slug] = {
                 "available": available,
                 "price": price,
+                "quantity": qty,
                 "provider": "textverified",
             }
 

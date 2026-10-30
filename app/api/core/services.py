@@ -194,6 +194,7 @@ async def get_services_stock(db: Session = Depends(get_db)):
                 "success_rate": success_rate,
                 "attempts_24h": attempts_24h,
                 "demand": "high" if attempts_24h >= 10 else "normal",
+                "quantity": info.get("quantity"),
             }
 
         # Sort within each category: available first, then by success_rate desc

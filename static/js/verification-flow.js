@@ -299,7 +299,11 @@ function renderImmersiveItem(item, isPinned) {
         const stockInfo = _getStockInfo(item.value) || {};
         const available = stockInfo.available !== false;
         const stockColor = available ? '#10b981' : '#ef4444';
-        const stockLabel = available ? 'In stock' : 'Out of stock';
+        const qty = stockInfo.quantity ?? item.quantity ?? null;
+        const qtyLabel = qty === null ? '' : qty >= 999 ? '999+' : String(qty);
+        const stockLabel = available
+            ? (qtyLabel ? `${qtyLabel} available` : 'In stock')
+            : 'Out of stock';
         const priceStr = item.price > 0 ? `$${parseFloat(item.price).toFixed(2)}` : '';
         const rateStr = item.success_rate != null ? `${item.success_rate}% success` : '';
             ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">High demand</span>`
@@ -605,6 +609,7 @@ function _buildServiceItems(services) {
                 price: s.price,
                 popular: popularIds.includes(slug),
                 available: stockInfo.available !== false,
+                quantity: stockInfo.quantity ?? null,
                 category: stockInfo.category || 'other',
                 success_rate: stockInfo.success_rate ?? null,
                 demand: stockInfo.demand || 'normal',
