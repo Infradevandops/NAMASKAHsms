@@ -51,5 +51,9 @@ jobs:
           curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}' \
-          | python3 -c "import sys,json; r=json.load(sys.stdin); print('✅ CF cache purged (everything)' if r.get('success') else f'⚠️ CF purge failed: {r}')"
+            --data '{"purge_everything":true}' -o /tmp/cf_purge.json -w "%{http_code}" > /tmp/cf_status.txt 2>&1 || true
+          STATUS=$(cat /tmp/cf_status.txt 2>/dev/null || echo "000")
+          BODY=$(cat /tmp/cf_purge.json 2>/dev/null || echo "{}")
+          echo "CF purge HTTP status: $STATUS"
+          echo "CF purge response: $BODY"
+          python3 -c "import json; r=json.loads('$BODY' or '{}'); print('✅ CF cache purged' if r.get('success') else f'⚠️ CF purge result: {r}')" 2>/dev/null || echo "⚠️ CF purge response unparseable (status: $STATUS)"
