@@ -7,12 +7,16 @@ TV retries on failure. After repeated failures TV auto-disables the webhook.
 We MUST return 200 for all event types to prevent auto-disable.
 """
 
+import hashlib
+import hmac
 import logging
 import re
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
+from app.core.config import get_settings
 from app.core.dependencies import get_db
 from app.core.unified_cache import cache
 from app.models.verification import Verification
@@ -21,7 +25,56 @@ from app.websocket.manager import manager as websocket_manager
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/verification/webhook", tags=["tv-webhook"])
 
-_DEDUP_TTL = 86400  # 24h — TV event IDs are unique per delivery attempt
+_DEDUP_TTL = 86400  # 24h
+
+
+def _verify_signature(payload: bytes, sig_header: str, secret: str) -> bool:
+    """Verify TV webhook HMAC-SHA256 signature."""
+    if not sig_header:
+        return False
+    try:
+        import base64, hashlib, hmac as _hmac
+
+        raw = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
+        try:
+            key = base64.b64decode(raw + "==")
+        except Exception:
+            key = raw.encode()
+        expected = _hmac.new(key, payload, hashlib.sha256).hexdigest()
+        received = sig_header.replace("sha256=", "").strip()
+        return _hmac.compare_digest(expected, received)
+    except Exception as e:
+        return False
+
+
+def _verify_signature(payload: bytes, signature_header: str, secret: str) -> bool:
+    """Verify TV webhook HMAC-SHA256 signature.
+    TV sends: X-Signature: sha256=<hex_digest>
+    """
+    if not signature_header or not secret:
+        return not secret  # if no secret configured, allow all (dev mode)
+    try:
+        # Strip whsec_ prefix if present
+        raw_secret = (
+            secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
+        )
+        import base64
+
+        secret_bytes = (
+            base64.b64decode(raw_secret)
+            if len(raw_secret) % 4 == 0
+            and all(
+                c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+                for c in raw_secret
+            )
+            else raw_secret.encode()
+        )
+        expected = hmac.new(secret_bytes, payload, hashlib.sha256).hexdigest()
+        received = signature_header.replace("sha256=", "").strip()
+        return hmac.compare_digest(expected, received)
+    except Exception as e:
+        logger.warning(f"Signature verification error: {e}")
+        return False
 
 
 @router.post("/tv")

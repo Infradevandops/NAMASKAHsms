@@ -99,6 +99,9 @@ class Settings(BaseSettings):
     textverified_email: Optional[str] = (
         None  # used as api_username by TextVerifiedService
     )
+    textverified_webhook_secret: Optional[str] = (
+        None  # whsec_... from TV API Webhooks page
+    )
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 
