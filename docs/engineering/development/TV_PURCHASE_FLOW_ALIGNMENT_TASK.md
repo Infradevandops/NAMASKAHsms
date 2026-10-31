@@ -377,9 +377,226 @@ if (orphanId) {
 
 ---
 
-## What We Are NOT Doing
+## Phase 6 — TV Webhook for Instant SMS Delivery (Eliminates Polling)
 
-- Not copying TV's "Checking carrier networks / Pinging AT&T" animations — those are TV's internal UX with no API backing
-- Not giving users 60 minutes by default — we give them whatever TV's `ends_at` says
-- Not implementing the reuse feature (TV's "Use again for 0.75 credits") — future task
-- Not implementing TV webhooks yet — future task (eliminates polling entirely)
+### What TV Sends
+
+TV POSTs to our endpoint URL when an SMS arrives. Payload structure (from SDK):
+
+```json
+{
+  "id": "evt_abc123",
+  "event": "sms.received",
+  "attempt": 1,
+  "occurredAt": "2026-10-31T04:23:00Z",
+  "data": {
+    "to": "+17022853600",
+    "from": "+12025551234",
+    "smsContent": "Your WhatsApp code is 876-094",
+    "parsedCode": "876094",
+    "reservationId": "tv_verification_id_here",
+    "createdAt": "2026-10-31T04:23:00Z",
+    "encrypted": false
+  }
+}
+```
+
+TV retries on failure. After repeated failures TV auto-disables the webhook and requires manual re-enable.
+
+### Registration
+
+TV's webhook UI (app.textverified.com → API Configuration → API Webhooks):
+- Enable Webhooks toggle
+- Endpoint URL field
+- Save + Send Test buttons
+
+Set endpoint URL to: `https://vrenum.app/api/verification/webhook/tv`
+
+### Step 6a — Webhook endpoint
+
+**New file:** `app/api/verification/tv_webhook.py`
+
+```python
+from fastapi import APIRouter, Request, HTTPException, Depends
+from sqlalchemy.orm import Session
+from app.core.dependencies import get_db
+from app.core.unified_cache import cache
+from app.models.verification import Verification
+from app.websocket.manager import websocket_manager
+import logging, json
+
+router = APIRouter(prefix="/api/verification/webhook", tags=["tv-webhook"])
+logger = logging.getLogger(__name__)
+
+_SEEN_KEY = "tv:webhook:seen:{}"  # dedup by event id, TTL 24h
+
+@router.post("/tv")
+async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
+    """Receive SMS delivery webhooks from TextVerified.
+    Eliminates polling — SMS arrives here instantly.
+    """
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    event_id = payload.get("id", "")
+    event_type = payload.get("event", "")
+
+    # Deduplicate (TV retries on failure)
+    if event_id:
+        seen_key = _SEEN_KEY.format(event_id)
+        if await cache.get(seen_key):
+            return {"ok": True, "duplicate": True}
+        await cache.set(seen_key, 1, ttl=86400)
+
+    if event_type != "sms.received":
+        # Accept but ignore non-SMS events (billing, backorder, etc.)
+        return {"ok": True}
+
+    data = payload.get("data", {})
+    reservation_id = data.get("reservationId")  # TV's verification ID = our activation_id
+    phone_number = data.get("to")
+    sms_content = data.get("smsContent", "")
+    parsed_code = data.get("parsedCode", "")
+
+    if not reservation_id and not phone_number:
+        logger.warning(f"TV webhook missing reservationId and to: {payload}")
+        return {"ok": True}
+
+    # Find our verification by activation_id (TV's reservation ID)
+    verification = None
+    if reservation_id:
+        verification = (
+            db.query(Verification)
+            .filter(Verification.activation_id == reservation_id)
+            .first()
+        )
+    if not verification and phone_number:
+        # Fallback: match by phone number (strip formatting)
+        clean = phone_number.replace("+", "").replace("-", "").replace(" ", "")
+        verification = (
+            db.query(Verification)
+            .filter(
+                Verification.phone_number.contains(clean[-10:]),
+                Verification.status == "pending",
+            )
+            .order_by(Verification.created_at.desc())
+            .first()
+        )
+
+    if not verification:
+        logger.warning(f"TV webhook: no verification found for reservationId={reservation_id} phone={phone_number}")
+        return {"ok": True}  # Return 200 so TV doesn't retry
+
+    if verification.status != "pending":
+        return {"ok": True}  # Already completed
+
+    # Update verification
+    verification.status = "completed"
+    verification.sms_code = parsed_code or _extract_code(sms_content)
+    verification.sms_text = sms_content
+    db.commit()
+
+    logger.info(
+        f"TV webhook: SMS delivered for verification {verification.id} "
+        f"user={verification.user_id} code={verification.sms_code}"
+    )
+
+    # Push to user via WebSocket (instant delivery to browser)
+    try:
+        await websocket_manager.send_to_user(
+            str(verification.user_id),
+            {
+                "type": "sms_received",
+                "verification_id": str(verification.id),
+                "sms_code": verification.sms_code,
+                "sms_text": sms_content,
+                "phone_number": verification.phone_number,
+            }
+        )
+    except Exception as e:
+        logger.warning(f"WebSocket push failed (non-fatal): {e}")
+
+    return {"ok": True}
+
+
+def _extract_code(text: str) -> str:
+    """Fallback code extraction if parsedCode is empty."""
+    import re
+    hyphen = re.findall(r"\b(\d{3}-\d{3})\b", text)
+    plain = re.findall(r"\b(\d{4,8})\b", text)
+    if hyphen:
+        return hyphen[-1].replace("-", "")
+    if plain:
+        return plain[-1]
+    return ""
+```
+
+### Step 6b — Mount the router
+
+**File:** `main.py` (or wherever verification routers are mounted)
+
+```python
+from app.api.verification.tv_webhook import router as tv_webhook_router
+app.include_router(tv_webhook_router)
+```
+
+### Step 6c — Frontend: listen for WebSocket `sms_received` event
+
+**File:** `static/js/verification-flow.js`
+
+In the WebSocket message handler (or in `startPolling`):
+
+```js
+// In the existing WebSocket notification handler or add to sms-websocket.js:
+if (message.type === 'sms_received' &&
+    message.verification_id === VerificationFlow.verificationId) {
+    // Instant delivery — no polling needed
+    stopPolling();
+    document.getElementById('sms-code').textContent = message.sms_code;
+    document.getElementById('code-received').style.display = 'block';
+    document.querySelector('.scanning-container').style.display = 'none';
+    window.toast.success('SMS code received!');
+    playArrivalSound();
+    if (localStorage.getItem('nsk_auto_copy') === 'true') {
+        navigator.clipboard.writeText(message.sms_code).catch(() => {});
+    }
+    localStorage.removeItem('active_verification_id');
+}
+```
+
+Polling remains as fallback for when WebSocket is disconnected.
+
+### Step 6d — Register webhook URL with TV
+
+After deploying:
+1. Go to app.textverified.com → API Configuration → API Webhooks
+2. Enable Webhooks toggle ON
+3. Endpoint URL: `https://vrenum.app/api/verification/webhook/tv`
+4. Click Save
+5. Click Send Test — verify our endpoint returns `{"ok": true}`
+
+### Webhook Acceptance Criteria
+
+- [ ] `POST /api/verification/webhook/tv` returns 200 for all TV event types
+- [ ] Duplicate events (same `id`) are silently ignored
+- [ ] SMS code updates verification status to `completed` in DB
+- [ ] WebSocket push delivers code to browser instantly
+- [ ] Polling continues as fallback if WebSocket disconnected
+- [ ] TV's "Send Test" button returns success
+- [ ] Non-SMS events (billing, backorder) accepted but ignored
+- [ ] Endpoint registered in TV dashboard
+
+---
+
+## Files to Modify (Complete List)
+
+| File | Change |
+|------|--------|
+| `app/api/verification/purchase_endpoints.py` | Add `ends_at`/`created_at` to response; add SSE endpoint |
+| `app/api/verification/tv_webhook.py` | **New file** — TV SMS webhook receiver |
+| `app/services/textverified_service.py` | Add `check_service_available()` |
+| `static/js/verification-flow.js` | Dynamic window, SSE client, orphan recovery, WebSocket SMS handler |
+| `templates/verify_modern.html` | Loading state card |
+| `main.py` | Mount tv_webhook router |
