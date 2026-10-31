@@ -1,0 +1,152 @@
+Priority 1: Must-fix / must-validate
+
+1. Confirm production-critical flows with automated tests
+- Payment webhook processing
+- SMS verification lifecycle
+- Auth/session validity
+- Admin permission enforcement
+- Webhook signature verification
+- Failure/retry paths
+
+Why:
+- These are the highest-risk parts of the product and the likely places where a “green CI” can still hide real service bugs.
+
+2. Enforce branch protection on main
+- Require CI checks before merge
+- Require review for code changes
+- Block direct pushes to protected branch
+
+Why:
+- If deploys happen from main, this is the minimum operational control.
+
+3. Add a real deploy rollback procedure
+- Document exact rollback steps
+- Include DB migration rollback steps
+- Include how to restore the previous container/image
+- Include how to re-activate a previous working state
+
+Why:
+- Good deploy workflow is not just “successful health check”; it’s “known recovery path.”
+
+4. Verify the health endpoint is meaningful
+- /health should confirm:
+  - app is responding
+  - DB is reachable
+  - Redis is reachable
+  - critical provider config is loaded
+- If it only checks “HTTP 200,” it is too weak.
+
+Why:
+- A deploy workflow can be green while the app is degraded.
+
+5. Validate secret handling and rotation flow
+- Check how secrets are stored and rotated
+- Confirm there is a documented process for:
+  - JWT secrets
+  - provider API keys
+  - database creds
+  - SSH keys
+
+Why:
+- Production-grade repos need operational secret governance, not just .env examples.
+
+Priority 2: High value improvements
+
+6. Add a staging-like environment or at least a pre-prod validation path
+- Even a lightweight staging environment is valuable.
+- This can catch issues before deploy to production.
+
+Why:
+- Large projects with webhooks, billing, and SMS are high-risk for production surprises.
+
+7. Add more targeted integration tests
+- Focus on:
+  - DB transaction boundaries
+  - provider API integration retries
+  - webhook replay safety
+  - edge-case SMS delivery statuses
+  - tier and wallet balance changes after payments
+
+Why:
+- Unit tests can pass while critical flows still break in real conditions.
+
+8. Improve dependency safety and upgrade tracking
+- Keep a record of:
+  - runtime dependency changes
+  - critical security advisories
+  - upgrade windows
+- This matters because the app integrates with externally hosted providers and a lot of services.
+
+Why:
+- A platform like this is vulnerable to drift and compatibility issues.
+
+9. Add observability thresholds
+- Track:
+  - payment success rate
+  - webhook success rate
+  - SMS delivery rate
+  - DB query latency
+  - Redis latency
+  - failed auth attempts
+- Set baselines and alert thresholds
+
+Why:
+- Without metrics, deploys are blind.
+
+10. Review the “production-ready” claims against actual evidence
+- Make sure the README claims match verified reality.
+- If the repo says “production ready,” there should be:
+  - real production monitoring
+  - incident history
+  - rollback tested
+  - critical tests green on main
+
+Priority 3: Nice-to-have but valuable
+
+11. Create a technical debt register
+- List:
+  - known weak points
+  - untested modules
+  - fragile integrations
+  - hardcoded config
+  - duplicated logic
+
+12. Add domain ownership docs
+- For each major subsystem, document:
+  - owner
+  - key endpoints
+  - dependencies
+  - data model
+  - failure modes
+
+13. Keep the codebase architecture visible
+- Make sure the modular boundaries still reflect the real code.
+- If the “modular monolith” pattern fades into a monolith with no boundaries, refactor while it is still manageable.
+
+14. Add a release checklist
+- Before a push to main or production deploy:
+  - migration check
+  - notifications check
+  - config check
+  - rollback plan review
+  - critical tests run
+  - provider keys verified
+
+15. Track migration health separately from app health
+- Database migrations are often the biggest deployment risk.
+- Have a dedicated migration validation step before production deploy.
+
+Bottom line
+
+This repo looks healthy enough to trust as an active product project, but I’d only call it “production-ready” once it demonstrates:
+- strong critical-path tests
+- real deploy rollback
+- branch protection
+- meaningful health checks
+- operational monitoring
+- no critical path left untested
+
+make session 
+- engineering plan,
+- a “repo health score” from 1–10,
+- a concise list of the exact 5 most important improvements to do first priority based
