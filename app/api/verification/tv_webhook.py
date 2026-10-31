@@ -16,7 +16,6 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.config import get_settings
 from app.core.dependencies import get_db
 from app.core.unified_cache import cache
 from app.models.verification import Verification
@@ -33,7 +32,9 @@ def _verify_signature(payload: bytes, sig_header: str, secret: str) -> bool:
     if not sig_header:
         return False
     try:
-        import base64, hashlib, hmac as _hmac
+        import base64
+        import hashlib
+        import hmac as _hmac
 
         raw = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
         try:
