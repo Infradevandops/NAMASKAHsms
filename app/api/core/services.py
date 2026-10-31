@@ -197,17 +197,14 @@ async def get_services_stock(db: Session = Depends(get_db)):
                 "quantity": info.get("quantity"),
             }
 
-        # Sort within each category: available first, then by success_rate desc
-        # Services with no data (None) rank below those with real rates
-        # Out-of-stock services sink to the bottom
-        def _sort_key(item):
-            info = item[1]
-            available = 1 if info.get("available") else 0
-            rate = info.get("success_rate")
-            rate_score = rate if rate is not None else -1
-            return (available, rate_score)
-
-        enriched = dict(sorted(enriched.items(), key=_sort_key, reverse=True))
+        # Sort by availability only — in stock first, out of stock last
+        enriched = dict(
+            sorted(
+                enriched.items(),
+                key=lambda x: (1 if x[1].get("available") else 0),
+                reverse=True,
+            )
+        )
 
         return {
             **data,

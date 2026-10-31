@@ -271,14 +271,11 @@ function renderImmersiveList(type, query = '') {
             const catOrder = ['social', 'dating', 'finance', 'tech', 'delivery', 'streaming', 'shopping', 'other'];
             for (const cat of catOrder) {
                 if (!byCategory[cat] || byCategory[cat].length === 0) continue;
-                // Sort within category: available first, then by success_rate desc, no-data last
+                // Sort by availability only — in stock first, out of stock last
                 byCategory[cat].sort((a, b) => {
                     const aAvail = (a.available !== false) ? 1 : 0;
                     const bAvail = (b.available !== false) ? 1 : 0;
-                    if (aAvail !== bAvail) return bAvail - aAvail;
-                    const aRate = a.success_rate != null ? a.success_rate : -1;
-                    const bRate = b.success_rate != null ? b.success_rate : -1;
-                    return bRate - aRate;
+                    return bAvail - aAvail;
                 });
                 html += `<div class="modal-list-section">
                     <div class="list-section-title">${_CAT_LABELS[cat] || cat.toUpperCase()}</div>

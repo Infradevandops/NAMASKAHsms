@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 _STOCK_CACHE_KEY = "services:stock"
 _STOCK_CACHE_TTL = 900  # 15 minutes
 _TV_SERVICES_KEY = "tv:services_list"
-_OUTCOME_TTL = 600  # 10 min — short enough to recover when TV restocks
+_OUTCOME_TTL = 1800  # 30 min — failed service stays red long enough to matter
 
 
 async def record_purchase_outcome(service_slug: str, success: bool) -> None:
