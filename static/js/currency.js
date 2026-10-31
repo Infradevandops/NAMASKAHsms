@@ -1,4 +1,4 @@
-class CurrencyFormatter {
+export class CurrencyFormatter {
     constructor() {
         this.currency = localStorage.getItem('currency') || 'USD';
         this.rates = {};

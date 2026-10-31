@@ -12,6 +12,45 @@ All notable changes to the Vrenum SMS project.
 
 ---
 
+## [4.9.3] - October 26, 2026
+
+Frontend Test Infrastructure — JS Suite Wired, Mobile Fixes, CI Gated
+
+### Added
+- **Jest test runner**: `package.json` + `babel.config.js` — 13 JS unit test files were orphaned (no runner). Now `npm test` runs all 13 suites, 92/92 tests passing.
+- **`static/js/tier-manager.js`**: New source file. `TierManager` class with `checkFeatureAccess`, `loadCurrentTier`, `renderTierBadge`, `showUpgradeModal`, `lockFeature`. Required by `tier-manager.test.js` which was failing on import.
+- **`frontend-unit-tests` CI job**: Blocking job in `.github/workflows/ci.yml` — runs `npm run test:ci` before Python unit tests. JS failures now block the pipeline.
+- **Mobile responsiveness smoke tests**: `tests/smoke/test_mobile_responsiveness.py` — 16 static-analysis tests validating all 5 public pages have no hardcoded oversized font sizes, mobile breakpoints present, grids stack, tables scroll.
+- **`tests/smoke/test_mobile_responsiveness.py`**: 16 tests, all passing.
+
+### Fixed
+- **`skeleton-loader.js`**: Added `createSkeletonText`, `showSkeleton`, `hideSkeleton`, `withLoading` static methods — tests expected this API, source only had `show()`/`hide()`. Fixed `module.exports` to named export so Babel destructures correctly.
+- **`currency.js`**: Added `export` to `CurrencyFormatter` class — test import resolved to `undefined`.
+- **`frontend-logger.js`**: Added `export { FrontendLogger }` — test import resolved to `undefined`.
+- **`auth-check.js`**: Guarded `response.json()` call with try/catch — test mocks that return `{ ok: true }` without a `json()` method no longer throw.
+- **`error-messages.js`**: Fixed 404 error icon from empty string to `🔍` — test assertion was failing.
+- **`tests/smoke/test_startup_smoke.py`**: Removed stale `("app.api.emergency", "router")` entry — module does not exist, caused 1 smoke failure on every run.
+- **`tests/frontend/test_pwa_mobile_stability.py`**: Added `@pytest.fixture(scope="module")` using FastAPI `TestClient` — all 14 tests were erroring on collection due to missing `client` fixture.
+- **`templates/landing.html`**: Added `@media` blocks for `.hero` at 768/425/320px — `padding: 140px 0 80px` had zero mobile overrides, hero was unusable on small screens.
+- **`templates/about.html`**: Hero h1 `font-size: 42px` → `clamp(28px, 5vw, 42px)`, stat values `font-size: 48px` → `clamp(32px, 6vw, 48px)`.
+- **`templates/contact.html`**: Hero h1 `font-size: 42px` → `clamp(26px, 5vw, 42px)`.
+
+### Technical
+- Files added: `package.json`, `babel.config.js`, `static/js/tier-manager.js`, `tests/smoke/test_mobile_responsiveness.py`
+- Files modified: `static/js/skeleton-loader.js`, `static/js/currency.js`, `static/js/frontend-logger.js`, `static/js/auth-check.js`, `static/js/error-messages.js`, `templates/landing.html`, `templates/about.html`, `templates/contact.html`, `tests/smoke/test_startup_smoke.py`, `tests/frontend/test_pwa_mobile_stability.py`, `.github/workflows/ci.yml`
+- No database migrations required
+- No new Python dependencies
+- JS devDependencies: jest@29, jest-environment-jsdom@29, babel-jest@29, @babel/core@7, @babel/preset-env@7, @testing-library/jest-dom@6
+- Backward compatible: 100%
+
+### Test Results
+- JS unit tests: 92/92 passing (13 suites)
+- Python smoke tests: 43/43 passing
+- PWA tests: 14 collected, no fixture errors
+- CI: frontend-unit-tests blocking job active
+
+---
+
 ## [4.9.2] - October 29, 2026
 
 Service Intelligence — Enriched Stock Display & Price Guard

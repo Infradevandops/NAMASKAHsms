@@ -55,7 +55,7 @@ export const ERROR_MESSAGES = {
     [ERROR_TYPES.NOT_FOUND]: {
         title: 'Not Found',
         message: 'The requested resource could not be found.',
-        icon: '',
+        icon: '🔍',
         actions: [
             { text: 'Go back', type: 'action', action: () => window.history.back() },
             { text: 'Go to dashboard', type: 'link', href: '/dashboard' }

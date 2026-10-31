@@ -1,0 +1,45 @@
+{
+  "name": "vrenum-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest --testPathPattern='tests/frontend/unit/' --passWithNoTests",
+    "test:ci": "jest --testPathPattern='tests/frontend/unit/' --ci --coverage --passWithNoTests"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "moduleNameMapper": {
+      "\\.(css|less|scss)$": "<rootDir>/tests/frontend/mocks/styleMock.js",
+      "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/tests/frontend/mocks/fileMock.js"
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/frontend/setup.js"
+    ],
+    "setupFiles": [],
+    "testMatch": [
+      "<rootDir>/tests/frontend/unit/**/*.test.js"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "static/js"
+    ],
+    "transformIgnorePatterns": [],
+    "collectCoverageFrom": [
+      "static/js/*.js",
+      "!static/js/service-worker.js",
+      "!static/js/push-service-worker.js",
+      "!static/js/OneSignalSDKWorker.js"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@testing-library/jest-dom": "^6.9.1",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

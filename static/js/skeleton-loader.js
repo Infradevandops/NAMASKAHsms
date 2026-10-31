@@ -178,7 +178,49 @@ class SkeletonLoader {
     }
 }
 
+// Extended API used by tests and integration code
+SkeletonLoader.createSkeletonText = function(size = 'medium') {
+    const el = document.createElement('div');
+    el.className = `skeleton skeleton-text ${size}`;
+    return el;
+};
+
+SkeletonLoader.showSkeleton = function(container, type, options = {}) {
+    container.classList.add('loading');
+    if (type === 'tier') {
+        container.innerHTML = '<div class="skeleton-tier-card"><div class="skeleton skeleton-text"></div></div>';
+    } else if (type === 'activity') {
+        const rows = options.rows || 3;
+        container.innerHTML = Array(rows).fill('<div class="skeleton-activity-row"><div class="skeleton skeleton-text"></div></div>').join('');
+    } else if (type === 'stats') {
+        container.innerHTML = '<div class="skeleton-stats-grid"><div class="skeleton skeleton-text"></div></div>';
+    } else {
+        container.innerHTML = '<div class="skeleton skeleton-text"></div>';
+    }
+};
+
+SkeletonLoader.hideSkeleton = function(container, html) {
+    container.classList.remove('loading');
+    container.innerHTML = html;
+    container.classList.add('fade-in');
+    setTimeout(() => container.classList.remove('fade-in'), 300);
+};
+
+SkeletonLoader.withLoading = async function(container, loadFn, options = {}) {
+    const { skeletonType = 'stats', onError } = options;
+    SkeletonLoader.showSkeleton(container, skeletonType);
+    try {
+        const result = await loadFn();
+        SkeletonLoader.hideSkeleton(container, typeof result === 'string' ? result : '');
+        return result;
+    } catch (err) {
+        SkeletonLoader.hideSkeleton(container, '');
+        if (onError) onError(err);
+        throw err;
+    }
+};
+
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SkeletonLoader;
+    module.exports = { SkeletonLoader };
 }

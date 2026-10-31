@@ -21,7 +21,6 @@ ROUTERS = [
     ("app.api.compatibility_routes", "router"),
     ("app.api.core.notification_endpoints", "router"),
     ("app.api.dashboard_router", "router"),
-    ("app.api.emergency", "router"),
     ("app.api.health", "router"),
     ("app.api.preview_router", "router"),
     ("app.api.main_routes", "router"),
