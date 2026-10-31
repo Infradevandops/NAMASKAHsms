@@ -816,6 +816,12 @@ async function createVerification() {
 
         const data = await response.json();
         VerificationFlow.verificationId = data.verification_id;
+        if (data.ends_at) {
+            VerificationFlow.createdAt = data.created_at || new Date().toISOString();
+            VerificationFlow.totalDurationMs =
+                new Date(data.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
+        }
+        localStorage.setItem('active_verification_id', data.verification_id);
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
         document.getElementById('display-verification-id').textContent = data.verification_id || '-';
@@ -932,6 +938,7 @@ function startPolling() {
 
                     window.toast.success('SMS code received');
                     playArrivalSound();
+                    localStorage.removeItem('active_verification_id');
                     if (localStorage.getItem('nsk_auto_copy') === 'true') {
                         navigator.clipboard.writeText(data.sms_code).catch(() => {});
                     }
@@ -948,10 +955,15 @@ function startPolling() {
                     const endsAt = new Date(data.ends_at).getTime();
                     const now = Date.now() + VerificationFlow.serverOffset;
                     const remainingMs = Math.max(0, endsAt - now);
-                    const totalDurationMs = 120000; // 2 minutes standard
+                    // Compute real window from TV's ends_at - created_at (never hardcode)
+                    if (!VerificationFlow.totalDurationMs && VerificationFlow.createdAt) {
+                        VerificationFlow.totalDurationMs =
+                            endsAt - new Date(VerificationFlow.createdAt).getTime();
+                    }
+                    const totalDurationMs = VerificationFlow.totalDurationMs || (endsAt - (endsAt - remainingMs));
 
                     const remainingSec = Math.round(remainingMs / 1000);
-                    const elapsedSec = Math.round((totalDurationMs - remainingMs) / 1000);
+                    const elapsedSec = Math.max(0, Math.round((totalDurationMs - remainingMs) / 1000));
 
                     VerificationFlow.elapsedSeconds = elapsedSec;
 
@@ -1318,6 +1330,32 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+    // Orphaned verification recovery — restore active session if user navigated away
+    const orphanId = localStorage.getItem('active_verification_id');
+    if (orphanId) {
+        const token = localStorage.getItem('access_token');
+        fetch(`/api/verification/status/${orphanId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.ok ? r.json() : null).then(data => {
+            if (data && data.status === 'pending' && data.phone_number) {
+                VerificationFlow.verificationId = orphanId;
+                if (data.ends_at) {
+                    VerificationFlow.createdAt = data.created_at || new Date().toISOString();
+                    VerificationFlow.totalDurationMs =
+                        new Date(data.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
+                }
+                document.getElementById('step-0-card').style.display = 'none';
+                document.getElementById('progress-indicator').style.display = 'block';
+                document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
+                updateProgress(3);
+                startPolling();
+                window.toast && window.toast.info('Resuming your active verification.');
+            } else {
+                localStorage.removeItem('active_verification_id');
+            }
+        }).catch(() => localStorage.removeItem('active_verification_id'));
+    }
+
     // Load tier FIRST — must know tier before any UI renders
     await loadTier();
 

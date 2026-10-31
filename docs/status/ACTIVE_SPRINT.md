@@ -1,106 +1,142 @@
-# ACTIVE SPRINT — v4.9.x Operational Priorities
+# ACTIVE SPRINT — v4.9.2 Verification Flow Stability
 
-**Updated**: October 26, 2026
-**Version**: 4.9.1
-**Focus**: Revenue integrity, mobile conversion, cost visibility
-
-Skipped: Telegram E2E, SDK libraries, Phase 2 Analytics, JWT migration — none are operational blockers right now.
+**Updated**: October 31, 2026
+**Version**: 4.9.2
+**Focus**: Make verification flow work correctly end-to-end
 
 ---
 
-## P1 — TextVerified Cost Reconciliation
+## What Changed From Last Sprint
 
-**Why**: You're charging users $2.63/SMS. TV charges ~$2.00–$2.40. The margin is unverified and silent. A bad TV pricing change or billing error could erode margin for weeks without anyone noticing.
-
-**What exists**: `app/services/provider_settlement_service.py` — built but never scheduled.
-
-**What to build**: Wire a weekly cron into `app/core/lifespan.py` that:
-1. Pulls total `verifications.cost` for the past 7 days from DB
-2. Compares against TextVerified balance delta (balance at start of week minus current)
-3. If margin < 15% or negative → email `ADMIN_NOTIFY_EMAIL`
-
-**Files to touch**:
-- `app/core/lifespan.py` — add weekly scheduler
-- `app/services/provider_settlement_service.py` — implement the comparison logic
-- `app/services/alerting_service.py` — add `send_margin_alert()`
-
-**Done when**: Weekly cron fires, margin report visible in admin, alert fires if margin drops below threshold.
+Previous sprint (P1-P4) is deferred. The verification flow — the core revenue action — has
+critical bugs that must be fixed before anything else matters. A user who can't successfully
+complete a verification is a lost customer regardless of mobile responsiveness or coverage %.
 
 ---
 
-## P2 — Mobile Responsiveness (Public Pages First)
+## P1 — Fix Verification Window (CRITICAL — users being wrongly refunded)
 
-**Why**: Public pages are the conversion funnel. Landing, pricing, and about are broken on 320–425px. This directly affects signups.
+**Bug**: Frontend hardcodes `totalDurationMs = 120000` (2 min). TV now gives ~60 min windows.
+We auto-cancel valid verifications and refund users who still have 58 minutes left.
 
-**What exists**: `static/css/responsive.css` has 768px and 375px breakpoints only. No 320px or 425px. No CSS variable overrides for mobile typography/spacing.
+**Fix**:
+- Add `ends_at` + `created_at` to purchase response (`purchase_endpoints.py`)
+- Remove hardcoded 2-min duration from `verification-flow.js`
+- Compute `totalDurationMs = ends_at - created_at` dynamically from TV's response
+- Auto-timeout only when `ends_at` is actually reached
 
-**Scope — public pages only (phase 1)**:
+**Files**: `app/api/verification/purchase_endpoints.py`, `static/js/verification-flow.js`
 
-| Page | Key issues |
-|------|-----------|
-| `templates/landing.html` | Hero headings oversized, sections 40px padding |
-| `templates/pricing.html` | Tier cards don't stack, price 48px, padding 40px |
-| `templates/about.html` | H1 48px, feature/stats/team grids don't stack |
-| `templates/affiliate_program.html` | Commission table 4 cols, card grid doesn't collapse |
-| `templates/contact.html` | 2-col grid never stacks, form inputs too small for touch |
+**Done when**: Countdown shows real remaining time, no premature cancellation.
+
+---
+
+## P2 — TV Webhook for Instant SMS Delivery (HIGH — eliminates polling lag)
+
+**Why**: Currently polling every 2-3s. TV has a webhook system that pushes SMS instantly.
+Registering our endpoint eliminates all polling lag and reduces TV API load.
+
+**What TV sends** (from SDK `SmsWebhookEvent`):
+```json
+{
+  "id": "evt_abc",
+  "event": "sms.received",
+  "attempt": 1,
+  "occurredAt": "...",
+  "data": {
+    "to": "+17022853600",
+    "parsedCode": "876094",
+    "smsContent": "Your WhatsApp code is 876-094",
+    "reservationId": "tv_verification_id",
+    "createdAt": "..."
+  }
+}
+```
 
 **What to build**:
-1. Add breakpoints to `static/css/responsive.css`: 320px, 360px, 425px with typography + spacing overrides
-2. Add mobile CSS variable overrides to `static/css/design-system.css`
-3. Fix each of the 5 pages above with media queries (no inline style changes needed on most)
 
-**Done when**: All 5 pages render cleanly at 320px, 375px, 425px, 768px with no horizontal scroll and readable text.
+1. New file `app/api/verification/tv_webhook.py`:
+   - `POST /api/verification/webhook/tv`
+   - Dedup by event `id` (TV retries — must be idempotent)
+   - Match `reservationId` → our `activation_id` → find verification
+   - Update `verification.status = "completed"`, store `sms_code`
+   - Push via WebSocket to user's browser instantly
+   - Return 200 for ALL event types (billing, backorder) — TV disables webhook on failures
 
----
+2. Mount router in `main.py`
 
-## P3 — Month-End Revenue Target Alert
+3. Frontend `verification-flow.js`: listen for `sms_received` WebSocket message,
+   stop polling, show code. Polling stays as fallback.
 
-**Why**: `monthly_target` model and `target_tracking_service.py` both exist. No one gets notified if the month closes below target. Silent miss.
+4. Register URL in TV dashboard: app.textverified.com → API Configuration → API Webhooks
+   → Endpoint URL: `https://vrenum.app/api/verification/webhook/tv` → Save → Send Test
 
-**What to build**: Add to `app/core/lifespan.py` — on the last day of each month at 20:00 UTC:
-1. Query `monthly_target` for current month
-2. Query actual revenue from `revenue_recognition` for current month
-3. If actual < target → email `ADMIN_NOTIFY_EMAIL` with shortfall amount
+**Files**: `app/api/verification/tv_webhook.py` (new), `main.py`, `static/js/verification-flow.js`
 
-**Files to touch**:
-- `app/core/lifespan.py` — add month-end scheduler
-- `app/services/target_tracking_service.py` — implement `check_month_end_target()`
-- `app/services/alerting_service.py` — add `send_target_miss_alert()`
-
-**Done when**: Scheduler fires on last day of month, email sent if target missed.
+**Done when**: TV "Send Test" returns success, SMS arrives in browser without polling.
 
 ---
 
-## P4 — Test Coverage 81% → 90%
+## P3 — SSE Streaming Purchase with Real Pre-Check (HIGH — no more silent failures)
 
-**Why**: CI badge shows 81.48%. 90% is the stated target. Gap is ~8.5 percentage points. Closing this reduces regression risk as the platform grows.
+**Why**: We charge first, fail after. TV checks availability before charging.
+`verifications.create()` blocks 5-30s with no user feedback.
 
-**What to focus on** (highest ROI areas based on current gaps):
-- `app/services/stock_monitor.py` — new file, 0 tests
-- `app/services/provider_settlement_service.py` — new logic, 0 tests
-- `app/services/target_tracking_service.py` — new logic, 0 tests
-- Integration gaps in tier upgrade flow and refund edge cases
+**What to build**:
 
-**Done when**: `pytest --cov=app` reports ≥ 90%.
+1. `check_service_available()` in `textverified_service.py` — calls TV pricing endpoint
+   before purchase. Fails fast if service unavailable, no charge.
+
+2. `POST /api/verification/request/stream` — SSE endpoint streaming real steps:
+   - `pricing_check` → real TV pricing call
+   - `balance_check` → real DB query
+   - `purchasing` → `verifications.create()` blocks here (5-30s)
+   - `validating` → VOIP/area code check
+   - `recording` → DB write + debit
+   - `complete` / `failed` with specific reason
+
+3. Frontend SSE client in `createVerification()` — reads stream, updates UI per step,
+   shows "Cancel (you will not be charged)" until `purchasing` step fires.
+
+4. Loading state card in `verify_modern.html` — visible during purchase, real messages only.
+
+**Files**: `app/services/textverified_service.py`, `app/api/verification/purchase_endpoints.py`,
+`static/js/verification-flow.js`, `templates/verify_modern.html`
+
+**Done when**: User sees real step-by-step progress, pricing failure shows error before charge.
 
 ---
 
-## Backlog (not this sprint)
+## P4 — Orphaned Verification Recovery (MEDIUM — silent debit with no UI)
 
-| Item | Reason deferred |
-|------|----------------|
-| Telegram E2E | Non-operational, cosmetic feature |
-| JWT → httpOnly cookie | Architectural, low urgency at current user count |
-| Phase 2 Analytics | No users yet to analyse |
-| SDK libraries | No API consumers yet |
-| Dashboard mobile | Public pages first, then dashboard |
-| Multi-provider stock monitor | TextVerified is the only active provider |
+**Why**: If user navigates away during active verification, they're charged but see nothing.
+
+**Fix**: On `/verify` page load, check `localStorage.active_verification_id`,
+call status endpoint, restore step 3 UI if still pending.
+
+**Files**: `static/js/verification-flow.js`
+
+**Done when**: Returning to `/verify` during active verification restores the session.
+
+---
+
+## Deferred (not this sprint)
+
+| Item | Reason |
+|------|--------|
+| TV cost reconciliation (old P1) | Valid but not blocking revenue |
+| Mobile responsiveness (old P2) | No users yet to lose |
+| Month-end target alert (old P3) | No revenue target set yet |
+| Test coverage 81%→90% (old P4) | After flow is stable |
+| TV reuse feature | Nice-to-have |
 
 ---
 
 ## Sprint Completion Criteria
 
-- [ ] P1: Weekly TV reconciliation cron live, margin alert tested
-- [ ] P2: 5 public pages pass mobile audit at 320px–768px
-- [ ] P3: Month-end target alert wired and tested
-- [ ] P4: Coverage ≥ 90% on `pytest --cov=app`
+- [ ] P1: Verification countdown uses real `ends_at`, no premature cancellation/refund
+- [ ] P2: TV webhook endpoint live, "Send Test" passes, SMS arrives without polling
+- [ ] P3: SSE streaming purchase, pricing pre-check before charge, loading state visible
+- [ ] P4: Orphaned verification restores on page return
+
+**Reference**: `docs/engineering/development/TV_PURCHASE_FLOW_ALIGNMENT_TASK.md`

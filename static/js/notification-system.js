@@ -476,12 +476,38 @@ class NotificationSystem {
                 // New notification received
                 this.handleNewNotification(message.data);
                 break;
+            case 'sms_received':
+                // TV webhook delivered SMS instantly — route to verification flow if active
+                this.handleSmsReceived(message);
+                break;
             case 'pong':
                 // Keep-alive response
                 console.log('🏓 Pong received');
                 break;
             default:
                 console.log('📨 WebSocket message:', message);
+        }
+    }
+
+    handleSmsReceived(message) {
+        // If verification flow is active and matches, deliver instantly
+        if (typeof VerificationFlow !== 'undefined' &&
+            VerificationFlow.verificationId === message.verification_id &&
+            VerificationFlow.currentStep === 3) {
+            // Stop polling — we have the code
+            if (typeof stopPolling === 'function') stopPolling();
+            const codeEl = document.getElementById('sms-code');
+            const codeReceived = document.getElementById('code-received');
+            const scanContainer = document.querySelector('.scanning-container');
+            if (codeEl) codeEl.textContent = message.sms_code;
+            if (codeReceived) codeReceived.style.display = 'block';
+            if (scanContainer) scanContainer.style.display = 'none';
+            localStorage.removeItem('active_verification_id');
+            if (typeof window.toast !== 'undefined') window.toast.success('SMS code received!');
+            if (typeof playArrivalSound === 'function') playArrivalSound();
+            if (localStorage.getItem('nsk_auto_copy') === 'true') {
+                navigator.clipboard.writeText(message.sms_code).catch(() => {});
+            }
         }
     }
 

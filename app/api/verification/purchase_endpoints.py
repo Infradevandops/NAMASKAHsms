@@ -679,6 +679,8 @@ async def request_verification(
             "city_note": purchase_result.city_note,
             "provider": purchase_result.provider,
             "routing_reason": purchase_result.routing_reason,
+            "ends_at": purchase_result.expires_at,
+            "created_at": verification.created_at.isoformat(),
         }
 
         # Cache response for idempotency (24 hours)
