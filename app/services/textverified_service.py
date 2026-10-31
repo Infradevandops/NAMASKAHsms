@@ -388,6 +388,70 @@ class TextVerifiedService:
             f"TextVerified API failed after 3 attempts. Please try again in a few moments."
         )
 
+    async def fetch_raw_services_with_quantity(self) -> list:
+        """Fetch services list directly from TV API to capture quantity + price the SDK drops.
+
+        GET /api/pub/v2/services returns raw JSON with quantity and price per service.
+        The SDK Service.from_api() only maps serviceName + capability, dropping everything else.
+        """
+        if not self.enabled:
+            return []
+        try:
+            self.client.refresh_bearer()
+            resp = self.client.session.get(
+                f"{self.client.base_url}/api/pub/v2/services",
+                headers={
+                    "Authorization": f"Bearer {self.client.bearer.token}",
+                    "User-Agent": self.client.user_agent,
+                },
+                params={"numberType": "mobile", "reservationType": "verification"},
+                timeout=15.0,
+            )
+            if not resp.ok:
+                logger.warning(f"Raw services fetch failed: HTTP {resp.status_code}")
+                return []
+            data = resp.json()
+            items = data if isinstance(data, list) else data.get("data", [])
+            result = []
+            seen = set()
+            for item in items:
+                name = (
+                    item.get("serviceName")
+                    or item.get("service_name")
+                    or item.get("name")
+                    or ""
+                )
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                qty = (
+                    item.get("quantity")
+                    or item.get("qty")
+                    or item.get("availableCount")
+                    or item.get("available_count")
+                    or item.get("count")
+                )
+                price = item.get("price") or item.get("cost")
+                result.append(
+                    {
+                        "id": name,
+                        "name": name.title(),
+                        "price": float(price) if price is not None else None,
+                        "cost": float(price) if price is not None else None,
+                        "quantity": int(qty) if qty is not None else None,
+                        "capability": item.get("capability", "sms"),
+                    }
+                )
+            with_qty = sum(1 for r in result if r.get("quantity") is not None)
+            with_price = sum(1 for r in result if r.get("price") is not None)
+            logger.info(
+                f"Raw services: {len(result)} total, {with_qty} with quantity, {with_price} with price"
+            )
+            return result
+        except Exception as e:
+            logger.warning(f"fetch_raw_services_with_quantity failed: {e}")
+            return []
+
     async def _fetch_prices_inline(self, services) -> list:
         """Fetch real prices + quantity for all services inline.
         Calls TV API directly to capture quantity field the SDK drops.

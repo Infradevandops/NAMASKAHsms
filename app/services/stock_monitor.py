@@ -15,7 +15,7 @@ from app.core.unified_cache import cache
 logger = get_logger(__name__)
 
 _STOCK_CACHE_KEY = "services:stock"
-_STOCK_CACHE_TTL = 900  # 15 minutes
+_STOCK_CACHE_TTL = 120  # 2 minutes — proactive live handshake with TV
 _TV_SERVICES_KEY = "tv:services_list"
 _OUTCOME_TTL = 1800  # 30 min — failed service stays red long enough to matter
 
@@ -77,8 +77,39 @@ async def build_stock_map() -> Dict[str, dict]:
 
 
 async def refresh_stock_cache() -> None:
-    """Refresh the stock availability cache from provider data."""
-    stock_map = await build_stock_map()
+    """Refresh stock cache directly from TV API — bypasses SDK to get quantity."""
+    stock_map: Dict[str, dict] = {}
+    try:
+        from app.services.textverified_service import TextVerifiedService
+
+        tv = TextVerifiedService()
+        if tv.enabled:
+            raw_services = await tv.fetch_raw_services_with_quantity()
+            for item in raw_services:
+                slug = (item.get("id") or "").lower().strip()
+                if not slug:
+                    continue
+                price = item.get("price")
+                qty = item.get("quantity")
+                outcome = await get_purchase_outcome(slug)
+                if outcome is not None:
+                    available = outcome
+                elif qty is not None:
+                    available = qty > 0
+                else:
+                    available = price is not None and float(price) > 0
+                stock_map[slug] = {
+                    "available": available,
+                    "price": price,
+                    "quantity": qty,
+                    "provider": "textverified",
+                }
+    except Exception as e:
+        logger.warning(f"refresh_stock_cache raw fetch failed, falling back: {e}")
+
+    if not stock_map:
+        stock_map = await build_stock_map()
+
     if stock_map:
         await cache.set(
             _STOCK_CACHE_KEY,
@@ -91,8 +122,9 @@ async def refresh_stock_cache() -> None:
             _STOCK_CACHE_TTL,
         )
         available = sum(1 for s in stock_map.values() if s["available"])
+        with_qty = sum(1 for s in stock_map.values() if s.get("quantity") is not None)
         logger.info(
-            f"Stock cache refreshed: {available}/{len(stock_map)} services available"
+            f"Stock refreshed: {available}/{len(stock_map)} available, {with_qty} with quantity"
         )
 
 
