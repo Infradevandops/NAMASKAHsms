@@ -163,7 +163,7 @@ class SMSPollingService:
 
         # Notify user we're still waiting
         asyncio.create_task(
-            self._notify_waiting(verification.user_id, verification.service_name)
+            self._notify_waiting(verification.user_id, verification.service_name, str(verification.id))
         )
 
         # Standard TextVerified poll
@@ -530,9 +530,20 @@ class SMSPollingService:
 
         logger.info(f"Verification {verification.id} timed out")
 
-    async def _notify_waiting(self, user_id: str, service_name: str):
+    async def _notify_waiting(self, user_id: str, service_name: str, verification_id: str = ""):
         """Send 'still waiting' notification after 20 seconds."""
         await asyncio.sleep(20)
+        # Distributed lock — prevent duplicate notifications from multiple workers
+        if verification_id:
+            try:
+                redis = get_redis()
+                if redis:
+                    lock_key = f"lock:notif_waiting:{verification_id}"
+                    acquired = redis.set(lock_key, "1", nx=True, ex=60)  # type: ignore[func-returns-value]
+                    if not acquired:
+                        return
+            except Exception as e:
+                logger.warning(f"Redis lock unavailable for waiting notif {verification_id}: {e}")
         db = None
         try:
             db = SessionLocal()
