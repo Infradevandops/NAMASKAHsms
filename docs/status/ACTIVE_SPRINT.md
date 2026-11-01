@@ -6,7 +6,7 @@
 
 ---
 
-## Sprint Status: 🔄 IN PROGRESS
+## Sprint Status: ✅ ALL TASKS COMPLETE
 
 ---
 
@@ -99,4 +99,5 @@ tests/smoke/test_mobile_responsiveness.py ← new
 
 | Hash | Message |
 |------|---------|
-| TBD | `test: TV webhook verification — 18 tests, CI gate expanded to 24 files, coverage floor 25%` |
+| `4724bbfd` | `test: TV webhook verification — 18 tests, CI gate 24 files, coverage floor 25%` |
+| `24496798` | `fix: service_name field in Verification fixtures (model uses service_name not service)` |

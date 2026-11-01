@@ -25,7 +25,7 @@ TV Webhook Verification + CI Gate Expansion
 
 ### Technical
 - Files added: `tests/unit/test_tv_webhook.py`
-- Files modified: `.github/workflows/ci.yml`, `docs/engineering/development/DASHBOARD_CACHE_INVALIDATION_FIX_TASK.md`
+- Files modified: `.github/workflows/ci.yml`, `docs/engineering/development/DASHBOARD_CACHE_INVALIDATION_FIX_TASK.md`, `tests/unit/test_tv_webhook.py`, `tests/unit/test_sms_polling.py`, `tests/conftest.py` (service_name field fix)
 - No database migrations required
 - No new dependencies
 - Backward compatible: 100%
