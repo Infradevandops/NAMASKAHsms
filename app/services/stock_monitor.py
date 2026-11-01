@@ -96,8 +96,11 @@ async def refresh_stock_cache() -> None:
                     available = outcome
                 elif qty is not None:
                     available = qty > 0
+                elif price is not None and float(price) > 0:
+                    available = True
                 else:
-                    available = price is not None and float(price) > 0
+                    # price=null from TV means out of stock — exclude entirely
+                    available = False
                 stock_map[slug] = {
                     "available": available,
                     "price": price,
@@ -145,4 +148,4 @@ async def run_stock_monitor() -> None:
             await refresh_stock_cache()
         except Exception as e:
             logger.warning(f"Stock monitor refresh failed: {e}")
-        await asyncio.sleep(_STOCK_CACHE_TTL)
+        await asyncio.sleep(90)  # refresh before 120s TTL expires — keeps cache always warm

@@ -183,6 +183,15 @@ async def get_services_stock(db: Session = Depends(get_db)):
         stats = await _get_success_rates(db)
         services = data.get("services", {})
 
+        # Filter out null-price (out-of-stock) services before enriching.
+        # price=null from TV means no inventory — exclude from the response
+        # so the frontend picker never shows unpurchasable services.
+        services = {
+            slug: info
+            for slug, info in services.items()
+            if info.get("price") is not None and float(info.get("price") or 0) > 0
+        }
+
         enriched = {}
         for slug, info in services.items():
             stat = stats.get(slug, {})

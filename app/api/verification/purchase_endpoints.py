@@ -271,8 +271,16 @@ async def request_verification(
                     detail="City filtering requires PAYG tier or higher. Upgrade your plan.",
                 )
 
+        # Pre-purchase availability check — fail fast before any charge commits
+        avail = await _tv_service.check_service_available(request.service)
+        if not avail["available"]:
+            raise HTTPException(
+                status_code=422,
+                detail=f"No numbers available for '{request.service}' right now. Please try another service.",
+            )
+
         # Fetch real provider price for this specific service
-        provider_price = await _get_provider_price(request.service)
+        provider_price = avail.get("price") or await _get_provider_price(request.service)
 
         # Calculate cost based on capability type
         if request.capability == "voice":

@@ -303,6 +303,7 @@ function renderImmersiveItem(item, isPinned) {
             : 'Out of stock';
         const priceStr = item.price > 0 ? `$${parseFloat(item.price).toFixed(2)}` : '';
         const rateStr = item.success_rate != null ? `${item.success_rate}% success` : '';
+        const demandBadge = item.demand === 'high'
             ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">High demand</span>`
             : '';
         const capBadge = item.capability === 'voice'
@@ -311,8 +312,13 @@ function renderImmersiveItem(item, isPinned) {
             ? `<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">SMS+Voice</span>`
             : '';
 
+        // Out-of-stock items are non-selectable — greyed out, pointer-events disabled
+        const isUnavailable = !available;
+        const itemStyle = isUnavailable ? 'opacity:0.45;cursor:not-allowed;pointer-events:none;' : '';
+        const clickAttr = isUnavailable ? '' : `onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})"`;
+
         return `
-            <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
+            <div class="list-item" ${clickAttr} style="${itemStyle}">
                 <div class="list-item-icon">
                     <img src="${iconUrl}" onerror="this.style.display='none'">
                 </div>
@@ -853,14 +859,20 @@ async function createVerification() {
                     case 'purchasing':
                         updateLoadingMessage('Securing your number...');
                         hideCancelButton();
+                        // Show "still working" message if TV takes longer than 10s
+                        VerificationFlow._purchasingTimer = setTimeout(() => {
+                            updateLoadingMessage('Still working — this can take up to 30 seconds...');
+                        }, 10000);
                         break;
                     case 'validating':
-                        updateLoadingMessage('Validating number...');
+                        clearTimeout(VerificationFlow._purchasingTimer);
+                        updateLoadingMessage('Validating number quality...');
                         break;
                     case 'recording':
                         updateLoadingMessage('Almost done...');
                         break;
                     case 'complete':
+                        clearTimeout(VerificationFlow._purchasingTimer);
                         hidePurchaseLoadingState();
                         VerificationFlow.verificationId = event.verification_id;
                         VerificationFlow.createdAt = event.created_at || new Date().toISOString();
@@ -882,6 +894,7 @@ async function createVerification() {
                         }
                         return;
                     case 'failed':
+                        clearTimeout(VerificationFlow._purchasingTimer);
                         hidePurchaseLoadingState();
                         document.getElementById('step-2-card').style.display = 'block';
                         if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
