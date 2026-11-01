@@ -773,7 +773,7 @@ async function loadCarriers() {
     }
 }
 
-// Create verification
+// Create verification — SSE streaming purchase
 async function createVerification() {
     if (!VerificationFlow.selectedService) {
         window.toast && window.toast.error('Please select a service');
@@ -781,17 +781,31 @@ async function createVerification() {
     }
 
     const btn = document.getElementById('get-number-btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></span>Creating...';
+    const serviceId = VerificationFlow.selectedService;
+    const areaCode = VerificationFlow.selectedAreaCode || null;
+    const carrier = VerificationFlow.selectedCarrier || null;
+
+    // Show purchase loading card, hide step-2
+    document.getElementById('step-2-card').style.display = 'none';
+    const loadingCard = document.getElementById('purchase-loading-card');
+    if (loadingCard) loadingCard.style.display = 'block';
+    const iconEl = document.getElementById('loading-service-icon');
+    if (iconEl) iconEl.src = _getServiceIcon(serviceId);
+
+    function updateLoadingMessage(msg) {
+        const el = document.getElementById('purchase-loading-message');
+        if (el) el.textContent = msg;
+    }
+    function hideCancelButton() {
+        const btn = document.getElementById('purchase-cancel-btn');
+        if (btn) btn.style.display = 'none';
+    }
+    function hidePurchaseLoadingState() {
+        if (loadingCard) loadingCard.style.display = 'none';
     }
 
     try {
-        const areaCode = VerificationFlow.selectedAreaCode || null;
-        const carrier = VerificationFlow.selectedCarrier || null;
-        const serviceId = VerificationFlow.selectedService;
-
-        const response = await fetch('/api/verification/request', {
+        const response = await fetch('/api/verification/request/stream', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -809,56 +823,98 @@ async function createVerification() {
             })
         });
 
-        if (!response.ok) {
+        if (!response.ok || !response.body) {
             const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.detail || 'Failed to create verification');
+            throw new Error(errData.detail || 'Failed to start verification stream');
         }
 
-        const data = await response.json();
-        VerificationFlow.verificationId = data.verification_id;
-        if (data.ends_at) {
-            VerificationFlow.createdAt = data.created_at || new Date().toISOString();
-            VerificationFlow.totalDurationMs =
-                new Date(data.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep incomplete line
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                let event;
+                try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+                switch (event.step) {
+                    case 'pricing_check':
+                        updateLoadingMessage('Confirming availability...');
+                        break;
+                    case 'balance_check':
+                        updateLoadingMessage('Checking your balance...');
+                        break;
+                    case 'purchasing':
+                        updateLoadingMessage('Securing your number...');
+                        hideCancelButton();
+                        break;
+                    case 'validating':
+                        updateLoadingMessage('Validating number...');
+                        break;
+                    case 'recording':
+                        updateLoadingMessage('Almost done...');
+                        break;
+                    case 'complete':
+                        hidePurchaseLoadingState();
+                        VerificationFlow.verificationId = event.verification_id;
+                        VerificationFlow.createdAt = event.created_at || new Date().toISOString();
+                        if (event.ends_at) {
+                            VerificationFlow.totalDurationMs =
+                                new Date(event.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
+                        }
+                        localStorage.setItem('active_verification_id', event.verification_id);
+                        document.getElementById('phone-number').textContent = formatPhone(event.phone_number);
+                        document.getElementById('display-verification-id').textContent = event.verification_id || '-';
+                        const _svcLabel = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
+                        document.getElementById('scanning-service-name').textContent = _svcLabel;
+                        updateProgress(3);
+                        startPolling();
+                        if (event.fallback_applied) {
+                            showFallbackWarning(event.requested_area_code, event.assigned_area_code, true);
+                        } else {
+                            window.toast && window.toast.success('Number received — waiting for SMS...');
+                        }
+                        return;
+                    case 'failed':
+                        hidePurchaseLoadingState();
+                        document.getElementById('step-2-card').style.display = 'block';
+                        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
+                        const msg = event.message || 'Failed to create verification';
+                        if (event.reason === 'no_inventory') {
+                            const slug = (serviceId || '').toLowerCase();
+                            if (_stockMap[slug]) _stockMap[slug].available = false;
+                            window.toast && window.toast.error(`${serviceId} is out of stock. Please try a different service.`);
+                        } else if (event.reason === 'insufficient_balance') {
+                            window.toast && window.toast.error('Insufficient balance. Please add credits to your wallet.');
+                        } else {
+                            window.toast && window.toast.error(msg);
+                        }
+                        return;
+                }
+            }
         }
-        localStorage.setItem('active_verification_id', data.verification_id);
-
-        document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
-        document.getElementById('display-verification-id').textContent = data.verification_id || '-';
-        const _svcLabel = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
-        document.getElementById('scanning-service-name').textContent = _svcLabel;
-
-        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
-        updateProgress(3);
-        startPolling();
-
-        // Show fallback warning if area code wasn't honored
-        if (data.fallback_applied) {
-            const assignedCode = data.assigned_area_code || '?';
-            const requestedCode = data.requested_area_code || areaCode;
-            const sameState = data.same_state_fallback !== false;
-            showFallbackWarning(requestedCode, assignedCode, sameState);
-        } else {
-            window.toast && window.toast.success('Number received — waiting for SMS...');
-        }
-
     } catch (error) {
-        console.error('Error:', error);
-        const msg = error.message || 'Failed to create verification';
-
+        console.error('SSE stream error:', error);
+        const loadingCard = document.getElementById('purchase-loading-card');
+        if (loadingCard) loadingCard.style.display = 'none';
+        document.getElementById('step-2-card').style.display = 'block';
         if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
-
-        if (msg.includes('Out of stock') || msg.includes('unavailable') || msg.includes('out_of_stock') || msg.includes('no numbers')) {
-            // Mark service as out of stock in local map so dot updates
-            const slug = (serviceId || '').toLowerCase();
-            if (_stockMap[slug]) _stockMap[slug].available = false;
-            window.toast && window.toast.error(`${VerificationFlow.selectedService} is out of stock. Please try a different service.`);
-        } else if (msg.includes('Insufficient')) {
-            window.toast && window.toast.error('Insufficient balance. Please add credits to your wallet.');
-        } else {
-            window.toast && window.toast.error(msg);
-        }
+        window.toast && window.toast.error(error.message || 'Failed to create verification');
     }
+}
+
+function cancelPurchase() {
+    // Only safe before 'purchasing' step fires (cancel button is hidden after that)
+    const loadingCard = document.getElementById('purchase-loading-card');
+    if (loadingCard) loadingCard.style.display = 'none';
+    document.getElementById('step-2-card').style.display = 'block';
+    window.toast && window.toast.info('Purchase cancelled.');
 }
 
 // Global error handler for unhandled promise rejections (Task 8)
@@ -870,6 +926,41 @@ window.addEventListener('unhandledrejection', function(event) {
         btn.textContent = 'Get Number →';
     }
     window.toast && window.toast.error('An unexpected error occurred. Please try again.');
+});
+
+// WebSocket instant SMS delivery handler (TV webhook → WebSocket push)
+// Listens for sms_received events pushed by tv_webhook.py via websocket_manager
+function handleWebSocketSmsReceived(message) {
+    if (
+        message.type === 'sms_received' &&
+        message.verification_id === VerificationFlow.verificationId
+    ) {
+        stopPolling();
+        VerificationFlow.smsReceived = true;
+
+        document.getElementById('sms-code').textContent = message.sms_code || '------';
+        document.getElementById('code-received').style.display = 'block';
+        const scanContainer = document.querySelector('.scanning-container');
+        if (scanContainer) scanContainer.style.display = 'none';
+
+        document.getElementById('receipt-carrier').textContent = 'Auto';
+        document.getElementById('receipt-area-code').textContent = 'Any';
+
+        window.toast && window.toast.success('SMS code received!');
+        playArrivalSound();
+        localStorage.removeItem('active_verification_id');
+        if (localStorage.getItem('nsk_auto_copy') === 'true') {
+            navigator.clipboard.writeText(message.sms_code || '').catch(() => {});
+        }
+    }
+}
+
+// Wire into the existing WebSocket notification system
+// sms-websocket.js dispatches a custom event 'ws:message' with the parsed payload
+document.addEventListener('ws:message', (e) => {
+    if (e.detail && e.detail.type === 'sms_received') {
+        handleWebSocketSmsReceived(e.detail);
+    }
 });
 
 function showFallbackWarning(requested, assigned, sameState) {

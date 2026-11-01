@@ -3,10 +3,10 @@
 import asyncio
 import json
 from datetime import datetime, timezone
-from typing import Optional
+from typing import AsyncGenerator, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.cache import get_redis
@@ -779,3 +779,167 @@ async def request_verification(
 # Import for test mocking - must be at end to avoid circular imports
 from app.services.quota_service import QuotaService  # noqa: E402
 from app.services.refund_service import RefundService  # noqa: E402
+
+
+@router.post("/request/stream")
+async def request_verification_stream(
+    request: VerificationRequest,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    """SSE streaming purchase — each event maps to a real backend operation.
+
+    Streams step-by-step progress to the frontend so the user sees real
+    feedback during the 5-30s blocking TV purchase call.
+    Cancel button is shown until 'purchasing' fires (that's when charge commits).
+    """
+
+    async def event_stream() -> AsyncGenerator[str, None]:
+        def sse(step: str, **kwargs) -> str:
+            data = json.dumps({"step": step, **kwargs})
+            return f"data: {data}\n\n"
+
+        # Step 1: pre-purchase availability check (real TV pricing call)
+        yield sse("pricing_check", message="Confirming availability with provider...")
+        check = await _tv_service.check_service_available(request.service)
+        if not check["available"]:
+            yield sse(
+                "failed",
+                reason="no_inventory",
+                message="No numbers available for this service right now. Please try another service.",
+            )
+            return
+
+        # Step 2: balance check (real DB query)
+        yield sse("balance_check", message="Checking your balance...")
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            yield sse("failed", reason="user_not_found", message="User not found.")
+            return
+
+        provider_price = check.get("price")
+        if request.capability == "voice":
+            pricing_info = PricingCalculator.calculate_voice_cost(
+                db, user_id, provider_price=provider_price, area_code=None
+            )
+        else:
+            pricing_info = PricingCalculator.calculate_sms_cost(
+                db, user_id, None, provider_price=provider_price
+            )
+        sms_cost = pricing_info["total_cost"]
+
+        balance_check = await BalanceService.check_sufficient_balance(user_id, sms_cost, db)
+        if not balance_check["sufficient"]:
+            yield sse(
+                "failed",
+                reason="insufficient_balance",
+                message=f"Insufficient balance. Available: ${balance_check['current_balance']:.2f}, Required: ${sms_cost:.2f}",
+            )
+            return
+
+        # Step 3: purchase (real TV create — blocks 5-30s, charge commits here)
+        yield sse("purchasing", message="Securing your number...")
+        from app.services.providers.provider_router import ProviderRouter
+        from app.services.providers.provider_errors import ProviderError
+
+        provider_router = ProviderRouter()
+        area_code = request.area_codes[0] if request.area_codes else None
+        tier_manager = TierManager(db)
+        user_tier = tier_manager.get_user_tier(user_id)
+
+        try:
+            purchase_result = await provider_router.purchase_with_failover(
+                db=db,
+                service=request.service,
+                country=request.country,
+                area_code=area_code,
+                capability=request.capability,
+                city=request.city,
+                user_tier=user_tier,
+                selected_from_alternatives=request.selected_from_alternatives,
+                original_request=request.original_request,
+            )
+        except ProviderError as e:
+            yield sse("failed", reason=e.category, message=e.user_message)
+            return
+        except Exception as e:
+            yield sse("failed", reason="provider_error", message="Provider temporarily unavailable. Your credits were not charged.")
+            return
+
+        # Step 4: validate number quality
+        yield sse("validating", message="Validating number quality...")
+
+        # Step 5: record DB write + debit
+        yield sse("recording", message="Almost done...")
+        try:
+            verification = Verification(
+                user_id=user_id,
+                service_name=request.service,
+                phone_number=purchase_result.phone_number,
+                country=request.country,
+                capability=request.capability,
+                cost=sms_cost,
+                provider=purchase_result.provider,
+                activation_id=purchase_result.order_id,
+                status="pending",
+                requested_area_code=area_code,
+                operator=purchase_result.operator,
+                assigned_area_code=purchase_result.assigned_area_code,
+                fallback_applied=purchase_result.fallback_applied,
+                same_state_fallback=purchase_result.same_state_fallback,
+                retry_attempts=purchase_result.retry_attempts,
+                area_code_matched=purchase_result.area_code_matched,
+                carrier_matched=True,
+                carrier_surcharge=0.0,
+                area_code_surcharge=0.0,
+                voip_rejected=purchase_result.voip_rejected,
+                created_at=datetime.now(timezone.utc),
+                routing_reason=purchase_result.routing_reason,
+                city_honoured=purchase_result.city_honoured,
+                city_note=purchase_result.city_note,
+            )
+            db.add(verification)
+            db.flush()
+
+            success, error = await BalanceService.deduct_credits_for_verification(
+                db=db,
+                user=user,
+                verification=verification,
+                cost=sms_cost,
+                service_name=request.service,
+                country_code=request.country,
+            )
+            if not success:
+                db.rollback()
+                yield sse("failed", reason="debit_failed", message=error or "Failed to deduct credits.")
+                return
+
+            db.commit()
+            asyncio.create_task(sms_polling_service.start_polling(verification.id))
+        except Exception as e:
+            db.rollback()
+            logger.error(f"SSE stream DB write failed: {e}", exc_info=True)
+            yield sse("failed", reason="db_error", message="Failed to record verification. Your credits were not charged.")
+            return
+
+        # Step 6: complete
+        yield sse(
+            "complete",
+            verification_id=str(verification.id),
+            phone_number=purchase_result.phone_number,
+            ends_at=purchase_result.expires_at,
+            created_at=verification.created_at.isoformat(),
+            cost=sms_cost,
+            fallback_applied=purchase_result.fallback_applied,
+            assigned_area_code=purchase_result.assigned_area_code,
+            requested_area_code=purchase_result.requested_area_code,
+        )
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )

@@ -176,6 +176,17 @@
     <!-- Immersive Modal Container (Task 3) -->
     <div id="immersive-modal-container"></div>
 
+    <!-- Purchase Loading State (shown during SSE stream, between step 2 and step 3) -->
+    <div class="verification-card" id="purchase-loading-card" style="display:none; text-align:center; padding:40px 24px;">
+        <div style="margin-bottom:16px;">
+            <img id="loading-service-icon" src="" style="width:64px;height:64px;border-radius:12px;" onerror="this.style.display='none'">
+        </div>
+        <div class="scanning-text" id="purchase-loading-message" style="font-size:15px;font-weight:600;color:#374151;margin-bottom:24px;">Confirming availability...</div>
+        <div style="width:48px;height:48px;border:3px solid rgba(254,60,114,0.2);border-top-color:#FE3C72;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 24px;"></div>
+        <button id="purchase-cancel-btn" class="btn btn-secondary" style="width:100%;" onclick="cancelPurchase()">
+            Cancel (you will not be charged)
+        </button>
+    </div>
 
     <!-- Step 2: Pricing & Confirmation -->
     <div class="verification-card pricing-card" id="step-2-card" style="display: none;">

@@ -1244,6 +1244,44 @@ class TextVerifiedService:
         except Exception:
             pass
 
+    async def check_service_available(self, service_name: str) -> dict:
+        """Pre-purchase availability check via TV pricing endpoint.
+        Returns {available: bool, price: float|None, reason: str|None}
+        Called before purchase to fail fast without charging the user.
+        """
+        if not self.enabled:
+            return {"available": False, "reason": "provider_disabled"}
+        try:
+            self.client.refresh_bearer()
+            resp = await asyncio.to_thread(
+                lambda: self.client.session.post(
+                    f"{self.client.base_url}/api/pub/v2/verifications/pricing",
+                    headers={
+                        "Authorization": f"Bearer {self.client.bearer.token}",
+                        "User-Agent": self.client.user_agent,
+                    },
+                    json={
+                        "serviceName": service_name,
+                        "areaCode": False,
+                        "carrier": False,
+                        "numberType": "mobile",
+                        "capability": "sms",
+                    },
+                    timeout=8.0,
+                )
+            )
+            if resp.ok:
+                data = resp.json()
+                payload = data.get("data", data)
+                price = payload.get("price")
+                if price is not None and float(price) > 0:
+                    return {"available": True, "price": float(price)}
+                return {"available": False, "reason": "no_inventory"}
+            return {"available": False, "reason": f"http_{resp.status_code}"}
+        except Exception as e:
+            logger.warning(f"check_service_available failed for '{service_name}': {e}")
+            return {"available": False, "reason": str(e)}
+
     async def buy_number(self, country: str, service: str, **kwargs) -> Dict[str, Any]:
         """Alias for purchase_number used by tests."""
         return await self.purchase_number(service=service, country=country, **kwargs)

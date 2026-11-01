@@ -7,6 +7,7 @@ TV retries on failure. After repeated failures TV auto-disables the webhook.
 We MUST return 200 for all event types to prevent auto-disable.
 """
 
+import base64
 import hashlib
 import hmac
 import logging
@@ -27,49 +28,19 @@ router = APIRouter(prefix="/api/verification/webhook", tags=["tv-webhook"])
 _DEDUP_TTL = 86400  # 24h
 
 
-def _verify_signature(payload: bytes, sig_header: str, secret: str) -> bool:
-    """Verify TV webhook HMAC-SHA256 signature."""
-    if not sig_header:
-        return False
-    try:
-        import base64
-        import hashlib
-        import hmac as _hmac
-
-        raw = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
-        try:
-            key = base64.b64decode(raw + "==")
-        except Exception:
-            key = raw.encode()
-        expected = _hmac.new(key, payload, hashlib.sha256).hexdigest()
-        received = sig_header.replace("sha256=", "").strip()
-        return _hmac.compare_digest(expected, received)
-    except Exception as e:
-        return False
-
-
 def _verify_signature(payload: bytes, signature_header: str, secret: str) -> bool:
     """Verify TV webhook HMAC-SHA256 signature.
     TV sends: X-Signature: sha256=<hex_digest>
+    If no secret is configured, allow all (dev mode).
     """
     if not signature_header or not secret:
-        return not secret  # if no secret configured, allow all (dev mode)
+        return not secret
     try:
-        # Strip whsec_ prefix if present
-        raw_secret = (
-            secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
-        )
-        import base64
-
-        secret_bytes = (
-            base64.b64decode(raw_secret)
-            if len(raw_secret) % 4 == 0
-            and all(
-                c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-                for c in raw_secret
-            )
-            else raw_secret.encode()
-        )
+        raw_secret = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
+        try:
+            secret_bytes = base64.b64decode(raw_secret + "==")
+        except Exception:
+            secret_bytes = raw_secret.encode()
         expected = hmac.new(secret_bytes, payload, hashlib.sha256).hexdigest()
         received = signature_header.replace("sha256=", "").strip()
         return hmac.compare_digest(expected, received)
@@ -98,10 +69,21 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
         }
     }
     """
+    raw_body = await request.body()
+
+    # HMAC signature verification
+    settings = get_settings()
+    webhook_secret = getattr(settings, "tv_webhook_secret", None) or ""
+    sig_header = request.headers.get("X-Signature", "")
+    if webhook_secret and not _verify_signature(raw_body, sig_header, webhook_secret):
+        logger.warning("TV webhook: invalid signature — rejecting")
+        # Return 200 to avoid TV disabling the webhook; log for investigation
+        return {"ok": True}
+
     try:
-        payload = await request.json()
+        import json as _json
+        payload = _json.loads(raw_body)
     except Exception:
-        # Return 200 anyway — malformed payload shouldn't trigger TV retry/disable
         logger.warning("TV webhook: malformed JSON payload")
         return {"ok": True}
 

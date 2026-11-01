@@ -64,6 +64,9 @@ class SMSWebSocket {
                 try {
                     const message = JSON.parse(event.data);
 
+                    // Dispatch global event so verification-flow.js can handle sms_received
+                    document.dispatchEvent(new CustomEvent('ws:message', { detail: message }));
+
                     // Route verification events
                     if (message.type === 'verification_event') {
                         // Ensure it's for our specific verification
