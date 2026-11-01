@@ -14,6 +14,10 @@ try:
         router as notification_center_router,
     )
 
+    # Strip the sub-router's own prefix before including — the parent router
+    # already carries /api/notifications, so including with the full prefix
+    # would produce /api/notifications/api/notifications/categories (405).
+    notification_center_router.prefix = ""
     router.include_router(notification_center_router)
 except Exception as e:
     import logging
