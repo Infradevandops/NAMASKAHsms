@@ -1,6 +1,6 @@
 # Task: Fix Dashboard Cache Invalidation Script
 
-**Status:** Planned
+**Status:** ✅ CLOSED — pre-existing fix confirmed
 **Area:** Dashboard / service-worker cache invalidation
 **Affected file:** `templates/dashboard_base.html`
 

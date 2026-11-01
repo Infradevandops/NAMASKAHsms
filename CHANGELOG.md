@@ -6,9 +6,29 @@ All notable changes to the Vrenum SMS project.
 
 ### In Progress
 - Test coverage improvement: 81.48% → 90% target
-- SDK libraries (Python, JavaScript) — Phase 8
 - Multi-region deployment (Q3 2026)
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
+
+---
+
+## [4.9.6] - November 1, 2026
+
+TV Webhook Verification + CI Gate Expansion
+
+### Added
+- **`tests/unit/test_tv_webhook.py`**: 18 tests verifying the TV webhook endpoint — Send Test button scenario (non-sms.received events return 200), sms.received DB update + WebSocket push, phone number fallback lookup, already-completed guard, no-match 200, duplicate event deduplication, `_extract_code` fallback logic.
+- **CI test gate expanded**: `unit-tests` job now runs 24 test files (was 9). Added `test_tv_webhook`, `test_notification_service`, `test_notification_center`, `test_email_service`, `test_auth_service`, `test_refund_service`, `test_pricing_calculator`, `test_tier_service`, `test_verification_flow`, `test_sms_polling`, `test_fraud_detection`, `test_webhook_notifications`, `test_security_utils`, `test_startup_smoke`, `test_mobile_responsiveness`.
+- **Coverage floor raised**: `--cov-fail-under` 15 → 25.
+
+### Closed
+- **Dashboard cache invalidation task**: Inspected `templates/dashboard_base.html` — IIFE was already syntactically correct. Task doc marked closed.
+
+### Technical
+- Files added: `tests/unit/test_tv_webhook.py`
+- Files modified: `.github/workflows/ci.yml`, `docs/engineering/development/DASHBOARD_CACHE_INVALIDATION_FIX_TASK.md`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
 
 ---
 
