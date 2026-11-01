@@ -285,7 +285,7 @@ def test_verification(db, test_user):
         id="test-verification-123",
         user_id=test_user.id,
         phone_number="+1234567890",
-        service="test_service",
+        service_name="test_service",
         status="pending",
         cost=2.50,
         created_at=datetime.now(timezone.utc),
