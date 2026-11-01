@@ -17,6 +17,25 @@ Commits:
 
 ---
 
+## Unplanned P0 — TV Stock + Verification Flow Fixes ✅ SHIPPED
+
+**Trigger**: Assessment in `docs/engineering/TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md` identified critical prod gaps where stock shown as available could not actually be purchased.
+
+**Commit**: `47d69fd1`
+
+| Fix | What it does |
+|-----|--------------|
+| Legacy purchase path availability gate | `POST /verification/request` now calls `check_service_available()` before pricing — fails fast with 422 in <1s instead of burning 5-30s on TV's `verifications.create()` |
+| Filter null-price services from picker | `GET /api/services/stock` strips `price=null` services — frontend never receives unpurchasable services |
+| Out-of-stock items non-selectable in JS | Services with `available=false` render greyed out (`opacity:0.45`, `pointer-events:none`) in the picker |
+| Stock monitor cache warmup | Background loop sleep 120s → 90s so 120s TTL cache is always warm; `price=null` with no quantity now explicitly `available=False` |
+| `purchasing` step "still working" timer | After 10s on the `purchasing` SSE step, message changes to "Still working — this can take up to 30 seconds..." |
+| `demandBadge` broken ternary | Pre-existing JS syntax error in `renderImmersiveItem` — `demandBadge` had no assignment body, fixed |
+
+**Files changed**: `purchase_endpoints.py`, `services.py`, `stock_monitor.py`, `verification-flow.js`
+
+---
+
 ## Sprint Status: 📋 PLANNED
 
 ---
@@ -77,4 +96,5 @@ tests/unit/test_alerting_service.py
 |------|----------|
 | Coverage push 60% → 90% (continued) | High |
 | Phase 2 Analytics implementation | Medium |
+| Remove/wire fake `validating` SSE step | Low |
 | Multi-region deployment | Q3 2026 |

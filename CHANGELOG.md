@@ -11,6 +11,30 @@ All notable changes to the Vrenum SMS project.
 
 ---
 
+## [4.9.7] - November 1, 2026
+
+TV Stock Accuracy + Verification Flow P0 Fixes
+
+### Fixed
+- **Legacy purchase path missing availability gate**: `POST /verification/request` had no live availability check — it read from the 24h services cache and went straight to `verifications.create()`, burning 5-30s before discovering a service was out of stock. Added `check_service_available()` call after tier validation. Now fails fast with 422 in <1s. Also reuses the live price from that call, eliminating a redundant cache lookup.
+- **Null-price services appearing in picker**: `GET /api/services/stock` was returning services with `price=null` (TV's out-of-stock signal) to the frontend. These appeared in the service picker with no price and were selectable. Now filtered out at the API layer before the response is built.
+- **Out-of-stock services selectable in JS picker**: Services with `available=false` now render with `opacity:0.45` and `pointer-events:none` — visually greyed out and unclickable.
+- **Stock monitor cache gap**: Background loop slept for exactly the cache TTL (120s), meaning the cache expired before the next refresh fired. Changed sleep to 90s so the cache is always warm. Also tightened: `price=null` with no quantity now explicitly sets `available=False` instead of falling through ambiguously.
+- **`demandBadge` broken ternary**: Pre-existing JS syntax error in `renderImmersiveItem` — `demandBadge` variable had no assignment body (the ternary `?` branch was orphaned). Fixed.
+
+### Added
+- **`purchasing` step "still working" timer**: If TV's `verifications.create()` takes longer than 10s, the loading message changes to "Still working — this can take up to 30 seconds...". Timer is cleared on `validating`, `complete`, and `failed` steps.
+- **`docs/engineering/TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md`**: Full assessment of TV stock accuracy gaps, verification flow comparison against TV's actual API flow, and implementation status of all fixes.
+
+### Technical
+- Files modified: `app/api/verification/purchase_endpoints.py`, `app/api/core/services.py`, `app/services/stock_monitor.py`, `static/js/verification-flow.js`
+- Files added: `docs/engineering/TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
+
+---
+
 ## [4.9.6] - November 1, 2026
 
 TV Webhook Verification + CI Gate Expansion

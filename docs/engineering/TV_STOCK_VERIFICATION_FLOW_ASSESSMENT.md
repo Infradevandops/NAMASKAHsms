@@ -1,8 +1,9 @@
 # TV Stock Accuracy + Verification Flow Optimization
 
 **Created**: November 1, 2026
-**Version**: 4.9.6
-**Priority**: 🔴 CRITICAL — stock shown as available may not be purchasable
+**Updated**: November 1, 2026
+**Version**: 4.9.7
+**Priority**: ✅ P0 fixes shipped in `47d69fd1`
 
 ---
 
@@ -170,76 +171,49 @@ Step 6: complete          Returns verification_id, phone_number, ends_at, create
 
 ## 5. Optimization Plan
 
-### Fix 1 — Add `check_service_available()` to legacy purchase path (CRITICAL)
+### Fix 1 — Add `check_service_available()` to legacy purchase path ✅ DONE
 
+**Commit**: `47d69fd1`
 **File**: `app/api/verification/purchase_endpoints.py`
-**Where**: After tier validation, before `_get_provider_price()`
 
-```python
-# After tier validation, before pricing
-avail = await _tv_service.check_service_available(request.service)
-if not avail["available"]:
-    raise HTTPException(
-        status_code=422,
-        detail=f"No numbers available for '{request.service}' right now. Please try another service.",
-    )
-```
+Legacy `POST /verification/request` now calls `check_service_available()` after tier validation, before pricing. Reuses the live price from that call — no second cache lookup. Fails fast with 422 in <1s instead of burning 5-30s on TV's `verifications.create()`.
 
-This makes the legacy path fail fast (< 1s) instead of burning 5-30s on TV's `verifications.create()`.
+### Fix 2 — Filter out null-price services from the service picker ✅ DONE
 
-### Fix 2 — Filter out null-price services from the service picker (CRITICAL)
+**Commit**: `47d69fd1`
+**Files**: `app/api/core/services.py`, `static/js/verification-flow.js`
 
-**File**: `app/api/core/services.py` → `get_services_stock()`
-**File**: `static/js/verification-flow.js` → service picker render
+`GET /api/services/stock` now strips any service where `price = null` before returning — the frontend picker never receives an unpurchasable service. In the JS picker, out-of-stock items render with `opacity:0.45; pointer-events:none` — visually greyed out and unclickable. Also fixed a pre-existing broken ternary in `renderImmersiveItem` (`demandBadge` had no assignment body — was a JS syntax error).
 
-Services with `price = null` from TV mean out of stock. They should either:
-- Not appear in the picker at all, OR
-- Appear greyed out with "Unavailable" label and be non-selectable
+### Fix 3 — Stock monitor loop sleep 120s → 90s ✅ DONE
 
-Currently they appear with no price and are selectable.
+**Commit**: `47d69fd1`
+**File**: `app/services/stock_monitor.py`
 
-### Fix 3 — Reduce stock monitor TTL from 2 min to match UI refresh (MEDIUM)
+Background loop now sleeps 90s between refreshes so the 120s TTL cache is always warm on the next request. Also tightened: `price=null` with no quantity now explicitly sets `available=False` (was ambiguous).
 
-`_STOCK_CACHE_TTL = 120` (2 min) but the background loop sleeps for `_STOCK_CACHE_TTL` (120s) between refreshes. The cache expires exactly when the next refresh fires — there's no overlap. If the refresh is slow, the cache is empty and `get_stock_map()` triggers a synchronous refresh on the next request.
+### Fix 4 — `purchasing` step "still working" message after 10s ✅ DONE
 
-Change loop sleep to 90s so the cache is always warm:
+**Commit**: `47d69fd1`
+**File**: `static/js/verification-flow.js`
 
-```python
-await asyncio.sleep(90)  # refresh before 120s TTL expires
-```
+`purchasing` step starts a 10s client-side timer. If TV hasn't responded, message changes to "Still working — this can take up to 30 seconds...". Timer is cleared on `validating`, `complete`, and `failed` steps.
 
-### Fix 4 — SSE `validating` step should do real work (LOW)
+### Fix 5 — `validating` step (fake UX label) 📋 OPEN
 
-Currently `validating` fires immediately after `purchase_result` returns with no actual work. This is misleading. Either:
-- Remove it and go straight from `purchasing` → `recording`, OR
-- Use it to call `get_verification_details()` to confirm the number is live on TV's side
-
-### Fix 5 — Loading spinner intervals (UX)
-
-Current SSE steps and their real durations:
-
-| Step | Real duration | Spinner needed? |
-|------|--------------|-----------------|
-| `pricing_check` | ~500ms | No — too fast |
-| `balance_check` | ~50ms | No — too fast |
-| `purchasing` | 5–30s | ✅ YES — spinner + "still working" message after 10s |
-| `validating` | ~0ms (fake) | Remove or make real |
-| `recording` | ~200ms | No — too fast |
-| `complete` | — | Show phone number |
-
-The only step that needs a spinner with a timeout message is `purchasing`. Add a client-side timer: if `purchasing` step has been active for >10s, show "This is taking longer than usual — still working...".
+Still fires immediately after `purchase_result` returns with no real work. Options: remove it, or wire it to `get_verification_details()` to confirm the number is live. Deferred — low impact.
 
 ---
 
-## 6. Recommended Implementation Order
+## 6. Implementation Status
 
-| Priority | Fix | File | Effort |
-|----------|-----|------|--------|
-| 🔴 P0 | Add `check_service_available()` to legacy purchase path | `purchase_endpoints.py` | 5 lines |
-| 🔴 P0 | Filter `price=null` services from picker | `services.py` + `verification-flow.js` | Small |
-| 🟡 P1 | Stock monitor loop sleep 120s → 90s | `stock_monitor.py` | 1 line |
-| 🟡 P1 | `purchasing` step: "still working" message after 10s | `verification-flow.js` | Small |
-| 🟢 P2 | Remove fake `validating` step or make it real | `purchase_endpoints.py` + JS | Small |
+| Priority | Fix | Status | Commit |
+|----------|-----|--------|--------|
+| 🔴 P0 | `check_service_available()` on legacy purchase path | ✅ Done | `47d69fd1` |
+| 🔴 P0 | Filter `price=null` services from picker + grey out unavailable | ✅ Done | `47d69fd1` |
+| 🟡 P1 | Stock monitor loop sleep 120s → 90s | ✅ Done | `47d69fd1` |
+| 🟡 P1 | `purchasing` step "still working" after 10s | ✅ Done | `47d69fd1` |
+| 🟢 P2 | Remove/wire fake `validating` step | 📋 Open | — |
 
 ---
 
@@ -258,11 +232,11 @@ The only step that needs a spinner with a timeout message is `purchasing`. Add a
 
 ---
 
-## 8. Files to Change for P0 Fixes
+## 8. Files Changed
 
 ```
-app/api/verification/purchase_endpoints.py   — add check_service_available() to legacy path
-app/api/core/services.py                     — filter price=null from stock response
-static/js/verification-flow.js               — grey out / hide unavailable services in picker
-app/services/stock_monitor.py                — loop sleep 120 → 90
+app/api/verification/purchase_endpoints.py   ✅ check_service_available() on legacy path
+app/api/core/services.py                     ✅ filter price=null from stock response
+static/js/verification-flow.js               ✅ grey out unavailable, purchasing timer, demandBadge fix
+app/services/stock_monitor.py                ✅ loop sleep 90s, price=null → available=False
 ```

@@ -1,21 +1,21 @@
 # PLATFORM STATUS - AUTHORITATIVE SOURCE
 
 **Last Updated**: November 1, 2026
-**Current Version**: 4.9.6
+**Current Version**: 4.9.7
 **Overall Status**: ✅ Production Ready
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Vrenum SMS is production-ready at v4.9.6. Three stability sprints completed since
-v4.9.1. TV webhook live and verified (Send Test passed). CI gate expanded from 9 to
+Vrenum SMS is production-ready at v4.9.7. TV stock P0 fixes shipped \u2014 availability gate on
+legacy purchase path, null-price services filtered from picker, stock monitor warmup, purchasing
 24 test files. Coverage floor raised to 25%. All notification bugs resolved.
 Telegram code-complete — pending live E2E only.
 
 ---
 
-## CURRENT VERSION: 4.9.6
+## CURRENT VERSION: 4.9.7
 
 **Release Date**: November 1, 2026
 **Status**: ✅ Production Ready
@@ -60,8 +60,8 @@ Telegram code-complete — pending live E2E only.
 
 | Version | Date | Focus |
 |---------|------|-------|
+| 4.9.7 | Nov 1, 2026 | TV stock P0 fixes \u2014 availability gate, null-price filter, stock monitor warmup, purchasing timer |
 | 4.9.6 | Nov 1, 2026 | TV webhook verification, CI gate 24 files, coverage floor 25% |
-| 4.9.5 | Nov 1, 2026 | Notification 405 fix, duplicate lock, dark theme CSS |
 | 4.9.4 | Oct 31, 2026 | SSE purchase, dynamic ends_at, TV webhook, orphan recovery |
 | 4.9.3 | Oct 26, 2026 | JS test suite, mobile responsiveness, CI frontend gate |
 | 4.9.1 | Oct 25, 2026 | Email compliance, revenue-zero alert, digest scheduler |
@@ -115,7 +115,7 @@ Telegram code-complete — pending live E2E only.
 
 ## DEPLOYMENT STATUS
 
-- **Production**: ✅ Active (v4.9.6)
+- **Production**: ? Active (v4.9.7)
 - **Rollback**: `git revert` to previous commit
 - **Downtime**: 0 minutes (hot reload)
 
