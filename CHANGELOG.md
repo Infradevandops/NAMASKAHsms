@@ -12,6 +12,27 @@ All notable changes to the Vrenum SMS project.
 
 ---
 
+## [4.9.5] - November 1, 2026
+
+Stability Hardening — Notification 405 Fix, Duplicate Lock, Dark Theme CSS
+
+### Fixed
+- **`/api/notifications/categories` 405 error**: `notification_center_router` had its own `prefix="/api/notifications"` and was included into a parent router with the same prefix, producing a double-prefix path. Stripped the sub-router prefix before `include_router()`. Endpoint now returns 200.
+- **Duplicate "Still Waiting" notifications**: `_notify_waiting()` in `sms_polling_service.py` had no distributed lock. Two gunicorn workers both fired the notification for the same verification. Added Redis lock `lock:notif_waiting:{verification_id}` (TTL 60s) matching the pattern already used in `_handle_timeout`.
+- **Dark theme notification dropdown**: `notification-improvements.css` dark mode selectors used bare `var(--gray-800)` etc. with no fallback values. Added explicit hex fallbacks (`#1e293b`, `#334155`, `#0f172a`, `#f1f5f9`, `#cbd5e1`, `#94a3b8`) to all `[data-theme="dark"]` selectors. Added missing dark overrides for `.notification-title`, `.notification-message`, `.notification-time`.
+
+### Added
+- **`tests/unit/test_stability_fixes.py`**: 16 new tests covering all 3 fixes — endpoint 200/shape/counts (6), Redis lock deduplication (5), CSS hex fallback static analysis (5).
+
+### Technical
+- Files modified: `app/api/core/notification_endpoints.py`, `app/services/sms_polling_service.py`, `static/css/notification-improvements.css`, `.github/workflows/ci.yml`
+- Files added: `tests/unit/test_stability_fixes.py`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
+
+---
+
 ## [4.9.3] - October 26, 2026
 
 Frontend Test Infrastructure — JS Suite Wired, Mobile Fixes, CI Gated

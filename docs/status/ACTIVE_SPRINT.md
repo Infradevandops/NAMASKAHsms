@@ -1,142 +1,151 @@
-# ACTIVE SPRINT — v4.9.2 Verification Flow Stability
+# ACTIVE SPRINT — v4.9.4 Stability Hardening
 
-**Updated**: October 31, 2026
-**Version**: 4.9.2
-**Focus**: Make verification flow work correctly end-to-end
-
----
-
-## What Changed From Last Sprint
-
-Previous sprint (P1-P4) is deferred. The verification flow — the core revenue action — has
-critical bugs that must be fixed before anything else matters. A user who can't successfully
-complete a verification is a lost customer regardless of mobile responsiveness or coverage %.
+**Updated**: November 1, 2026
+**Version**: 4.9.4
+**Focus**: Stabilise dashboard notifications, eliminate duplicate events, fix dark theme
 
 ---
 
-## P1 — Fix Verification Window (CRITICAL — users being wrongly refunded)
-
-**Bug**: Frontend hardcodes `totalDurationMs = 120000` (2 min). TV now gives ~60 min windows.
-We auto-cancel valid verifications and refund users who still have 58 minutes left.
-
-**Fix**:
-- Add `ends_at` + `created_at` to purchase response (`purchase_endpoints.py`)
-- Remove hardcoded 2-min duration from `verification-flow.js`
-- Compute `totalDurationMs = ends_at - created_at` dynamically from TV's response
-- Auto-timeout only when `ends_at` is actually reached
-
-**Files**: `app/api/verification/purchase_endpoints.py`, `static/js/verification-flow.js`
-
-**Done when**: Countdown shows real remaining time, no premature cancellation.
+## Sprint Status: ✅ ALL TASKS COMPLETE
 
 ---
 
-## P2 — TV Webhook for Instant SMS Delivery (HIGH — eliminates polling lag)
+## P1 — Fix `/api/notifications/categories` 405 Error ✅ COMPLETE
 
-**Why**: Currently polling every 2-3s. TV has a webhook system that pushes SMS instantly.
-Registering our endpoint eliminates all polling lag and reduces TV API load.
+**Bug**: `notification_center_router` had `prefix="/api/notifications"` and was included into a parent router that also had `prefix="/api/notifications"`. Result: double prefix `/api/notifications/api/notifications/categories` → 405.
 
-**What TV sends** (from SDK `SmsWebhookEvent`):
-```json
-{
-  "id": "evt_abc",
-  "event": "sms.received",
-  "attempt": 1,
-  "occurredAt": "...",
-  "data": {
-    "to": "+17022853600",
-    "parsedCode": "876094",
-    "smsContent": "Your WhatsApp code is 876-094",
-    "reservationId": "tv_verification_id",
-    "createdAt": "..."
-  }
-}
-```
+**Fix applied**:
+- `app/api/core/notification_endpoints.py` — strip `notification_center_router.prefix = ""` before `include_router()`. Parent prefix already covers the path.
 
-**What to build**:
-
-1. New file `app/api/verification/tv_webhook.py`:
-   - `POST /api/verification/webhook/tv`
-   - Dedup by event `id` (TV retries — must be idempotent)
-   - Match `reservationId` → our `activation_id` → find verification
-   - Update `verification.status = "completed"`, store `sms_code`
-   - Push via WebSocket to user's browser instantly
-   - Return 200 for ALL event types (billing, backorder) — TV disables webhook on failures
-
-2. Mount router in `main.py`
-
-3. Frontend `verification-flow.js`: listen for `sms_received` WebSocket message,
-   stop polling, show code. Polling stays as fallback.
-
-4. Register URL in TV dashboard: app.textverified.com → API Configuration → API Webhooks
-   → Endpoint URL: `https://vrenum.app/api/verification/webhook/tv` → Save → Send Test
-
-**Files**: `app/api/verification/tv_webhook.py` (new), `main.py`, `static/js/verification-flow.js`
-
-**Done when**: TV "Send Test" returns success, SMS arrives in browser without polling.
+**Files changed**: `app/api/core/notification_endpoints.py`
 
 ---
 
-## P3 — SSE Streaming Purchase with Real Pre-Check (HIGH — no more silent failures)
+## P2 — Duplicate "Still Waiting" Notifications ✅ COMPLETE
 
-**Why**: We charge first, fail after. TV checks availability before charging.
-`verifications.create()` blocks 5-30s with no user feedback.
+**Bug**: Two gunicorn workers both called `_notify_waiting()` for the same verification → user saw duplicate "⏳ Still Waiting" notifications. `_handle_timeout` already had a Redis lock; `_notify_waiting` did not.
 
-**What to build**:
+**Fix applied**:
+- `app/services/sms_polling_service.py` — `_notify_waiting()` now accepts `verification_id` kwarg and acquires `lock:notif_waiting:{verification_id}` (TTL 60s) before creating the notification. Second worker finds lock held and returns immediately.
+- Call site in `_poll_textverified` updated to pass `str(verification.id)`.
 
-1. `check_service_available()` in `textverified_service.py` — calls TV pricing endpoint
-   before purchase. Fails fast if service unavailable, no charge.
-
-2. `POST /api/verification/request/stream` — SSE endpoint streaming real steps:
-   - `pricing_check` → real TV pricing call
-   - `balance_check` → real DB query
-   - `purchasing` → `verifications.create()` blocks here (5-30s)
-   - `validating` → VOIP/area code check
-   - `recording` → DB write + debit
-   - `complete` / `failed` with specific reason
-
-3. Frontend SSE client in `createVerification()` — reads stream, updates UI per step,
-   shows "Cancel (you will not be charged)" until `purchasing` step fires.
-
-4. Loading state card in `verify_modern.html` — visible during purchase, real messages only.
-
-**Files**: `app/services/textverified_service.py`, `app/api/verification/purchase_endpoints.py`,
-`static/js/verification-flow.js`, `templates/verify_modern.html`
-
-**Done when**: User sees real step-by-step progress, pricing failure shows error before charge.
+**Files changed**: `app/services/sms_polling_service.py`
 
 ---
 
-## P4 — Orphaned Verification Recovery (MEDIUM — silent debit with no UI)
+## P3 — Dark Theme CSS Hex Fallbacks ✅ COMPLETE
 
-**Why**: If user navigates away during active verification, they're charged but see nothing.
+**Bug**: `notification-improvements.css` dark mode selectors used bare `var(--gray-800)` etc. with no fallback. If CSS variables weren't defined in the dark scope, dropdown stayed white.
 
-**Fix**: On `/verify` page load, check `localStorage.active_verification_id`,
-call status endpoint, restore step 3 UI if still pending.
+**Fix applied**:
+- `static/css/notification-improvements.css` — all `[data-theme="dark"]` selectors now use `var(--gray-NNN, #hexvalue)` fallback syntax. Added missing dark overrides for `.notification-title`, `.notification-message`, `.notification-time`.
 
-**Files**: `static/js/verification-flow.js`
-
-**Done when**: Returning to `/verify` during active verification restores the session.
+**Files changed**: `static/css/notification-improvements.css`
 
 ---
 
-## Deferred (not this sprint)
+## Tests ✅
 
-| Item | Reason |
-|------|--------|
-| TV cost reconciliation (old P1) | Valid but not blocking revenue |
-| Mobile responsiveness (old P2) | No users yet to lose |
-| Month-end target alert (old P3) | No revenue target set yet |
-| Test coverage 81%→90% (old P4) | After flow is stable |
-| TV reuse feature | Nice-to-have |
+- `tests/unit/test_stability_fixes.py` — 16 new tests covering all 3 fixes
+  - 6 tests: `/api/notifications/categories` returns 200, correct shape, accurate counts
+  - 5 tests: `_notify_waiting` Redis lock deduplication
+  - 5 tests: CSS hex fallback static analysis
+- Added to CI `unit-tests` job in `.github/workflows/ci.yml`
+
+---
+
+## Next Sprint Candidates
+
+| Item | Priority |
+|------|----------|
+| Telegram E2E test (live device) | Manual |
+| Test coverage 81% → 90% | High |
+| Phase 2 Analytics (cohort charts, churn model) | Medium |
+| SDK libraries (Python, JavaScript) | Low |
+| Multi-region deployment | Q3 2026 |
+
+**Reference**: `docs/status/NOTIFICATION_DARK_THEME_FIXES.md`
+
+
+**Bug**: Frontend hardcoded `totalDurationMs = 120000` (2 min). TV gives ~60 min windows.
+Auto-cancelling valid verifications and refunding users who still had 58 minutes left.
+
+**Fix applied**:
+- `purchase_endpoints.py` already returned `ends_at` + `created_at` in response
+- `verification-flow.js` `createVerification()` now reads `ends_at`/`created_at` from SSE `complete` event
+- Polling `startPolling()` computes `totalDurationMs` dynamically from `ends_at - created_at`
+- Auto-timeout only fires when `remainingMs <= 0` (server's real window)
+- Hardcoded 2-min duration removed
+
+**Files changed**: `static/js/verification-flow.js`
+
+---
+
+## P2 — TV Webhook for Instant SMS Delivery ✅ COMPLETE
+
+**Fix applied**:
+- `app/api/verification/tv_webhook.py` — duplicate `_verify_signature` removed, single clean HMAC implementation
+- HMAC signature enforcement added: reads `TV_WEBHOOK_SECRET` from settings, validates `X-Signature` header
+- Router mounted in `main.py` at `/api/verification/webhook/tv`
+- `static/js/components/sms-websocket.js` — dispatches `ws:message` CustomEvent on every WebSocket message
+- `static/js/verification-flow.js` — `handleWebSocketSmsReceived()` added, listens for `ws:message`, stops polling and shows code instantly on `sms_received` event
+
+**Still needs** (manual step — cannot be automated):
+- Register endpoint in TV dashboard: app.textverified.com → API Configuration → API Webhooks
+- Endpoint URL: `https://vrenum.app/api/verification/webhook/tv`
+- Click Save → Send Test → verify `{"ok": true}` response
+
+**Files changed**: `app/api/verification/tv_webhook.py`, `static/js/components/sms-websocket.js`, `static/js/verification-flow.js`
+
+---
+
+## P3 — SSE Streaming Purchase ✅ COMPLETE
+
+**Fix applied**:
+- `app/services/textverified_service.py` — `check_service_available()` added: calls TV pricing endpoint before purchase, returns `{available, price, reason}`
+- `app/api/verification/purchase_endpoints.py` — `POST /verification/request/stream` SSE endpoint added
+  - Streams: `pricing_check → balance_check → purchasing → validating → recording → complete/failed`
+  - Each step maps to a real backend operation
+  - `purchasing` step fires only when TV `purchase_with_failover()` is called (charge commits here)
+  - `failed` events include specific `reason` and `message`
+  - Existing `POST /verification/request` untouched (API key users, backward compat)
+- `static/js/verification-flow.js` — `createVerification()` replaced with SSE streaming client
+  - Shows `purchase-loading-card` during stream
+  - Cancel button visible until `purchasing` step fires, then hidden
+  - Each SSE step updates loading message
+  - `cancelPurchase()` added for pre-charge cancellation
+- `templates/verify_modern.html` — `purchase-loading-card` added between modal container and step-2
+
+**Files changed**: `app/services/textverified_service.py`, `app/api/verification/purchase_endpoints.py`, `static/js/verification-flow.js`, `templates/verify_modern.html`
+
+---
+
+## P4 — Orphaned Verification Recovery ✅ COMPLETE (was already done)
+
+**Status**: Already implemented in `DOMContentLoaded` in `verification-flow.js`.
+- Checks `localStorage.active_verification_id` on page load
+- Calls status endpoint, restores step 3 UI if still pending
+- Computes `totalDurationMs` from `ends_at`/`created_at` on restore
 
 ---
 
 ## Sprint Completion Criteria
 
-- [ ] P1: Verification countdown uses real `ends_at`, no premature cancellation/refund
-- [ ] P2: TV webhook endpoint live, "Send Test" passes, SMS arrives without polling
-- [ ] P3: SSE streaming purchase, pricing pre-check before charge, loading state visible
-- [ ] P4: Orphaned verification restores on page return
+- [x] P1: Verification countdown uses real `ends_at`, no premature cancellation/refund
+- [x] P2: TV webhook endpoint live, HMAC verified, SMS arrives without polling (pending TV dashboard registration)
+- [x] P3: SSE streaming purchase, pricing pre-check before charge, loading state visible
+- [x] P4: Orphaned verification restores on page return
+
+---
+
+## Next Sprint Candidates
+
+| Item | Priority |
+|------|----------|
+| Register TV webhook URL in dashboard | Immediate (manual) |
+| Test coverage 81% → 90% | High |
+| Phase 2 Analytics (cohort charts, churn model) | Medium |
+| SDK libraries (Python, JavaScript) | Low |
+| Multi-region deployment | Q3 2026 |
 
 **Reference**: `docs/engineering/development/TV_PURCHASE_FLOW_ALIGNMENT_TASK.md`

@@ -213,6 +213,7 @@ jobs:
                  tests/unit/test_utils.py \
                  tests/unit/test_carrier_lookup.py \
                  tests/unit/test_phone_validator.py \
+                 tests/unit/test_stability_fixes.py \
             --cov=app \
             --cov-report=xml \
             --cov-report=term-missing:skip-covered \
