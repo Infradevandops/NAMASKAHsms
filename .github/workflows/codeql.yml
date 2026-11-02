@@ -10,6 +10,7 @@ jobs:
   analyze:
     name: Analyze (python)
     runs-on: ubuntu-latest
+    continue-on-error: true  # Never block pushes — results go to Security tab
     permissions:
       security-events: write
       actions: read
