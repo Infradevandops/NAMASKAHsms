@@ -1374,17 +1374,30 @@ class TextVerifiedService:
         capability: str = "sms",
         area_code_requested: bool = False,
     ) -> dict:
-        """Pre-purchase availability check via TV SDK pricing method.
+        """Pre-purchase availability check — uses real stock quantity from TV API.
 
-        Uses SDK verifications.pricing() — correct endpoint and types.
-        Voice uses NumberType.VOIP per SDK's own conversion logic.
-        area_code_requested=True returns the surcharge-inclusive price so the
-        balance check uses the real amount the user will be charged.
+        Checks quantity from /api/pub/v2/services first (real stock count).
+        Falls back to pricing endpoint if quantity unavailable.
         Returns {available: bool, price: float|None, reason: str|None}.
         """
         if not self.enabled:
             return {"available": False, "reason": "provider_disabled"}
         try:
+            # Check real stock quantity first
+            from app.core.unified_cache import cache
+            cached = await cache.get(_SERVICES_CACHE_KEY)
+            if cached:
+                for s in cached:
+                    if s.get("id") == service_name:
+                        qty = s.get("quantity")
+                        price = s.get("price")
+                        if qty is not None and qty == 0:
+                            return {"available": False, "reason": "no_inventory", "price": price}
+                        if qty is not None and qty > 0 and price:
+                            return {"available": True, "price": float(price)}
+                        break
+
+            # Fall back to pricing endpoint
             cap = (
                 ReservationCapability.VOICE
                 if capability == "voice"

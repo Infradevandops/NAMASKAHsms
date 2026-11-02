@@ -132,11 +132,18 @@ async def get_verification_price(
     user_id: str = Depends(get_current_user_id),
 ):
     """Return tier-adjusted price for a service before purchase."""
+    provider_price = await _get_provider_price(service)
+    if not provider_price:
+        # Try live check
+        avail = await _tv_service.check_service_available(service, capability=capability)
+        provider_price = avail.get("price")
+    if not provider_price:
+        raise HTTPException(status_code=422, detail="Price unavailable for this service right now.")
     filters = {"area_code": area_code} if area_code else None
     if capability == "voice":
-        pricing = PricingCalculator.calculate_voice_cost(db, user_id, provider_price=None, area_code=area_code)
+        pricing = PricingCalculator.calculate_voice_cost(db, user_id, provider_price=provider_price, area_code=area_code)
     else:
-        pricing = PricingCalculator.calculate_sms_cost(db, user_id, filters, provider_price=None)
+        pricing = PricingCalculator.calculate_sms_cost(db, user_id, filters, provider_price=provider_price)
     return {
         "total_cost": pricing["total_cost"],
         "base_cost": pricing.get("base_cost", pricing["total_cost"]),
