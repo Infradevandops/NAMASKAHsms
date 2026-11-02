@@ -24,8 +24,18 @@ async def get_area_codes(
     if cached:
         return cached
     codes = await _tv.get_area_codes_list()
-    result = {"success": True, "area_codes": codes}
-    if codes:
+    # Enrich with NANPA city data — TV only returns area_code + state
+    enriched = []
+    for c in codes:
+        ac = c.get("area_code", "")
+        nanpa = NANPA_DATA.get(ac, {})
+        enriched.append({
+            "area_code": ac,
+            "state": c.get("state", ""),
+            "city": nanpa.get("major_city", ""),
+        })
+    result = {"success": True, "area_codes": enriched}
+    if enriched:
         await cache.set(_CACHE_KEY, result, _CACHE_TTL)
     return result
 
@@ -67,7 +77,8 @@ async def check_area_code_availability(
         else:
             supported_strings.append(str(item))
 
-    if area_code not in supported_strings:
+    if area_code not in supported_strings and supported_strings:
+        # Only reject if we actually have a TV list — don't block on TV outage
         raise HTTPException(
             status_code=400, detail="Area code not supported by provider"
         )

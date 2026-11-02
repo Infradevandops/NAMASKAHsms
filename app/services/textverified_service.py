@@ -602,23 +602,27 @@ class TextVerifiedService:
         return "Unknown"
 
     async def get_verification_status(self, activation_id: str) -> Dict[str, Any]:
-        """Get the current status of a verification/activation."""
+        """Get the current status of a verification/activation.
+
+        Uses verifications.details() — the correct SDK method.
+        verifications.get() does not exist in the SDK.
+        VerificationExpanded has no carrier, sms_code, or sms_text fields.
+        """
         if not self.enabled:
             return {"status": "error", "error": "Service disabled"}
-
         try:
-            # Note: The textverified lib might use different method names
-            # We'll try to get it via the client
-            status = await asyncio.to_thread(
-                self.client.verifications.get, activation_id
+            tv = await asyncio.to_thread(
+                self.client.verifications.details, activation_id
             )
-
-            # Extract common fields
             return {
-                "status": status.status,
-                "sms_code": getattr(status, "sms_code", None),
-                "sms_text": getattr(status, "sms_text", None),
-                "carrier": getattr(status, "carrier", None),
+                "status": tv.state.value,
+                "id": tv.id,
+                "number": tv.number,
+                "ends_at": tv.ends_at.isoformat(),
+                "can_cancel": tv.cancel.can_cancel,
+                "can_report": tv.report.can_report,
+                "can_reactivate": tv.reactivate.can_reactivate,
+                "reusable_until": tv.reuse.reusable_until.isoformat() if tv.reuse.reusable_until else None,
             }
         except Exception as e:
             logger.error(f"Failed to get verification status for {activation_id}: {e}")
@@ -721,9 +725,13 @@ class TextVerifiedService:
     async def get_verification_details(self, verification_id: str) -> Dict[str, Any]:
         """Get full VerificationExpanded details from TextVerified.
 
-        Use this to read the real state, ends_at, and action flags.
-        created_at_dt / ends_at_dt are raw datetime objects — use these
-        when constructing objects passed to poll_sms_standard().
+        VerificationExpanded fields (confirmed from SDK source):
+          id, number, created_at, ends_at, state, total_cost,
+          cancel.can_cancel, report.can_report,
+          reactivate.can_reactivate, reuse.reusable_until
+
+        NOTE: carrier does NOT exist on VerificationExpanded.
+        created_at_dt / ends_at_dt are raw datetime objects for sms.incoming().
         """
         if not self.enabled:
             return {}
@@ -735,15 +743,15 @@ class TextVerifiedService:
                 "id": tv.id,
                 "number": tv.number,
                 "state": tv.state.value,
-                "carrier": getattr(tv, "carrier", None)
-                or getattr(tv, "carrier_name", None),
                 "created_at": tv.created_at.isoformat(),
-                "created_at_dt": tv.created_at,  # raw datetime for sms.incoming()
+                "created_at_dt": tv.created_at,
                 "ends_at": tv.ends_at.isoformat(),
-                "ends_at_dt": tv.ends_at,  # raw datetime for timeout calc
+                "ends_at_dt": tv.ends_at,
                 "total_cost": tv.total_cost,
                 "can_cancel": tv.cancel.can_cancel,
                 "can_report": tv.report.can_report,
+                "can_reactivate": tv.reactivate.can_reactivate,
+                "reusable_until": tv.reuse.reusable_until.isoformat() if tv.reuse.reusable_until else None,
             }
         except Exception as e:
             logger.error(
@@ -805,6 +813,7 @@ class TextVerifiedService:
         selected_from_alternatives: Optional[bool] = False,
         original_request: Optional[str] = None,
         max_retries: int = 2,
+        max_price: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         Purchase a verification number with Phase 5 logic.
@@ -858,6 +867,7 @@ class TextVerifiedService:
                 capability=cap,
                 area_code_select_option=area_code_options,
                 carrier_select_option=carrier_options,
+                max_price=max_price,
             )
 
             assigned_number = result.number
@@ -1137,36 +1147,70 @@ class TextVerifiedService:
         duration_hours: float = 24.0,
         area_code: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Create a long-term reservation (rental) for a service."""
+        """Create a long-term reservation (rental) for a service.
+
+        SDK facts (confirmed from reservations_api.py + dtypes.py):
+        - reservations.create() returns ReservationSaleExpanded, NOT a single rental.
+        - Must call reservations.details(sale.reservations[0]) to get number + ends_at.
+        - duration must be a RentalDuration enum, not minutes or hours.
+        """
         if not self.enabled:
             raise RuntimeError("TextVerified service disabled")
 
         try:
-            # Map hours to minutes for the API
-            duration_minutes = int(duration_hours * 60)
+            from textverified.data import RentalDuration, NumberType, ReservationCapability
 
-            # Build reservation parameters
-            params = {
-                "service_name": service,
-                "duration": duration_minutes,
-            }
-            if area_code:
-                params["area_code_select_option"] = area_code
+            duration_map = [
+                (1, RentalDuration.ONE_DAY),
+                (72, RentalDuration.THREE_DAY),
+                (168, RentalDuration.SEVEN_DAY),
+                (336, RentalDuration.FOURTEEN_DAY),
+                (720, RentalDuration.THIRTY_DAY),
+                (2160, RentalDuration.NINETY_DAY),
+            ]
+            duration_enum = RentalDuration.ONE_DAY
+            for threshold_hours, enum_val in duration_map:
+                if duration_hours <= threshold_hours:
+                    duration_enum = enum_val
+                    break
+            else:
+                duration_enum = RentalDuration.THIRTY_DAY
 
-            # TextVerified reservations are US-only in standard API
-            reservation = await asyncio.to_thread(
-                self.client.reservations.create, **params
+            area_code_list = [area_code] if area_code else None
+
+            sale = await asyncio.to_thread(
+                self.client.reservations.create,
+                service_name=service,
+                capability=ReservationCapability.SMS,
+                number_type=NumberType.MOBILE,
+                duration=duration_enum,
+                is_renewable=False,
+                always_on=True,
+                allow_back_order_reservations=False,
+                area_code_select_option=area_code_list,
             )
 
-            # Costs are marked up in the platform level (RentalService)
-            # but we return raw cost here for accounting
+            if not sale.reservations:
+                raise RuntimeError("TV returned a sale with no reservations")
+
+            rental = await asyncio.to_thread(
+                self.client.reservations.details, sale.reservations[0]
+            )
+
+            ends_at_str = (
+                rental.ends_at.isoformat()
+                if hasattr(rental, "ends_at") and rental.ends_at
+                else None
+            )
+
             return {
-                "id": reservation.id,
-                "phone_number": reservation.number,
-                "cost": float(reservation.total_cost),
-                "ends_at": reservation.ends_at,
-                "status": reservation.state.value,
-                "tv_object": reservation,
+                "id": rental.id,
+                "phone_number": rental.number,
+                "cost": float(sale.total),
+                "ends_at": ends_at_str,
+                "status": rental.state.value,
+                "tv_object": rental,
+                "sale_id": sale.id,
             }
         except Exception as e:
             logger.error(f"TextVerified reservation creation failed: {e}")
@@ -1175,13 +1219,20 @@ class TextVerifiedService:
     async def get_reservation_messages(
         self, reservation_id: str
     ) -> List[Dict[str, Any]]:
-        """Fetch all messages for an active reservation."""
+        """Fetch all messages for an active reservation.
+
+        SDK: reservations.messages() does not exist.
+        SMS for rentals goes through sms.list(data=rental_obj).
+        Must call reservations.details() first to get the rental object.
+        """
         if not self.enabled:
             return []
         try:
-            # Reservations use a different message retrieval endpoint
+            rental = await asyncio.to_thread(
+                self.client.reservations.details, reservation_id
+            )
             messages = await asyncio.to_thread(
-                self.client.reservations.messages, reservation_id
+                lambda: list(self.client.sms.list(data=rental))
             )
             return [
                 {
@@ -1197,13 +1248,35 @@ class TextVerifiedService:
             return []
 
     async def extend_reservation(self, reservation_id: str, extra_hours: float) -> bool:
-        """Extend an existing reservation."""
+        """Extend a non-renewable reservation.
+
+        SDK: reservations.extend() does not exist.
+        Correct: reservations.extend_nonrenewable(extension_duration, rental_id).
+        duration must be a RentalDuration enum, not minutes or hours.
+        """
         if not self.enabled:
             return False
         try:
-            extra_minutes = int(extra_hours * 60)
+            from textverified.data import RentalDuration
+            duration_map = [
+                (1, RentalDuration.ONE_DAY),
+                (72, RentalDuration.THREE_DAY),
+                (168, RentalDuration.SEVEN_DAY),
+                (336, RentalDuration.FOURTEEN_DAY),
+                (720, RentalDuration.THIRTY_DAY),
+                (2160, RentalDuration.NINETY_DAY),
+            ]
+            duration_enum = RentalDuration.ONE_DAY
+            for threshold_hours, enum_val in duration_map:
+                if extra_hours <= threshold_hours:
+                    duration_enum = enum_val
+                    break
+            else:
+                duration_enum = RentalDuration.THIRTY_DAY
             await asyncio.to_thread(
-                self.client.reservations.extend, reservation_id, extra_minutes
+                self.client.reservations.extend_nonrenewable,
+                extension_duration=duration_enum,
+                rental_id=reservation_id,
             )
             return True
         except Exception as e:
@@ -1211,20 +1284,33 @@ class TextVerifiedService:
             return False
 
     async def check_reservation_expiry(self, reservation_id: str) -> Dict[str, Any]:
-        """Check if a reservation is nearing expiry (v6.0 Institutional Mastery)."""
+        """Check if a reservation is nearing expiry.
+
+        SDK: reservations.get() does not exist.
+        Correct: reservations.details() returns
+        Union[RenewableRentalExpanded, NonrenewableRentalExpanded].
+        Only NonrenewableRentalExpanded has ends_at.
+        """
         if not self.enabled:
             return {"status": "unknown"}
         try:
-            res = await asyncio.to_thread(self.client.reservations.get, reservation_id)
+            res = await asyncio.to_thread(
+                self.client.reservations.details, reservation_id
+            )
             from datetime import datetime, timezone
-
             now = datetime.now(timezone.utc)
-            ends_at = res.ends_at
+            ends_at = getattr(res, "ends_at", None)
+            if ends_at is None:
+                return {
+                    "id": res.id,
+                    "status": res.state.value,
+                    "remaining_minutes": None,
+                    "is_critical": False,
+                    "ends_at": None,
+                }
             if ends_at.tzinfo is None:
                 ends_at = ends_at.replace(tzinfo=timezone.utc)
-
             remaining_minutes = (ends_at - now).total_seconds() / 60
-
             return {
                 "id": res.id,
                 "status": res.state.value,
@@ -1236,6 +1322,24 @@ class TextVerifiedService:
             logger.error(f"Failed to check reservation expiry: {e}")
             return {"status": "error"}
 
+    async def reactivate_verification(self, verification_id: str) -> bool:
+        """Reactivate a timed-out verification — extends window, no repurchase cost.
+
+        Check can_reactivate from get_verification_details() before calling.
+        Only call when can_reactivate=True to avoid wasted API calls.
+        """
+        if not self.enabled:
+            return False
+        try:
+            await asyncio.to_thread(
+                self.client.verifications.reactivate, verification_id
+            )
+            logger.info(f"Reactivated verification {verification_id}")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to reactivate verification {verification_id}: {e}")
+            return False
+
     def _set_balance_cache(self, balance: float) -> None:
         """Cache balance value (used in tests)."""
         try:
@@ -1244,40 +1348,43 @@ class TextVerifiedService:
         except Exception:
             pass
 
-    async def check_service_available(self, service_name: str) -> dict:
-        """Pre-purchase availability check via TV pricing endpoint.
-        Returns {available: bool, price: float|None, reason: str|None}
-        Called before purchase to fail fast without charging the user.
+    async def check_service_available(
+        self, service_name: str, capability: str = "sms",
+        area_code_requested: bool = False,
+    ) -> dict:
+        """Pre-purchase availability check via TV SDK pricing method.
+
+        Uses SDK verifications.pricing() — correct endpoint and types.
+        Voice uses NumberType.VOIP per SDK's own conversion logic.
+        area_code_requested=True returns the surcharge-inclusive price so the
+        balance check uses the real amount the user will be charged.
+        Returns {available: bool, price: float|None, reason: str|None}.
         """
         if not self.enabled:
             return {"available": False, "reason": "provider_disabled"}
         try:
-            self.client.refresh_bearer()
-            resp = await asyncio.to_thread(
-                lambda: self.client.session.post(
-                    f"{self.client.base_url}/api/pub/v2/verifications/pricing",
-                    headers={
-                        "Authorization": f"Bearer {self.client.bearer.token}",
-                        "User-Agent": self.client.user_agent,
-                    },
-                    json={
-                        "serviceName": service_name,
-                        "areaCode": False,
-                        "carrier": False,
-                        "numberType": "mobile",
-                        "capability": "sms",
-                    },
-                    timeout=8.0,
-                )
+            cap = (
+                ReservationCapability.VOICE
+                if capability == "voice"
+                else ReservationCapability.SMS
             )
-            if resp.ok:
-                data = resp.json()
-                payload = data.get("data", data)
-                price = payload.get("price")
-                if price is not None and float(price) > 0:
-                    return {"available": True, "price": float(price)}
-                return {"available": False, "reason": "no_inventory"}
-            return {"available": False, "reason": f"http_{resp.status_code}"}
+            num_type = (
+                NumberType.VOIP if capability == "voice" else NumberType.MOBILE
+            )
+            snap = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self.client.verifications.pricing,
+                    service_name=service_name,
+                    area_code=area_code_requested,
+                    carrier=False,
+                    number_type=num_type,
+                    capability=cap,
+                ),
+                timeout=8.0,
+            )
+            if snap and snap.price is not None and float(snap.price) > 0:
+                return {"available": True, "price": float(snap.price)}
+            return {"available": False, "reason": "no_inventory"}
         except Exception as e:
             logger.warning(f"check_service_available failed for '{service_name}': {e}")
             return {"available": False, "reason": str(e)}

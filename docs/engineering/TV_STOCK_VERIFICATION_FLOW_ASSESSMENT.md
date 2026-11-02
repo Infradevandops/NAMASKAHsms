@@ -33,11 +33,11 @@ Last feature-bearing deploy: `750a8d9f` — `feat: v4.9.4 verification flow — 
 
 TV has two relevant endpoints:
 
-**`GET /api/pub/v2/services`** — returns a list of services with:
-- `serviceName` — slug (e.g. `whatsapp`)
-- `capability` — `sms` or `voice`
-- `price` — **`null` means out of stock**. A non-null price means TV has inventory.
-- `quantity` — **not always present**. When present, it's the number of available numbers.
+**`GET /api/pub/v2/services`** — the SDK `Service` dataclass maps only `serviceName` + `capability`.
+The raw JSON response may also contain `price` and `quantity` fields — our `fetch_raw_services_with_quantity()`
+deliberately bypasses the SDK to read them. These fields are **not in TV's API contract** and their
+presence is not guaranteed. `price=null` in the raw response is treated as out of stock by our platform
+— this is our own inference, not a documented TV signal.
 
 **`POST /api/pub/v2/verifications/pricing`** — per-service pre-purchase check:
 - Returns `price` and `quantity` for a specific service at purchase time

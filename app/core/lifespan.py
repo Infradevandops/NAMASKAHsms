@@ -377,6 +377,30 @@ async def lifespan(app):
             asyncio.create_task(run_stock_monitor())
             startup_logger.info("✅ Service stock monitor started (15-min refresh)")
 
+            # Area code cache refresh (every 23h — before 24h TTL expires)
+            async def run_area_code_refresh():
+                while True:
+                    await asyncio.sleep(23 * 3600)
+                    try:
+                        from app.core.unified_cache import cache as _cache
+                        from app.services.textverified_service import (
+                            TextVerifiedService as _TVS,
+                            _AREA_CODES_CACHE_KEY,
+                            _AC_STATE_CACHE_KEY,
+                        )
+                        tv = _TVS()
+                        if tv.enabled:
+                            await _cache.set(_AREA_CODES_CACHE_KEY, None, 1)
+                            await _cache.set(_AC_STATE_CACHE_KEY, None, 1)
+                            await tv.get_area_codes_list()
+                            await tv._get_area_codes_by_state()
+                            startup_logger.info("✅ Area code cache refreshed (23h loop)")
+                    except Exception as e:
+                        startup_logger.warning(f"Area code refresh failed: {e}")
+
+            asyncio.create_task(run_area_code_refresh())
+            startup_logger.info("✅ Area code cache refresh started (23h loop)")
+
             # Weekly TextVerified margin reconciliation (Monday 09:00 UTC)
             async def start_margin_reconciliation_loop():
                 while True:

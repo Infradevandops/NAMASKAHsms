@@ -272,7 +272,11 @@ async def request_verification(
                 )
 
         # Pre-purchase availability check — fail fast before any charge commits
-        avail = await _tv_service.check_service_available(request.service)
+        avail = await _tv_service.check_service_available(
+            request.service,
+            capability=request.capability,
+            area_code_requested=bool(area_code),
+        )
         if not avail["available"]:
             raise HTTPException(
                 status_code=422,
@@ -809,7 +813,12 @@ async def request_verification_stream(
 
         # Step 1: pre-purchase availability check (real TV pricing call)
         yield sse("pricing_check", message="Confirming availability with provider...")
-        check = await _tv_service.check_service_available(request.service)
+        area_code = request.area_codes[0] if request.area_codes else None
+        check = await _tv_service.check_service_available(
+            request.service,
+            capability=request.capability,
+            area_code_requested=bool(area_code),
+        )
         if not check["available"]:
             yield sse(
                 "failed",
@@ -851,7 +860,6 @@ async def request_verification_stream(
         from app.services.providers.provider_errors import ProviderError
 
         provider_router = ProviderRouter()
-        area_code = request.area_codes[0] if request.area_codes else None
         tier_manager = TierManager(db)
         user_tier = tier_manager.get_user_tier(user_id)
 
@@ -880,6 +888,12 @@ async def request_verification_stream(
         # Step 5: record DB write + debit
         yield sse("recording", message="Almost done...")
         try:
+            ends_at_dt = None
+            if purchase_result.expires_at:
+                try:
+                    ends_at_dt = datetime.fromisoformat(purchase_result.expires_at)
+                except Exception:
+                    pass
             verification = Verification(
                 user_id=user_id,
                 service_name=request.service,
@@ -902,6 +916,7 @@ async def request_verification_stream(
                 area_code_surcharge=0.0,
                 voip_rejected=purchase_result.voip_rejected,
                 created_at=datetime.now(timezone.utc),
+                ends_at=ends_at_dt,
                 routing_reason=purchase_result.routing_reason,
                 city_honoured=purchase_result.city_honoured,
                 city_note=purchase_result.city_note,

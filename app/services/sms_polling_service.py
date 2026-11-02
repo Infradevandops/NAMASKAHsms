@@ -132,13 +132,9 @@ class SMSPollingService:
 
         tv_obj = _TVVerif(tv_details, created_at_dt, verification.service_name)
 
-        # Phase 11: Late-binding carrier enrichment
-        if tv_details.get("carrier"):
-            asyncio.create_task(
-                PurchaseIntelligenceService.enrich_outcome_carrier(
-                    verification.id, tv_details.get("carrier")
-                )
-            )
+        # Phase 11: Late-binding carrier enrichment — REMOVED
+        # carrier does not exist on VerificationExpanded (confirmed from SDK dtypes.py)
+        # tv_details.get("carrier") will always be None — no-op removed
 
         logger.info(
             f"Polling {verification.id} via sms.incoming() "
@@ -180,16 +176,13 @@ class SMSPollingService:
             return
 
         if result.get("success"):
-            # Prepare metadata for completion
             code = result.get("code", "")
             text = result.get("sms", "")
-            transcription = result.get("transcription")
-            audio_url = result.get("audio_url")
 
-            # Fallback for voice: if no code but have transcription, use transcription
-            if verification.capability == "voice" and not code and transcription:
-                code = "VOICE_RECV"
-                text = transcription
+            # Voice: sms_content IS the transcription (no audio_url/transcription fields on Sms)
+            # parsed_code will be empty for voice — use sms_content as the code display
+            if verification.capability == "voice" and not code and text:
+                code = text  # full transcription shown as the "code"
 
             if code:
                 await self._complete_verification(
@@ -197,20 +190,6 @@ class SMSPollingService:
                     db,
                     text,
                     code,
-                    transcription=transcription,
-                    audio_url=audio_url,
-                )
-                return
-            elif verification.capability == "voice" and audio_url:
-                # Audio received — mark complete immediately, don't re-poll
-                # User can play the audio from the status endpoint
-                await self._complete_verification(
-                    verification,
-                    db,
-                    audio_url,
-                    "VOICE_RECV",
-                    transcription=transcription,
-                    audio_url=audio_url,
                 )
                 return
             else:
@@ -326,10 +305,12 @@ class SMSPollingService:
         db,
         sms_text: str,
         sms_code: str,
-        transcription: Optional[str] = None,
-        audio_url: Optional[str] = None,
     ):
-        """Shared success logic after SMS/Voice is received."""
+        """Shared success logic after SMS/Voice is received.
+
+        For voice: sms_code is the full transcription text (sms_content from TV).
+        TV Sms dataclass has no audio_url or transcription fields.
+        """
         # Reload verification to avoid stale state
         db.expire(verification)
         v = db.query(Verification).filter(Verification.id == verification.id).first()
@@ -339,7 +320,7 @@ class SMSPollingService:
         from app.services.verification_status_service import mark_sms_code_received
 
         await mark_sms_code_received(
-            db, v, sms_code, sms_text, transcription=transcription, audio_url=audio_url
+            db, v, sms_code, sms_text
         )
 
         # Instrumentation
@@ -487,23 +468,50 @@ class SMSPollingService:
         outcome_category = "NETWORK"
 
         # Also report to provider for their refund (Phase 10 Recoup Tracking)
+        # For TV: check can_reactivate first — free retry, no repurchase cost.
+        # Only report (triggers TV refund) if reactivation is not possible.
         provider = getattr(verification, "provider", "textverified")
         provider_refunded = False
 
         try:
             if provider == "textverified":
-                provider_refunded = await self.textverified.report_verification(
+                details = await self.textverified.get_verification_details(
                     verification.activation_id
                 )
+                can_reactivate = details.get("can_reactivate", False)
+                can_report = details.get("can_report", True)
+
+                if can_reactivate:
+                    reactivated = await self.textverified.reactivate_verification(
+                        verification.activation_id
+                    )
+                    if reactivated:
+                        logger.info(
+                            f"Reactivated {verification.id} — restarting poll"
+                        )
+                        # Reset DB status to pending and restart poll
+                        verification.status = "pending"
+                        db.commit()
+                        asyncio.create_task(
+                            self.start_polling(str(verification.id))
+                        )
+                        return
+
+                if can_report:
+                    provider_refunded = await self.textverified.report_verification(
+                        verification.activation_id
+                    )
+                else:
+                    logger.warning(
+                        f"can_report=False for {verification.activation_id} — skipping report"
+                    )
             elif provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
-
                 provider_refunded = await TelnyxAdapter().report_failed(
                     verification.activation_id
                 )
             elif provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
-
                 provider_refunded = await FiveSimAdapter().report_failed(
                     verification.activation_id
                 )
