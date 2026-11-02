@@ -4,10 +4,84 @@ All notable changes to the Vrenum SMS project.
 
 ## [Unreleased]
 
+### Pending Deploy (ee895ce8 — CI running)
+- TV SDK correctness fixes — 5 broken rental SDK calls, voice pricing, max_price, reactivate-before-report
+- Area code modal city enrichment ("212 — New York, NY")
+- ends_at persisted to DB in SSE path
+- 23h area code cache background refresh
+- Surcharge-accurate pricing check when area code selected
+
 ### In Progress
-- Test coverage improvement: 81.48% → 90% target
-- Multi-region deployment (Q3 2026)
+- Test coverage improvement: 25% → 60% → 90% target
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
+- TV pricing URL verification from VPS
+
+---
+
+## [Stability Pass] - November 1, 2026
+
+TV SDK Correctness + Area Code Improvements
+
+### Fixed (3f805f8a + ee895ce8)
+- **5 broken rental SDK calls**: `reservations.get()` → `reservations.details()`,
+  `reservations.messages()` → `sms.list(data=rental)`, `reservations.extend()` →
+  `extend_nonrenewable(RentalDuration enum)`, `verifications.get()` →
+  `verifications.details()`, `create_reservation()` duration type (int minutes →
+  `RentalDuration` enum) and response parsing (`ReservationSaleExpanded` →
+  `reservations.details()` to get actual rental object). All confirmed `AttributeError`
+  in production from SDK source read.
+- **Voice pricing wrong number_type**: `check_service_available()` always sent
+  `numberType: mobile` even for voice. SDK's own conversion logic uses `NumberType.VOIP`
+  for voice. Fixed — voice availability check now returns correct price.
+- **check_service_available() ignores area code surcharge**: When user selects an area
+  code, the pricing call now passes `area_code_requested=True` so the returned price
+  includes the surcharge. Balance check was previously using the base price, causing
+  users with exact balance to fail at purchase time.
+- **Dead carrier reads**: `get_verification_details()` read `tv.carrier` and
+  `tv.carrier_name` — neither field exists on `VerificationExpanded`. Removed.
+- **Voice falls to timeout**: `_poll_textverified()` looked for `audio_url` and
+  `transcription` on the `Sms` object — neither field exists in the SDK. Voice delivers
+  via `sms_content` text. Fixed — voice completions now use `sms_content` as the code.
+- **report() called without checking can_report**: `_handle_timeout()` now checks
+  `can_reactivate` first (free retry, no repurchase), then checks `can_report` before
+  calling `report_verification()`. Prevents wasted report calls and unnecessary refund
+  cycles.
+- **ends_at not persisted in SSE path**: SSE recording step now parses
+  `purchase_result.expires_at` and writes it to the `Verification.ends_at` DB field.
+  Polling timeout was falling back to `settings.sms_polling_max_minutes` instead of
+  TV's real window.
+- **Area code modal shows state only**: `get_area_codes()` now enriches each code with
+  NANPA city data. Modal shows "212 — New York, NY" instead of "212 — NY".
+- **check endpoint blocks on TV outage**: `/area-codes/check` now falls through
+  gracefully if TV's supported list is unavailable — only rejects if we actually have
+  a list to check against.
+- **Broken reservation tests**: `test_create_reservation_success` and
+  `test_get_reservation_messages` updated to mock `ReservationSaleExpanded` +
+  `reservations.details()` pattern instead of the old broken SDK calls.
+
+### Added (3f805f8a)
+- **`reactivate_verification()` method**: New method on `TextVerifiedService` — calls
+  `verifications.reactivate()` to extend a timed-out verification window at no cost.
+  Called automatically in `_handle_timeout()` before `report()`.
+- **`max_price` wired to verifications.create()**: `create_verification()` now accepts
+  and passes `max_price` to TV's SDK. TV rejects the purchase if price shifted between
+  the pricing check and the create call.
+- **23h area code cache background refresh**: New loop in `lifespan.py` busts and
+  re-warms `tv:area_codes_list` and `tv:area_codes_by_state` every 23 hours — before
+  the 24h TTL expires. Area code modal is always fresh.
+- **`area_code_requested` param on check_service_available()**: Allows callers to
+  request the surcharge-inclusive price when an area code is selected.
+- **4 new engineering docs**: `TV_API_REAL_FLOW.md`, `TV_API_FLOW_GAP_ASSESSMENT.md`,
+  `PLATFORM_VERIFICATION_RENTAL_FLOW_STANDARD.md`, `AREA_CODE_SELECTOR_FLOW.md`
+
+### Technical
+- Files modified: `textverified_service.py`, `sms_polling_service.py`,
+  `purchase_endpoints.py`, `area_code_endpoints.py`, `lifespan.py`,
+  `tests/unit/test_textverified_service.py`
+- Files added: 4 engineering docs
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
 
 ---
 
