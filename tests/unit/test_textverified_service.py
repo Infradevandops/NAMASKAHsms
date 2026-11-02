@@ -467,18 +467,31 @@ class TestReservations:
     @pytest.mark.asyncio
     async def test_create_reservation_success(self, textverified_service):
         """Test successful reservation creation."""
-        mock_reservation = Mock()
-        mock_reservation.id = "res123"
-        mock_reservation.number = "+12025551234"
-        mock_reservation.total_cost = 10.0
-        mock_reservation.ends_at = datetime.now(timezone.utc) + timedelta(hours=24)
-        mock_reservation.state = Mock(value="active")
+        # SDK: reservations.create() returns ReservationSaleExpanded
+        # which has .reservations (List[Reservation]) and .total
+        mock_reservation_stub = Mock()
+        mock_reservation_stub.id = "res123"
+        mock_reservation_stub.service_name = "whatsapp"
 
-        textverified_service.client.reservations.create.return_value = mock_reservation
+        mock_sale = Mock()
+        mock_sale.id = "sale456"
+        mock_sale.total = 10.0
+        mock_sale.reservations = [mock_reservation_stub]
 
-        result = await textverified_service.create_reservation(
-            service="whatsapp", duration_hours=24.0
-        )
+        # SDK: must call reservations.details() to get full rental object
+        mock_rental = Mock()
+        mock_rental.id = "res123"
+        mock_rental.number = "+12025551234"
+        mock_rental.state = Mock(value="active")
+        mock_rental.ends_at = datetime.now(timezone.utc) + timedelta(hours=24)
+
+        textverified_service.client.reservations.create.return_value = mock_sale
+        textverified_service.client.reservations.details.return_value = mock_rental
+
+        with patch("app.services.textverified_service.textverified"):
+            result = await textverified_service.create_reservation(
+                service="whatsapp", duration_hours=24.0
+            )
 
         assert result["id"] == "res123"
         assert result["phone_number"] == "+12025551234"
@@ -486,13 +499,24 @@ class TestReservations:
 
     @pytest.mark.asyncio
     async def test_get_reservation_messages(self, textverified_service, mock_sms):
-        """Test retrieving messages for a reservation."""
-        textverified_service.client.reservations.messages.return_value = [mock_sms]
+        """Test retrieving messages for a reservation.
+
+        SDK: reservations.messages() does not exist.
+        Correct flow: reservations.details() then sms.list(data=rental).
+        """
+        mock_rental = Mock()
+        mock_rental.id = "res123"
+        mock_rental.number = "+12025551234"
+
+        textverified_service.client.reservations.details.return_value = mock_rental
+        textverified_service.client.sms.list.return_value = [mock_sms]
 
         result = await textverified_service.get_reservation_messages("res123")
 
         assert len(result) == 1
         assert result[0]["code"] == "123456"
+        assert textverified_service.client.reservations.details.called
+        assert textverified_service.client.sms.list.called
 
 
 class TestHealthStatus:
