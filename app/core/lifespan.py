@@ -76,29 +76,14 @@ async def lifespan(app):
 
                 # Skip area codes prewarm if already cached (but services always re-fetch)
                 startup_logger.info("Pre-warming TextVerified cache...")
-                results = await asyncio.wait_for(
+                await asyncio.wait_for(
                     asyncio.gather(
                         tv.get_services_list(),
                         tv.get_area_codes_list(),
-                        tv.fetch_raw_services_with_quantity(),
                         return_exceptions=True,
                     ),
                     timeout=20.0,
                 )
-                # Merge quantity data into services cache
-                raw = results[2] if not isinstance(results[2], Exception) else []
-                if raw:
-                    from app.core.unified_cache import cache
-                    from app.services.textverified_service import _SERVICES_CACHE_KEY, _SERVICES_TTL
-                    qty_map = {s["id"]: s.get("quantity") for s in raw if s.get("quantity") is not None}
-                    if qty_map:
-                        cached = await cache.get(_SERVICES_CACHE_KEY)
-                        if cached:
-                            for entry in cached:
-                                if entry["id"] in qty_map:
-                                    entry["quantity"] = qty_map[entry["id"]]
-                            await cache.set(_SERVICES_CACHE_KEY, cached, _SERVICES_TTL)
-                            startup_logger.info(f"Merged quantity data for {len(qty_map)} services")
                 startup_logger.info("Cache pre-warming completed")
             except asyncio.TimeoutError:
                 startup_logger.warning(

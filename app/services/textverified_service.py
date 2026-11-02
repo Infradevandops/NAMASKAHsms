@@ -1374,30 +1374,15 @@ class TextVerifiedService:
         capability: str = "sms",
         area_code_requested: bool = False,
     ) -> dict:
-        """Pre-purchase availability check — uses real stock quantity from TV API.
+        """Pre-purchase availability check via TV SDK pricing method.
 
-        Checks quantity from /api/pub/v2/services first (real stock count).
-        Falls back to pricing endpoint if quantity unavailable.
+        Uses SDK verifications.pricing() — correct endpoint and types.
         Returns {available: bool, price: float|None, reason: str|None}.
+        On 429 rate limit, returns available=True to avoid blocking purchases.
         """
         if not self.enabled:
             return {"available": False, "reason": "provider_disabled"}
         try:
-            # Check real stock quantity first
-            from app.core.unified_cache import cache
-            cached = await cache.get(_SERVICES_CACHE_KEY)
-            if cached:
-                for s in cached:
-                    if s.get("id") == service_name:
-                        qty = s.get("quantity")
-                        price = s.get("price")
-                        if qty is not None and qty == 0:
-                            return {"available": False, "reason": "no_inventory", "price": price}
-                        if qty is not None and qty > 0 and price:
-                            return {"available": True, "price": float(price)}
-                        break
-
-            # Fall back to pricing endpoint
             cap = (
                 ReservationCapability.VOICE
                 if capability == "voice"
@@ -1419,6 +1404,11 @@ class TextVerifiedService:
                 return {"available": True, "price": float(snap.price)}
             return {"available": False, "reason": "no_inventory"}
         except Exception as e:
+            err = str(e).lower()
+            # 429 rate limit — don't block the purchase, let create() handle it
+            if "429" in err or "rate" in err or "too many" in err:
+                logger.warning(f"TV pricing rate limited for '{service_name}', allowing purchase attempt")
+                return {"available": True, "price": None}
             logger.warning(f"check_service_available failed for '{service_name}': {e}")
             return {"available": False, "reason": str(e)}
 
