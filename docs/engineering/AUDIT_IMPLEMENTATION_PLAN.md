@@ -76,15 +76,42 @@ Reports pass/fail per feature. Failure triggers Sentry alert.
 
 ---
 
-### TASK-4 — Branch protection on main 📋 MANUAL (GitHub UI)
+### TASK-4 — Branch protection on main + develop branch 📋 MANUAL (GitHub UI)
 **Audit item**: #2
-**Current state**: No branch protection rules. Anyone can push directly to main.
-**Fix**: GitHub repo Settings → Branches → Add rule for `main`:
-- Require status checks to pass (select: `unit-tests`, `frontend-unit-tests`, `code-quality`, `secrets-scan`)
-- Require branches to be up to date before merging
-- Do NOT require pull request reviews (solo dev workflow)
-**Files**: None — GitHub UI only
-**Effort**: 5 minutes in GitHub settings
+**Current state**: No branch protection. All work pushed directly to main. 6 stale branches deleted. `develop` branch created.
+
+**Branch design**:
+```
+develop  ←── all work pushed here freely
+   │
+   │  PR: develop → main (when ready to ship)
+   │  CI must be green on develop before PR can merge
+   │  main is protected — no direct pushes allowed
+   │
+   ▼
+main  ←── only receives green-CI-verified merges
+   │
+   ▼
+deploy.yml fires → prod
+```
+
+**Branches kept**:
+- `main` — protected, prod-only
+- `develop` — working branch, CI runs on every push
+- `pre-rebrand/v4.7.1-snapshot` — frozen rollback reference, keep
+
+**Branches deleted**: `Oghenesuvwe-dev-patch-1`, `dependabot/pip/pip-f38aae6ccf`, `feature/rebrand-vrenum`, 3x `snyk-fix-*`
+
+**Manual steps in GitHub UI** (Settings → Branches → Add rule for `main`):
+1. Branch name pattern: `main`
+2. ☑ Require status checks to pass before merging
+   - Add: `secrets-scan`, `code-quality`, `frontend-unit-tests`, `unit-tests`
+3. ☑ Require branches to be up to date before merging
+4. ☑ Do not allow bypassing the above settings
+5. Leave "Require a pull request before merging" OFF (solo dev)
+6. Save
+
+**After this is set**: direct pushes to main will be rejected by GitHub. All work goes to `develop`, PR to `main` when CI is green.
 
 ---
 
