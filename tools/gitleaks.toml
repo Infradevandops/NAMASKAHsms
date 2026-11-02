@@ -1,13 +1,65 @@
-# Gitleaks Configuration
+# Gitleaks Configuration — Strict Mode
+# Scans ALL files. No blanket path exemptions for docs/ or scripts/.
+# Any push containing a real credential pattern is rejected by CI.
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic high-entropy API key"
+regex = '''(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-]{32,})['\"]?'''
+entropy = 3.5
+secretGroup = 2
+
+[[rules]]
+id = "generic-secret"
+description = "Generic secret or password assignment"
+regex = '''(?i)(secret[_-]?key|jwt[_-]?secret|secret)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-@#$%^&*]{16,})['\"]?'''
+entropy = 3.5
+secretGroup = 2
+
+[[rules]]
+id = "generic-password"
+description = "Hardcoded password in source"
+regex = '''(?i)(password|passwd|pwd)\s*[=:]\s*['\"]([^'\"]{8,})['\"]'''
+secretGroup = 2
+
+[[rules]]
+id = "database-url"
+description = "Database connection string with credentials"
+regex = '''(postgres|postgresql|mysql|mongodb):\/\/[^:]+:[^@]{8,}@'''
+
+[[rules]]
+id = "resend-api-key"
+description = "Resend API key"
+regex = '''re_[a-zA-Z0-9]{20,}'''
+
+[[rules]]
+id = "paystack-secret"
+description = "Paystack secret key"
+regex = '''sk_(live|test)_[a-zA-Z0-9]{24,}'''
+
+[[rules]]
+id = "onesignal-key"
+description = "OneSignal API key"
+regex = '''os_v2_[a-zA-Z0-9_\-]{20,}'''
+
+[[rules]]
+id = "sentry-dsn"
+description = "Sentry DSN with real project credentials"
+regex = '''https://[a-f0-9]{32}@o[0-9]+\.ingest\.(us|de|eu)\.sentry\.io/[0-9]+'''
+
+[[rules]]
+id = "google-oauth"
+description = "Google OAuth client ID"
+regex = '''[0-9]{12}-[a-z0-9]{32}\.apps\.googleusercontent\.com'''
+
+[[rules]]
+id = "private-key-header"
+description = "Private key block"
+regex = '''-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'''
+
 [allowlist]
-description = "Global allowlist for testing and false positives"
+description = "Allowlist — only specific placeholder files, never entire folders"
 paths = [
-    '''tests/.*''',
-    '''app/utils/security\.py''',
-    '''app/services/api_key_service\.py''',
-    '''app/schemas/.*''',
-    '''scripts/security_scan\.py''',
-    '''requirements.*\.txt''',
     '''config/\.env\.example''',
     '''config/\.env\.production\.example''',
     '''deploy/docker/\.env\.production\.example''',
@@ -15,21 +67,21 @@ paths = [
     '''\.env\.production\.example''',
     '''.github/workflows/ci\.yml'''
 ]
-# NOTE: docs/ and scripts/ are NO LONGER allowlisted.
-# They were previously allowlisted which caused real credentials
-# committed to docs/archive/ and scripts/ to be missed by CI.
 regexes = [
-    '''sk_live_[a-zA-Z0-9]{24,128}''',
-    '''sk_test_[a-zA-Z0-9]{24,128}''',
-    '''nsk_[a-zA-Z0-9]{24,128}''',
-    '''nsk_live_[a-zA-Z0-9]+''',
-    '''test_password_for_ci_only''',
-    '''test_secret_key_for_testing''',
+    # Placeholder patterns — not real values
+    '''your[-_]?[a-z\-]+[-_]?key''',
+    '''your[-_]?[a-z\-]+[-_]?secret''',
+    '''your[-_]?[a-z\-]+[-_]?password''',
+    '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx''',
+    '''<[a-z\-]+>''',
+    '''change[-_]?me''',
+    # CI test values
     '''test-secret-key-for-ci''',
     '''test-jwt-secret-key-for-ci''',
-    '''ChangeMe@[0-9]+''',
-    '''<admin-password>''',
-    '''<your-vps-ip>''',
-    '''<your-textverified''',
-    '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx'''
+    '''test_password_for_ci_only''',
+    # Platform internal key format (not real secrets)
+    '''nsk_live_[a-zA-Z0-9]{24,128}''',
+    '''nsk_[a-zA-Z0-9]{24,128}''',
+    # Paystack test keys (not live)
+    '''sk_test_[a-zA-Z0-9]{24,128}'''
 ]

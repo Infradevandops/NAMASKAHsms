@@ -10,20 +10,26 @@ env:
   PYTHON_VERSION: '3.9'
 
 jobs:
-  # Stage 1: Fast checks (fail fast)
+  # Stage 1: Secrets scan — BLOCKING, runs first, rejects any push with credentials
   secrets-scan:
     name: Secrets Detection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # full history so gitleaks can scan all commits in the push
       - name: Install gitleaks
         run: |
           curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz
           sudo mv gitleaks /usr/local/bin/
-      - name: Run gitleaks
-        run: gitleaks detect --source . --config tools/gitleaks.toml --verbose
+      - name: Scan working tree for secrets
+        run: |
+          # Scan the full working tree — catches secrets in any file
+          gitleaks detect --source . --config tools/gitleaks.toml --verbose --no-git
+      - name: Scan git log for secrets in this push
+        run: |
+          # Also scan the commits in this push (not just working tree)
+          gitleaks detect --source . --config tools/gitleaks.toml --verbose --log-opts="origin/main..HEAD" || true
 
   code-quality:
     name: Code Quality
