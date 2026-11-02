@@ -64,9 +64,15 @@ class TextVerifiedService:
                 )
                 # Increase connection pool to handle concurrent polling
                 adapter = HTTPAdapter(pool_connections=1, pool_maxsize=30)
-                if hasattr(self.client, "_session"):
-                    self.client._session.mount("https://", adapter)
-                    self.client._session.mount("http://", adapter)
+                session = getattr(self.client, "_session", None) or getattr(self.client, "session", None)
+                if session:
+                    session.mount("https://", adapter)
+                    session.mount("http://", adapter)
+                    # Route TV calls through proxy if configured (e.g. when server IP is blocked)
+                    tv_proxy = os.getenv("TEXTVERIFIED_PROXY_URL")
+                    if tv_proxy:
+                        session.proxies = {"https": tv_proxy, "http": tv_proxy}
+                        logger.info("TextVerified: outbound proxy configured")
                 logger.info("TextVerified client initialized successfully")
             except Exception as e:
                 logger.error(f"TextVerified client initialization failed: {e}")
