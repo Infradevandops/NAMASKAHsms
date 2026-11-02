@@ -36,7 +36,9 @@ def _verify_signature(payload: bytes, signature_header: str, secret: str) -> boo
     if not signature_header or not secret:
         return not secret
     try:
-        raw_secret = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
+        raw_secret = (
+            secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
+        )
         try:
             secret_bytes = base64.b64decode(raw_secret + "==")
         except Exception:
@@ -82,6 +84,7 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
 
     try:
         import json as _json
+
         payload = _json.loads(raw_body)
     except Exception:
         logger.warning("TV webhook: malformed JSON payload")
@@ -98,7 +101,8 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
         await cache.set(seen_key, 1, ttl=_DEDUP_TTL)
 
     # Accept all event types — only process SMS
-    if event_type != "sms.received":
+    # TV sends v2.sms.received (new format) or sms.received (legacy)
+    if event_type not in ("sms.received", "v2.sms.received"):
         logger.debug(f"TV webhook: ignoring event type '{event_type}'")
         return {"ok": True}
 

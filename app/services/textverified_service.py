@@ -465,7 +465,7 @@ class TextVerifiedService:
 
                 self.client.refresh_bearer()
                 resp = self.client.session.post(
-                    f"{self.client.base_url}/api/pub/v2/verifications/pricing",
+                    f"{self.client.base_url}/api/pub/v2/pricing/verifications",
                     headers={
                         "Authorization": f"Bearer {self.client.bearer.token}",
                         "User-Agent": self.client.user_agent,
@@ -622,7 +622,11 @@ class TextVerifiedService:
                 "can_cancel": tv.cancel.can_cancel,
                 "can_report": tv.report.can_report,
                 "can_reactivate": tv.reactivate.can_reactivate,
-                "reusable_until": tv.reuse.reusable_until.isoformat() if tv.reuse.reusable_until else None,
+                "reusable_until": (
+                    tv.reuse.reusable_until.isoformat()
+                    if tv.reuse.reusable_until
+                    else None
+                ),
             }
         except Exception as e:
             logger.error(f"Failed to get verification status for {activation_id}: {e}")
@@ -751,7 +755,11 @@ class TextVerifiedService:
                 "can_cancel": tv.cancel.can_cancel,
                 "can_report": tv.report.can_report,
                 "can_reactivate": tv.reactivate.can_reactivate,
-                "reusable_until": tv.reuse.reusable_until.isoformat() if tv.reuse.reusable_until else None,
+                "reusable_until": (
+                    tv.reuse.reusable_until.isoformat()
+                    if tv.reuse.reusable_until
+                    else None
+                ),
             }
         except Exception as e:
             logger.error(
@@ -1158,7 +1166,11 @@ class TextVerifiedService:
             raise RuntimeError("TextVerified service disabled")
 
         try:
-            from textverified.data import RentalDuration, NumberType, ReservationCapability
+            from textverified.data import (
+                NumberType,
+                RentalDuration,
+                ReservationCapability,
+            )
 
             duration_map = [
                 (1, RentalDuration.ONE_DAY),
@@ -1258,6 +1270,7 @@ class TextVerifiedService:
             return False
         try:
             from textverified.data import RentalDuration
+
             duration_map = [
                 (1, RentalDuration.ONE_DAY),
                 (72, RentalDuration.THREE_DAY),
@@ -1298,6 +1311,7 @@ class TextVerifiedService:
                 self.client.reservations.details, reservation_id
             )
             from datetime import datetime, timezone
+
             now = datetime.now(timezone.utc)
             ends_at = getattr(res, "ends_at", None)
             if ends_at is None:
@@ -1349,7 +1363,9 @@ class TextVerifiedService:
             pass
 
     async def check_service_available(
-        self, service_name: str, capability: str = "sms",
+        self,
+        service_name: str,
+        capability: str = "sms",
         area_code_requested: bool = False,
     ) -> dict:
         """Pre-purchase availability check via TV SDK pricing method.
@@ -1368,9 +1384,7 @@ class TextVerifiedService:
                 if capability == "voice"
                 else ReservationCapability.SMS
             )
-            num_type = (
-                NumberType.VOIP if capability == "voice" else NumberType.MOBILE
-            )
+            num_type = NumberType.VOIP if capability == "voice" else NumberType.MOBILE
             snap = await asyncio.wait_for(
                 asyncio.to_thread(
                     self.client.verifications.pricing,
