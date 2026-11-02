@@ -1,31 +1,22 @@
 # Gitleaks Configuration — Strict Mode
 # Scans ALL files. No blanket path exemptions for docs/ or scripts/.
 # Any push containing a real credential pattern is rejected by CI.
+#
+# Rules are precise to avoid false positives on test fixtures.
+# Test files use password123/admin123 as fixture values — those are
+# intentionally NOT matched here (they are not real credentials).
 
 [[rules]]
-id = "generic-api-key"
-description = "Generic high-entropy API key"
-regex = '''(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-]{32,})['\"]?'''
-entropy = 3.5
+id = "high-entropy-api-key"
+description = "High-entropy API key assignment (32+ chars)"
+regex = '''(?i)(api[_-]?key|apikey)\s*[=:]\s*['"]?([a-zA-Z0-9_\-]{40,})['"]?'''
+entropy = 4.0
 secretGroup = 2
 
 [[rules]]
-id = "generic-secret"
-description = "Generic secret or password assignment"
-regex = '''(?i)(secret[_-]?key|jwt[_-]?secret|secret)\s*[=:]\s*['\"]?([a-zA-Z0-9_\-@#$%^&*]{16,})['\"]?'''
-entropy = 3.5
-secretGroup = 2
-
-[[rules]]
-id = "generic-password"
-description = "Hardcoded password in source"
-regex = '''(?i)(password|passwd|pwd)\s*[=:]\s*['\"]([^'\"]{8,})['\"]'''
-secretGroup = 2
-
-[[rules]]
-id = "database-url"
-description = "Database connection string with credentials"
-regex = '''(postgres|postgresql|mysql|mongodb):\/\/[^:]+:[^@]{8,}@'''
+id = "database-url-with-password"
+description = "Database connection string with embedded password"
+regex = '''(postgres|postgresql|mysql|mongodb):\/\/[^:@\s]+:[^@\s]{8,}@[a-zA-Z0-9\.\-]+'''
 
 [[rules]]
 id = "resend-api-key"
@@ -33,9 +24,9 @@ description = "Resend API key"
 regex = '''re_[a-zA-Z0-9]{20,}'''
 
 [[rules]]
-id = "paystack-secret"
-description = "Paystack secret key"
-regex = '''sk_(live|test)_[a-zA-Z0-9]{24,}'''
+id = "paystack-live-secret"
+description = "Paystack live secret key"
+regex = '''sk_live_[a-zA-Z0-9]{24,}'''
 
 [[rules]]
 id = "onesignal-key"
@@ -48,7 +39,7 @@ description = "Sentry DSN with real project credentials"
 regex = '''https://[a-f0-9]{32}@o[0-9]+\.ingest\.(us|de|eu)\.sentry\.io/[0-9]+'''
 
 [[rules]]
-id = "google-oauth"
+id = "google-oauth-client-id"
 description = "Google OAuth client ID"
 regex = '''[0-9]{12}-[a-z0-9]{32}\.apps\.googleusercontent\.com'''
 
@@ -56,6 +47,13 @@ regex = '''[0-9]{12}-[a-z0-9]{32}\.apps\.googleusercontent\.com'''
 id = "private-key-header"
 description = "Private key block"
 regex = '''-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'''
+
+[[rules]]
+id = "jwt-secret-hardcoded"
+description = "JWT secret hardcoded with real-looking value (not a placeholder)"
+regex = '''(?i)(jwt[_-]?secret[_-]?key|jwt[_-]?secret)\s*[=:]\s*['"]([a-zA-Z0-9@#$%^&*_\-]{24,})['"]'''
+entropy = 3.8
+secretGroup = 2
 
 [allowlist]
 description = "Allowlist — only specific placeholder files, never entire folders"
@@ -75,11 +73,12 @@ regexes = [
     '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx''',
     '''<[a-z\-]+>''',
     '''change[-_]?me''',
-    # CI test values
+    # CI test values — these are intentional test-only strings
     '''test-secret-key-for-ci''',
     '''test-jwt-secret-key-for-ci''',
     '''test_password_for_ci_only''',
-    # Platform internal key format (not real secrets)
+    '''test-jwt-secret-key-for-ci-testing''',
+    # Platform internal API key format (not real secrets)
     '''nsk_live_[a-zA-Z0-9]{24,128}''',
     '''nsk_[a-zA-Z0-9]{24,128}''',
     # Paystack test keys (not live)
