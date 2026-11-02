@@ -3,7 +3,7 @@
 
 set -e
 
-SERVER="root@169.255.57.57"
+SERVER="root@<your-vps-ip>"
 APP_DIR="/root/NAMASKAHsms"
 
 echo "🔧 Enabling Application Logging..."

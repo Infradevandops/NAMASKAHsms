@@ -1,6 +1,6 @@
 # Vrenum — Deployment Checklist
 
-**Stack:** Mac → rsync → VPS (`root@169.255.57.146`) → Docker Compose  
+**Stack:** Mac → rsync → VPS (`root@<your-vps-ip>`) → Docker Compose  
 **Last Updated:** October 26, 2026
 
 ---
@@ -53,10 +53,10 @@ curl -s https://vrenum.app/api/monitoring/health/detailed | python3 -m json.tool
 Plain restart does NOT reload env vars. Always force-recreate:
 
 ```bash
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose up -d --force-recreate"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose up -d --force-recreate"
 
 # Verify the var loaded
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose exec app printenv <KEY_NAME>"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose exec app printenv <KEY_NAME>"
 ```
 
 ---

@@ -102,7 +102,7 @@ See [docs/deployment/DEPLOYMENT_QUICK_REFERENCE.md](./docs/deployment/DEPLOYMENT
 
 ### Admin Login (Local Development)
 - **Email:** `admin@vrenum.app`
-- **Password:** `Namaskah@Admin2024`
+- **Password:** `<set in .env.development — never commit real passwords>`
 - **URL:** `http://localhost:8000/login`
 
 ---

@@ -439,7 +439,7 @@ Namaskah:      $1.70 profit (68% margin)
 
 ### **Monitoring**
 - Sentry: https://dev-vp.sentry.io/issues/
-- Server: `ssh root@169.255.57.146`
+- Server: `ssh root@<your-vps-ip>`
 - Database: PostgreSQL on Neon
 
 ---

@@ -1,4 +1,4 @@
-# 🔧 TextVerified Fix - Manual Steps
+# TextVerified Fix - Manual Steps
 
 ## Problem
 TextVerified library is installed but the service can't initialize because environment variables aren't being loaded properly.
@@ -8,7 +8,7 @@ The app loads `.env` file but TextVerifiedService reads directly from `os.getenv
 
 ## Solution: Add TEXTVERIFIED_USERNAME
 
-The code looks for `TEXTVERIFIED_USERNAME` OR `TEXTVERIFIED_EMAIL`. You have `TEXTVERIFIED_EMAIL` but let's add both to be safe.
+The code looks for `TEXTVERIFIED_USERNAME` OR `TEXTVERIFIED_EMAIL`. You have `TEXTVERIFIED_EMAIL` but add both to be safe.
 
 ---
 
@@ -16,7 +16,7 @@ The code looks for `TEXTVERIFIED_USERNAME` OR `TEXTVERIFIED_EMAIL`. You have `TE
 
 ### Step 1: SSH into VPS
 ```bash
-ssh root@169.255.57.57
+ssh root@<your-vps-ip>
 ```
 
 ### Step 2: Edit .env file
@@ -27,14 +27,14 @@ nano .env
 
 ### Step 3: Add this line (if not already there)
 ```env
-TEXTVERIFIED_USERNAME=huff_06psalm@icloud.com
+TEXTVERIFIED_USERNAME=<your-textverified-email>
 ```
 
 Your .env should have BOTH:
 ```env
-TEXTVERIFIED_API_KEY=MSZ9Lr6XnKPTBNjnrHjD6mXi0ESmYUX7pdDEve9TbK8msE3hag6N1OQcPYREg
-TEXTVERIFIED_EMAIL=huff_06psalm@icloud.com
-TEXTVERIFIED_USERNAME=huff_06psalm@icloud.com
+TEXTVERIFIED_API_KEY=<your-textverified-api-key>
+TEXTVERIFIED_EMAIL=<your-textverified-email>
+TEXTVERIFIED_USERNAME=<your-textverified-email>
 ```
 
 ### Step 4: Save and exit
@@ -54,21 +54,15 @@ journalctl -u vrenum -n 30 -f
 
 You should see:
 ```
-✅ TextVerified client initialized successfully
-```
-
-Instead of:
-```
-❌ TextVerified service disabled - missing credentials or library
+TextVerified client initialized successfully
 ```
 
 ---
 
 ## Alternative: One-Line Fix
 
-If you prefer, run this single command:
 ```bash
-ssh root@169.255.57.57 "cd /root/NAMASKAHsms && echo 'TEXTVERIFIED_USERNAME=huff_06psalm@icloud.com' >> .env && systemctl restart vrenum && sleep 3 && journalctl -u vrenum -n 20"
+ssh root@<your-vps-ip> "cd /root/NAMASKAHsms && echo 'TEXTVERIFIED_USERNAME=<your-textverified-email>' >> .env && systemctl restart vrenum && sleep 3 && journalctl -u vrenum -n 20"
 ```
 
 ---
@@ -86,13 +80,10 @@ Should return list of countries without errors.
 
 ## Why This Happens
 
-The TextVerifiedService code (line 58-60):
+The TextVerifiedService code:
 ```python
 self.api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL")
 ```
 
 It checks `TEXTVERIFIED_USERNAME` first, then falls back to `TEXTVERIFIED_EMAIL`.
-
-The Pydantic Settings loads `.env` but `os.getenv()` might not see it if called before Settings is initialized.
-
 Adding `TEXTVERIFIED_USERNAME` ensures it's always found.

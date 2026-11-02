@@ -4,7 +4,7 @@
 
 set -e
 
-VPS_HOST="root@169.255.57.57"
+VPS_HOST="root@<your-vps-ip>"
 APP_DIR="/var/www/vrenum"
 
 echo "╔════════════════════════════════════════════════════════════╗"

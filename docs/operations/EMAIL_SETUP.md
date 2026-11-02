@@ -17,7 +17,7 @@ Emails are sending. The app logs `Email service initialised — Resend` on start
 
 To verify on the server:
 ```bash
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose logs app | grep -i 'email service'"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose logs app | grep -i 'email service'"
 ```
 
 ---
@@ -71,7 +71,7 @@ Resend → API Keys → Create API Key → name it `vrenum-production` → copy 
 
 **4. Update `.env.production` on the server**
 ```bash
-ssh root@169.255.57.146
+ssh root@<your-vps-ip>
 nano ~/vrenum/.env.production
 ```
 
@@ -189,7 +189,7 @@ If an email fails to send, it logs a warning but never crashes the request. To s
 
 ```bash
 # On server — filter for email-related log lines
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose logs app | grep -i email"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose logs app | grep -i email"
 ```
 
 What you'll see:

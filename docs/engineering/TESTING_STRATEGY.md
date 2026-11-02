@@ -34,7 +34,7 @@ curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@vrenum.app",
-    "password": "Namaskah@Admin2024"
+    "password": "<your-admin-password>"
   }'
 
 # Or use the test script
@@ -136,7 +136,7 @@ bash scripts/deployment/deploy_production.sh production
 ./scripts/test-admin-credentials.sh https://vrenum.app
 
 # Test with custom credentials
-./scripts/test-admin-credentials.sh http://localhost:8000 admin@vrenum.app Namaskah@Admin2024
+./scripts/test-admin-credentials.sh http://localhost:8000 admin@vrenum.app <your-admin-password>
 ```
 
 ### What It Tests
@@ -187,7 +187,7 @@ sudo -u postgres psql -d vrenum -c \
 python3 << 'EOF'
 from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-password = "Namaskah@Admin2024"
+password = "<your-admin-password>"
 hash_from_db = "$2b$12$..."  # Replace with actual hash
 print(pwd_context.verify(password, hash_from_db))
 EOF
@@ -285,12 +285,12 @@ bash scripts/deployment/deploy_production.sh production
 
 ### Local Development
 - **Email:** `admin@vrenum.app`
-- **Password:** `Namaskah@Admin2024`
+- **Password:** `<set in .env.development>`
 - **URL:** `http://localhost:8000/login`
 
 ### Staging
 - **Email:** `admin@vrenum.app`
-- **Password:** `Namaskah@Admin2024` (or staging-specific)
+- **Password:** `<set in staging .env>`
 - **URL:** `https://staging.vrenum.app/login`
 
 ### Production

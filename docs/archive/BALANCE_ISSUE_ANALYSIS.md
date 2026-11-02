@@ -16,7 +16,7 @@ There are **TWO SEPARATE BALANCES** in the system:
 - **Source**: Payments via Paystack, manual credits, refunds
 
 ### 2. Provider Balance (TextVerified API)
-- **Location**: TextVerified API account (huff_06psalm@icloud.com)
+- **Location**: TextVerified API account (<your-textverified-email>)
 - **Value**: $2.40
 - **Purpose**: Actual funds available in TextVerified account to purchase numbers
 - **Source**: Manual top-ups to TextVerified account

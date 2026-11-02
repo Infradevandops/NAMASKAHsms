@@ -39,7 +39,7 @@ column users.credit_hold_amount does not exist
 ### Option 1: Via SSH (Recommended)
 
 ```bash
-ssh root@169.255.57.146
+ssh root@<your-vps-ip>
 cd ~/vrenum
 alembic upgrade head
 ```

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SERVER="root@169.255.57.146"
+SERVER="root@<your-vps-ip>"
 REMOTE_DIR="~/vrenum"
 LOCAL_DIR="/Users/machine/My Drive/Github Projects/Vrenum"
 

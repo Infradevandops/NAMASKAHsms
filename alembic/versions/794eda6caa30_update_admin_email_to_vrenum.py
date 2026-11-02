@@ -23,10 +23,16 @@ depends_on = None
 
 def upgrade() -> None:
     """Update admin email from admin@namaskah.app to admin@vrenum.app"""
+    import os
     conn = op.get_bind()
 
-    # Generate new password hash for Namaskah@Admin2024
-    password = "Namaskah@Admin2024"
+    # Read password from environment — never hardcode credentials in migrations
+    password = os.environ.get("ADMIN_PASSWORD", "")
+    if not password:
+        raise RuntimeError(
+            "ADMIN_PASSWORD env var must be set to run this migration. "
+            "Set it in your .env file."
+        )
     password_bytes = password.encode("utf-8")
     salt = bcrypt.gensalt()
     password_hash = bcrypt.hashpw(password_bytes, salt).decode("utf-8")

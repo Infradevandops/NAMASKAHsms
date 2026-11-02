@@ -1,12 +1,12 @@
 #!/bin/bash
-# Quick Deploy to VPS: 169.255.57.57 (vm518ftop.vrenum.app)
+# Quick Deploy to VPS: <your-vps-ip> (vm518ftop.vrenum.app)
 # Version: 4.7.3
 # Date: May 22, 2026
 
 set -e
 
 # Configuration
-VPS_HOST="root@169.255.57.57"
+VPS_HOST="root@<your-vps-ip>"
 APP_DIR="/var/www/vrenum"
 REPO_URL="https://github.com/Infradevandops/NAMASKAHsms.git"
 BRANCH="main"

@@ -49,6 +49,9 @@ uvicorn_startup*.log
 *.env
 !.env.example
 !.env.*.example
+!config/.env.example
+!config/.env.production.example
+!deploy/docker/.env.production.example
 
 # OS
 .DS_Store

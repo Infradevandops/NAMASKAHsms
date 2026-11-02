@@ -6,14 +6,14 @@
 ```bash
 ./logs_audit.sh live
 # OR directly via SSH:
-ssh root@169.255.57.57 "journalctl -u vrenum -f"
+ssh root@<your-vps-ip> "journalctl -u vrenum -f"
 ```
 
 ### 2. **Error Logs Only**
 ```bash
 ./logs_audit.sh errors
 # OR:
-ssh root@169.255.57.57 "journalctl -u vrenum -p err -n 100"
+ssh root@<your-vps-ip> "journalctl -u vrenum -p err -n 100"
 ```
 
 ### 3. **Search Logs**
@@ -40,40 +40,40 @@ ssh root@169.255.57.57 "journalctl -u vrenum -p err -n 100"
 
 ### View Last 100 Lines
 ```bash
-ssh root@169.255.57.57 "journalctl -u vrenum -n 100 --no-pager"
+ssh root@<your-vps-ip> "journalctl -u vrenum -n 100 --no-pager"
 ```
 
 ### View Logs Since Specific Time
 ```bash
 # Last hour
-ssh root@169.255.57.57 "journalctl -u vrenum --since '1 hour ago'"
+ssh root@<your-vps-ip> "journalctl -u vrenum --since '1 hour ago'"
 
 # Last 30 minutes
-ssh root@169.255.57.57 "journalctl -u vrenum --since '30 minutes ago'"
+ssh root@<your-vps-ip> "journalctl -u vrenum --since '30 minutes ago'"
 
 # Specific date/time
-ssh root@169.255.57.57 "journalctl -u vrenum --since '2026-05-18 10:00:00'"
+ssh root@<your-vps-ip> "journalctl -u vrenum --since '2026-05-18 10:00:00'"
 ```
 
 ### Filter by Priority
 ```bash
 # Errors only
-ssh root@169.255.57.57 "journalctl -u vrenum -p err"
+ssh root@<your-vps-ip> "journalctl -u vrenum -p err"
 
 # Warnings and above
-ssh root@169.255.57.57 "journalctl -u vrenum -p warning"
+ssh root@<your-vps-ip> "journalctl -u vrenum -p warning"
 
 # Critical only
-ssh root@169.255.57.57 "journalctl -u vrenum -p crit"
+ssh root@<your-vps-ip> "journalctl -u vrenum -p crit"
 ```
 
 ### Export Logs to File
 ```bash
 # Export last 1000 lines
-ssh root@169.255.57.57 "journalctl -u vrenum -n 1000 --no-pager" > vrenum_logs_$(date +%Y%m%d_%H%M%S).txt
+ssh root@<your-vps-ip> "journalctl -u vrenum -n 1000 --no-pager" > vrenum_logs_$(date +%Y%m%d_%H%M%S).txt
 
 # Export today's logs
-ssh root@169.255.57.57 "journalctl -u vrenum --since today --no-pager" > vrenum_today_$(date +%Y%m%d).txt
+ssh root@<your-vps-ip> "journalctl -u vrenum --since today --no-pager" > vrenum_today_$(date +%Y%m%d).txt
 ```
 
 ---
@@ -83,13 +83,13 @@ ssh root@169.255.57.57 "journalctl -u vrenum --since today --no-pager" > vrenum_
 ### 🔴 App Not Starting
 ```bash
 # Check service status
-ssh root@169.255.57.57 "systemctl status vrenum"
+ssh root@<your-vps-ip> "systemctl status vrenum"
 
 # Check last 50 lines
-ssh root@169.255.57.57 "journalctl -u vrenum -n 50"
+ssh root@<your-vps-ip> "journalctl -u vrenum -n 50"
 
 # Check for Python errors
-ssh root@169.255.57.57 "journalctl -u vrenum | grep -i 'traceback\|error\|exception'"
+ssh root@<your-vps-ip> "journalctl -u vrenum | grep -i 'traceback\|error\|exception'"
 ```
 
 ### 🔴 Database Connection Issues
@@ -116,13 +116,13 @@ ssh root@169.255.57.57 "journalctl -u vrenum | grep -i 'traceback\|error\|except
 ### 🔴 High Memory/CPU
 ```bash
 # Check resource usage
-ssh root@169.255.57.57 "top -bn1 | head -20"
+ssh root@<your-vps-ip> "top -bn1 | head -20"
 
 # Check memory
-ssh root@169.255.57.57 "free -h"
+ssh root@<your-vps-ip> "free -h"
 
 # Check disk
-ssh root@169.255.57.57 "df -h"
+ssh root@<your-vps-ip> "df -h"
 ```
 
 ### 🔴 API Errors (500, 404, etc.)
@@ -138,16 +138,16 @@ ssh root@169.255.57.57 "df -h"
 
 ### Check Log Size
 ```bash
-ssh root@169.255.57.57 "journalctl --disk-usage"
+ssh root@<your-vps-ip> "journalctl --disk-usage"
 ```
 
 ### Clean Old Logs
 ```bash
 # Keep only last 7 days
-ssh root@169.255.57.57 "journalctl --vacuum-time=7d"
+ssh root@<your-vps-ip> "journalctl --vacuum-time=7d"
 
 # Keep only 500MB
-ssh root@169.255.57.57 "journalctl --vacuum-size=500M"
+ssh root@<your-vps-ip> "journalctl --vacuum-size=500M"
 ```
 
 ---
@@ -156,13 +156,13 @@ ssh root@169.255.57.57 "journalctl --vacuum-size=500M"
 
 ### Check App Log File (if configured)
 ```bash
-ssh root@169.255.57.57 "tail -f /root/NAMASKAHsms/app.log"
+ssh root@<your-vps-ip> "tail -f /root/NAMASKAHsms/app.log"
 ```
 
 ### Check Uvicorn Access Logs
 ```bash
 # If configured in systemd service
-ssh root@169.255.57.57 "tail -f /root/NAMASKAHsms/access.log"
+ssh root@<your-vps-ip> "tail -f /root/NAMASKAHsms/access.log"
 ```
 
 ---
@@ -184,21 +184,21 @@ ssh root@169.255.57.57 "tail -f /root/NAMASKAHsms/access.log"
 ### Follow Specific Request
 ```bash
 # Get request ID from logs, then filter
-ssh root@169.255.57.57 "journalctl -u vrenum | grep 'request_id_here'"
+ssh root@<your-vps-ip> "journalctl -u vrenum | grep 'request_id_here'"
 ```
 
 ### Monitor in Real-Time with Filters
 ```bash
 # Only show errors in real-time
-ssh root@169.255.57.57 "journalctl -u vrenum -f -p err"
+ssh root@<your-vps-ip> "journalctl -u vrenum -f -p err"
 
 # Only show specific keyword
-ssh root@169.255.57.57 "journalctl -u vrenum -f | grep --line-buffered 'payment'"
+ssh root@<your-vps-ip> "journalctl -u vrenum -f | grep --line-buffered 'payment'"
 ```
 
 ### Check Environment Variables
 ```bash
-ssh root@169.255.57.57 "systemctl show vrenum --property=Environment"
+ssh root@<your-vps-ip> "systemctl show vrenum --property=Environment"
 ```
 
 ### Restart Service with Log Monitoring
@@ -207,7 +207,7 @@ ssh root@169.255.57.57 "systemctl show vrenum --property=Environment"
 ./logs_audit.sh live
 
 # Terminal 2: Restart service
-ssh root@169.255.57.57 "systemctl restart vrenum"
+ssh root@<your-vps-ip> "systemctl restart vrenum"
 ```
 
 ---
@@ -216,7 +216,7 @@ ssh root@169.255.57.57 "systemctl restart vrenum"
 
 1. ✅ **Service Running?**
    ```bash
-   ssh root@169.255.57.57 "systemctl is-active vrenum"
+   ssh root@<your-vps-ip> "systemctl is-active vrenum"
    ```
 
 2. ✅ **Recent Errors?**
@@ -231,7 +231,7 @@ ssh root@169.255.57.57 "systemctl restart vrenum"
 
 4. ✅ **Port Listening?**
    ```bash
-   ssh root@169.255.57.57 "netstat -tlnp | grep 8000"
+   ssh root@<your-vps-ip> "netstat -tlnp | grep 8000"
    ```
 
 5. ✅ **Health Check?**

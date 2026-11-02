@@ -2,7 +2,7 @@
 
 # Admin Credentials Testing Script
 # Usage: ./test-admin-credentials.sh [URL] [EMAIL] [PASSWORD]
-# Example: ./test-admin-credentials.sh http://localhost:8000 admin@vrenum.app Namaskah@Admin2024
+# Example: ./test-admin-credentials.sh http://localhost:8000 admin@vrenum.app <your-admin-password>
 
 set -e
 
@@ -13,10 +13,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
+# Configuration — password must be passed as argument or set in ADMIN_PASSWORD env var
 API_URL="${1:-http://localhost:8000}"
 EMAIL="${2:-admin@vrenum.app}"
-PASSWORD="${3:-Namaskah@Admin2024}"
+PASSWORD="${3:-${ADMIN_PASSWORD:-}}"
 
 echo -e "${BLUE}================================${NC}"
 echo -e "${BLUE}🧪 Admin Credentials Testing${NC}"

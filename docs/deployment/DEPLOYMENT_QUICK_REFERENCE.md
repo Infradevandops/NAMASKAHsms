@@ -1,7 +1,7 @@
 # Vrenum — Deployment Quick Reference
 
 **Stack:** Mac → GitHub → rsync → VPS (Ubuntu 24.04) → Docker Compose  
-**Server:** `root@169.255.57.146`  
+**Server:** `root@<your-vps-ip>`  
 **App dir:** `~/vrenum/`  
 **Env file:** `~/vrenum/.env.production` (on VPS only, never in repo)  
 **Last Updated:** October 26, 2026
@@ -16,7 +16,7 @@ bash scripts/deploy.sh
 ```
 
 That script:
-1. rsyncs all files from Mac → `root@169.255.57.146:~/vrenum/`
+1. rsyncs all files from Mac → `root@<your-vps-ip>:~/vrenum/`
 2. Runs `docker compose build --no-cache && docker compose up -d` on the server
 3. Waits 20s then hits `/health`
 
@@ -27,7 +27,7 @@ That script:
 Plain `docker compose restart` does NOT re-read the env file. Always use:
 
 ```bash
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose up -d --force-recreate"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose up -d --force-recreate"
 ```
 
 ---
@@ -36,7 +36,7 @@ ssh root@169.255.57.146 "cd ~/vrenum && docker compose up -d --force-recreate"
 
 ```bash
 # Watch live logs
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose logs -f app --tail=100"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose logs -f app --tail=100"
 
 # Health check
 curl -s https://vrenum.app/api/monitoring/health/detailed | python3 -m json.tool
@@ -46,13 +46,13 @@ curl -s https://vrenum.app/api/monitoring/health/detailed \
   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['checks']['cache']['backend'])"
 
 # Verify an env var loaded into the container
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose exec app printenv ADMIN_NOTIFY_EMAIL"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose exec app printenv ADMIN_NOTIFY_EMAIL"
 
 # Container status
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose ps"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose ps"
 
 # Edit env vars
-ssh root@169.255.57.146 "nano ~/vrenum/.env.production"
+ssh root@<your-vps-ip> "nano ~/vrenum/.env.production"
 # Then force-recreate to reload
 ```
 
@@ -62,14 +62,14 @@ ssh root@169.255.57.146 "nano ~/vrenum/.env.production"
 
 ```bash
 # Add a new key
-ssh root@169.255.57.146 "echo 'KEY=value' >> ~/vrenum/.env.production"
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose up -d --force-recreate"
+ssh root@<your-vps-ip> "echo 'KEY=value' >> ~/vrenum/.env.production"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose up -d --force-recreate"
 
 # View all key names (values masked)
-ssh root@169.255.57.146 "cat ~/vrenum/.env.production | cut -d= -f1 | sort"
+ssh root@<your-vps-ip> "cat ~/vrenum/.env.production | cut -d= -f1 | sort"
 
 # View full file
-ssh root@169.255.57.146 "cat ~/vrenum/.env.production"
+ssh root@<your-vps-ip> "cat ~/vrenum/.env.production"
 ```
 
 ---
@@ -84,10 +84,10 @@ ssh root@169.255.57.146 "cat ~/vrenum/.env.production"
 
 ```bash
 # Restart a single container
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose restart app"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose restart app"
 
 # Rebuild a single container
-ssh root@169.255.57.146 "cd ~/vrenum && docker compose up -d --build app"
+ssh root@<your-vps-ip> "cd ~/vrenum && docker compose up -d --build app"
 ```
 
 ---
@@ -120,7 +120,7 @@ bash scripts/deploy.sh
 ## Server info
 
 ```
-IP:       169.255.57.146
+IP:       <your-vps-ip>
 OS:       Ubuntu 24.04.5 LTS
 Disk:     76.45GB (27% used)
 Memory:   ~60% used
