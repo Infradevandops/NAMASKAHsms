@@ -1,9 +1,28 @@
 # TV Stock Accuracy + Verification Flow Optimization
 
 **Created**: November 1, 2026
-**Updated**: November 1, 2026
-**Version**: 4.9.7
-**Priority**: ✅ P0 fixes shipped in `47d69fd1`
+**Updated**: November 2, 2026
+**Version**: 4.9.8
+**Priority**: 🔴 CRITICAL — server showing `available: 0` for all services
+
+## Live Server Status (November 2, 2026)
+
+```
+GET /api/services/stock → {"services": {}, "total": 2351, "available": 0}
+```
+
+**All services are showing as unavailable on the live server.**
+The `services` dict is empty — the stock map has no entries despite 2351 total count.
+This means the stock monitor ran but the provider returned no data, or the provider
+is disabled (API key needs updating after security rotation).
+
+**Immediate action required on server**:
+```bash
+# Check if provider is connected
+docker compose exec app printenv TEXTVERIFIED_API_KEY
+# Check app logs for errors
+docker compose logs app --tail=200 | grep -i 'disabled\|error\|stock\|provider'
+```
 
 ---
 

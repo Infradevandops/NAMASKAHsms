@@ -491,25 +491,61 @@ reservation = await asyncio.to_thread(self.client.reservations.create, **params)
 
 ## 12. Implementation Status
 
-**Last updated**: October 25, 2026 — all confirmed fixes applied
+**Last updated**: November 2, 2026 — all confirmed fixes deployed to production
 
 | # | Fix | File | Status |
 |---|-----|------|--------|
-| 1 | `reservations.get()` → `reservations.details()` | `textverified_service.py` | ✅ Done |
-| 2 | `reservations.messages()` → `sms.list(data=rental)` | `textverified_service.py` | ✅ Done |
-| 3 | `reservations.extend()` → `extend_nonrenewable(RentalDuration)` | `textverified_service.py` | ✅ Done |
-| 4 | `verifications.get()` → `verifications.details()` | `textverified_service.py` | ✅ Done |
-| 5 | `create_reservation()` duration enum + sale → details() response | `textverified_service.py` | ✅ Done |
-| 6 | `check_service_available()` now uses SDK `verifications.pricing()` | `textverified_service.py` | ✅ Done |
-| 7 | Voice pricing uses `NumberType.VOIP` | `textverified_service.py` | ✅ Done |
-| 8 | `max_price` wired to `verifications.create()` | `textverified_service.py` | ✅ Done |
-| 9 | Dead `carrier` reads removed from `get_verification_details()` | `textverified_service.py` | ✅ Done |
-| 10 | `reactivate_verification()` method added | `textverified_service.py` | ✅ Done |
-| 11 | Voice: `sms_content` used as transcription, no `audio_url` lookup | `sms_polling_service.py` | ✅ Done |
-| 12 | `_complete_verification()` signature cleaned (no audio_url/transcription) | `sms_polling_service.py` | ✅ Done |
-| 13 | Dead carrier enrichment task removed from `_poll_textverified()` | `sms_polling_service.py` | ✅ Done |
-| 14 | `_handle_timeout()`: reactivate → check can_report → report order | `sms_polling_service.py` | ✅ Done |
-| 15 | `check_service_available()` receives `capability` in legacy path | `purchase_endpoints.py` | ✅ Done |
-| 16 | `check_service_available()` receives `capability` in SSE path | `purchase_endpoints.py` | ✅ Done |
-| 17 | `ends_at` persisted to DB in SSE recording step | `purchase_endpoints.py` | ✅ Done |
+| 1 | `reservations.get()` → `reservations.details()` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 2 | `reservations.messages()` → `sms.list(data=rental)` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 3 | `reservations.extend()` → `extend_nonrenewable(RentalDuration)` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 4 | `verifications.get()` → `verifications.details()` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 5 | `create_reservation()` duration enum + sale → details() response | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 6 | `check_service_available()` now uses SDK `verifications.pricing()` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 7 | Voice pricing uses `NumberType.VOIP` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 8 | `max_price` wired to `verifications.create()` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 9 | Dead `carrier` reads removed from `get_verification_details()` | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 10 | `reactivate_verification()` method added | `textverified_service.py` | ✅ Deployed `3f805f8a` |
+| 11 | Voice: `sms_content` used as transcription, no `audio_url` lookup | `sms_polling_service.py` | ✅ Deployed `3f805f8a` |
+| 12 | `_complete_verification()` signature cleaned | `sms_polling_service.py` | ✅ Deployed `3f805f8a` |
+| 13 | Dead carrier enrichment task removed from `_poll_textverified()` | `sms_polling_service.py` | ✅ Deployed `3f805f8a` |
+| 14 | `_handle_timeout()`: reactivate → check can_report → report order | `sms_polling_service.py` | ✅ Deployed `3f805f8a` |
+| 15 | `check_service_available()` receives `capability` in legacy path | `purchase_endpoints.py` | ✅ Deployed `3f805f8a` |
+| 16 | `check_service_available()` receives `capability` in SSE path | `purchase_endpoints.py` | ✅ Deployed `3f805f8a` |
+| 17 | `ends_at` persisted to DB in SSE recording step | `purchase_endpoints.py` | ✅ Deployed `3f805f8a` |
 | 18 | Pricing URL `/verifications/pricing` vs `/pricing/verifications` | `textverified_service.py` | ⚠️ Unverified — needs live VPS test |
+
+## 13. Live Verification Tests Needed
+
+Run these from the server to confirm fixes are working:
+
+```bash
+# 1. Provider connected?
+docker compose exec app python -c "
+import asyncio; from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService(); print('enabled:', tv.enabled)
+print(asyncio.run(tv.get_balance()))
+"
+
+# 2. Services loading with prices?
+docker compose exec app python -c "
+import asyncio; from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService()
+svcs = asyncio.run(tv.get_services_list())
+print(f'{len(svcs)} services'); print(svcs[0] if svcs else 'EMPTY')
+"
+
+# 3. check_service_available() working?
+docker compose exec app python -c "
+import asyncio; from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService()
+print(asyncio.run(tv.check_service_available('whatsapp', capability='sms')))
+"
+
+# 4. Pricing URL test
+TOKEN=$(curl -s -X POST https://www.textverified.com/api/pub/v2/auth \
+  -H \"X-API-KEY: \$TEXTVERIFIED_API_KEY\" -H \"X-API-USERNAME: \$TEXTVERIFIED_EMAIL\" \
+  | python3 -c \"import sys,json; print(json.load(sys.stdin)['token'])\")
+curl -s -X POST https://www.textverified.com/api/pub/v2/pricing/verifications \
+  -H \"Authorization: Bearer \$TOKEN\" -H \"Content-Type: application/json\" \
+  -d '{\"serviceName\":\"whatsapp\",\"areaCode\":false,\"carrier\":false,\"numberType\":\"mobile\",\"capability\":\"sms\"}'
+```

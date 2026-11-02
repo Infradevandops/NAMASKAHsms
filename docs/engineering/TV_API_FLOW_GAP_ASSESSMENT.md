@@ -230,16 +230,23 @@ async def run_stock_monitor() -> None:
 
 | # | Gap | Severity | File | Status |
 |---|-----|----------|------|--------|
-| 1 | `check_service_available()` hardcodes `capability: "sms"` | 🔴 P0 | `textverified_service.py` | ❌ Not fixed |
-| 2 | `validating` SSE step does no real work | 🟡 P2 | `purchase_endpoints.py` | ❌ Not fixed |
-| 3 | `poll_sms_standard()` drops `audio_url`/`transcription` for voice | 🔴 P0 | `textverified_service.py` | ❌ Not fixed |
-| 4 | `ends_at` not persisted to DB in SSE path | 🟡 P1 | `purchase_endpoints.py` | ❌ Not fixed |
-| 5 | `report_verification()` called without checking `can_report` | 🟡 P1 | `sms_polling_service.py` | ❌ Not fixed |
-| 6 | Voice stores `"VOICE_RECV"` instead of transcription as code | 🟢 P2 | `sms_polling_service.py` | ❌ Not fixed |
-| 7 | No `transcribing` status in SSE path for voice | 🟢 P2 | `purchase_endpoints.py` | ❌ Not fixed |
-| 8 | Stale `"15-minute refresh"` comment in stock monitor | 🟢 P3 | `stock_monitor.py` | ❌ Not fixed |
-| — | `check_service_available()` added to legacy path | 🔴 P0 | `purchase_endpoints.py` | ✅ Fixed |
-| — | Stock monitor loop sleep 120s → 90s | 🟡 P1 | `stock_monitor.py` | ✅ Fixed |
+| 1 | `check_service_available()` hardcodes `capability: "sms"` | 🔴 P0 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
+| 2 | `validating` SSE step does no real work | 🟡 P2 | `purchase_endpoints.py` | 📋 Open |
+| 3 | Voice: `sms_content` not used as transcription | 🔴 P0 | `sms_polling_service.py` | ✅ Fixed `3f805f8a` |
+| 4 | `ends_at` not persisted to DB in SSE path | 🟡 P1 | `purchase_endpoints.py` | ✅ Fixed `3f805f8a` |
+| 5 | `report_verification()` called without checking `can_report` | 🟡 P1 | `sms_polling_service.py` | ✅ Fixed `3f805f8a` |
+| 6 | Voice stores `"VOICE_RECV"` instead of transcription | 🟢 P2 | `sms_polling_service.py` | ✅ Fixed `3f805f8a` |
+| 7 | No `transcribing` status in SSE path for voice | 🟢 P2 | `purchase_endpoints.py` | 📋 Open |
+| 8 | Stale `"15-minute refresh"` comment in stock monitor | 🟢 P3 | `stock_monitor.py` | 📋 Open |
+| — | `check_service_available()` added to legacy path | 🔴 P0 | `purchase_endpoints.py` | ✅ Fixed `47d69fd1` |
+| — | Stock monitor loop sleep 120s → 90s | 🟡 P1 | `stock_monitor.py` | ✅ Fixed `47d69fd1` |
+| — | 5 broken rental SDK calls | 🔴 P0 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
+| — | Voice pricing uses wrong `NumberType` | 🔴 P0 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
+| — | `max_price` never passed to `verifications.create()` | 🟡 P1 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
+| — | Dead `carrier` reads on `VerificationExpanded` | 🟡 P1 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
+| — | `reactivate` before `report` on timeout | 🟡 P1 | `sms_polling_service.py` | ✅ Fixed `3f805f8a` |
+| — | Area code modal shows state only, not city | 🟢 P2 | `area_code_endpoints.py` | ✅ Fixed `3f805f8a` |
+| — | Pricing URL `/verifications/pricing` vs `/pricing/verifications` | ⚠️ | `textverified_service.py` | ⚠️ Unverified — needs VPS test |
 
 ---
 

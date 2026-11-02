@@ -1,9 +1,180 @@
-# ACTIVE SPRINT — Stability Pass Before Version Lock
+# ACTIVE SPRINT — TV SDK Fixes Deployed + Stock Monitor Issue
 
-**Updated**: November 1, 2026
-**Focus**: Stabilise everything shipped in the last 24h, confirm CI green on `ee895ce8`,
-           then define the next phase. No version bump until CI is confirmed green and
-           the pending deploy fires.
+**Updated**: November 2, 2026
+**Server**: https://vrenum.app — ✅ Healthy (200 OK, 4.3s)
+**Critical**: ⚠️ Stock monitor returning `available: 0` — all services showing unavailable
+
+---
+
+## Server Status Right Now
+
+```
+GET /health          → {"status": "healthy", "service": "vrenum-sms"}  HTTP 200
+GET /api/services/stock → {"services": {}, "total": 2351, "available": 0}
+```
+
+**`services: {}` (empty) with `available: 0` is a critical prod issue.**
+The stock map has 2351 entries counted but zero available and the services
+dict is empty. This means one of:
+1. The SMS provider API key was rotated (required after security fix) but
+   the server `.env.production` has not been updated yet — provider disabled
+2. The stock monitor ran but `fetch_raw_services_with_quantity()` returned
+   empty (provider unreachable) and fell back to `build_stock_map()` which
+   also returned empty (no cached services list)
+3. The `check_service_available()` change to use SDK `verifications.pricing()`
+   is now failing silently if the pricing URL changed
+
+**Immediate action**: SSH to server, check app logs for provider errors,
+confirm `TEXTVERIFIED_API_KEY` is set and valid in `.env.production`.
+
+---
+
+## What Is Deployed (origin/main @ bd70304f)
+
+All security commits + all TV SDK fixes are on the server:
+
+| Commit | What | Status |
+|--------|------|--------|
+| `750a8d9f` | SSE purchase, dynamic ends_at, TV webhook, orphan recovery | ✅ Live |
+| `47d69fd1` | P0: availability gate, null-price filter, stock monitor 90s | ✅ Live |
+| `3f805f8a` | TV SDK fixes — 5 broken rental calls, voice pricing, max_price, reactivate, ends_at, area code city | ✅ Live |
+| `ee895ce8` | Fix 2 broken reservation tests | ✅ Live |
+| `e77cc206` | Remove credentials from docs | ✅ Live |
+| `6896c493` | Delete docs/archive, fix hardcoded passwords | ✅ Live |
+| `ed8ef05c` | Fix admin-dashboard.js auto-login | ✅ Live |
+| `bd70304f` | Tighten gitleaks rules | ✅ Live |
+
+---
+
+## TV SDK Fixes — What Was Shipped (3f805f8a)
+
+All gaps from the three TV docs are now implemented:
+
+| Fix | File | Status |
+|-----|------|--------|
+| `check_service_available()` uses SDK `verifications.pricing()` | `textverified_service.py` | ✅ Done |
+| Voice pricing uses `NumberType.VOIP` | `textverified_service.py` | ✅ Done |
+| `max_price` wired to `verifications.create()` | `textverified_service.py` | ✅ Done |
+| Dead `carrier` reads removed | `textverified_service.py` | ✅ Done |
+| `reactivate_verification()` added | `textverified_service.py` | ✅ Done |
+| 5 broken rental SDK calls fixed | `textverified_service.py` | ✅ Done |
+| Voice: `sms_content` used as transcription | `sms_polling_service.py` | ✅ Done |
+| `reactivate` before `report` on timeout | `sms_polling_service.py` | ✅ Done |
+| `ends_at` persisted to DB in SSE path | `purchase_endpoints.py` | ✅ Done |
+| `capability` passed to `check_service_available()` | `purchase_endpoints.py` | ✅ Done |
+| Area code modal shows city names | `area_code_endpoints.py` | ✅ Done |
+| 23h area code cache refresh | `lifespan.py` | ✅ Done |
+
+---
+
+## How to Test the TV SDK Fixes Work
+
+### Test 1 — Stock monitor is populating (FAILING right now)
+```bash
+# From server:
+docker compose exec app python -c "
+import asyncio
+from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService()
+print('enabled:', tv.enabled)
+result = asyncio.run(tv.get_balance())
+print('balance:', result)
+"
+```
+Expected: `enabled: True`, balance > 0
+If `enabled: False` → API key not set or invalid in `.env.production`
+
+### Test 2 — Services list loads
+```bash
+docker compose exec app python -c "
+import asyncio
+from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService()
+services = asyncio.run(tv.get_services_list())
+print(f'{len(services)} services, first: {services[0] if services else None}')
+"
+```
+Expected: 50+ services with prices
+
+### Test 3 — check_service_available() uses correct SDK path
+```bash
+docker compose exec app python -c "
+import asyncio
+from app.services.textverified_service import TextVerifiedService
+tv = TextVerifiedService()
+result = asyncio.run(tv.check_service_available('whatsapp', capability='sms'))
+print('result:', result)
+"
+```
+Expected: `{available: True, price: X.XX}` or `{available: False, reason: 'no_inventory'}`
+Never: `{available: False, reason: 'provider_disabled'}`
+
+### Test 4 — Pricing URL verification (unverified claim)
+```bash
+# From server — test both URL paths:
+TOKEN=$(curl -s -X POST https://www.textverified.com/api/pub/v2/auth \
+  -H "X-API-KEY: $TEXTVERIFIED_API_KEY" \
+  -H "X-API-USERNAME: $TEXTVERIFIED_EMAIL" | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# SDK path (what we now use)
+curl -s -X POST https://www.textverified.com/api/pub/v2/pricing/verifications \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"serviceName":"whatsapp","areaCode":false,"carrier":false,"numberType":"mobile","capability":"sms"}'
+
+# Old path (what we used before)
+curl -s -X POST https://www.textverified.com/api/pub/v2/verifications/pricing \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"serviceName":"whatsapp","areaCode":false,"carrier":false,"numberType":"mobile","capability":"sms"}'
+```
+
+### Test 5 — Full verification flow (manual)
+1. Go to https://vrenum.app/verify
+2. Services should load with prices and stock dots
+3. Select WhatsApp → Continue
+4. Pricing screen shows correct price
+5. Click "Get Number" → SSE stream fires
+6. Steps: pricing_check → balance_check → purchasing → validating → recording → complete
+7. Phone number appears, countdown uses real `ends_at` from TV (not hardcoded 2min)
+8. SMS arrives via webhook (instant) or polling (fallback)
+
+---
+
+## Open Tasks — Priority Order
+
+### P0 — Fix stock monitor (server showing available: 0)
+1. SSH to server
+2. Check logs: `docker compose logs app --tail=100 | grep -i 'stock\|provider\|textverified\|disabled\|error'`
+3. Confirm API key is set: `docker compose exec app printenv TEXTVERIFIED_API_KEY`
+4. If key was rotated: update `.env.production`, restart: `docker compose up -d --force-recreate`
+
+### P1 — Verify pricing URL from server
+Run Test 4 above from the server. Confirm which path TV accepts.
+Update `TV_API_REAL_FLOW.md` Gap 18 from ⚠️ UNVERIFIED to confirmed.
+
+### P2 — Telegram E2E live test
+Code complete since v4.9.0. Manual test with real Telegram account.
+
+### P3 — Add `test_textverified_service.py` to CI gate
+Tests are stable after the SDK fixes. Add to `ci.yml` pytest invocation.
+
+---
+
+## Which Sprint Owns These Docs
+
+The three TV docs (`TV_API_REAL_FLOW.md`, `TV_API_FLOW_GAP_ASSESSMENT.md`,
+`TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md`) were produced during the
+**v4.9.7 / Stability Pass sprint** (Nov 1, 2026). They document:
+
+- What TV's SDK actually does vs what our code assumed
+- Every gap between our implementation and TV's real API
+- The stock accuracy problem and its root cause
+- All fixes applied in `3f805f8a`
+
+The **next sprint** owns:
+- Verifying the fixes work on the live server (Tests 1–5 above)
+- Resolving the `available: 0` stock issue
+- Confirming the pricing URL
+- Expanding CI coverage to include the TV service tests
 
 ---
 
