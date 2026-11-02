@@ -63,7 +63,10 @@ paths = [
     '''deploy/docker/\.env\.production\.example''',
     '''\.env\.example''',
     '''\.env\.production\.example''',
-    '''.github/workflows/ci\.yml'''
+    '''.github/workflows/ci\.yml''',
+    '''docs/operations/security/CREDENTIAL_ROTATION_CHECKLIST\.md''',
+    '''scripts/deployment/setup_env\.sh''',
+    '''deploy/monitoring/docker-compose\.yml'''
 ]
 regexes = [
     # Placeholder patterns — not real values
@@ -73,6 +76,11 @@ regexes = [
     '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx''',
     '''<[a-z\-]+>''',
     '''change[-_]?me''',
+    # Template/placeholder DB URLs — not real credentials
+    '''postgresql://user:password@host''',
+    '''postgresql://[^:]+:\$\{[A-Z_]+\}@''',
+    '''postgresql://[^:]+:<[A-Z_]+>@''',
+    '''\$\{POSTGRES_PASSWORD\}''',
     # CI test values — these are intentional test-only strings
     '''test-secret-key-for-ci''',
     '''test-jwt-secret-key-for-ci''',

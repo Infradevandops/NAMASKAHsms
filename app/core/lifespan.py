@@ -384,17 +384,22 @@ async def lifespan(app):
                     try:
                         from app.core.unified_cache import cache as _cache
                         from app.services.textverified_service import (
-                            TextVerifiedService as _TVS,
-                            _AREA_CODES_CACHE_KEY,
                             _AC_STATE_CACHE_KEY,
+                            _AREA_CODES_CACHE_KEY,
                         )
+                        from app.services.textverified_service import (
+                            TextVerifiedService as _TVS,
+                        )
+
                         tv = _TVS()
                         if tv.enabled:
                             await _cache.set(_AREA_CODES_CACHE_KEY, None, 1)
                             await _cache.set(_AC_STATE_CACHE_KEY, None, 1)
                             await tv.get_area_codes_list()
                             await tv._get_area_codes_by_state()
-                            startup_logger.info("✅ Area code cache refreshed (23h loop)")
+                            startup_logger.info(
+                                "✅ Area code cache refreshed (23h loop)"
+                            )
                     except Exception as e:
                         startup_logger.warning(f"Area code refresh failed: {e}")
 

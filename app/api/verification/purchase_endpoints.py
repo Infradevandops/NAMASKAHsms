@@ -284,7 +284,9 @@ async def request_verification(
             )
 
         # Fetch real provider price for this specific service
-        provider_price = avail.get("price") or await _get_provider_price(request.service)
+        provider_price = avail.get("price") or await _get_provider_price(
+            request.service
+        )
 
         # Calculate cost based on capability type
         if request.capability == "voice":
@@ -845,7 +847,9 @@ async def request_verification_stream(
             )
         sms_cost = pricing_info["total_cost"]
 
-        balance_check = await BalanceService.check_sufficient_balance(user_id, sms_cost, db)
+        balance_check = await BalanceService.check_sufficient_balance(
+            user_id, sms_cost, db
+        )
         if not balance_check["sufficient"]:
             yield sse(
                 "failed",
@@ -856,8 +860,8 @@ async def request_verification_stream(
 
         # Step 3: purchase (real TV create — blocks 5-30s, charge commits here)
         yield sse("purchasing", message="Securing your number...")
-        from app.services.providers.provider_router import ProviderRouter
         from app.services.providers.provider_errors import ProviderError
+        from app.services.providers.provider_router import ProviderRouter
 
         provider_router = ProviderRouter()
         tier_manager = TierManager(db)
@@ -879,7 +883,11 @@ async def request_verification_stream(
             yield sse("failed", reason=e.category, message=e.user_message)
             return
         except Exception as e:
-            yield sse("failed", reason="provider_error", message="Provider temporarily unavailable. Your credits were not charged.")
+            yield sse(
+                "failed",
+                reason="provider_error",
+                message="Provider temporarily unavailable. Your credits were not charged.",
+            )
             return
 
         # Step 4: validate number quality
@@ -934,7 +942,11 @@ async def request_verification_stream(
             )
             if not success:
                 db.rollback()
-                yield sse("failed", reason="debit_failed", message=error or "Failed to deduct credits.")
+                yield sse(
+                    "failed",
+                    reason="debit_failed",
+                    message=error or "Failed to deduct credits.",
+                )
                 return
 
             db.commit()
@@ -942,7 +954,11 @@ async def request_verification_stream(
         except Exception as e:
             db.rollback()
             logger.error(f"SSE stream DB write failed: {e}", exc_info=True)
-            yield sse("failed", reason="db_error", message="Failed to record verification. Your credits were not charged.")
+            yield sse(
+                "failed",
+                reason="db_error",
+                message="Failed to record verification. Your credits were not charged.",
+            )
             return
 
         # Step 6: complete

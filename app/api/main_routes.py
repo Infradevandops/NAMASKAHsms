@@ -167,8 +167,9 @@ async def health_check(db: Session = Depends(get_db)):
     does not mark a degraded app as healthy.
     """
     import os
-    from sqlalchemy import text as _text
+
     from fastapi.responses import JSONResponse
+    from sqlalchemy import text as _text
 
     checks: dict = {}
 
@@ -182,6 +183,7 @@ async def health_check(db: Session = Depends(get_db)):
     # Redis
     try:
         from app.core.cache import get_redis
+
         r = get_redis()
         r.ping()
         checks["redis"] = "ok"
@@ -193,7 +195,9 @@ async def health_check(db: Session = Depends(get_db)):
         os.getenv("TEXTVERIFIED_API_KEY") and os.getenv("TEXTVERIFIED_USERNAME")
     )
 
-    healthy = checks["db"] == "ok" and checks["redis"] == "ok" and checks["tv_configured"]
+    healthy = (
+        checks["db"] == "ok" and checks["redis"] == "ok" and checks["tv_configured"]
+    )
     return JSONResponse(
         status_code=200 if healthy else 503,
         content={
