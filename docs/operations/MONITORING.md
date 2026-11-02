@@ -24,7 +24,7 @@ chmod +x start_monitoring.sh
 ## Access
 
 - **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (admin/admin123)
+- **Grafana**: http://localhost:3000 (admin / set via GRAFANA_ADMIN_PASSWORD env var)
 - **AlertManager**: http://localhost:9093
 - **API Metrics**: http://localhost:8000/metrics
 

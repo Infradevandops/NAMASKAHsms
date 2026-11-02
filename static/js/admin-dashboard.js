@@ -20,7 +20,7 @@ async function initializeDashboard() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: 'admin@vrenum.app',
-                    password: 'admin123'
+                    password: '{{admin_password}}'
                 })
             });
 

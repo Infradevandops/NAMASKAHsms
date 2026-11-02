@@ -67,7 +67,7 @@
   "variable": [
     {"key": "base_url", "value": "http://localhost:8000"},
     {"key": "email", "value": "admin@test.com"},
-    {"key": "password", "value": "admin123"},
+    {"key": "password", "value": "{{admin_password}}"},
     {"key": "token", "value": ""},
     {"key": "service_id", "value": "1"},
     {"key": "country", "value": "US"},

@@ -41,7 +41,9 @@ if "account_lockouts" in tables:
         # Create/update admin user if users table exists
 if "users" in tables:
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            admin_password = "admin123"  # Simple password for development
+            admin_password = os.environ.get("ADMIN_PASSWORD", "")
+            if not admin_password:
+                raise RuntimeError("Set ADMIN_PASSWORD env var before running this script")
             hashed_password = pwd_context.hash(admin_password)
 
             # Check if admin exists
