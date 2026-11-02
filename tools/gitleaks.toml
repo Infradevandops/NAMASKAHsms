@@ -6,14 +6,18 @@ paths = [
     '''app/utils/security\.py''',
     '''app/services/api_key_service\.py''',
     '''app/schemas/.*''',
-    '''scripts/.*''',
     '''scripts/security_scan\.py''',
     '''requirements.*\.txt''',
-    '''.env\.example''',
-    '''.github/workflows/ci\.yml''',
-    '''archive/.*''',
-    '''docs/.*'''
+    '''config/\.env\.example''',
+    '''config/\.env\.production\.example''',
+    '''deploy/docker/\.env\.production\.example''',
+    '''\.env\.example''',
+    '''\.env\.production\.example''',
+    '''.github/workflows/ci\.yml'''
 ]
+# NOTE: docs/ and scripts/ are NO LONGER allowlisted.
+# They were previously allowlisted which caused real credentials
+# committed to docs/archive/ and scripts/ to be missed by CI.
 regexes = [
     '''sk_live_[a-zA-Z0-9]{24,128}''',
     '''sk_test_[a-zA-Z0-9]{24,128}''',
@@ -24,5 +28,8 @@ regexes = [
     '''test-secret-key-for-ci''',
     '''test-jwt-secret-key-for-ci''',
     '''ChangeMe@[0-9]+''',
-    '''<admin-password>'''
+    '''<admin-password>''',
+    '''<your-vps-ip>''',
+    '''<your-textverified''',
+    '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx'''
 ]
