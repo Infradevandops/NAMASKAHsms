@@ -10,28 +10,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initializeDashboard() {
     try {
-        // Get auth token from cookies first
+        // Get auth token from cookies
         authToken = getCookie('access_token');
 
         if (!authToken) {
-            // Try to login with admin credentials
-            const loginResponse = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: 'admin@vrenum.app',
-                    password: '{{admin_password}}'
-                })
-            });
-
-            if (loginResponse.ok) {
-                const loginData = await loginResponse.json();
-                authToken = loginData.access_token;
-            } else {
-                showToast('Authentication failed - redirecting to login', 'error');
-                setTimeout(() => window.location.href = '/auth/login', 2000);
-                return;
-            }
+            // No token — redirect to login, never auto-login with hardcoded credentials
+            window.location.href = '/login';
+            return;
         }
 
         // Load dashboard data
