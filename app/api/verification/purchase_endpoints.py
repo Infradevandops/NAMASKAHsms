@@ -122,6 +122,28 @@ async def _fetch_single_service_price(service: str) -> Optional[float]:
         return None
 
 
+@router.get("/price")
+async def get_verification_price(
+    service: str,
+    country: str = "US",
+    capability: str = "sms",
+    area_code: Optional[str] = None,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    """Return tier-adjusted price for a service before purchase."""
+    filters = {"area_code": area_code} if area_code else None
+    if capability == "voice":
+        pricing = PricingCalculator.calculate_voice_cost(db, user_id, provider_price=None, area_code=area_code)
+    else:
+        pricing = PricingCalculator.calculate_sms_cost(db, user_id, filters, provider_price=None)
+    return {
+        "total_cost": pricing["total_cost"],
+        "base_cost": pricing.get("base_cost", pricing["total_cost"]),
+        "area_code_fee": pricing.get("area_code_fee", 0.0),
+    }
+
+
 @router.post("/request", status_code=status.HTTP_201_CREATED)
 async def request_verification(
     request: VerificationRequest,

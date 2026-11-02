@@ -1510,37 +1510,34 @@ async function loadBalance() {
     } catch(e) {}
 }
 
-function updatePricing() {
+async function updatePricing() {
     const areaCode = VerificationFlow.selectedAreaCode || null;
-    const carrier = VerificationFlow.selectedCarrier || null;
+    const service = VerificationFlow.selectedService || null;
+    const capability = VerificationFlow.selectedCapability || 'sms';
+    const el = document.getElementById('pricing-cost');
+    if (!el) return;
 
-    // Use service price or default to 2.63
-    let price = VerificationFlow.selectedServicePrice || 2.63;
-    let filterCharges = 0;
-
-    // For PAYG, add premiums if selecting area code or specific carrier
-    if (VerificationFlow.userTier === 'payg') {
-        if (areaCode) {
-            const ac_premiums = {
-                "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
-                "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
-            };
-            filterCharges += ac_premiums[areaCode] || 0.25;
-        }
-        if (carrier) {
-            const c_premiums = {
-                "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
-                "att": 0.20, "at&t": 0.20, "sprint": 0.20
-            };
-            filterCharges += c_premiums[carrier.toLowerCase()] || 0.50;
-        }
+    if (service) {
+        try {
+            const params = new URLSearchParams({ service, country: 'US', capability });
+            if (areaCode) params.append('area_code', areaCode);
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`/api/verification/price?${params}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                el.textContent = formatMoney(data.total_cost);
+                return;
+            }
+        } catch (e) {}
     }
 
-    // Pro/Custom users get filters included ($0 surcharge)
-    // Overage is handled on backend, not shown in base price preview
-
-    const total = price + filterCharges;
-    document.getElementById('pricing-cost').textContent = formatMoney(total);
+    // Fallback to local calculation
+    let price = VerificationFlow.selectedServicePrice || 2.63;
+    let filterCharges = 0;
+    if (VerificationFlow.userTier === 'payg' && areaCode) filterCharges += 0.25;
+    el.textContent = formatMoney(price + filterCharges);
 }
 // Phase 4 Area Code Check Logic
 let _acCheckTimeout = null;
