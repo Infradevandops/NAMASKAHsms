@@ -13,7 +13,7 @@
             });
             if (!response.ok) return;
             const data = await response.json();
-            const balance = parseFloat(data.credits) || 0;
+            const balance = parseFloat(data.credits ?? data.balance) || 0;
             const fmt = typeof formatMoney === 'function' ? formatMoney : (v) => '$' + v.toFixed(2);
             const formatted = fmt(balance);
 

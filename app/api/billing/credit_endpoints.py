@@ -40,38 +40,33 @@ async def get_credit_balance(
 
         # For admin users, show TextVerified balance as primary
         # For regular users, show platform credits
+        platform_credits = float(user.credits or 0.0)
+
+        # Fetch TV balance non-blocking for admin — never let it override platform credits
+        tv_balance = None
         if user.is_admin:
-            from app.core.unified_cache import cache
+            try:
+                from app.core.unified_cache import cache
+                _BALANCE_CACHE_KEY = "tv:admin_balance"
+                cached = await cache.get(_BALANCE_CACHE_KEY)
+                if cached is not None:
+                    tv_balance = cached
+                else:
+                    bal_data = await _get_tv_service().get_balance()
+                    tv_balance = bal_data.get("balance", 0.0)
+                    await cache.set(_BALANCE_CACHE_KEY, tv_balance, ttl=60)
+            except Exception:
+                tv_balance = None
 
-            _BALANCE_CACHE_KEY = "tv:admin_balance"
-            cached = await cache.get(_BALANCE_CACHE_KEY)
-            if cached is not None:
-                tv_balance = cached
-            else:
-                bal_data = await _get_tv_service().get_balance()
-                tv_balance = bal_data.get("balance", 0.0)
-                await cache.set(_BALANCE_CACHE_KEY, tv_balance, ttl=60)
-
-            # Admin sees TextVerified balance as primary
-            result = {
-                "credits": tv_balance,  # ← TextVerified balance
-                "platform_credits": user.credits
-                or 0.0,  # ← Platform balance (secondary)
-                "provider_balance": tv_balance,  # ← Keep for backward compatibility
-                "free_verifications": getattr(user, "free_verifications", 0),
-                "currency": "USD",
-                "last_updated": datetime.now(timezone.utc).isoformat(),
-                "source": "textverified_api",
-            }
-        else:
-            # Regular users see platform credits
-            result = {
-                "credits": user.credits or 0.0,
-                "free_verifications": getattr(user, "free_verifications", 0),
-                "currency": "USD",
-                "last_updated": datetime.now(timezone.utc).isoformat(),
-                "source": "database",
-            }
+        result = {
+            "credits": platform_credits,
+            "platform_credits": platform_credits,
+            "provider_balance": tv_balance,
+            "free_verifications": getattr(user, "free_verifications", 0),
+            "currency": "USD",
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "source": "database",
+        }
 
         # Log both the value returned to the client and the user's platform credits
         returned_credits = result.get("credits") if isinstance(result, dict) else None
