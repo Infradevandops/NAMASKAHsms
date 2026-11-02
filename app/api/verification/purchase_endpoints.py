@@ -512,7 +512,7 @@ async def request_verification(
                 f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
                 f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
             )
-            actual_cost -= refund_result["refund_amount"]
+            actual_cost -= float(refund_result["refund_amount"])
 
         # Step 2.4: Deduct credits
         old_balance = float(user.credits or 0)

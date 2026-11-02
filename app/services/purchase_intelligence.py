@@ -61,8 +61,8 @@ class PurchaseIntelligenceService:
                 try:
                     outcome = PurchaseOutcome(
                         service=service,
-                        requested_code=requested_code,
-                        assigned_code=assigned_code,
+                        requested_code=requested_code or "",
+                        assigned_code=assigned_code or "",
                         assigned_carrier=assigned_carrier,
                         carrier_type=carrier_type,
                         assigned_city=assigned_city,
