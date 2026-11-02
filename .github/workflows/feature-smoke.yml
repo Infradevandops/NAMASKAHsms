@@ -1,0 +1,152 @@
+name: Feature Smoke — Post-Deploy Verification
+
+# Runs after deploy.yml completes successfully
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  feature-smoke:
+    name: Live Feature Verification
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    env:
+      PROD_URL: https://vrenum.app
+      SMOKE_EMAIL: ${{ secrets.SMOKE_TEST_EMAIL }}
+      SMOKE_PASSWORD: ${{ secrets.SMOKE_TEST_PASSWORD }}
+      ADMIN_NOTIFY_EMAIL: ${{ secrets.ADMIN_NOTIFY_EMAIL }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install test dependencies
+        run: pip install httpx pytest pytest-asyncio
+
+      - name: Write smoke test
+        run: |
+          cat > /tmp/smoke.py << 'EOF'
+          import httpx, sys, json, os
+
+          BASE = os.environ["PROD_URL"]
+          results = {}
+
+          def check(name, fn):
+              try:
+                  fn()
+                  results[name] = "✅ pass"
+                  print(f"  ✅ {name}")
+              except Exception as e:
+                  results[name] = f"❌ FAIL: {e}"
+                  print(f"  ❌ {name}: {e}")
+
+          print(f"\n🔍 Running feature smoke against {BASE}\n")
+
+          # 1. Health — DB + Redis + TV config
+          def test_health():
+              r = httpx.get(f"{BASE}/health", timeout=10)
+              assert r.status_code == 200, f"HTTP {r.status_code}"
+              data = r.json()
+              assert data.get("status") == "healthy", f"degraded: {data.get('checks')}"
+          check("health", test_health)
+
+          # 2. Auth — login returns JWT
+          def test_auth():
+              email = os.environ.get("SMOKE_EMAIL", "")
+              password = os.environ.get("SMOKE_PASSWORD", "")
+              if not email or not password:
+                  raise Exception("SMOKE_TEST_EMAIL / SMOKE_TEST_PASSWORD not set")
+              r = httpx.post(f"{BASE}/api/auth/login",
+                             json={"email": email, "password": password}, timeout=10)
+              assert r.status_code == 200, f"HTTP {r.status_code}: {r.text[:200]}"
+              data = r.json()
+              assert data.get("access_token"), "no access_token in response"
+              return data["access_token"]
+          token = None
+          def test_auth_capture():
+              nonlocal token
+              token = test_auth()
+          check("auth_login", test_auth_capture)
+
+          # 3. Services stock — at least 1 service available
+          def test_services():
+              r = httpx.get(f"{BASE}/api/services/stock", timeout=10)
+              assert r.status_code == 200, f"HTTP {r.status_code}"
+              data = r.json()
+              services = data.get("services", {})
+              available = [s for s, v in services.items() if v.get("available")]
+              assert len(available) > 0, f"0 services available — TV API may be down"
+          check("services_stock", test_services)
+
+          # 4. Notifications categories (requires auth)
+          def test_notifications():
+              if not token:
+                  raise Exception("skipped — auth failed")
+              r = httpx.get(f"{BASE}/api/notifications/categories",
+                            headers={"Authorization": f"Bearer {token}"}, timeout=10)
+              assert r.status_code == 200, f"HTTP {r.status_code}"
+              assert "categories" in r.json(), "missing categories key"
+          check("notifications_categories", test_notifications)
+
+          # 5. Balance endpoint (requires auth)
+          def test_balance():
+              if not token:
+                  raise Exception("skipped — auth failed")
+              r = httpx.get(f"{BASE}/api/billing/balance",
+                            headers={"Authorization": f"Bearer {token}"}, timeout=10)
+              assert r.status_code == 200, f"HTTP {r.status_code}"
+          check("billing_balance", test_balance)
+
+          # 6. TV availability check — confirms TV API is reachable pre-purchase
+          def test_tv_availability():
+              if not token:
+                  raise Exception("skipped — auth failed")
+              # Hit the stock endpoint which internally calls TV pricing
+              r = httpx.get(f"{BASE}/api/services/stock", timeout=15)
+              assert r.status_code == 200, f"HTTP {r.status_code}"
+              data = r.json()
+              assert data.get("total", 0) > 0, "TV returned 0 services — API may be down"
+          check("tv_api_reachable", test_tv_availability)
+
+          # Summary
+          passed = sum(1 for v in results.values() if v.startswith("✅"))
+          failed = sum(1 for v in results.values() if v.startswith("❌"))
+          total = len(results)
+
+          print(f"\n{'='*50}")
+          print(f"Feature Smoke: {passed}/{total} passed, {failed} failed")
+          print(f"{'='*50}\n")
+
+          if failed > 0:
+              print("FAILED CHECKS:")
+              for k, v in results.items():
+                  if v.startswith("❌"):
+                      print(f"  {k}: {v}")
+              sys.exit(1)
+
+          sys.exit(0)
+          EOF
+
+      - name: Run feature smoke
+        id: smoke
+        env:
+          PROD_URL: ${{ env.PROD_URL }}
+          SMOKE_EMAIL: ${{ env.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ env.SMOKE_PASSWORD }}
+        run: python /tmp/smoke.py
+        continue-on-error: true
+
+      - name: Report smoke result
+        if: always()
+        run: |
+          if [ "${{ steps.smoke.outcome }}" = "success" ]; then
+            echo "✅ All feature smoke checks passed — deploy verified"
+          else
+            echo "❌ Feature smoke FAILED — prod may be degraded"
+            echo "Check: ${{ env.PROD_URL }}/health"
+            echo "Review deploy logs and Sentry for errors"
+            exit 1
+          fi

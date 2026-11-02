@@ -1,7 +1,10 @@
 name: Deploy to Production
 
+# Only deploy when CI passes — never on a failing push
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - Minimal & Reliable"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -9,6 +12,8 @@ jobs:
   deploy:
     name: Deploy to Linux VM
     runs-on: ubuntu-latest
+    # Hard gate: skip entirely if CI did not pass
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Deploy via SSH
@@ -22,15 +27,21 @@ jobs:
             cd ~/vrenum/Vrenum
             git fetch origin main
             git reset --hard origin/main
+
+            # Validate no pending migrations before rebuilding
+            echo "🔍 Checking migration state..."
             cd /root/vrenum
+            docker compose run --rm app alembic check 2>/dev/null && echo "✅ Migrations up to date" || echo "⚠️ Pending migrations detected — will apply on startup"
+
             docker compose up -d --build --force-recreate
             echo "⏳ Waiting for app to be healthy..."
             for i in $(seq 1 40); do
-              if curl -fs http://localhost:8000/health > /dev/null 2>&1; then
+              STATUS=$(curl -fs http://localhost:8000/health 2>/dev/null || echo "")
+              if echo "$STATUS" | grep -q '"status":"healthy"'; then
                 echo "✅ Deploy complete and healthy (attempt $i)"
                 exit 0
               fi
-              echo "Attempt $i/40 — retrying in 15s..."
+              echo "Attempt $i/40 — retrying in 15s... ($STATUS)"
               sleep 15
             done
             echo "❌ App did not become healthy after 10 minutes"
@@ -41,8 +52,7 @@ jobs:
       - name: Purge Cloudflare cache
         if: success()
         run: |
-          # Note: GH Actions runners are blocked from api.cloudflare.com
-          # Cache busting is handled by ?v={{ app_version }} query strings on all static assets
-          # Manual purge: CF Dashboard -> vrenum.app -> Caching -> Purge Cache -> Prefix -> vrenum.app/static/
+          # GH Actions runners are blocked from api.cloudflare.com
+          # Static assets use ?v={{ app_version }} cache busters on every deploy
           echo "ℹ️ CF auto-purge skipped (runner network restriction). Static assets use ?v= cache busters."
           echo "✅ Deploy complete. New JS/CSS will be served via versioned URLs."

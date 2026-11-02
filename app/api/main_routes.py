@@ -161,9 +161,47 @@ async def docs_page(request: Request):
 
 
 @router.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "service": "vrenum-sms"}
+async def health_check(db: Session = Depends(get_db)):
+    """Meaningful health check — verifies DB, Redis, and TV config are live.
+    Returns 503 if any critical dependency is down so the deploy workflow
+    does not mark a degraded app as healthy.
+    """
+    import os
+    from sqlalchemy import text as _text
+    from fastapi.responses import JSONResponse
+
+    checks: dict = {}
+
+    # DB
+    try:
+        db.execute(_text("SELECT 1"))
+        checks["db"] = "ok"
+    except Exception as e:
+        checks["db"] = f"error: {e}"
+
+    # Redis
+    try:
+        from app.core.cache import get_redis
+        r = get_redis()
+        r.ping()
+        checks["redis"] = "ok"
+    except Exception as e:
+        checks["redis"] = f"error: {e}"
+
+    # TV credentials present (not a live API call — just config check)
+    checks["tv_configured"] = bool(
+        os.getenv("TEXTVERIFIED_API_KEY") and os.getenv("TEXTVERIFIED_USERNAME")
+    )
+
+    healthy = checks["db"] == "ok" and checks["redis"] == "ok" and checks["tv_configured"]
+    return JSONResponse(
+        status_code=200 if healthy else 503,
+        content={
+            "status": "healthy" if healthy else "degraded",
+            "service": "vrenum-sms",
+            "checks": checks,
+        },
+    )
 
 
 # Redirects for common paths
