@@ -61,8 +61,8 @@ async def test_build_stock_map_price_based(services_with_prices):
     assert result["tinder"]["available"] is True
     assert result["whatsapp"]["available"] is True
     assert result["google"]["available"] is True
-    assert result["nullprice"]["available"] is False
-    assert result["zeroprice"]["available"] is False
+    assert result["nullprice"]["available"] is None  # unknown, not False
+    assert result["zeroprice"]["available"] is False  # explicitly zero = unavailable
 
 
 @pytest.mark.asyncio

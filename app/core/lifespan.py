@@ -82,7 +82,7 @@ async def lifespan(app):
                         tv.get_area_codes_list(),
                         return_exceptions=True,
                     ),
-                    timeout=45.0,
+                    timeout=20.0,
                 )
                 # Warm the stock map immediately after services are loaded
                 # so the first GET /api/services/stock is never cold
@@ -106,7 +106,7 @@ async def lifespan(app):
         # Skip pre-warming in test mode — block startup until warm (max 20s)
         if os.getenv("TESTING") != "1":
             try:
-                await asyncio.wait_for(_prewarm(), timeout=60.0)
+                await asyncio.wait_for(_prewarm(), timeout=30.0)
             except asyncio.TimeoutError:
                 startup_logger.warning("Pre-warm timed out — first request may be slow")
         else:

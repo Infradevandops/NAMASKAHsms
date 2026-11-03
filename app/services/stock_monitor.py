@@ -65,8 +65,14 @@ async def build_stock_map() -> Dict[str, dict]:
             price = svc.get("price")
             qty = svc.get("quantity")
             price_available = price is not None and float(price) > 0
+            # Use None for unknown (not yet priced) vs False for confirmed unavailable
+            # This prevents greying out services just because pricing hasn't run yet
+            if price is None:
+                availability = None  # unknown — don't grey out
+            else:
+                availability = price_available
             stock_map[slug] = {
-                "available": price_available,
+                "available": availability,
                 "price": price,
                 "quantity": qty,
                 "provider": "textverified",

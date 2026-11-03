@@ -312,47 +312,9 @@ class TextVerifiedService:
                     f"Fetched {len(services)} services, {len(unique_services)} unique after dedup"
                 )
 
-                # Price priority services inline (up to 30s), rest in background
-                try:
-                    priced = await asyncio.wait_for(
-                        self._fetch_prices_inline(unique_services), timeout=30.0
-                    )
-                    # Only write to the long-lived cache if ALL entries have real prices.
-                    # Partial pricing (some None) must not poison the 24h cache.
-                    fully_priced = [r for r in priced if r.get("price") is not None]
-                    if len(fully_priced) == len(priced):
-                        try:
-                            await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
-                            await cache.set(
-                                _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
-                            )
-                        except Exception as e:
-                            logger.warning(f"Failed to cache services: {e}")
-                    else:
-                        # Partial: cache names-only (short TTL), background fills prices
-                        logger.warning(
-                            f"Inline pricing partial: {len(fully_priced)}/{len(priced)} priced. "
-                            "Caching names only, background task will fill prices."
-                        )
-                        try:
-                            await cache.set(
-                                _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
-                            )
-                        except Exception as e:
-                            logger.warning(f"Failed to cache services: {e}")
-                        asyncio.create_task(
-                            self._fetch_and_cache_pricing(unique_services)
-                        )
-                    return priced
-                except (asyncio.TimeoutError, Exception) as e:
-                    logger.warning(
-                        f"Inline pricing timed out/failed ({e}), returning names only"
-                    )
-
-                # Fallback: return without prices, background fetch
-                # CRITICAL: Do NOT write null-price entries to _SERVICES_CACHE_KEY (24h).
-                # Only write to _SERVICES_NAMES_CACHE_KEY so _get_provider_price can
-                # detect the null and trigger a live single-service fetch.
+                # Price priority services in background — don't block service list return.
+                # check_service_available() at purchase time is the real availability gate.
+                # Background task prices popular services first, updates cache within ~60s.
                 result = [
                     {
                         "id": s.service_name,
@@ -371,6 +333,9 @@ class TextVerifiedService:
                     logger.warning(f"Failed to cache services: {e}")
 
                 asyncio.create_task(self._fetch_and_cache_pricing(unique_services))
+                logger.info(
+                    f"Returning {len(result)} services (names only), pricing in background"
+                )
                 return result
 
             except asyncio.TimeoutError:
@@ -571,10 +536,48 @@ class TextVerifiedService:
         return list(results)
 
     async def _fetch_and_cache_pricing(self, services) -> None:
-        """Background task: fetch all service prices and update 24h cache."""
+        """Background task: fetch prices for all services, priority ones first.
+        Updates the names cache with prices as they are fetched.
+        """
         from app.core.unified_cache import cache
 
-        sem = asyncio.Semaphore(10)
+        _PRIORITY = {
+            "tinder",
+            "google",
+            "facebook",
+            "instagram",
+            "twitter",
+            "whatsapp",
+            "telegram",
+            "discord",
+            "snapchat",
+            "uber",
+            "lyft",
+            "amazon",
+            "microsoft",
+            "apple",
+            "paypal",
+            "coinbase",
+            "netflix",
+            "spotify",
+            "airbnb",
+            "doordash",
+            "linkedin",
+            "reddit",
+            "signal",
+            "viber",
+            "cashapp",
+            "venmo",
+            "binance",
+            "steam",
+            "twitch",
+            "github",
+        }
+        priority = [s for s in services if s.service_name.lower() in _PRIORITY]
+        rest = [s for s in services if s.service_name.lower() not in _PRIORITY]
+        ordered = priority + rest
+
+        sem = asyncio.Semaphore(3)
 
         async def _price(service_name: str) -> float:
             async with sem:
@@ -595,7 +598,7 @@ class TextVerifiedService:
                     return None
 
         try:
-            prices = await asyncio.gather(*[_price(s.service_name) for s in services])
+            prices = await asyncio.gather(*[_price(s.service_name) for s in ordered])
             result = [
                 {
                     "id": s.service_name,
@@ -603,10 +606,17 @@ class TextVerifiedService:
                     "price": float(p) if p is not None else None,
                     "cost": float(p) if p is not None else None,
                 }
-                for s, p in zip(services, prices)
+                for s, p in zip(ordered, prices)
             ]
-            await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
-            logger.info(f"Background pricing cache updated: {len(result)} services")
+            priced = sum(1 for r in result if r["price"] is not None)
+            # Write fully-priced result to long-lived cache
+            fully_priced = [r for r in result if r["price"] is not None]
+            if fully_priced:
+                await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
+                await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
+                logger.info(
+                    f"Background pricing complete: {priced}/{len(result)} services priced"
+                )
         except Exception as e:
             logger.error(f"Background pricing fetch failed: {e}")
 
