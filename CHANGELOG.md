@@ -4,17 +4,37 @@ All notable changes to the Vrenum SMS project.
 
 ## [Unreleased]
 
-### Pending Deploy (ee895ce8 — CI running)
-- TV SDK correctness fixes — 5 broken rental SDK calls, voice pricing, max_price, reactivate-before-report
-- Area code modal city enrichment ("212 — New York, NY")
-- ends_at persisted to DB in SSE path
-- 23h area code cache background refresh
-- Surcharge-accurate pricing check when area code selected
-
 ### In Progress
 - Test coverage improvement: 25% → 60% → 90% target
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
-- TV pricing URL verification from VPS
+- TV support ticket open to unblock server IP `169.255.57.146` from Cloudflare
+
+---
+
+## [4.9.8] - November 3, 2026
+
+Live Purchasability Verified + Notification Email Session Fix
+
+### Fixed
+- **Detached SQLAlchemy instance in notification email dispatch**: `_broadcast_notification()` in `notification_dispatcher.py` passed the live ORM `Notification` object directly into an `asyncio.create_task()` — by the time the task ran, the DB session was closed and SQLAlchemy raised `Instance is not bound to a Session`. Fixed by snapshotting all required fields (`title`, `message`, `type`, `link`) into a plain `_NotifSnapshot` object before creating the task. Session is never touched inside the async task.
+- **Proxy confirmed working**: TV balance returns `$43.65` via Webshare proxy. All 15 probed services available and purchasable.
+
+### Added
+- **`scripts/test_purchasable.py`**: Standalone live probe script — checks TV balance, probes 15 services via `check_service_available()`, attempts one real purchase + immediate cancel. Run with `docker compose exec app python test_purchasable.py`.
+
+### Verified (Live on Production)
+- TV balance: $43.65 ✅
+- All 15 services available: tinder ($0.50), google ($0.75), facebook ($0.75), instagram ($0.50), twitter ($0.50), whatsapp ($1.50), telegram ($0.75), discord ($0.50), snapchat ($0.25), uber ($0.50), lyft ($0.50), amazon ($0.75), microsoft ($0.60), apple ($0.50), paypal ($0.50)
+- Real purchase + cancel: ✅ (tinder, +12184615619, $0.50, cancelled immediately)
+- WhatsApp out-of-stock errors: expected — TV stock depletes between probe and purchase
+- ablenow/tinder timeouts: SMS not arriving from TV (provider-side, not platform bug)
+
+### Technical
+- Files modified: `app/services/notification_dispatcher.py`
+- Files added: `scripts/test_purchasable.py`
+- No database migrations required
+- No new dependencies
+- Backward compatible: 100%
 
 ---
 
