@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from app.core.cache import get_redis
 from app.core.config import settings
@@ -59,8 +59,11 @@ class SMSPollingService:
 
             if not verification.activation_id:
                 logger.warning(
-                    f"No activation_id for verification {verification_id}, stopping poll"
+                    f"No activation_id for verification {verification_id} — marking failed"
                 )
+                verification.status = "failed"
+                verification.failure_reason = "no_activation_id"
+                db.commit()
                 return
 
             # Calculate timeout
@@ -159,7 +162,9 @@ class SMSPollingService:
 
         # Notify user we're still waiting
         asyncio.create_task(
-            self._notify_waiting(verification.user_id, verification.service_name, str(verification.id))
+            self._notify_waiting(
+                verification.user_id, verification.service_name, str(verification.id)
+            )
         )
 
         # Standard TextVerified poll
@@ -319,9 +324,7 @@ class SMSPollingService:
 
         from app.services.verification_status_service import mark_sms_code_received
 
-        await mark_sms_code_received(
-            db, v, sms_code, sms_text
-        )
+        await mark_sms_code_received(db, v, sms_code, sms_text)
 
         # Instrumentation
         latency = None
@@ -486,15 +489,11 @@ class SMSPollingService:
                         verification.activation_id
                     )
                     if reactivated:
-                        logger.info(
-                            f"Reactivated {verification.id} — restarting poll"
-                        )
+                        logger.info(f"Reactivated {verification.id} — restarting poll")
                         # Reset DB status to pending and restart poll
                         verification.status = "pending"
                         db.commit()
-                        asyncio.create_task(
-                            self.start_polling(str(verification.id))
-                        )
+                        asyncio.create_task(self.start_polling(str(verification.id)))
                         return
 
                 if can_report:
@@ -507,11 +506,13 @@ class SMSPollingService:
                     )
             elif provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
+
                 provider_refunded = await TelnyxAdapter().report_failed(
                     verification.activation_id
                 )
             elif provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
+
                 provider_refunded = await FiveSimAdapter().report_failed(
                     verification.activation_id
                 )
@@ -538,7 +539,9 @@ class SMSPollingService:
 
         logger.info(f"Verification {verification.id} timed out")
 
-    async def _notify_waiting(self, user_id: str, service_name: str, verification_id: str = ""):
+    async def _notify_waiting(
+        self, user_id: str, service_name: str, verification_id: str = ""
+    ):
         """Send 'still waiting' notification after 20 seconds."""
         await asyncio.sleep(20)
         # Distributed lock — prevent duplicate notifications from multiple workers
@@ -551,7 +554,9 @@ class SMSPollingService:
                     if not acquired:
                         return
             except Exception as e:
-                logger.warning(f"Redis lock unavailable for waiting notif {verification_id}: {e}")
+                logger.warning(
+                    f"Redis lock unavailable for waiting notif {verification_id}: {e}"
+                )
         db = None
         try:
             db = SessionLocal()

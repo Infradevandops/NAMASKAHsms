@@ -84,6 +84,17 @@ async def lifespan(app):
                     ),
                     timeout=20.0,
                 )
+                # Warm the stock map immediately after services are loaded
+                # so the first GET /api/services/stock is never cold
+                try:
+                    from app.services.stock_monitor import refresh_stock_cache
+
+                    await asyncio.wait_for(refresh_stock_cache(), timeout=10.0)
+                    startup_logger.info("Stock cache warmed at startup")
+                except Exception as stock_err:
+                    startup_logger.warning(
+                        f"Stock cache warm failed (non-critical): {stock_err}"
+                    )
                 startup_logger.info("Cache pre-warming completed")
             except asyncio.TimeoutError:
                 startup_logger.warning(
@@ -106,16 +117,12 @@ async def lifespan(app):
             from app.services.refund_policy_enforcer import refund_policy_enforcer
             from app.services.sms_polling_service import sms_polling_service
 
-            polling_task = asyncio.create_task(
-                sms_polling_service.start_background_service()
-            )
+            asyncio.create_task(sms_polling_service.start_background_service())
             startup_logger.info("✅ SMS polling background service started")
 
             # Start refund policy enforcer (backup to polling service)
             try:
-                enforcer_task = asyncio.create_task(
-                    refund_policy_enforcer.start_enforcement()
-                )
+                asyncio.create_task(refund_policy_enforcer.start_enforcement())
                 startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
             except Exception as e:
                 startup_logger.warning(
@@ -202,7 +209,7 @@ async def lifespan(app):
                                     NumberRental.status == "active",
                                     NumberRental.expires_at <= warning_window,
                                     NumberRental.expires_at > now,
-                                    NumberRental.warning_sent == False,
+                                    NumberRental.warning_sent is False,
                                 )
                                 .all()
                             )

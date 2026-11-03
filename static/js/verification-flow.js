@@ -810,9 +810,14 @@ async function createVerification() {
         if (loadingCard) loadingCard.style.display = 'none';
     }
 
+    // AbortController so cancelPurchase() can kill the stream before charge commits
+    const _abortCtrl = new AbortController();
+    VerificationFlow._streamAbort = _abortCtrl;
+
     try {
         const response = await fetch('/api/verification/request/stream', {
             method: 'POST',
+            signal: _abortCtrl.signal,
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
@@ -857,8 +862,8 @@ async function createVerification() {
                         updateLoadingMessage('Checking your balance...');
                         break;
                     case 'purchasing':
+                        // Cancel still allowed here — charge has NOT committed yet
                         updateLoadingMessage('Securing your number...');
-                        hideCancelButton();
                         // Show "still working" message if TV takes longer than 10s
                         VerificationFlow._purchasingTimer = setTimeout(() => {
                             updateLoadingMessage('Still working — this can take up to 30 seconds...');
@@ -873,6 +878,7 @@ async function createVerification() {
                         break;
                     case 'complete':
                         clearTimeout(VerificationFlow._purchasingTimer);
+                        hideCancelButton(); // charge committed — swap to post-charge cancel
                         hidePurchaseLoadingState();
                         VerificationFlow.verificationId = event.verification_id;
                         VerificationFlow.createdAt = event.created_at || new Date().toISOString();
@@ -896,6 +902,7 @@ async function createVerification() {
                     case 'failed':
                         clearTimeout(VerificationFlow._purchasingTimer);
                         hidePurchaseLoadingState();
+                        localStorage.removeItem('active_verification_id'); // prevent orphan recovery
                         document.getElementById('step-2-card').style.display = 'block';
                         if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
                         const msg = event.message || 'Failed to create verification';
@@ -923,10 +930,18 @@ async function createVerification() {
 }
 
 function cancelPurchase() {
-    // Only safe before 'purchasing' step fires (cancel button is hidden after that)
+    // Abort the SSE stream — safe at any point before 'complete' fires (no charge yet)
+    if (VerificationFlow._streamAbort) {
+        VerificationFlow._streamAbort.abort();
+        VerificationFlow._streamAbort = null;
+    }
+    clearTimeout(VerificationFlow._purchasingTimer);
+    localStorage.removeItem('active_verification_id');
     const loadingCard = document.getElementById('purchase-loading-card');
     if (loadingCard) loadingCard.style.display = 'none';
     document.getElementById('step-2-card').style.display = 'block';
+    const btn = document.getElementById('get-number-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
     window.toast && window.toast.info('Purchase cancelled.');
 }
 
@@ -1819,4 +1834,3 @@ selectImmersiveItem = function(value, label, price) {
         saveBtn.style.display = rank >= 2 ? 'inline-block' : 'none';
     }
 };
-

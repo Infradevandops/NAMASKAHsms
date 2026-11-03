@@ -77,41 +77,13 @@ async def build_stock_map() -> Dict[str, dict]:
 
 
 async def refresh_stock_cache() -> None:
-    """Refresh stock cache directly from TV API — bypasses SDK to get quantity."""
-    stock_map: Dict[str, dict] = {}
-    try:
-        from app.services.textverified_service import TextVerifiedService
+    """Refresh stock cache from the TV services price cache.
 
-        tv = TextVerifiedService()
-        if tv.enabled:
-            raw_services = await tv.fetch_raw_services_with_quantity()
-            for item in raw_services:
-                slug = (item.get("id") or "").lower().strip()
-                if not slug:
-                    continue
-                price = item.get("price")
-                qty = item.get("quantity")
-                outcome = await get_purchase_outcome(slug)
-                if outcome is not None:
-                    available = outcome
-                elif qty is not None:
-                    available = qty > 0
-                elif price is not None and float(price) > 0:
-                    available = True
-                else:
-                    # price=null from TV means out of stock — exclude entirely
-                    available = False
-                stock_map[slug] = {
-                    "available": available,
-                    "price": price,
-                    "quantity": qty,
-                    "provider": "textverified",
-                }
-    except Exception as e:
-        logger.warning(f"refresh_stock_cache raw fetch failed, falling back: {e}")
-
-    if not stock_map:
-        stock_map = await build_stock_map()
+    TV's /api/pub/v2/services does not return quantity — fetch_raw_services_with_quantity
+    always returns qty=0 for every service, making everything appear out of stock.
+    The only reliable availability signal from TV is: price > 0 = in stock.
+    """
+    stock_map = await build_stock_map()
 
     if stock_map:
         await cache.set(
@@ -148,4 +120,6 @@ async def run_stock_monitor() -> None:
             await refresh_stock_cache()
         except Exception as e:
             logger.warning(f"Stock monitor refresh failed: {e}")
-        await asyncio.sleep(90)  # refresh before 120s TTL expires — keeps cache always warm
+        await asyncio.sleep(
+            90
+        )  # refresh before 120s TTL expires — keeps cache always warm
