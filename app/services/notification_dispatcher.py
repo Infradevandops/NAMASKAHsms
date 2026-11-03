@@ -1,7 +1,5 @@
 """Notification dispatcher for real-time notifications."""
 
-from typing import Any, Dict, Optional
-
 from app.core.logging import get_logger
 from app.services.notification_service import NotificationService
 
@@ -48,12 +46,28 @@ class NotificationDispatcher:
 
             user = self.db.query(User).filter(User.id == user_id).first()
             if user and hasattr(notification, "title"):
+                # Extract plain values now while session is open — avoids detached instance error
+                user_email = user.email
+                user_name = (
+                    getattr(user, "display_name", None) or user.email.split("@")[0]
+                )
+                notif_title = notification.title
+                notif_message = notification.message
+                notif_type = getattr(notification, "type", "info")
+                notif_link = getattr(notification, "link", None)
+
+                class _NotifSnapshot:
+                    def __init__(self):
+                        self.title = notif_title
+                        self.message = notif_message
+                        self.type = notif_type
+                        self.link = notif_link
+
                 asyncio.create_task(
                     email_service.send_notification_email(
-                        user_email=user.email,
-                        notification=notification,
-                        user_name=getattr(user, "display_name", None)
-                        or user.email.split("@")[0],
+                        user_email=user_email,
+                        notification=_NotifSnapshot(),
+                        user_name=user_name,
                     )
                 )
         except Exception as _e:
