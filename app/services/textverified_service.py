@@ -1,18 +1,15 @@
 """TextVerified API integration service."""
 
 import asyncio
-import json
 import os
 from typing import Any, Dict, List, Optional
 
-import requests
 from requests.adapters import HTTPAdapter
 
 from app.core.config import get_settings
 from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
 from app.services.area_code_geo import get_ranked_alternatives
-from app.services.carrier_lookup import CarrierLookupService
 from app.services.phone_validator import PhoneValidator
 from app.services.purchase_intelligence import PurchaseIntelligenceService
 
@@ -64,7 +61,9 @@ class TextVerifiedService:
                 )
                 # Increase connection pool to handle concurrent polling
                 adapter = HTTPAdapter(pool_connections=1, pool_maxsize=30)
-                session = getattr(self.client, "_session", None) or getattr(self.client, "session", None)
+                session = getattr(self.client, "_session", None) or getattr(
+                    self.client, "session", None
+                )
                 if session:
                     session.mount("https://", adapter)
                     session.mount("http://", adapter)
@@ -391,7 +390,7 @@ class TextVerifiedService:
 
         logger.error(f"TextVerified API failed after 3 attempts: {last_error}")
         raise RuntimeError(
-            f"TextVerified API failed after 3 attempts. Please try again in a few moments."
+            "TextVerified API failed after 3 attempts. Please try again in a few moments."
         )
 
     async def fetch_raw_services_with_quantity(self) -> list:
@@ -459,16 +458,54 @@ class TextVerifiedService:
             return []
 
     async def _fetch_prices_inline(self, services) -> list:
-        """Fetch real prices + quantity for all services inline.
-        Calls TV API directly to capture quantity field the SDK drops.
+        """Fetch real prices for services inline, prioritising popular ones.
+
+        Popular services are moved to the front so they get priced within
+        the 12s timeout window even when there are 2351 total services.
+        Semaphore reduced to 3 to avoid TV rate limiting.
         """
-        sem = asyncio.Semaphore(10)
+        # Popular services that must be priced first
+        _PRIORITY = {
+            "tinder",
+            "google",
+            "facebook",
+            "instagram",
+            "twitter",
+            "whatsapp",
+            "telegram",
+            "discord",
+            "snapchat",
+            "uber",
+            "lyft",
+            "amazon",
+            "microsoft",
+            "apple",
+            "paypal",
+            "coinbase",
+            "netflix",
+            "spotify",
+            "airbnb",
+            "doordash",
+            "linkedin",
+            "reddit",
+            "signal",
+            "viber",
+            "cashapp",
+            "venmo",
+            "binance",
+            "steam",
+            "twitch",
+            "github",
+        }
+        priority = [s for s in services if s.service_name.lower() in _PRIORITY]
+        rest = [s for s in services if s.service_name.lower() not in _PRIORITY]
+        ordered = priority + rest
+
+        sem = asyncio.Semaphore(3)  # reduced from 10 to avoid TV rate limiting
 
         def _raw_pricing(service_name: str) -> dict:
-            """Call TV pricing endpoint directly to get quantity field."""
+            """Call TV pricing endpoint directly."""
             try:
-                from textverified.data import NumberType, ReservationCapability
-
                 self.client.refresh_bearer()
                 resp = self.client.session.post(
                     f"{self.client.base_url}/api/pub/v2/pricing/verifications",
@@ -487,7 +524,6 @@ class TextVerifiedService:
                 )
                 if resp.ok:
                     data = resp.json()
-                    # data may be nested under 'data' key
                     payload = data.get("data", data)
                     return {
                         "price": payload.get("price"),
@@ -495,7 +531,6 @@ class TextVerifiedService:
                         or payload.get("qty")
                         or payload.get("availableCount")
                         or payload.get("count"),
-                        "raw": payload,
                     }
                 return {"price": None, "quantity": None}
             except Exception as e:
@@ -527,7 +562,7 @@ class TextVerifiedService:
                         "quantity": None,
                     }
 
-        results = await asyncio.gather(*[_price(s) for s in services])
+        results = await asyncio.gather(*[_price(s) for s in ordered])
         priced = sum(1 for r in results if r["price"] is not None)
         with_qty = sum(1 for r in results if r.get("quantity") is not None)
         logger.info(
@@ -1407,7 +1442,9 @@ class TextVerifiedService:
             err = str(e).lower()
             # 429 rate limit — don't block the purchase, let create() handle it
             if "429" in err or "rate" in err or "too many" in err:
-                logger.warning(f"TV pricing rate limited for '{service_name}', allowing purchase attempt")
+                logger.warning(
+                    f"TV pricing rate limited for '{service_name}', allowing purchase attempt"
+                )
                 return {"available": True, "price": None}
             logger.warning(f"check_service_available failed for '{service_name}': {e}")
             return {"available": False, "reason": str(e)}
