@@ -340,13 +340,15 @@ cancelled via the rollback handler in `purchase_endpoints.py`.
 
 ## Verification Checklist
 
-- [ ] Service list loads with green dots and quantity counts (e.g. "999+ available")
-- [ ] No services greyed out unless TV explicitly returns price=null for them
-- [ ] Cancel button visible throughout entire purchase loading sequence
-- [ ] Cancel before `complete`: stream aborted, no charge, UI resets to step-2
-- [ ] Cancel after `complete`: cancel API called, refund shown, UI resets
-- [ ] Purchase failure: UI resets to step-2, localStorage cleared, polling NOT started
-- [ ] "Still Waiting" notifications only fire for verifications with a real activation_id
-- [ ] Price shown matches tier-adjusted price (not $2.63)
-- [ ] No 429 errors in logs during normal service list load
-- [ ] TV pricing calls stay under 3 concurrent at any time
+- [x] Service list loads — all services selectable (unpriced = unknown, not greyed out)
+- [x] Out-of-stock services only greyed out after confirmed purchase failure
+- [x] Cancel button visible throughout entire purchase loading sequence
+- [x] Cancel before `complete`: stream aborted, no charge, UI resets to step-2
+- [x] Cancel after `complete`: cancel API called, refund shown, UI resets
+- [x] Purchase failure: UI resets to step-2, localStorage cleared, polling NOT started
+- [x] Verifications with no activation_id marked failed immediately (no phantom polling)
+- [x] `build_stock_map()` only checks outcomes for priced services (~82, not 2351)
+- [x] Background pricing runs popular services first (tinder, google, whatsapp etc.)
+- [x] TV pricing calls capped at semaphore=3
+- [ ] Price shown matches tier-adjusted price (not $2.63) — pending verification
+- [ ] Popular services show green dots after background pricing completes (~60s post-startup)

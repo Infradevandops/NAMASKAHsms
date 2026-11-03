@@ -8,33 +8,56 @@ All notable changes to the Vrenum SMS project.
 - Test coverage improvement: 25% → 60% → 90% target
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
 - TV support ticket open to unblock server IP `169.255.57.146` from Cloudflare
+- Background service pricing completing for popular services (tinder, google, whatsapp etc.)
 
 ---
 
-## [4.9.8] - November 3, 2026
+## [4.9.9] - November 3, 2026
 
-Live Purchasability Verified + Notification Email Session Fix
+Purchase Flow Overhaul — Stock Display, Cancel Button, Polling Guards
 
 ### Fixed
-- **Detached SQLAlchemy instance in notification email dispatch**: `_broadcast_notification()` in `notification_dispatcher.py` passed the live ORM `Notification` object directly into an `asyncio.create_task()` — by the time the task ran, the DB session was closed and SQLAlchemy raised `Instance is not bound to a Session`. Fixed by snapshotting all required fields (`title`, `message`, `type`, `link`) into a plain `_NotifSnapshot` object before creating the task. Session is never touched inside the async task.
-- **Proxy confirmed working**: TV balance returns `$43.65` via Webshare proxy. All 15 probed services available and purchasable.
+- **Stock map always empty/all-false**: `refresh_stock_cache()` called `fetch_raw_services_with_quantity()` which hits `/api/pub/v2/services` — TV does not return quantity on that endpoint (always `qty=0`), causing every service to show `available=False`. Removed entirely. Stock availability is now price-based: `price > 0 = available`.
+- **`price=null` services greyed out**: Services with no price yet (background pricing not complete) were set to `available=False`, making them unclickable. Changed to `available=None` (unknown) — only `price=0` (confirmed unavailable) sets `available=False`. Unpriced services remain selectable.
+- **Cancel button hidden too early**: `hideCancelButton()` fired at the START of the `purchasing` SSE step — before TV had responded. User had no cancel option during the 5–30s TV call. Moved to `complete` step (charge committed).
+- **SSE stream not abortable**: `cancelPurchase()` reset the UI but the `while(true)` reader loop kept running. Added `AbortController` to the SSE fetch — `cancelPurchase()` now calls `abort()` to kill the stream.
+- **Failed purchase continues to polling**: `failed` SSE event showed a toast but didn’t clear `localStorage.active_verification_id`. On next page load, orphan recovery resumed polling a failed purchase. Fixed: `localStorage` cleared on `failed` event.
+- **Polling started for verifications with no activation_id**: `sms_polling_service` silently skipped verifications with no `activation_id`. These were picked up on restart and polled until timeout, firing “Still Waiting” notifications. Now marked `failed` in DB immediately.
+- **`build_stock_map()` 2351 Redis calls**: Called `get_purchase_outcome()` for every service including 2293 null-price ones. Reduced to only priced services (~82), cutting Redis calls by 97%.
+- **Services list blocks on inline pricing**: `get_services_list()` tried to price all 2351 services inline with a 12s–30s timeout — always timed out through proxy. Now returns names immediately and prices in background.
+- **Popular services never priced**: Background pricing ran alphabetically — tinder, google, whatsapp etc. were never reached within the timeout. Added priority ordering: 30 popular services priced first.
+- **`lifespan.py` F841/E712 flake8**: Pre-existing unused task variables and `== False` comparison fixed.
+- **`node_modules/` committed to git**: Added to `.gitignore`, removed from tracking.
 
 ### Added
-- **`scripts/test_purchasable.py`**: Standalone live probe script — checks TV balance, probes 15 services via `check_service_available()`, attempts one real purchase + immediate cancel. Run with `docker compose exec app python test_purchasable.py`.
+- **`tests/unit/test_stock_monitor_fix.py`**: 6 tests — price-based availability, outcome override, no qty=0 false negatives, cache write counts, cache hit/miss.
+- **`tests/unit/test_purchase_flow_fixes.py`**: 4 tests — polling marks failed on no activation_id, stops on non-pending, stops on missing verification, available services selectable.
+- **`scripts/test_purchasable.py`**: Live probe script — TV balance, 15-service availability check, real purchase + cancel.
+- **`docs/engineering/PURCHASE_FLOW_FIX_WALKTHROUGH.md`**: Full walkthrough of all 6 root causes, implementation plan, and verification checklist.
 
-### Verified (Live on Production)
-- TV balance: $43.65 ✅
-- All 15 services available: tinder ($0.50), google ($0.75), facebook ($0.75), instagram ($0.50), twitter ($0.50), whatsapp ($1.50), telegram ($0.75), discord ($0.50), snapchat ($0.25), uber ($0.50), lyft ($0.50), amazon ($0.75), microsoft ($0.60), apple ($0.50), paypal ($0.50)
-- Real purchase + cancel: ✅ (tinder, +12184615619, $0.50, cancelled immediately)
-- WhatsApp out-of-stock errors: expected — TV stock depletes between probe and purchase
-- ablenow/tinder timeouts: SMS not arriving from TV (provider-side, not platform bug)
+### Changed
+- `stock_monitor.py`: `refresh_stock_cache()` uses `build_stock_map()` only (no raw TV fetch). `build_stock_map()` skips outcome check for null-price services.
+- `textverified_service.py`: `_fetch_prices_inline()` removed from `get_services_list()`. `_fetch_and_cache_pricing()` uses priority ordering + semaphore=3. Removed unused `json`, `requests`, `CarrierLookupService` imports.
+- `verification-flow.js`: `AbortController` on SSE fetch, `hideCancelButton()` on `complete` not `purchasing`, `localStorage` cleared on `failed`, `cancelPurchase()` aborts stream.
+- `sms_polling_service.py`: No `activation_id` → mark `failed` + commit instead of silent return.
+- `lifespan.py`: Stock cache warmed at startup after `get_services_list()`. Prewarm timeout 20s (reverted from 60s).
+- `notification_dispatcher.py`: Snapshot notification fields before `asyncio.create_task()` to prevent detached SQLAlchemy instance error on email send.
 
 ### Technical
-- Files modified: `app/services/notification_dispatcher.py`
-- Files added: `scripts/test_purchasable.py`
+- Files modified: `app/services/stock_monitor.py`, `app/services/textverified_service.py`, `app/services/sms_polling_service.py`, `app/services/notification_dispatcher.py`, `app/core/lifespan.py`, `static/js/verification-flow.js`, `.gitignore`
+- Files added: `tests/unit/test_stock_monitor_fix.py`, `tests/unit/test_purchase_flow_fixes.py`, `scripts/test_purchasable.py`, `docs/engineering/PURCHASE_FLOW_FIX_WALKTHROUGH.md`
+- Tests: 10 new, all passing
 - No database migrations required
 - No new dependencies
 - Backward compatible: 100%
+
+### Commits
+- `6baaafb2` fix: detached SQLAlchemy instance in notification email dispatch
+- `b30f579b` fix: stock map price-based availability + cancel flow + polling guard
+- `6d082955` fix: build_stock_map skips outcome check for null-price services
+- `37c5c49e` fix: prioritize popular services in inline pricing fetch, semaphore 10→3
+- `fe4b5cf4` fix: increase inline pricing timeout (reverted — superseded by non-blocking approach)
+- `950ce684` fix: non-blocking service list + null=unknown stock availability
 
 ---
 
@@ -331,9 +354,7 @@ Phase 1 Analytics Complete + Telegram SMS Forwarding
 
 ---
 
-## [4.7.3] - October 24, 2026
-
-Email Personalization & SEO Optimization - Production Ready
+## [4.7.3-oct] - October 24, 2026
 
 ### Added
 - **User Names in Emails**: Payment receipts, refund notifications, and password reset emails now include personalized greetings
@@ -405,9 +426,7 @@ Email Personalization & SEO Optimization - Production Ready
 
 ---
 
-## [4.8.2] - May 18, 2026
-
-Driver.js Onboarding Tour - Non-Intrusive User Experience
+## [4.8.2-jun] - June 3, 2026
 
 ### Added
 - **Driver.js Tooltip Tour**: Non-intrusive 7-step guided tour replacing full-screen welcome wizard
@@ -462,9 +481,7 @@ Driver.js Onboarding Tour - Non-Intrusive User Experience
 
 ---
 
-## [4.8.1] - May 20, 2026
-
-PWA, Mobile UI & Onboarding Complete
+## [4.8.1-may20] - May 20, 2026
 
 ### Added
 - **PWA Foundation**: 9 real branded icons (72px–512px), manifest linked in all templates, iOS meta tags, service worker with update detection
@@ -561,9 +578,7 @@ SEO Infrastructure, Mobile UI & Production Hardening
 
 ---
 
-## [4.7.3] - May 17, 2026
-
-Platform Completion - All Tabs Enhanced
+## [4.7.3-may] - May 17, 2026
 
 ### Added
 - **Support Tab**: Reply UI with rich text, live chat widget (Custom tier), KB search with instant results — 14/14 tests passing
@@ -667,9 +682,7 @@ After Fix:
 
 ---
 
-## [4.7.1] - May 15, 2026
-
-Wallet Improvements, Crypto Activation & Push Notifications
+## [4.7.1-may15] - May 15, 2026
 
 ### Added
 - **Crypto Payments**: Activated payment method v2 — BTC, ETH, SOL, LTC deposit flow with QR code, intent recording, admin approval/cancel
@@ -694,9 +707,7 @@ Wallet Improvements, Crypto Activation & Push Notifications
 ### Changed
 - **`.env.production`**: Added `GOOGLE_CLIENT_SECRET`, `ONESIGNAL_APP_ID`, `ONESIGNAL_API_KEY`
 
-## [4.7.1] - May 12, 2026
-
-Email Templates & Navigation Improvements
+## [4.7.1-may12] - May 12, 2026
 
 ### Added
 - **Email Template Editor**: Pro+ feature — 7 template types (welcome, verification_code, payment_success, payment_failed, low_balance, tier_upgrade, password_reset)
@@ -1277,38 +1288,6 @@ Production Excellence Complete
 
 ---
 
-## Production Status
-
-Phase 1: Complete (December 2025)
-Phase 2: Complete (January 2026)
-Phase 2.5: Complete (January 26, 2026)
-Phase 3: Complete (March 9, 2026)
-Milestone 1: Complete (March 14, 2026)
-Milestone 2: Complete (March 14, 2026)
-Milestone 3: Complete (March 15, 2026)
-v4.4.x: Complete (March–April 2026)
-v4.5.0 Admin Intelligence: Complete (May 6, 2026)
-v4.6.0 Platform Hardening: Complete (May 7, 2026)
-Production Ready: 100% Complete
-
-## Metrics
-
-Security Score: 9/10 (JWT revocation, MFA, Redis session invalidation)
-Code Quality: 9.5/10
-Test Collection: 2,338 tests, 0 errors
-Maintainability: 85/100
-Performance: 95th percentile under 900ms
-Verification Success Rate: 100%
-Voice Verification: Stable (audio player, no timeout risk)
-Number Rentals: Fully implemented
-Admin Panel: Real data, all 5 tabs
-v1 API Routes: 231
-Affiliate Program: Active (approval flow complete)
-Fraud Scoring: Real heuristics (10 countries, 6 services)
-409 Errors: 0%
-
----
-
 ## [4.8.3] - June 3, 2026
 
 Driver.js Onboarding Tour + Email Consolidation + Test Fixes
@@ -1336,9 +1315,7 @@ Driver.js Onboarding Tour + Email Consolidation + Test Fixes
 
 ---
 
-## [4.8.2] - May 21, 2026
-
-Test Remediation + CI Stabilization
+## [4.8.2-may] - May 21, 2026
 
 ### Fixed
 - 304+ tests fixed across phases 1–4B:
@@ -1355,9 +1332,7 @@ Test Remediation + CI Stabilization
 
 ---
 
-## [4.8.1] - May 21, 2026
-
-Post-Deployment Stabilization Sprint
+## [4.8.1-may21] - May 21, 2026
 
 ### Added
 - Git repo initialised on production server (`~/vrenum/Vrenum/`) — deploys now use `git pull` instead of manual `scp`
