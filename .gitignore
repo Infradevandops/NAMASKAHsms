@@ -119,3 +119,4 @@ static/dist/
 
 # Archive (historical docs, kept locally only)
 docs/archive/
+node_modules/
