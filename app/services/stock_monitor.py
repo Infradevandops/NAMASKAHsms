@@ -43,32 +43,42 @@ async def get_purchase_outcome(service_slug: str) -> Optional[bool]:
 
 
 async def build_stock_map() -> Dict[str, dict]:
-    """Build availability map from cached TextVerified services list,
-    corrected by real purchase outcomes."""
+    """Build availability map from cached TextVerified services list.
+
+    Uses price > 0 as the availability signal (TV's only reliable stock indicator).
+    Purchase outcomes only override for services that have a price (i.e. were available).
+    Skips per-service Redis calls for null-price services to avoid 2351-call loops.
+    """
     try:
         services = await cache.get(_TV_SERVICES_KEY)
         if not services:
             return {}
 
+        # Only fetch outcomes for priced services — no point checking outcomes
+        # for services with null price (they're unavailable regardless)
+        priced_slugs = []
         stock_map = {}
         for svc in services:
             slug = (svc.get("id") or svc.get("name") or "").lower().strip()
             if not slug:
                 continue
             price = svc.get("price")
-            qty = svc.get("quantity")  # from raw TV API, None if SDK didn't capture it
-            # Price > 0 means TV lists it — but check real outcome first
-            outcome = await get_purchase_outcome(slug)
-            if outcome is not None:
-                available = outcome  # Real purchase result overrides price signal
-            else:
-                available = price is not None and float(price) > 0
+            qty = svc.get("quantity")
+            price_available = price is not None and float(price) > 0
             stock_map[slug] = {
-                "available": available,
+                "available": price_available,
                 "price": price,
                 "quantity": qty,
                 "provider": "textverified",
             }
+            if price_available:
+                priced_slugs.append(slug)
+
+        # Fetch outcomes only for priced services (typically ~58, not 2351)
+        for slug in priced_slugs:
+            outcome = await get_purchase_outcome(slug)
+            if outcome is not None:
+                stock_map[slug]["available"] = outcome
 
         return stock_map
     except Exception as e:
