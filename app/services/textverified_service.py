@@ -312,10 +312,10 @@ class TextVerifiedService:
                     f"Fetched {len(services)} services, {len(unique_services)} unique after dedup"
                 )
 
-                # Try to fetch real prices inline (up to 12s)
+                # Price priority services inline (up to 30s), rest in background
                 try:
                     priced = await asyncio.wait_for(
-                        self._fetch_prices_inline(unique_services), timeout=12.0
+                        self._fetch_prices_inline(unique_services), timeout=30.0
                     )
                     # Only write to the long-lived cache if ALL entries have real prices.
                     # Partial pricing (some None) must not poison the 24h cache.
