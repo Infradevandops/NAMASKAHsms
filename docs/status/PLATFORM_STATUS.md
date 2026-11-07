@@ -1,8 +1,8 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
-**Last Updated**: November 1, 2026
-**Overall Status**: ✅ Production Ready — Stability Pass In Progress
-**CI Status**: ⏳ `ee895ce8` running — deploy pending
+**Last Updated**: November 7, 2026
+**Overall Status**: ✅ Production Ready — Running on secondary IP (TV rate limited)
+**CI Status**: ✅ Deployed @ `f1975971`
 
 ---
 
@@ -18,7 +18,7 @@ No version bump until CI is confirmed green and the pending deploy fires.
 
 ---
 
-## WHAT IS LIVE (Commits 1–13 of today's push)
+## WHAT IS LIVE
 
 ### Verification Flow
 - ✅ SSE streaming purchase — real-time step feedback, cancel before charge commits
@@ -50,19 +50,16 @@ No version bump until CI is confirmed green and the pending deploy fires.
 
 ---
 
-## PENDING DEPLOY (ee895ce8 — CI running)
+## KNOWN ISSUES
 
-Once CI goes green, deploy fires automatically:
-
-- ⏳ Area code modal shows city names ("212 — New York, NY")
-- ⏳ /check endpoint graceful fallback on TV outage
-- ⏳ check_service_available() returns surcharge-inclusive price when area code selected
-- ⏳ 5 broken rental SDK calls fixed (reservations.get/messages/extend, verifications.get, create_reservation)
-- ⏳ Voice pricing uses correct NumberType.VOIP
-- ⏳ max_price wired to TV's verifications.create()
-- ⏳ reactivate before report on timeout (saves refund cost)
-- ⏳ ends_at persisted to DB in SSE path (accurate polling timeout)
-- ⏳ 23h area code cache background refresh loop
+- **`GET /health` returns degraded** — false alarm. `main_routes.py` checks
+  `TEXTVERIFIED_USERNAME` but server has `TEXTVERIFIED_EMAIL`. Fix committed, pending deploy.
+- **`quantity: null` on all services** — TV rate limiting on secondary IP blocks
+  `fetch_raw_services_with_quantity()`. Availability still works (price-based fallback).
+  Not blocking purchases.
+- **Disk 80%** — 61/76GB. Monitor; clean docker layers if hits 85%.
+- **Deploy workflow health gate failing** — caused by the `tv_configured` bug above.
+  Every deploy since health check was added exits with error even though app is healthy.
 
 ---
 
@@ -167,5 +164,5 @@ Once CI goes green, deploy fires automatically:
 - **Deploy trigger**: CI pass on main → deploy.yml fires automatically
 - **Rollback**: `git revert` to previous commit, CI passes, auto-deploys
 - **Downtime**: 0 minutes (hot reload via docker compose up --build)
-- **Last confirmed live commit**: `325cbdc1`
-- **Pending deploy**: `ee895ce8` (awaiting CI green)
+- **Last confirmed live commit**: `f1975971`
+- **Pending deploy**: health check fix (tv_configured env var bug — `main_routes.py`)

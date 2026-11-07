@@ -191,8 +191,10 @@ async def health_check(db: Session = Depends(get_db)):
         checks["redis"] = f"error: {e}"
 
     # TV credentials present (not a live API call — just config check)
+    # Accept either TEXTVERIFIED_USERNAME or TEXTVERIFIED_EMAIL (both are valid)
     checks["tv_configured"] = bool(
-        os.getenv("TEXTVERIFIED_API_KEY") and os.getenv("TEXTVERIFIED_USERNAME")
+        os.getenv("TEXTVERIFIED_API_KEY")
+        and (os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL"))
     )
 
     healthy = (
