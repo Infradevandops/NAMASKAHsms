@@ -1,8 +1,8 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
 **Last Updated**: November 7, 2026
-**Overall Status**: ✅ Production Ready — Running on secondary IP (TV rate limited)
-**CI Status**: ✅ Deployed @ `f1975971`
+**Overall Status**: ✅ Production Ready — TV operational, secondary IP pending whitelist
+**CI Status**: ✅ `e06e91ce` on origin/main — manual deploy trigger needed (health gate was broken)
 
 ---
 
@@ -52,14 +52,13 @@ No version bump until CI is confirmed green and the pending deploy fires.
 
 ## KNOWN ISSUES
 
-- **`GET /health` returns degraded** — false alarm. `main_routes.py` checks
-  `TEXTVERIFIED_USERNAME` but server has `TEXTVERIFIED_EMAIL`. Fix committed, pending deploy.
-- **`quantity: null` on all services** — TV rate limiting on secondary IP blocks
-  `fetch_raw_services_with_quantity()`. Availability still works (price-based fallback).
-  Not blocking purchases.
-- **Disk 80%** — 61/76GB. Monitor; clean docker layers if hits 85%.
-- **Deploy workflow health gate failing** — caused by the `tv_configured` bug above.
-  Every deploy since health check was added exits with error even though app is healthy.
+- **`GET /health` returns degraded** — fix pushed (`e06e91ce`), needs manual deploy trigger.
+  Root cause: health check checked `TEXTVERIFIED_USERNAME`, server has `TEXTVERIFIED_EMAIL`.
+- **`quantity: null` on all services** — secondary IP not whitelisted with TV.
+  `fetch_raw_services_with_quantity()` returns empty. Price-based fallback active.
+  Not blocking purchases. `TEXTVERIFIED_PROXY_URL` env var available as workaround.
+- **Disk 80%** — 61/76GB. Run `docker system prune -f` on server.
+- **Version string stale** — reports `4.9.1`, should be `4.9.9`.
 
 ---
 
@@ -164,5 +163,5 @@ No version bump until CI is confirmed green and the pending deploy fires.
 - **Deploy trigger**: CI pass on main → deploy.yml fires automatically
 - **Rollback**: `git revert` to previous commit, CI passes, auto-deploys
 - **Downtime**: 0 minutes (hot reload via docker compose up --build)
-- **Last confirmed live commit**: `f1975971`
-- **Pending deploy**: health check fix (tv_configured env var bug — `main_routes.py`)
+- **Last confirmed live commit**: `e06e91ce` (pushed, awaiting manual deploy trigger)
+- **Pending**: Manual deploy trigger in GitHub Actions
