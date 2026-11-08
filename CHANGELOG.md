@@ -10,6 +10,10 @@ All notable changes to the Vrenum SMS project.
 - TV support ticket open to unblock server IP `169.255.57.146` from Cloudflare
 - Background service pricing completing for popular services (tinder, google, whatsapp etc.)
 
+### Documentation
+- Added `docs/engineering/email-system-hardening/` with a repository-specific email audit, target architecture, ordered implementation tasks, template catalogue and test/release matrix.
+- Linked the email hardening initiative from `docs/INDEX.md`. This is a planning/documentation delivery; application code, migrations and runtime behavior are unchanged.
+
 ---
 
 ## [4.9.9] - November 3, 2026
