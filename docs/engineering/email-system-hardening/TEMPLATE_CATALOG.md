@@ -1,0 +1,102 @@
+# Email Template and Message Catalogue
+
+## Scope and confidence
+
+The repository changelog describes **18 email templates across three layers**: 7 transactional templates in `app/services/email_service.py`, 6 notification templates consolidated into that service, and 7 whitelabel template types in `app/services/email_template_service.py`.
+
+The seven whitelabel template keys and their allowed variables are directly declared in code and listed below. The exact names and variable contracts for the 7 transactional and 6 notification templates must be extracted from the complete current `email_service.py` during EMAIL-022; this document deliberately does not invent them from the changelog count.
+
+## 1. Whitelabel template keys observed in code
+
+| Template key | Declared variables | Intended class | Security/content requirements |
+|---|---|---|---|
+| `welcome` | `user_name`, `user_email`, `company_name`, `support_email` | Optional product / onboarding | Escaped values; company branding; safe support address; preference/footer policy appropriate to onboarding consent. |
+| `verification_code` | `user_name`, `verification_code`, `phone_number`, `service_name`, `expires_in` | Account/security only when code is required for account authentication; otherwise classify by use case | Never expose code in logs; no marketing footer; short expiry and anti-phishing guidance; never render code as HTML. |
+| `payment_success` | `user_name`, `amount`, `currency`, `credits_added`, `new_balance`, `transaction_id` | Transactional essential | Accurate currency formatting; event/reference deduplication; no promotional unsubscribe language. |
+| `payment_failed` | `user_name`, `amount`, `currency`, `reason`, `support_email` | Transactional only for final meaningful payment state; transient failures may be internal only | Escape reason; avoid exposing provider internals; distinguish failed from pending; safe support address. |
+| `low_balance` | `user_name`, `current_balance`, `currency`, `top_up_url` | Optional product | Preference-gated; validate top-up URL host/scheme; frequency/threshold rules; optional preference link. |
+| `tier_upgrade` | `user_name`, `old_tier`, `new_tier`, `new_features`, `effective_date` | Transactional/account change notification; classify as essential or optional based on contractual/account requirement | Accurate plan details; escape feature text; avoid treating as marketing by default without product/legal review. |
+| `password_reset` | `user_name`, `reset_link`, `expires_in` | Account/security | Trusted HTTPS reset URL only; no unsubscribe CTA; token never logged; short-lived, single-use token. |
+
+## 2. Other template families
+
+### Transactional templates — `app/services/email_service.py`
+
+The changelog reports seven templates in this family. Directly observed public methods include:
+
+- `send_payment_receipt`
+- `send_payment_failed_alert`
+- `send_refund_notification`
+- `send_verification_email`
+- `send_password_reset`
+
+The implementation task must enumerate the remaining definitions, internal HTML builders, subjects, variables and callers directly from the current source. Do not assume method names from older snapshots.
+
+### Notification templates — consolidated into `email_service.py`
+
+The changelog reports six notification templates. Search and capture exact method names and fields for:
+
+- general notification delivery;
+- verification lifecycle updates;
+- low-balance notification;
+- daily digest;
+- weekly digest;
+- any additional notification type currently counted by the implementation.
+
+This list describes areas to inventory, not a confirmed one-to-one mapping to six method names. The exact inventory is a required implementation artifact.
+
+## 3. Shared design system currently observed
+
+The central service includes a Vrenum-branded HTML wrapper:
+
+- pink gradient brand header;
+- white content panel on a light gray background;
+- table-based 600px layout;
+- CTA styling;
+- footer with Vrenum site and privacy links.
+
+Retain this recognizable system while correcting consistency and accessibility. Email clients vary significantly; test responsive layout and plain-text fallback rather than relying on CSS features that are inconsistently supported.
+
+## 4. Required per-template contract
+
+For every production template, record:
+
+| Field | Required content |
+|---|---|
+| Template key | Stable identifier, never derived from subject text |
+| Message class | One of the classes in IMPLEMENTATION_PLAN |
+| Trigger | Business event or user action that creates the message |
+| Owner | Single service responsible for enqueueing |
+| Recipient source | User/account/configured address |
+| Idempotency key | Stable event-derived unique key for event-triggered messages |
+| Subject | Validated, no control characters/header injection |
+| HTML schema | Typed allowed variables and autoescaped output |
+| Text schema | Plain-text alternative with matching essential facts |
+| URLs | Purpose, approved host/scheme, generated by trusted helper |
+| Preferences | Explicitly state whether optional category preference applies |
+| Footer | Support/privacy and class-appropriate preference/unsubscribe content |
+| Locale | Language, currency and timezone formatting behavior |
+| Version | Template version used for rendering |
+| Tests | Rendering, injection, missing variable, preference and trigger tests |
+
+## 5. Security rules
+
+- Treat names, service names, notification titles/messages, payment references, provider reasons, company labels and all submitted form content as untrusted text.
+- HTML escaping must be context-aware; autoescaping does not validate URLs or sanitize user-authored HTML.
+- Do not interpolate arbitrary URLs into `href` attributes. Validate scheme and host and build application links centrally.
+- Do not put password reset or verification tokens in logs, analytics, test fixtures shared outside the test environment or provider metadata.
+- Do not put full payment or contact payloads in application logs.
+- Whitelabel template HTML is executable content in the email-client context. Restrict editing, sanitize active markup and document the trust boundary.
+- Keep plain-text and HTML content semantically aligned.
+
+## 6. Template acceptance checklist
+
+- [ ] All 18 templates enumerated with exact keys/methods and source locations.
+- [ ] Each template has a message class, owner, trigger and preference rule.
+- [ ] Subject, HTML and text variables share a validated schema.
+- [ ] HTML autoescaping and URL validation are tested.
+- [ ] Whitelabel HTML sanitization policy is implemented and tested.
+- [ ] Correct footer/unsubscribe behavior is tested by message class.
+- [ ] Plain-text alternative exists and includes essential content.
+- [ ] Template version pinning and rollback are verified.
+- [ ] Preview/test-send use the production rendering code path.
