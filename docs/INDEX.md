@@ -1,6 +1,6 @@
 # VRENUM SMS - DOCUMENTATION INDEX
 
-**Last Updated**: October 26, 2026  
+**Last Updated**: November 9, 2026  
 **Status**: Current
 
 ---
@@ -50,6 +50,7 @@
 - **[docs/operations/EMAIL_SETUP.md](./operations/EMAIL_SETUP.md)** - Email configuration
 
 ### Engineering & Development
+- **[docs/engineering/email-system-hardening/README.md](./engineering/email-system-hardening/README.md)** - Email-system audit, architecture, implementation tasks and release gates
 - **[docs/engineering/TESTING_STRATEGY.md](./TESTING_STRATEGY.md)** - Testing approach and coverage
 - **[docs/engineering/development/](./engineering/development/)** - Development guides
 - **[docs/engineering/api/](./engineering/api/)** - API documentation
@@ -107,6 +108,9 @@
 **Run tests**
 → [docs/engineering/TESTING_STRATEGY.md](./TESTING_STRATEGY.md)
 
+**Improve email reliability or templates**
+→ [docs/engineering/email-system-hardening/README.md](./engineering/email-system-hardening/README.md)
+
 **Troubleshoot issues**
 → [docs/operations/LOGS_GUIDE.md](./operations/LOGS_GUIDE.md)
 
@@ -138,6 +142,13 @@ docs/
 │   ├── LOGS_GUIDE.md                 # Logs & troubleshooting
 │   └── EMAIL_SETUP.md                # Email config
 ├── engineering/
+│   ├── email-system-hardening/
+│   │   ├── README.md
+│   │   ├── REPOSITORY_EMAIL_AUDIT.md
+│   │   ├── IMPLEMENTATION_PLAN.md
+│   │   ├── TASKS.md
+│   │   ├── TEMPLATE_CATALOG.md
+│   │   └── TEST_AND_RELEASE_MATRIX.md
 │   ├── TESTING_STRATEGY.md           # Testing
 │   ├── development/                  # Dev guides
 │   └── api/                          # API docs
