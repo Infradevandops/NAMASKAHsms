@@ -37,11 +37,15 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         # Create access token
         access_token = auth_service.create_user_token(user)
 
+        from app.core.config import get_settings as _settings
+        _s = _settings()
+        _expiry_seconds = _s.jwt_expiration_hours * 3600
+
         response = JSONResponse(
             content={
                 "access_token": access_token,
                 "token_type": "bearer",
-                "expires_in": 24 * 30 * 3600,
+                "expires_in": _expiry_seconds,
             }
         )
 
@@ -52,7 +56,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             httponly=True,
             secure=True,
             samesite="lax",
-            max_age=24 * 30 * 3600,
+            max_age=_expiry_seconds,
         )
 
         return response

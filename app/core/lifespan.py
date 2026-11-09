@@ -209,7 +209,7 @@ async def lifespan(app):
                                     NumberRental.status == "active",
                                     NumberRental.expires_at <= warning_window,
                                     NumberRental.expires_at > now,
-                                    NumberRental.warning_sent is False,
+                                    NumberRental.warning_sent.is_(False),
                                 )
                                 .all()
                             )
@@ -260,7 +260,7 @@ async def lifespan(app):
                                     PaymentLog.state.in_(["pending", "processing"]),
                                     PaymentLog.processing_started_at <= cutoff,
                                     # Never auto-cancel crypto intents — require admin review
-                                    PaymentLog.payment_method.is_(None),
+                                    PaymentLog.payment_method.notin_(["btc", "eth", "sol", "ltc", "usdt", "crypto"]),
                                 )
                                 .all()
                             )
@@ -422,10 +422,11 @@ async def lifespan(app):
                 while True:
                     try:
                         now = datetime.now(timezone.utc)
-                        # Next Monday 09:00 UTC
+                        # Next Monday 09:00 UTC — use timedelta to avoid month-boundary crash
                         days_until_monday = (7 - now.weekday()) % 7 or 7
-                        target = now.replace(hour=9, minute=0, second=0, microsecond=0)
-                        target = target.replace(day=now.day + days_until_monday)
+                        target = (now + timedelta(days=days_until_monday)).replace(
+                            hour=9, minute=0, second=0, microsecond=0
+                        )
                         await asyncio.sleep((target - now).total_seconds())
 
                         from app.core.database import SessionLocal

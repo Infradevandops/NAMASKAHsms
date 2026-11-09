@@ -4,7 +4,7 @@
 # =============================================================================
 # Stage 1: Builder
 # =============================================================================
-FROM python:3.11-slim as builder
+FROM python:3.9-slim as builder
 
 WORKDIR /app
 
@@ -20,9 +20,7 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # =============================================================================
 # Stage 2: Production
 # =============================================================================
-FROM python:3.11-slim
-
-WORKDIR /app
+FROM python:3.9-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

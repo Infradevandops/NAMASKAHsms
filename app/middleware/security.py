@@ -40,7 +40,8 @@ class SecurityHeadersMiddleware:
             f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com "
             f"https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net "
             f"https://cdn.tailwindcss.com https://cdnjs.cloudflare.com "
-            f"https://www.sabilytics.com"
+            f"https://www.sabilytics.com https://challenges.cloudflare.com "
+            f"https://accounts.google.com"
         )
 
         if is_testing:
@@ -54,7 +55,8 @@ class SecurityHeadersMiddleware:
             "https://cdn.simpleicons.org; connect-src 'self' "
             "https://api.paystack.co https://checkout.paystack.com "
             "https://min-api.cryptocompare.com https://www.sabilytics.com; "
-            "frame-src https://checkout.paystack.com; object-src 'none'; "
+            "frame-src https://checkout.paystack.com https://challenges.cloudflare.com "
+            "https://accounts.google.com; object-src 'none'; "
             "base-uri 'self';"
         )
 

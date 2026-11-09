@@ -124,17 +124,22 @@ class UnifiedRateLimiter:
 
     def get_client_ip(self, request: Request) -> str:
         """Extract client IP from request safely."""
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-
+        # Trust CF-Connecting-IP first (set by Cloudflare, cannot be spoofed)
         cf_ip = request.headers.get("CF-Connecting-IP")
         if cf_ip:
-            return cf_ip
+            return cf_ip.strip()
 
+        # X-Real-IP set by nginx upstream
         real_ip = request.headers.get("X-Real-IP")
         if real_ip:
-            return real_ip
+            return real_ip.strip()
+
+        # X-Forwarded-For: take the LAST entry (set by our trusted proxy)
+        # The first entry is client-controlled and can be spoofed
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            ips = [ip.strip() for ip in forwarded_for.split(",")]
+            return ips[-1]
 
         return request.client.host if request.client else "unknown"
 

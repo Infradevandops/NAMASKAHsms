@@ -67,6 +67,20 @@ Thumbs.db
 *.backup
 *_OLD_DEPRECATED*
 
+# CI polling artifacts (GitHub Actions run/check JSON files)
+*_checks.json
+*_checks2.json
+runs.json
+latest_runs.json
+deploy_*.json
+7e5c_*.json
+b9_*.json
+fe4b_*.json
+5951_*.json
+19b6_*.json
+2cbe_*.json
+e06_*.json
+
 # Test artifacts
 .pytest_cache/
 .coverage
