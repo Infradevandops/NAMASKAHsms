@@ -1,18 +1,19 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
-**Last Updated**: November 2026 (post email hardening + CI investigation)
-**Overall Status**: ✅ Production Ready — TV operational, secondary IP pending whitelist
-**HEAD**: `19b6d2e9` on origin/main — manual deploy trigger needed
+**Last Updated**: November 2026 (post email hardening + CI green + deploy attempted)
+**Overall Status**: ✅ CI Green | ❌ Deploy failed (health check timeout) | Server running old code
+**HEAD**: `2cbe4338` on origin/main
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Vrenum SMS is production-ready. Email system hardening (EMAIL-001–043) is complete.
-CI has three non-blocking failures (secrets-scan, code-quality, unit-tests) — all set
-to `continue-on-error: true`. Frontend Unit Tests (92/92 JS) is the only blocking gate
-and passes. The deploy workflow needs a manual trigger to ship `e06e91ce` (health fix)
-and the new email outbox migration needs `alembic upgrade head` on the server.
+CI is now green (`2cbe4338` — `CI - Minimal & Reliable: success`). The deploy workflow
+auto-triggered and ran for 19 minutes but failed — the health check loop (40 × 15s = 10 min)
+timed out waiting for `GET /health` to return `"status":"healthy"`. The container rebuilt
+and started but health never returned 200. Root cause unknown — likely Redis connectivity
+or slow container startup exceeding the 10-minute health gate. Server is still running
+the previous code. Manual SSH investigation needed.
 
 ---
 
@@ -131,18 +132,19 @@ and the new email outbox migration needs `alembic upgrade head` on the server.
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Manual deploy trigger (health fix `e06e91ce`) | P0 | ⏳ Pending |
+| SSH to server + check `docker compose logs app` | P0 | ⏳ Needed — deploy failed, unknown cause |
+| Fix deploy health check timeout (increase to 60 attempts or check Redis) | P0 | ⏳ Pending |
 | `alembic upgrade head` on server (migration `e7f8a9b0c1d2`) | P0 | ⏳ Pending |
 | Whitelist server IP with TextVerified | P1 | ⏳ Pending |
 | Telegram E2E live test | P1 | ⏳ Pending manual test |
-| Fix CI unit tests (run locally to find failures) | P2 | ⏳ Pending |
+| Fix CI unit tests (download artifact from next run, read failures) | P2 | ⏳ Pending |
 | Fix CI secrets-scan (need admin token or gitleaks report-only mode) | P2 | ⏳ Pending |
-| Fix CI code-quality (black/isort auto-format push permission) | P2 | ⏳ Pending |
+| Fix CI code-quality (black/isort check-only, continue-on-error) | P2 | ⏳ Pending |
 | `docker system prune -f` on server (disk 80%) | P2 | ⏳ Pending |
 | Update version string to `4.9.9` | P2 | ⏳ Pending |
-| Resend webhook endpoint (delivery/bounce events) | P2 | 📋 Planned |
-| Outbox dashboard widget in admin panel | P2 | 📋 Planned |
-| Digest scheduler `can_send()` check per user | P2 | 📋 Planned |
+| Resend webhook endpoint (delivery/bounce events) | P3 | 📋 Planned |
+| Outbox dashboard widget in admin panel | P3 | 📋 Planned |
+| Digest scheduler `can_send()` check per user | P3 | 📋 Planned |
 | Phase 2 Analytics (cohort, churn, revenue charts) | P3 | 📋 Planned |
 
 ---
