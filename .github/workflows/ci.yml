@@ -66,23 +66,32 @@ jobs:
           grep -A5 '\[isort\]' setup.cfg || echo "(not found)"
 
           echo "--- black check ---"
-          black --check app/ --diff 2>&1 | head -60 || true
-          black --check app/ --quiet
+          black --check app/ --diff 2>&1 | tee black.diff | head -80 || true
+          black --check app/ --quiet 2>&1
           BLACK_EXIT=$?
 
           echo "--- isort check ---"
-          isort --check-only app/ --profile black --diff 2>&1 | head -60 || true
-          isort --check-only app/ --profile black --quiet
+          isort --check-only app/ --profile black --diff 2>&1 | tee isort.diff | head -80 || true
+          isort --check-only app/ --profile black --quiet 2>&1
           ISORT_EXIT=$?
 
           if [ $BLACK_EXIT -ne 0 ] || [ $ISORT_EXIT -ne 0 ]; then
             echo "Code formatting check failed"
-            [ $BLACK_EXIT -ne 0 ] && echo "  - black check failed"
-            [ $ISORT_EXIT -ne 0 ] && echo "  - isort check failed"
+            [ $BLACK_EXIT -ne 0 ] && echo "  - black check failed" && cat black.diff
+            [ $ISORT_EXIT -ne 0 ] && echo "  - isort check failed" && cat isort.diff
             exit 1
           fi
 
           echo "✅ Code formatting checks passed"
+
+      - name: Upload formatting diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatting-diffs-${{ github.run_id }}
+          path: |
+            black.diff
+            isort.diff
 
   # Stage 2a: Frontend JS unit tests (blocking)
   frontend-unit-tests:
