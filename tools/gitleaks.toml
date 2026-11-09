@@ -60,12 +60,15 @@ secretGroup = 2
   regexes = [
     '''dev-jwt-secret-key-change-in-production''',
     '''dev-secret-key-change-in-production''',
+    '''local-jwt-secret-key''',
     '''test-jwt-secret-key-for-ci''',
     '''change-in-production''',
   ]
   paths = [
     '''\.env\.development''',
     '''.github/workflows/ci\.yml''',
+    '''config/\.env\.example''',
+    '''config/\.env\.production\.example''',
   ]
 
 [allowlist]
@@ -100,9 +103,10 @@ regexes = [
     '''test-jwt-secret-key-for-ci''',
     '''test_password_for_ci_only''',
     '''test-jwt-secret-key-for-ci-testing''',
-    # Dev placeholder values — not real credentials
+    # Dev/local placeholder values — not real credentials
     '''dev-secret-key-change-in-production''',
     '''dev-jwt-secret-key-change-in-production''',
+    '''local-jwt-secret-key''',
     '''change-in-production''',
     # Platform internal API key format (not real secrets)
     '''nsk_live_[a-zA-Z0-9]{24,128}''',
