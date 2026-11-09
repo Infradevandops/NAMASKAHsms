@@ -55,6 +55,19 @@ regex = '''(?i)(jwt[_-]?secret[_-]?key|jwt[_-]?secret)\s*[=:]\s*['"]([a-zA-Z0-9@
 entropy = 3.8
 secretGroup = 2
 
+  [rules.allowlist]
+  description = "Dev placeholder values and CI test keys"
+  regexes = [
+    '''dev-jwt-secret-key-change-in-production''',
+    '''dev-secret-key-change-in-production''',
+    '''test-jwt-secret-key-for-ci''',
+    '''change-in-production''',
+  ]
+  paths = [
+    '''\.env\.development''',
+    '''.github/workflows/ci\.yml''',
+  ]
+
 [allowlist]
 description = "Allowlist — only specific placeholder files, never entire folders"
 paths = [
