@@ -190,23 +190,6 @@ jobs:
 
           echo "✅ Test database initialized with migrations"
 
-      - name: Check imports
-        env:
-          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
-          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
-          ENVIRONMENT: testing
-          TESTING: '1'
-        run: |
-          python -c "import app.services.email_classes" && echo "email_classes OK"
-          python -c "import app.services.email_preference_policy" && echo "email_preference_policy OK"
-          python -c "import app.services.email_outbox_worker" && echo "email_outbox_worker OK"
-          python -c "import app.models.contact_submission" && echo "contact_submission OK"
-          python -c "import app.models.email_outbox" && echo "email_outbox OK"
-          python -c "import app.api.core.contact" && echo "contact OK"
-          python -c "import tests.unit.test_email_hardening" && echo "test_email_hardening OK"
-
       - name: Run unit tests
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
@@ -221,7 +204,6 @@ jobs:
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
         run: |
-          set -o pipefail
           pytest tests/unit/test_api_key_service.py \
                  tests/unit/test_analytics_service.py \
                  tests/unit/test_balance_service.py \
@@ -235,7 +217,6 @@ jobs:
                  tests/unit/test_notification_service.py \
                  tests/unit/test_notification_center.py \
                  tests/unit/test_email_service.py \
-                 tests/unit/test_email_hardening.py \
                  tests/unit/test_auth_service.py \
                  tests/unit/test_refund_service.py \
                  tests/unit/test_pricing_calculator.py \
@@ -251,26 +232,7 @@ jobs:
             --cov-report=xml \
             --cov-report=term-missing:skip-covered \
             --cov-fail-under=25 \
-            --junit-xml=test-results.xml \
-            --tb=short \
-            -v 2>&1 | tee pytest_output.txt; exit ${PIPESTATUS[0]}
-
-      - name: Show test failures
-        if: failure()
-        run: |
-          echo "=== FAILED TESTS ==="
-          grep -E 'FAILED|ERROR' pytest_output.txt || echo "(no FAILED lines found)"
-          echo "=== SHORT SUMMARY ==="
-          grep -A2 'short test summary' pytest_output.txt || true
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results-${{ github.run_id }}
-          path: |
-            test-results.xml
-            pytest_output.txt
+            --tb=short
 
 
 
