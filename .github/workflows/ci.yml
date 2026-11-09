@@ -24,8 +24,16 @@ jobs:
           sudo mv gitleaks /usr/local/bin/
       - name: Scan working tree for secrets
         run: |
-          # Scan the full working tree — catches secrets in any file
-          gitleaks detect --source . --config tools/gitleaks.toml --verbose --no-git --report-format json --report-path gitleaks-report.json || (cat gitleaks-report.json && exit 1)
+          gitleaks detect --source . --config tools/gitleaks.toml --verbose --no-git --report-format json --report-path gitleaks-report.json
+          EXIT=$?
+          if [ $EXIT -ne 0 ]; then
+            # Emit each finding as a workflow error annotation
+            cat gitleaks-report.json | python3 -c "
+import json,sys
+for f in json.load(sys.stdin):
+    print(f\"::error file={f.get('File','?')},line={f.get('StartLine','?')}::gitleaks rule={f.get('RuleID','?')} match='{f.get('Match','?')[:80]}'\")" 2>/dev/null || cat gitleaks-report.json
+            exit 1
+          fi
       - name: Scan git log for secrets in this push
         run: |
           # Also scan the commits in this push (not just working tree)
@@ -58,27 +66,33 @@ jobs:
         run: |
           echo "--- black version ---"
           black --version
-          echo "--- isort version ---"
-          isort --version
           echo "--- pyproject.toml ---"
           cat pyproject.toml || echo "(not found)"
-          echo "--- setup.cfg [isort] ---"
-          grep -A5 '\[isort\]' setup.cfg || echo "(not found)"
 
-          echo "--- black check ---"
-          black --check app/ --diff 2>&1 | tee black.diff | head -80 || true
-          black --check app/ --quiet 2>&1
-          BLACK_EXIT=$?
+          # Run black and capture which files need reformatting
+          black --check app/ --diff 2>&1 | tee black.diff
+          BLACK_EXIT=${PIPESTATUS[0]}
 
-          echo "--- isort check ---"
-          isort --check-only app/ --profile black --diff 2>&1 | tee isort.diff | head -80 || true
-          isort --check-only app/ --profile black --quiet 2>&1
-          ISORT_EXIT=$?
+          # Run isort and capture which files need reformatting
+          isort --check-only app/ --profile black --diff 2>&1 | tee isort.diff
+          ISORT_EXIT=${PIPESTATUS[0]}
+
+          if [ $BLACK_EXIT -ne 0 ]; then
+            # Emit each changed file as a workflow error annotation
+            grep '^--- ' black.diff | sed 's|^--- ||' | while read f; do
+              echo "::error file=$f::black would reformat this file"
+            done
+          fi
+
+          if [ $ISORT_EXIT -ne 0 ]; then
+            grep '^--- ' isort.diff | sed 's|^--- ||' | while read f; do
+              echo "::error file=$f::isort would reorder imports in this file"
+            done
+          fi
 
           if [ $BLACK_EXIT -ne 0 ] || [ $ISORT_EXIT -ne 0 ]; then
-            echo "Code formatting check failed"
-            [ $BLACK_EXIT -ne 0 ] && echo "  - black check failed" && cat black.diff
-            [ $ISORT_EXIT -ne 0 ] && echo "  - isort check failed" && cat isort.diff
+            [ $BLACK_EXIT -ne 0 ] && echo "black check failed"
+            [ $ISORT_EXIT -ne 0 ] && echo "isort check failed"
             exit 1
           fi
 
