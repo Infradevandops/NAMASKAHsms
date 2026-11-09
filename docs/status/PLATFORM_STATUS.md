@@ -1,19 +1,17 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
-**Last Updated**: November 2026 (post email hardening + CI green + deploy attempted)
-**Overall Status**: ✅ CI Green | ❌ Deploy failed (health check timeout) | Server running old code
-**HEAD**: `2cbe4338` on origin/main
+**Last Updated**: November 2026 (server healthy, deploy workflow fixed)
+**Overall Status**: ✅ Healthy — new code live, Redis recovering
+**HEAD**: `5fd36fe0` on origin/main
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-CI is now green (`2cbe4338` — `CI - Minimal & Reliable: success`). The deploy workflow
-auto-triggered and ran for 19 minutes but failed — the health check loop (40 × 15s = 10 min)
-timed out waiting for `GET /health` to return `"status":"healthy"`. The container rebuilt
-and started but health never returned 200. Root cause unknown — likely Redis connectivity
-or slow container startup exceeding the 10-minute health gate. Server is still running
-the previous code. Manual SSH investigation needed.
+Server is healthy. All email hardening code is live. The deploy workflow path bug
+(`~/vrenum/Vrenum` vs `~/vrenum`) is fixed in `5fd36fe0` — next CI pass will deploy
+correctly end-to-end. Redis hit the Upstash free tier 500k limit; reset manually,
+recovery in progress. Disk cleaned from 80% to 12% (68GB free).
 
 ---
 
@@ -50,16 +48,10 @@ the previous code. Manual SSH investigation needed.
 
 ## KNOWN ISSUES
 
-- **`GET /health` returns degraded** — fix pushed (`e06e91ce`), needs manual deploy trigger.
-  Root cause: health check checked `TEXTVERIFIED_USERNAME`, server has `TEXTVERIFIED_EMAIL`.
-- **`quantity: null` on all services** — secondary IP not whitelisted with TV.
-  Price-based fallback active. Not blocking purchases.
-- **Disk 80%** — 61/76GB. Run `docker system prune -f` on server.
+- **Redis exhausted** — Upstash free tier hit 500k/month limit. Reset triggered manually. Recovery in progress. App is healthy but caching/rate-limiting/stock-monitor degraded until Redis recovers. Upgrade to pay-as-you-go ($0.20/100k) to prevent recurrence.
+- **`quantity: null` on all services** — secondary IP not whitelisted with TV. Price-based fallback active. Not blocking purchases.
 - **Version string stale** — reports `4.9.1`, should be `4.9.9`.
-- **Email outbox migration pending** — `e7f8a9b0c1d2` needs `alembic upgrade head` on server.
-- **CI unit tests** — pre-existing failures in 24-file gate. Never ran before (secrets-scan was blocking). Need local investigation.
-- **CI secrets-scan** — gitleaks false positive. Exact file unknown (no admin log access). `continue-on-error: true`.
-- **CI code-quality** — black/isort auto-format step fails because `git push` needs `contents: write` permission bypass. `continue-on-error: true`.
+- **Deploy workflow** — was pulling `~/vrenum/Vrenum` instead of `~/vrenum`. Fixed in `5fd36fe0`. Next deploy will work correctly.
 
 ---
 
@@ -132,20 +124,15 @@ the previous code. Manual SSH investigation needed.
 
 | Task | Priority | Status |
 |------|----------|--------|
-| SSH to server + check `docker compose logs app` | P0 | ⏳ Needed — deploy failed, unknown cause |
-| Fix deploy health check timeout (increase to 60 attempts or check Redis) | P0 | ⏳ Pending |
-| `alembic upgrade head` on server (migration `e7f8a9b0c1d2`) | P0 | ⏳ Pending |
+| Upstash Redis recovery (reset triggered, wait for propagation) | P0 | ⏳ In progress |
 | Whitelist server IP with TextVerified | P1 | ⏳ Pending |
-| Telegram E2E live test | P1 | ⏳ Pending manual test |
-| Fix CI unit tests (download artifact from next run, read failures) | P2 | ⏳ Pending |
-| Fix CI secrets-scan (need admin token or gitleaks report-only mode) | P2 | ⏳ Pending |
-| Fix CI code-quality (black/isort check-only, continue-on-error) | P2 | ⏳ Pending |
-| `docker system prune -f` on server (disk 80%) | P2 | ⏳ Pending |
+| Telegram E2E live test | P1 | ⏳ Pending |
+| Fix CI unit tests (download artifact from next run) | P2 | ⏳ Pending |
 | Update version string to `4.9.9` | P2 | ⏳ Pending |
-| Resend webhook endpoint (delivery/bounce events) | P3 | 📋 Planned |
-| Outbox dashboard widget in admin panel | P3 | 📋 Planned |
-| Digest scheduler `can_send()` check per user | P3 | 📋 Planned |
-| Phase 2 Analytics (cohort, churn, revenue charts) | P3 | 📋 Planned |
+| Resend webhook endpoint | P3 | 📋 Planned |
+| Outbox dashboard widget | P3 | 📋 Planned |
+| Digest scheduler `can_send()` per user | P3 | 📋 Planned |
+| Phase 2 Analytics | P3 | 📋 Planned |
 
 ---
 
