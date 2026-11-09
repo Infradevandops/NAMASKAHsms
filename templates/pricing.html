@@ -16,7 +16,7 @@
     }
     .pricing-hero h1 {
         font-size: var(--font-size-4xl);
-        color: #37352F;
+        color: var(--text-primary, #37352F);
         margin-bottom: 16px;
         font-weight: 800;
     }
@@ -152,7 +152,9 @@
         padding: 40px;
         margin-bottom: 40px;
         border: 2px solid #e5e7eb;
+        overflow-x: auto;
     }
+    .comparison-table table { min-width: 560px; }
     .comparison-table h2, .faq-section h2 {
         margin-bottom: 30px;
         color: #37352F;
@@ -173,24 +175,18 @@
         font-weight: 600;
         color: #374151;
     }
-    .faq-item {
-        margin-bottom: 25px;
-        padding-bottom: 25px;
-        border-bottom: 1px solid #e5e7eb;
+    details.faq-item { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    details.faq-item summary {
+        cursor: pointer; list-style: none; padding: 20px 0;
+        border-bottom: 1px solid #e5e7eb; font-size: 18px; font-weight: 600;
+        color: var(--text-primary, #37352F); display: flex; justify-content: space-between; align-items: center;
     }
-    .faq-item:last-child {
-        border-bottom: none;
-    }
-    .faq-item h3 {
-        color: #37352F;
-        margin-bottom: 10px;
-        font-size: 18px;
-        font-weight: 600;
-    }
-    .faq-item p {
-        color: #6b7280;
-        line-height: 1.6;
-    }
+    details.faq-item summary::-webkit-details-marker { display: none; }
+    details.faq-item summary::after { content: '+'; font-size: 20px; color: #9ca3af; }
+    details.faq-item[open] summary::after { content: '−'; }
+    details.faq-item p { padding: 12px 0 20px; color: #6b7280; line-height: 1.6; border-bottom: 1px solid #e5e7eb; }
+    details.faq-item:last-child summary { border-bottom: none; }
+    details.faq-item:last-child p { border-bottom: none; }
     @media (max-width: 768px) {
         .tier-cards {
             grid-template-columns: 1fr;
@@ -210,9 +206,6 @@
         /* Hide comparison table, show accordion */
         .comparison-table table {
             display: none;
-        }
-        .comparison-accordion {
-            display: block !important;
         }
         /* Sticky CTA */
         .sticky-cta {
@@ -375,34 +368,34 @@
 
     <div class="faq-section">
         <h2>Frequently Asked Questions</h2>
-        <div class="faq-item">
-            <h3>Can I change my plan anytime?</h3>
+        <details class="faq-item">
+            <summary>Can I change my plan anytime?</summary>
             <p>Yes! You can upgrade or downgrade your plan at any time from your dashboard settings.</p>
-        </div>
-        <div class="faq-item">
-            <h3>What happens if I downgrade?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>What happens if I downgrade?</summary>
             <p>You'll immediately lose access to premium features. Your API keys will be disabled, but your data remains safe.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Do I need a credit card for Freemium?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>Do I need a credit card for Freemium?</summary>
             <p>No! Sign up and start using Freemium tier without any payment information.</p>
-        </div>
-        <div class="faq-item">
-            <h3>What happens to unused monthly quota?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>What happens to unused monthly quota?</summary>
             <p>Unused quota does not roll over. Each billing cycle starts fresh with your plan's full quota amount.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Do you offer refunds?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>Do you offer refunds?</summary>
             <p>Yes - we have an automatic refund guarantee. If you don't receive your SMS code, your credits are automatically refunded. For payment refunds, requests within 14 days are processed within 5–7 business days.</p>
-        </div>
-        <div class="faq-item">
-            <h3>What payment methods are accepted?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>What payment methods are accepted?</summary>
             <p>We accept all major credit and debit cards via Paystack. Cryptocurrency payments (BTC, ETH, SOL, LTC) are also supported.</p>
-        </div>
-        <div class="faq-item">
-            <h3>What is the auto-refund guarantee?</h3>
+        </details>
+        <details class="faq-item">
+            <summary>What is the auto-refund guarantee?</summary>
             <p>If your verification session times out without receiving an SMS code, we automatically refund the full cost to your wallet balance - no support ticket needed.</p>
-        </div>
+        </details>
     </div>
 </div>
 
@@ -425,7 +418,7 @@
             window.location.href = '/dashboard';
             return;
         }
-        window.location.href = '/settings?tab=billing';
+        window.location.href = `/settings?tab=billing&upgrade_to=${tier}`;
     }
 </script>
 {% endblock %}

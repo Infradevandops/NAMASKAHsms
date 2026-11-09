@@ -111,8 +111,8 @@ body {
         flex-wrap: wrap;
     }
 
-    /* Grids collapse to single column */
-    .grid, [class*="grid"] {
+    /* Grids collapse to single column — scoped to dashboard/app containers only */
+    .dashboard-grid, .stats-grid, .admin-grid, .settings-grid {
         grid-template-columns: 1fr !important;
     }
 

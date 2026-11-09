@@ -35,6 +35,21 @@ endblock %}
     #activity-mobile-cards {
         display: none;
     }
+    .mobile-card-item {
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: var(--bg-card, white);
+    }
+    .card-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-color, #f3f4f6); }
+    .card-row:last-child { border-bottom: none; }
+    .card-label { font-size: 12px; font-weight: 600; color: var(--text-muted, #9ca3af); text-transform: uppercase; }
+    .card-value { font-size: 13px; color: var(--text-primary, #1f2937); text-align: right; }
+    [data-theme="dark"] .mobile-card-item { background: #1e293b; border-color: #334155; }
+    @media (max-width: 480px) {
+        .nsk-stat-value { font-size: 18px !important; }
+    }
 </style>
 
 <!-- Tier Information Card -->
@@ -55,7 +70,7 @@ endblock %}
                 aria-label="Add credits to your wallet">Add Credits</button>
             <button id="usage-btn" class="btn btn-primary"
                 aria-label="View your usage statistics">View Usage</button>
-            <button id="upgrade-btn" class="btn btn-primary"
+            <button id="upgrade-btn" class="btn btn-primary" style="display:none;"
                 aria-label="Upgrade your subscription plan">Upgrade</button>
         </div>
     </div>
