@@ -188,7 +188,8 @@ async def health_check(db: Session = Depends(get_db)):
         r.ping()
         checks["redis"] = "ok"
     except Exception as e:
-        checks["redis"] = f"error: {e}"
+        # Redis failure is non-fatal for health gate — app degrades gracefully
+        checks["redis"] = f"degraded: {str(e)[:120]}"
 
     # TV credentials present (not a live API call — just config check)
     # Accept either TEXTVERIFIED_USERNAME or TEXTVERIFIED_EMAIL (both are valid)
@@ -197,9 +198,7 @@ async def health_check(db: Session = Depends(get_db)):
         and (os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL"))
     )
 
-    healthy = (
-        checks["db"] == "ok" and checks["redis"] == "ok" and checks["tv_configured"]
-    )
+    healthy = checks["db"] == "ok" and checks["tv_configured"]
     return JSONResponse(
         status_code=200 if healthy else 503,
         content={
