@@ -1,7 +1,7 @@
 """add contact_submissions and email_outbox tables
 
 Revision ID: e7f8a9b0c1d2
-Revises: 794eda6caa30
+Revises: add_user_events_analytics
 Create Date: 2026-11-07 12:00:00.000000
 
 """
@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = "e7f8a9b0c1d2"
-down_revision = "794eda6caa30"
+down_revision = "add_user_events_analytics"
 branch_labels = None
 depends_on = None
 
