@@ -24,13 +24,12 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd ~/vrenum/Vrenum
+            cd ~/vrenum
             git fetch origin main
             git reset --hard origin/main
 
             # Validate no pending migrations before rebuilding
             echo "🔍 Checking migration state..."
-            cd /root/vrenum
             docker compose run --rm app alembic check 2>/dev/null && echo "✅ Migrations up to date" || echo "⚠️ Pending migrations detected — will apply on startup"
 
             docker compose up -d --build --force-recreate
