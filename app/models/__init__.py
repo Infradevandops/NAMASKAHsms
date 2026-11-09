@@ -1,5 +1,7 @@
 """Database models package."""
 
+from .contact_submission import ContactSubmission
+from .email_outbox import EmailOutbox
 from .activity import Activity
 from .admin_notification import AdminNotification
 from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
@@ -198,4 +200,6 @@ __all__ = [
     "EmailTemplateVersion",
     "EmailTemplateAnalytics",
     "UserEvent",
+    "ContactSubmission",
+    "EmailOutbox",
 ]

@@ -85,7 +85,7 @@ class EmailService:
         self.smtp_port = settings.smtp_port
         self.smtp_user = settings.smtp_username
         self.smtp_password = settings.smtp_password
-        self.from_email = settings.smtp_username or "onboarding@resend.dev"
+        self.from_email = settings.from_email_address or settings.smtp_username or "onboarding@resend.dev"
         self.from_name = "Vrenum"
 
         if self.resend_api_key:
@@ -118,6 +118,16 @@ class EmailService:
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         """Compatibility wrapper for legacy calls and test mocks."""
         return await self._send(to_email, subject, html_body)
+
+    async def send_email(
+        self,
+        to_email: str,
+        subject: str,
+        html_body: str = "",
+        html_content: str = "",
+    ) -> bool:
+        """Public compatibility alias used by legacy callers."""
+        return await self._send(to_email, subject, html_body or html_content)
 
     async def _send_resend(self, to_email: str, subject: str, html_body: str) -> bool:
         import resend
@@ -189,6 +199,7 @@ class EmailService:
         user_email: str,
         verification_token: str,
         base_url: str = "https://vrenum.app",
+        # EMAIL-013: account_security — no unsubscribe footer
     ) -> bool:
         verify_url = f"{base_url}/api/auth/verify-email?token={verification_token}"
         html = f"""
@@ -222,7 +233,6 @@ class EmailService:
                       If you didn't create a Vrenum account, you can safely ignore this email.
                     </p>
                   </div>
-                  {self._unsub_footer()}
                 </td>
               </tr>
               <tr>
@@ -288,7 +298,6 @@ class EmailService:
                       Your password will not change.
                     </p>
                   </div>
-                  {self._unsub_footer()}
                 </td>
               </tr>
               <!-- Footer -->

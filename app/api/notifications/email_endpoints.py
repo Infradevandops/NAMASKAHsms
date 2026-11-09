@@ -1,4 +1,4 @@
-"""Email notification endpoints."""
+"""Email notification endpoints — backed by EmailPreferencePolicy."""
 
 from typing import Optional
 
@@ -8,9 +8,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.notification_preference import NotificationPreference
 from app.models.user import User
-from app.services.email_notification_service import EmailNotificationService
+from app.services.email_preference_policy import EmailPreferencePolicy
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/notifications/email", tags=["Email Notifications"])
@@ -21,40 +20,33 @@ async def send_test_email(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Send a test email to verify email configuration.
+    """Send a test email to verify email configuration (user-initiated diagnostic)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    Returns:
-        - success: Whether email was sent successfully
-        - message: Status message
-    """
     try:
-        # Get user
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        from app.services.email_service import email_service
 
-        # Send test email
-        service = EmailNotificationService(db)
-        success = await service.send_notification_email(
+        class _TestNotif:
+            title = "Test Email"
+            message = "Email notifications are working correctly."
+            type = "system"
+            link = None
+
+        success = await email_service.send_notification_email(
             user_email=user.email,
-            notification_type="system",
-            title="Test Email",
-            message="This is a test email from Vrenum. If you received this, email notifications are working correctly!",
+            notification=_TestNotif(),
+            user_name=getattr(user, "display_name", None) or user.email.split("@")[0],
         )
-
-        if success:
-            logger.info(f"Test email sent to {user.email}")
-            return {
-                "success": True,
-                "message": f"Test email sent to {user.email}",
-            }
-        else:
+        if not success:
             raise HTTPException(status_code=500, detail="Failed to send test email")
-
+        logger.info(f"Test email sent to {user.email} by user {user_id}")
+        return {"success": True, "message": f"Test email sent to {user.email}"}
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error sending test email: {e}")
+    except Exception as exc:
+        logger.error(f"Test email error for {user_id}: {exc}")
         raise HTTPException(status_code=500, detail="Failed to send test email")
 
 
@@ -63,51 +55,18 @@ async def get_email_preferences(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Get user's email notification preferences.
-
-    Returns:
-        - email_notifications_enabled: Whether email notifications are enabled
-        - notification_types: Email preferences by notification type
     """
-    try:
-        # Get user
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    Get user's email notification preferences.
 
-        # Get preferences
-        preferences = (
-            db.query(NotificationPreference)
-            .filter(NotificationPreference.user_id == user_id)
-            .all()
-        )
+    email_notifications_enabled is derived from actual preference data,
+    not hardcoded to True.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-        # Build response
-        notification_types = {}
-        for pref in preferences:
-            delivery_methods = (
-                pref.delivery_methods.split(",") if pref.delivery_methods else []
-            )
-            notification_types[pref.notification_type] = {
-                "enabled": pref.enabled,
-                "email_enabled": "email" in delivery_methods,
-                "frequency": pref.frequency,
-            }
-
-        logger.info(f"Retrieved email preferences for user {user_id}")
-
-        return {
-            "email_notifications_enabled": True,
-            "notification_types": notification_types,
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error retrieving email preferences: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve email preferences"
-        )
+    policy = EmailPreferencePolicy(db)
+    return policy.get_effective_preferences(user_id)
 
 
 @router.put("/preferences")
@@ -117,148 +76,59 @@ async def update_email_preferences(
     email_enabled: bool = Query(..., description="Enable/disable email for this type"),
     db: Session = Depends(get_db),
 ):
-    """Update email notification preferences for a specific notification type.
-
-    Query Parameters:
-        - notification_type: Type of notification (verification, payment, login, etc.)
-        - email_enabled: Whether to enable email for this type
-
-    Returns:
-        - success: Whether update was successful
-        - message: Status message
     """
-    try:
-        # Get user
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    Update email notification preferences.
 
-        # Get or create preference
-        preference = (
-            db.query(NotificationPreference)
-            .filter(
-                NotificationPreference.user_id == user_id,
-                NotificationPreference.notification_type == notification_type,
-            )
-            .first()
-        )
+    Updates both delivery_methods AND the category enabled flag atomically.
+    Returns 404 if the preference row does not exist.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-        if not preference:
-            raise HTTPException(
-                status_code=404, detail="Notification preference not found"
-            )
-
-        # Update delivery methods
-        delivery_methods = (
-            preference.delivery_methods.split(",")
-            if preference.delivery_methods
-            else []
-        )
-
-        if email_enabled and "email" not in delivery_methods:
-            delivery_methods.append("email")
-        elif not email_enabled and "email" in delivery_methods:
-            delivery_methods.remove("email")
-
-        preference.delivery_methods = ",".join(delivery_methods)
-        db.commit()
-
-        logger.info(
-            f"Updated email preferences for user {user_id}, type {notification_type}: "
-            f"email_enabled={email_enabled}"
-        )
-
-        return {
-            "success": True,
-            "message": f"Email preferences updated for {notification_type}",
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating email preferences: {e}")
+    policy = EmailPreferencePolicy(db)
+    updated = policy.set_email_enabled(user_id, notification_type, email_enabled)
+    if not updated:
         raise HTTPException(
-            status_code=500, detail="Failed to update email preferences"
+            status_code=404,
+            detail=f"Notification preference not found for type '{notification_type}'",
         )
+
+    logger.info(
+        f"Email preference updated: user={user_id} type={notification_type} "
+        f"email_enabled={email_enabled}"
+    )
+    return {
+        "success": True,
+        "message": f"Email preferences updated for {notification_type}",
+    }
 
 
 @router.post("/unsubscribe")
 async def unsubscribe_from_emails(
     user_id: str = Depends(get_current_user_id),
     notification_type: Optional[str] = Query(
-        None, description="Specific type to unsubscribe from"
+        None, description="Specific type to unsubscribe from (omit for all)"
     ),
     db: Session = Depends(get_db),
 ):
-    """Unsubscribe from email notifications.
+    """Unsubscribe from optional email notifications."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    Query Parameters:
-        - notification_type: Optional specific type to unsubscribe from (if not provided, unsubscribe from all)
+    policy = EmailPreferencePolicy(db)
 
-    Returns:
-        - success: Whether unsubscribe was successful
-        - message: Status message
-    """
-    try:
-        # Get user
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        if notification_type:
-            # Unsubscribe from specific type
-            preference = (
-                db.query(NotificationPreference)
-                .filter(
-                    NotificationPreference.user_id == user_id,
-                    NotificationPreference.notification_type == notification_type,
-                )
-                .first()
+    if notification_type:
+        updated = policy.set_email_enabled(user_id, notification_type, False)
+        if not updated:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Preference not found for type '{notification_type}'",
             )
+        logger.info(f"User {user_id} unsubscribed from email for {notification_type}")
+    else:
+        count = policy.unsubscribe_all_optional(user_id)
+        logger.info(f"User {user_id} unsubscribed from all email ({count} categories)")
 
-            if preference:
-                delivery_methods = (
-                    preference.delivery_methods.split(",")
-                    if preference.delivery_methods
-                    else []
-                )
-                if "email" in delivery_methods:
-                    delivery_methods.remove("email")
-                preference.delivery_methods = ",".join(delivery_methods)
-                db.commit()
-
-            logger.info(
-                f"User {user_id} unsubscribed from email for {notification_type}"
-            )
-        else:
-            # Unsubscribe from all
-            preferences = (
-                db.query(NotificationPreference)
-                .filter(NotificationPreference.user_id == user_id)
-                .all()
-            )
-
-            for preference in preferences:
-                delivery_methods = (
-                    preference.delivery_methods.split(",")
-                    if preference.delivery_methods
-                    else []
-                )
-                if "email" in delivery_methods:
-                    delivery_methods.remove("email")
-                preference.delivery_methods = ",".join(delivery_methods)
-
-            db.commit()
-
-            logger.info(f"User {user_id} unsubscribed from all email notifications")
-
-        return {
-            "success": True,
-            "message": "Unsubscribed from email notifications",
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error unsubscribing from emails: {e}")
-        raise HTTPException(status_code=500, detail="Failed to unsubscribe from emails")
+    return {"success": True, "message": "Unsubscribed from email notifications"}

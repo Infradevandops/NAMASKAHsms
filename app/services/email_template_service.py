@@ -1,11 +1,12 @@
 """Email template service for whitelabel custom emails"""
 
+import html as _html
 import logging
 import re
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 from sqlalchemy.orm import Session
 
 from app.models.whitelabel_models import (
@@ -15,6 +16,28 @@ from app.models.whitelabel_models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Autoescaping Jinja environment for HTML templates — EMAIL-022
+_JINJA_HTML_ENV = Environment(autoescape=select_autoescape(["html", "xml"]))
+_JINJA_TEXT_ENV = Environment(autoescape=False)
+
+# Trusted HTTPS hosts for URL variables
+_TRUSTED_URL_HOSTS = {"vrenum.app", "www.vrenum.app"}
+
+
+def _safe_url(url: str) -> str:
+    """Validate URL is HTTPS and from a trusted host. Returns '#' if unsafe."""
+    try:
+        from urllib.parse import urlparse
+        p = urlparse(url)
+        if p.scheme != "https" or p.netloc not in _TRUSTED_URL_HOSTS:
+            return "#"
+        return url
+    except Exception:
+        return "#"
+
+
+_URL_VARS = {"top_up_url", "reset_link"}
 
 
 class EmailTemplateService:
@@ -158,25 +181,17 @@ class EmailTemplateService:
             raise ValueError(f"Template not found: {template_name}")
 
         # Render subject
-        subject = Template(template.subject).render(**variables)
-
-        # Render HTML content
-        html_content = Template(template.html_content).render(**variables)
-
-        # Render text content
-        text_content = Template(template.text_content).render(**variables)
+        subject = _JINJA_HTML_ENV.from_string(template.subject).render(**variables)
+        html_content = _JINJA_HTML_ENV.from_string(template.html_content).render(**variables)
+        text_content = _JINJA_TEXT_ENV.from_string(template.text_content).render(**variables)
 
         return subject, html_content, text_content
 
     def _validate_template_variables(self, template_name: str, content: str) -> None:
-        """Validate that template only uses allowed variables"""
+        """Validate that template only uses allowed variables."""
         allowed_vars = self.TEMPLATE_VARIABLES.get(template_name, [])
-
-        # Extract variables from template ({{ variable_name }})
         pattern = r"\{\{\s*(\w+)\s*\}\}"
         used_vars = set(re.findall(pattern, content))
-
-        # Check for invalid variables
         invalid_vars = used_vars - set(allowed_vars)
         if invalid_vars:
             raise ValueError(
@@ -184,13 +199,46 @@ class EmailTemplateService:
                 f"Allowed: {', '.join(allowed_vars)}"
             )
 
+    def _sanitize_url_variables(self, variables: Dict[str, str]) -> Dict[str, str]:
+        """Validate URL variables against trusted hosts — EMAIL-022."""
+        sanitized = dict(variables)
+        for key in _URL_VARS:
+            if key in sanitized:
+                sanitized[key] = _safe_url(sanitized[key])
+        return sanitized
+
     def _html_to_text(self, html: str) -> str:
-        """Convert HTML to plain text (basic implementation)"""
-        # Remove HTML tags
-        text = re.sub(r"<[^>]+>", "", html)
-        # Remove extra whitespace
-        text = re.sub(r"\s+", " ", text)
-        return text.strip()
+        """Convert HTML to plain text using a real parser — EMAIL-022."""
+        try:
+            from html.parser import HTMLParser
+
+            class _TextExtractor(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self._parts: list = []
+                    self._skip = False
+
+                def handle_starttag(self, tag, attrs):
+                    if tag in ("style", "script"):
+                        self._skip = True
+
+                def handle_endtag(self, tag):
+                    if tag in ("style", "script"):
+                        self._skip = False
+                    if tag in ("p", "br", "tr", "div", "h1", "h2", "h3", "li"):
+                        self._parts.append("\n")
+
+                def handle_data(self, data):
+                    if not self._skip:
+                        self._parts.append(data)
+
+            extractor = _TextExtractor()
+            extractor.feed(html)
+            text = "".join(extractor._parts)
+            return re.sub(r"\n{3,}", "\n\n", text).strip()
+        except Exception:
+            text = re.sub(r"<[^>]+>", "", html)
+            return re.sub(r"\s+", " ", text).strip()
 
     def get_default_template(self, template_name: str) -> Dict[str, str]:
         """Get default template content"""

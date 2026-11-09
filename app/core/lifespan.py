@@ -380,9 +380,13 @@ async def lifespan(app):
             )
 
             from app.services.stock_monitor import run_stock_monitor
+            from app.services.email_outbox_worker import run_outbox_worker
 
             asyncio.create_task(run_stock_monitor())
             startup_logger.info("✅ Service stock monitor started (15-min refresh)")
+
+            asyncio.create_task(run_outbox_worker())
+            startup_logger.info("✅ Email outbox worker started")
 
             # Area code cache refresh (every 23h — before 24h TTL expires)
             async def run_area_code_refresh():

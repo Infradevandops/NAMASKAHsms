@@ -10,6 +10,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.config import settings
 from app.core.database import Base
+import app.models  # noqa: F401 — ensures all models are registered with Base.metadata
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
