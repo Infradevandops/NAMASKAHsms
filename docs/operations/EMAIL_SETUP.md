@@ -1,6 +1,6 @@
 # Email Setup Guide
 
-> **Last Updated**: June 2026
+> **Last Updated**: November 2026
 > Covers: how email sending works, what to configure, and what to change as you grow.
 
 ---
@@ -19,6 +19,16 @@ To verify on the server:
 ```bash
 ssh root@<your-vps-ip> "cd ~/vrenum && docker compose logs app | grep -i 'email service'"
 ```
+
+### Email Hardening (November 2026)
+
+The email system was hardened in `978b6b87`. Key changes that affect operations:
+
+- **Outbox worker**: A supervised background worker now processes the `email_outbox` table. Run `alembic upgrade head` on the server to create the `email_outbox` and `contact_submissions` tables before deploying.
+- **Preference policy**: `GET /api/notifications/email` now returns real `email_notifications_enabled` derived from the user's actual preferences (was hardcoded `True`).
+- **Contact form durability**: Contact submissions are persisted to DB before the API responds. Forwarding failure no longer loses the submission — it sets `forwarding_status=failed` and the outbox worker retries.
+- **Template autoescape**: Jinja HTML templates now use `autoescape=True`. URL variables are validated against trusted HTTPS hosts.
+- **Security email footers**: Password reset and verification emails no longer include an unsubscribe footer (security mail must not imply it can be opted out of).
 
 ---
 

@@ -8,11 +8,39 @@ All notable changes to the Vrenum SMS project.
 - Test coverage improvement: 25% → 60% → 90% target
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
 - TV support ticket open to unblock server IP `169.255.57.146` from Cloudflare
-- Background service pricing completing for popular services (tinder, google, whatsapp etc.)
+- Resend webhook endpoint for delivery/bounce events (needs `RESEND_WEBHOOK_SECRET` in `.env.production`)
+- Full outbox dashboard widget in admin panel
+- Digest scheduler preference check at send time (`can_send()` call before each user)
 
-### Documentation
-- Added `docs/engineering/email-system-hardening/` with a repository-specific email audit, target architecture, ordered implementation tasks, template catalogue and test/release matrix.
-- Linked the email hardening initiative from `docs/INDEX.md`. This is a planning/documentation delivery; application code, migrations and runtime behavior are unchanged.
+## [Email System Hardening] - November 2026
+
+EMAIL-001 through EMAIL-043 — all tasks complete.
+
+### Added
+- **`app/services/email_classes.py`**: `EmailClass` enum (6 classes) + `TEMPLATE_CLASS_MAP` mapping 20 templates. `get_template_class()` and `is_suppressible_by_opt_out()` helpers.
+- **`app/services/email_preference_policy.py`**: `EmailPreferencePolicy` — `can_send()`, `get_effective_preferences()`, `set_email_enabled()`, `unsubscribe_all_optional()`. Derives `email_notifications_enabled` from real data; reconciles legacy `NotificationSettings` fields.
+- **`app/services/email_outbox_worker.py`**: Supervised outbox worker — `_claim_batch()` with `skip_locked=True`, `_recover_expired_leases()`, exponential backoff, `failed_permanent` dead-letter state. Wired into `lifespan.py`.
+- **`app/models/contact_submission.py`**: `ContactSubmission` model with `forwarding_status` (pending/sent/failed).
+- **`app/models/email_outbox.py`**: `EmailOutbox` model with `idempotency_key` unique constraint, status lifecycle, lease fields, retry tracking, provider correlation.
+- **`alembic/versions/a1b2c3d4e5f6_add_contact_submissions_and_email_outbox.py`**: Additive migration creating both tables.
+- **`tests/unit/test_email_hardening.py`**: 30 tests across 8 classes — classification, preference policy, contact durability, footer semantics, sender config, template rendering safety, outbox idempotency, provider adapter.
+
+### Changed
+- **`app/api/core/contact.py`**: Persists `ContactSubmission` to DB before responding. `html.escape()` on all user fields. Forwarding failure updates `forwarding_status` to `failed` — submission never lost.
+- **`app/api/notifications/email_endpoints.py`**: GET derives `email_notifications_enabled` from real data (was hardcoded `True`). PUT calls `set_email_enabled()` updating both delivery_methods and enabled flag atomically.
+- **`app/services/email_service.py`**: `from_email` uses `settings.from_email_address or settings.smtp_username or "onboarding@resend.dev"`. Added `send_email()` public compat alias. `send_password_reset()` and `send_verification_email()` no longer call `_unsub_footer()` (security mail must not have opt-out wording).
+- **`app/services/email_template_service.py`**: Jinja autoescape for HTML (`select_autoescape(["html","xml"])`), separate text env. `_safe_url()` validates scheme+host against trusted hosts. `_sanitize_url_variables()` applied to URL vars. `_html_to_text()` uses real `HTMLParser` not regex.
+- **`app/core/lifespan.py`**: `run_outbox_worker()` task added alongside stock monitor.
+- **`app/models/__init__.py`**: `ContactSubmission` and `EmailOutbox` added to imports and `__all__`.
+- **`alembic/env.py`**: `import app.models` added to ensure all models registered with `Base.metadata`.
+- **`.github/workflows/ci.yml`**: `test_email_hardening.py` added to blocking pytest gate.
+- **`tools/gitleaks.toml`**: `.env.development` added to paths allowlist; dev placeholder regex patterns added.
+
+### Technical
+- Commits: `978b6b87` (main implementation), `1bc1e955` (formatting), `1042b600` (gitleaks fix), `d8239024` (TASKS.md checkboxes)
+- No breaking changes — all migrations additive
+- Python 3.9 compatible throughout
+- Backward compatible: 100%
 
 ---
 

@@ -1,8 +1,8 @@
 # ACTIVE SPRINT
 
-**Updated**: November 7, 2026
+**Updated**: November 2026 (post email hardening)
 **Server**: https://vrenum.app — ✅ Healthy
-**Deployed**: `e06e91ce` (origin/main)
+**Deployed**: `e06e91ce` (origin/main) — manual deploy trigger needed
 
 ---
 
@@ -17,60 +17,34 @@ Uptime: 3d 16h+  |  Memory: 51.7%  |  Disk: 80% (61/76GB)  |  CPU: 9.5%
 
 **`GET /health` still shows degraded** — the fix (`e06e91ce`) is pushed to origin/main
 but the deploy workflow was itself broken by the same bug (health gate returning 503).
-The fix needs a manual deploy trigger or the deploy workflow needs to be run once
-with the health gate temporarily bypassed. See P0 below.
+Needs a manual deploy trigger from GitHub Actions → Deploy to Production → Run workflow.
 
 **TV is fully operational** — $42.15 balance, 416 services available, purchases working.
 
 ---
 
-## What Happened — Full Sprint History
+## What Happened — Sprint History
 
-This sprint covers ~25 commits from `f1975971` to `e06e91ce` across two sessions.
+### Session 1–3: Purchase Flow Overhaul + CI + Security (Nov 2–3, 2026)
 
-### Session 1: Purchase Flow Overhaul (Nov 2–3, 2026)
+See `docs/status/OPS_SUMMARY.md` for full commit table. Root cause: startup fired 2351
+concurrent pricing calls → TV 429 → broken stock, broken pricing preview, 500 errors.
 
-The app was hitting TV 429 rate limits because startup was firing 2351 concurrent
-pricing calls. This cascaded into broken stock, broken pricing preview, and 500 errors
-on purchase.
-
-| Commit | Fix |
-|--------|-----|
-| `fa4ec0d8` | Purchase 500 errors — Decimal/float mismatch + NOT NULL on purchase_outcomes |
-| `887854f3` | Pricing screen shows real tier-adjusted cost (was showing $2.63, charging $0.90) |
-| `fb9d35d6` | Real stock availability — quantity from cache before TV charges |
-| `332d766d` | **Root cause fix**: remove bulk pricing fetch from startup (was causing 429) |
-| `b30f579b` | Stock map price-based availability + cancel flow + polling guard |
-| `6d082955` | build_stock_map skips outcome check for null-price services (2351→58 Redis calls) |
-| `37c5c49e` | Prioritize popular services in pricing fetch, semaphore 10→3 |
-| `fe4b5cf4` | Inline pricing timeout 12s→30s, prewarm 20s→60s |
-| `950ce684` | Non-blocking service list — return names immediately, price in background |
-| `4302e789` | `TEXTVERIFIED_PROXY_URL` support — route TV calls through proxy when IP blocked |
-
-### Session 2: Webhook + Pricing URL + Balance (Nov 2, 2026)
-
-| Commit | Fix |
-|--------|-----|
-| `3ea44750` | TV webhook handles `v2.sms.received` + **pricing URL confirmed**: `/api/pub/v2/pricing/verifications` |
-| `dc9be6ca` | Balance display consistency — admin sees platform credits, TV balance as provider_balance |
-| `6baaafb2` | Fix detached SQLAlchemy instance in notification email dispatch |
-| `d4366646` | Add purchasability probe script |
-
-### Session 3: CI + Security (Nov 2, 2026)
-
-| Commit | Fix |
-|--------|-----|
-| `5c55c71a` | Add CodeQL workflow |
-| `0c2bea62` | Streamline CI ruleset for solo/small team |
-| `8a27be01` | Verify clean pipeline after ruleset changes |
-| `5b0c1608` | CI green — isort formatting + gitleaks allowlist for template files |
-
-### Session 4: This session (Nov 7, 2026)
+### Session 4: Health Check Fix (Nov 7, 2026)
 
 | Commit | Fix |
 |--------|-----|
 | `23560e8c` | v4.9.9 changelog + fix duplicate version numbers |
 | `e06e91ce` | **Health check fix**: accept `TEXTVERIFIED_EMAIL` not just `TEXTVERIFIED_USERNAME` |
+
+### Session 5: Email System Hardening (Nov 2026)
+
+| Commit | Fix |
+|--------|-----|
+| `978b6b87` | EMAIL-001–043: email classes, preference policy, outbox worker, contact durability, template autoescape, 30 tests |
+| `1bc1e955` | Formatting fixes (black/isort) |
+| `1042b600` | gitleaks allowlist for `.env.development` dev placeholders |
+| `d8239024` | TASKS.md all checkboxes ticked with commit evidence |
 
 ---
 
@@ -94,51 +68,44 @@ All credentials rotated ✅. One remaining action:
 
 ## Open Tasks — Priority Order
 
-### P0 — Trigger deploy manually (health fix is stuck)
-The `e06e91ce` health check fix is on origin/main but the deploy workflow won't
-auto-fire because the previous deploy's health gate returned 503 (the bug we just fixed).
-Need to trigger deploy manually from GitHub Actions → Deploy to Production → Run workflow.
+### P0 — Trigger deploy manually + run migration
+1. GitHub Actions → Deploy to Production → Run workflow.
+2. After deploy: `alembic upgrade head` on server (adds `email_outbox` + `contact_submissions` tables).
 
-After deploy, verify:
+Verify after deploy:
 ```
 curl -s https://vrenum.app/health
 # Expected: {"status":"healthy","service":"vrenum-sms","checks":{"db":"ok","redis":"ok","tv_configured":true}}
 ```
 
 ### P1 — Register server IP with TextVerified
-The app moved to a secondary IP. TV is rate-limiting/blocking the raw services
-quantity endpoint from that IP (`fetch_raw_services_with_quantity` returns empty,
-all `quantity: null`). `TEXTVERIFIED_PROXY_URL` support was added (`4302e789`) as
-a workaround but the real fix is whitelisting the new server IP with TV support.
-
-Until resolved: stock shows 416 available (price-based, correct) but no quantity counts.
-Purchases work fine — TV's `verifications.create()` handles out-of-stock at purchase time.
-
-**Action**: Contact TV support with new server IP to whitelist it.
+All `quantity: null` on services — secondary IP not whitelisted. Purchases work fine.
+`TEXTVERIFIED_PROXY_URL` env var available as workaround.
 
 ### P2 — Disk at 80% (61/76GB)
-Run on server: `docker system prune -f` to reclaim old image layers.
-Monitor — alert threshold is 90%.
+Run on server: `docker system prune -f`
 
 ### P3 — Telegram E2E live test
-Code complete since v4.9.0. Pending manual test with real Telegram account.
-Steps in `docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md`.
+Code complete since v4.9.0. Steps in `docs/features/TELEGRAM_ACCEPTANCE_CRITERIA.md`.
 
 ### P4 — Version string stale
-`/api/monitoring/health/detailed` reports `version: 4.9.1`.
-Update `settings.version` in `app/core/config.py` to `4.9.9`.
+`/api/monitoring/health/detailed` reports `version: 4.9.1`. Update `settings.version` in `app/core/config.py` to `4.9.9`.
+
+### P2 (email follow-ups)
+- Resend webhook endpoint for delivery/bounce events (needs `RESEND_WEBHOOK_SECRET`)
+- Outbox dashboard widget in admin panel
+- Digest scheduler `can_send()` check per user before send
 
 ---
 
 ## Confirmed Facts (from code + live checks)
 
 - **Pricing URL**: `/api/pub/v2/pricing/verifications` ✅ confirmed in `3ea44750`
-  (was `/api/pub/v2/verifications/pricing` — now fixed)
 - **TV balance**: $42.15 — healthy, well above $5 alert threshold
 - **Stock**: 416/2353 available — price-based (quantity null due to IP rate limit)
 - **Purchases**: Working — `verifications.create()` handles out-of-stock natively
 - **Webhook**: Handles both `sms.received` and `v2.sms.received` event types
-- **Rate limit root cause**: Startup was firing 2351 concurrent pricing calls → 429.
-  Fixed in `332d766d` — startup no longer bulk-fetches pricing.
-- **`TEXTVERIFIED_PROXY_URL`**: Env var supported. Set in `.env.production` to route
-  TV calls through a proxy if IP blocking persists after whitelisting.
+- **Rate limit root cause**: Startup was firing 2351 concurrent pricing calls → 429. Fixed in `332d766d`.
+- **Email outbox**: `email_outbox` + `contact_submissions` tables need `alembic upgrade head` on server
+- **Email preference GET**: Was hardcoded `True` — now derives from real data (`978b6b87`)
+- **Contact form**: Now persists to DB before responding — forwarding failure no longer loses submission

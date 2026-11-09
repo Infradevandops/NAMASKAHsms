@@ -1,6 +1,6 @@
 # OPS SUMMARY
 
-**Last Updated**: November 7, 2026
+**Last Updated**: November 2026 (post email hardening)
 **Deployed**: `e06e91ce` on origin/main (manual deploy trigger needed — see P0)
 **Server**: https://vrenum.app — TV operational, $42.15 balance, 416 services live
 
@@ -87,6 +87,15 @@ broken pricing preview, 500 errors on purchase.
 | `23560e8c` | v4.9.9 changelog + fix duplicate version numbers |
 | `e06e91ce` | Health check fix: accept `TEXTVERIFIED_EMAIL` not just `TEXTVERIFIED_USERNAME` |
 
+### Email System Hardening (Nov 2026)
+
+| Commit | Fix |
+|--------|-----|
+| `978b6b87` | EMAIL-001–043: email classes, preference policy, outbox worker, contact durability, template autoescape, 30 tests |
+| `1bc1e955` | Formatting fixes (black/isort) |
+| `1042b600` | gitleaks allowlist for `.env.development` dev placeholders |
+| `d8239024` | TASKS.md all checkboxes ticked with commit evidence |
+
 ---
 
 ## OPEN OPS ACTIONS
@@ -94,15 +103,22 @@ broken pricing preview, 500 errors on purchase.
 1. **Trigger deploy manually** — GitHub Actions → Deploy to Production → Run workflow.
    Verify `GET /health` returns `healthy` after.
 
-2. **Whitelist new server IP with TextVerified** — contact TV support with the new IP.
+2. **Run `alembic upgrade head` on server** — adds `email_outbox` and `contact_submissions` tables.
+   ```bash
+   ssh root@<vps-ip> "cd ~/vrenum && docker compose exec app alembic upgrade head"
+   ```
+
+3. **Whitelist new server IP with TextVerified** — contact TV support with the new IP.
    Until done: `quantity: null` on all services (cosmetic only, purchases work).
    Alternatively set `TEXTVERIFIED_PROXY_URL` in `.env.production` to route through proxy.
 
-3. **`docker system prune -f` on server** — disk at 80%, reclaim old image layers.
+4. **`docker system prune -f` on server** — disk at 80%, reclaim old image layers.
 
-4. **Update version string** — `app/core/config.py` `version` field → `4.9.9`.
+5. **Update version string** — `app/core/config.py` `version` field → `4.9.9`.
 
-5. **Telegram E2E test** — manual test with real Telegram account.
+6. **Telegram E2E test** — manual test with real Telegram account.
+
+7. **Resend webhook endpoint** — add `RESEND_WEBHOOK_SECRET` to `.env.production` and implement endpoint for delivery/bounce events (P2).
 
 ---
 
@@ -129,6 +145,9 @@ Blocking gate: 24 test files, `--cov-fail-under=25`.
 | `tv_configured: false` = wrong env var name in health check | `e06e91ce` |
 | All credentials rotated | Confirmed by user |
 | TV balance $42.15 | Live `/api/monitoring/health/detailed` |
+| Email preference GET was hardcoded `True` — now real data | `978b6b87` |
+| Contact form now persists to DB before ack | `978b6b87` |
+| `email_outbox` + `contact_submissions` tables need migration on server | `a1b2c3d4e5f6` |
 
 ---
 

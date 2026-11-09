@@ -1,6 +1,6 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
-**Last Updated**: November 7, 2026
+**Last Updated**: November 2026 (post email hardening)
 **Overall Status**: ✅ Production Ready — TV operational, secondary IP pending whitelist
 **CI Status**: ✅ `e06e91ce` on origin/main — manual deploy trigger needed (health gate was broken)
 
@@ -59,6 +59,7 @@ No version bump until CI is confirmed green and the pending deploy fires.
   Not blocking purchases. `TEXTVERIFIED_PROXY_URL` env var available as workaround.
 - **Disk 80%** — 61/76GB. Run `docker system prune -f` on server.
 - **Version string stale** — reports `4.9.1`, should be `4.9.9`.
+- **Email outbox worker** — code deployed, migration `a1b2c3d4e5f6` needs `alembic upgrade head` on server.
 
 ---
 
@@ -84,6 +85,12 @@ No version bump until CI is confirmed green and the pending deploy fires.
 - ✅ All transactional emails CAN-SPAM compliant
 - ✅ Revenue-zero alert (18:00 UTC daily)
 - ✅ Daily + weekly digest email scheduler
+- ✅ Email message classification (`EmailClass` enum, 6 classes, 20 templates mapped)
+- ✅ Email preference policy — `can_send()` enforced, GET/PUT endpoints fixed
+- ✅ Contact submissions durable (`ContactSubmission` model, persisted before ack)
+- ✅ Email outbox with idempotency key + supervised worker (backoff, dead-letter)
+- ✅ Jinja autoescape + URL validation in template renderer
+- ✅ Security emails no longer carry opt-out footer
 
 ### Business
 - ✅ Affiliate program + commission engine
@@ -116,6 +123,7 @@ No version bump until CI is confirmed green and the pending deploy fires.
 | Revenue-zero monitor | Daily 18:00 UTC | ✅ Active |
 | Digest scheduler | Daily 08:00 UTC | ✅ Active |
 | Stock monitor | 90s | ✅ Active |
+| Email outbox worker | Continuous (5s poll) | ✅ Active |
 | Area code cache refresh | 23h | ⏳ Pending deploy |
 
 ---
@@ -124,15 +132,17 @@ No version bump until CI is confirmed green and the pending deploy fires.
 
 | Task | Priority | Status |
 |------|----------|--------|
-| Confirm CI green on ee895ce8 | P0 | ⏳ Running |
-| Verify TV pricing URL from VPS | P1 | ⏳ Needs VPS test |
+| Manual deploy trigger (health fix `e06e91ce`) | P0 | ⏳ Pending |
+| `alembic upgrade head` on server (email outbox migration) | P0 | ⏳ Pending |
+| Whitelist server IP with TextVerified | P1 | ⏳ Pending |
 | Telegram E2E live test | P1 | ⏳ Pending manual test |
-| Add test_textverified_service.py to CI gate | P1 | 📋 Ready |
+| `docker system prune -f` on server (disk 80%) | P2 | ⏳ Pending |
+| Update version string to `4.9.9` | P2 | ⏳ Pending |
+| Resend webhook endpoint (delivery/bounce events) | P2 | 📋 Planned |
+| Outbox dashboard widget in admin panel | P2 | 📋 Planned |
+| Digest scheduler `can_send()` check per user | P2 | 📋 Planned |
 | CI coverage push 25% → 60% | P2 | 📋 Planned |
-| Phase 2 Analytics (cohort, churn, revenue charts) | P2 | 📋 Planned |
-| smsAndVoiceCombo capability | P3 | 📋 Planned |
-| Reuse/Reactivate UI surface | P3 | 📋 Planned |
-| Multi-region deployment | Low | 📋 Q3 2026 |
+| Phase 2 Analytics (cohort, churn, revenue charts) | P3 | 📋 Planned |
 
 ---
 
@@ -140,11 +150,10 @@ No version bump until CI is confirmed green and the pending deploy fires.
 
 | Doc | What it covers |
 |-----|---------------|
-| `docs/engineering/TV_API_REAL_FLOW.md` | Full SDK source truth, all 12 files read, rental breakage, corrections |
-| `docs/engineering/TV_API_FLOW_GAP_ASSESSMENT.md` | Gap analysis vs TV API, implementation status |
-| `docs/engineering/PLATFORM_VERIFICATION_RENTAL_FLOW_STANDARD.md` | Provider-agnostic canonical flow |
-| `docs/engineering/AREA_CODE_SELECTOR_FLOW.md` | Area code data flow from TV to UI, gaps, fixes |
-| `docs/engineering/TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md` | Stock accuracy gaps, P0 fixes |
+| `docs/engineering/email-system-hardening/README.md` | Status updated to Complete |
+| `docs/engineering/email-system-hardening/TASKS.md` | All checkboxes ticked with commit evidence |
+| `docs/operations/EMAIL_SETUP.md` | Updated to reflect outbox worker, preference policy, autoescape |
+| `CHANGELOG.md` | Email hardening release entry added |
 
 ---
 

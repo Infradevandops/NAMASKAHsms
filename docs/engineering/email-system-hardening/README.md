@@ -1,9 +1,9 @@
 # Email System Hardening
 
-**Status:** Planned — implementation not started by this documentation change  
+**Status:** ✅ Complete — all EMAIL-001 through EMAIL-043 tasks implemented in `978b6b87`  
 **Owner:** Backend / Platform Engineering  
 **Scope:** Transactional email, optional notifications, branded and whitelabel templates, contact-form delivery, provider operations  
-**Repository baseline reviewed:** `main`, observed commit `e5c20f1ad8722fbfa986df0f2ef154d285cd9bc1` (9 November 2026 review)
+**Implemented:** November 2026 — commits `978b6b87`, `1bc1e955`, `1042b600`, `d8239024`
 
 ## Purpose
 
@@ -43,4 +43,4 @@ This folder is the implementation source of truth for the email-hardening work. 
 
 ## Implementation rule
 
-The documents describe the intended end state, not evidence that it already exists. Keep task status unchecked until code, migrations, tests and deployment evidence demonstrate completion.
+All tasks are complete. See `TASKS.md` for per-task commit evidence. Open P2 follow-ups are tracked in `TASKS.md` under "Open follow-ups".

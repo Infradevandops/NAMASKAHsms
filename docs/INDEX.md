@@ -1,6 +1,6 @@
 # VRENUM SMS - DOCUMENTATION INDEX
 
-**Last Updated**: November 9, 2026  
+**Last Updated**: November 2026
 **Status**: Current
 
 ---
@@ -50,8 +50,8 @@
 - **[docs/operations/EMAIL_SETUP.md](./operations/EMAIL_SETUP.md)** - Email configuration
 
 ### Engineering & Development
-- **[docs/engineering/email-system-hardening/README.md](./engineering/email-system-hardening/README.md)** - Email-system audit, architecture, implementation tasks and release gates
-- **[docs/engineering/TESTING_STRATEGY.md](./TESTING_STRATEGY.md)** - Testing approach and coverage
+- **[docs/engineering/email-system-hardening/README.md](./engineering/email-system-hardening/README.md)** - Email system hardening — ✅ Complete (EMAIL-001–043)
+- **[docs/engineering/TESTING_STRATEGY.md](./engineering/TESTING_STRATEGY.md)** - Testing approach and coverage
 - **[docs/engineering/development/](./engineering/development/)** - Development guides
 - **[docs/engineering/api/](./engineering/api/)** - API documentation
 
@@ -124,25 +124,25 @@
 ```
 docs/
 ├── INDEX.md                          # This file
-├── QUICK_START.md                    # Quick start guide
+├── DOCS_AUDIT.md                     # Audit of which docs are live vs redundant
 ├── status/
 │   ├── PLATFORM_STATUS.md            # Current platform status ⭐
-│   ├── PHASE1_STATUS.md              # Phase 1 status
-│   └── ASSESSMENT_SUMMARY.md         # Latest assessment
+│   ├── ACTIVE_SPRINT.md              # Current sprint tasks and history
+│   ├── OPS_SUMMARY.md                # Ops runbook: deploy, infra, emails, revenue
+│   ├── FRONTEND_ACTIVE_TASKS.md      # Frontend tasks — all complete
+│   └── NOTIFICATION_DARK_THEME_FIXES.md  # Dark theme tasks — all complete
 ├── deployment/
 │   ├── DEPLOYMENT_BEST_PRACTICES.md  # Complete guide
 │   ├── DEPLOYMENT_CHECKLIST.md       # Checklist
 │   ├── DEPLOYMENT_QUICK_REFERENCE.md # Quick commands
-│   ├── SECURITY_AUDIT.md             # Security audit
-│   ├── PHASE1_ACTION_PLAN.md         # Phase 1 plan
-│   └── VERIFICATION_CHECKLIST.md     # Verification
+│   └── SECURITY_AUDIT.md             # Security audit
 ├── operations/
 │   ├── MONITORING.md                 # Monitoring setup
 │   ├── PRODUCTION_MIGRATION_GUIDE.md # Migration
 │   ├── LOGS_GUIDE.md                 # Logs & troubleshooting
-│   └── EMAIL_SETUP.md                # Email config
+│   └── EMAIL_SETUP.md                # Email config (updated Nov 2026)
 ├── engineering/
-│   ├── email-system-hardening/
+│   ├── email-system-hardening/       # ✅ Complete (EMAIL-001–043)
 │   │   ├── README.md
 │   │   ├── REPOSITORY_EMAIL_AUDIT.md
 │   │   ├── IMPLEMENTATION_PLAN.md
@@ -161,6 +161,7 @@ docs/
 │   ├── SMS_LOGIC.md                  # SMS logic
 │   └── REFUND_LOGIC_VERIFIED.md      # Refund logic
 ├── features/
+│   ├── TELEGRAM_ACCEPTANCE_CRITERIA.md  # Telegram E2E criteria
 │   ├── ADVANCED_ANALYTICS_CUSTOM_REPORTS.md
 │   ├── BILLING_HISTORY.md
 │   ├── COMPLIANCE_GDPR_CHECKER.md
@@ -168,8 +169,7 @@ docs/
 │   ├── KYC_DOCUMENT_VIEWER.md
 │   ├── USAGE_QUOTAS.md
 │   └── USER_MANAGEMENT_ACTIVITY_TIMELINE.md
-└── archive/                          # Old documentation
-    └── (historical files)
+└── artifacts/                        # Screenshots (reference only)
 ```
 
 ---
@@ -177,7 +177,7 @@ docs/
 ## 🔍 SEARCH BY TOPIC
 
 ### Analytics
-- [docs/status/PHASE1_STATUS.md](./status/PHASE1_STATUS.md) - Phase 1 Analytics
+- [docs/status/PLATFORM_STATUS.md](./status/PLATFORM_STATUS.md) - Phase 1 Analytics complete
 - [docs/features/ADVANCED_ANALYTICS_CUSTOM_REPORTS.md](./features/ADVANCED_ANALYTICS_CUSTOM_REPORTS.md) - Analytics features
 
 ### Authentication & Security
@@ -288,6 +288,5 @@ docs/
 
 ---
 
-**Last Updated**: May 18, 2026  
-**Next Review**: May 25, 2026  
+**Last Updated**: November 2026  
 **Maintained By**: Engineering Team

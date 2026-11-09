@@ -1,8 +1,10 @@
 # Notification & Dark Theme Fix Tasks
 
 **Created**: October 26, 2026
-**Status**: All items unresolved — previous fixes did not deploy correctly or had root causes not addressed
-**Priority**: P1 — visible to all users on dashboard
+**Status**: ✅ All 7 tasks complete — shipped in v4.9.5
+
+All items resolved. See `docs/status/PLATFORM_STATUS.md` for current state.
+This file is retained as a record of the root cause analysis and fix approach.
 
 ---
 
