@@ -25,7 +25,7 @@ jobs:
       - name: Scan working tree for secrets
         run: |
           # Scan the full working tree — catches secrets in any file
-          gitleaks detect --source . --config tools/gitleaks.toml --verbose --no-git
+          gitleaks detect --source . --config tools/gitleaks.toml --verbose --no-git --report-format json --report-path gitleaks-report.json || (cat gitleaks-report.json && exit 1)
       - name: Scan git log for secrets in this push
         run: |
           # Also scan the commits in this push (not just working tree)
@@ -56,18 +56,25 @@ jobs:
 
       - name: Code formatting (parallel)
         run: |
-          black --check app/ --quiet &
-          BLACK_PID=$!
-          isort --check-only app/ --profile black --quiet &
-          ISORT_PID=$!
+          echo "--- black version ---"
+          black --version
+          echo "--- isort version ---"
+          isort --version
+          echo "--- pyproject.toml ---"
+          cat pyproject.toml || echo "(not found)"
+          echo "--- setup.cfg [isort] ---"
+          grep -A5 '\[isort\]' setup.cfg || echo "(not found)"
 
-          # Wait for both and capture exit codes
-          wait $BLACK_PID
+          echo "--- black check ---"
+          black --check app/ --diff 2>&1 | head -60 || true
+          black --check app/ --quiet
           BLACK_EXIT=$?
-          wait $ISORT_PID
+
+          echo "--- isort check ---"
+          isort --check-only app/ --profile black --diff 2>&1 | head -60 || true
+          isort --check-only app/ --profile black --quiet
           ISORT_EXIT=$?
 
-          # Exit with error if either failed
           if [ $BLACK_EXIT -ne 0 ] || [ $ISORT_EXIT -ne 0 ]; then
             echo "Code formatting check failed"
             [ $BLACK_EXIT -ne 0 ] && echo "  - black check failed"
