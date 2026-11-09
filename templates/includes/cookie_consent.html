@@ -1,5 +1,5 @@
 <!-- Cookie Consent Banner -->
-<div id="cookie-consent" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1f2937;color:white;padding:16px 24px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:9999;box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
+<div id="cookie-consent" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1f2937;color:white;padding:16px 24px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
     <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
         <p style="margin:0;font-size:14px;flex:1;min-width:200px;">We use cookies to improve your experience. By continuing, you agree to our <a href="/cookies" style="color:#FE3C72;text-decoration:underline;">Cookie Policy</a>.</p>
         <div style="display:flex;gap:8px;">
@@ -12,7 +12,9 @@
 (function() {
     var consent = localStorage.getItem('cookie_consent');
     if (!consent) {
-        document.getElementById('cookie-consent').style.display = 'block';
+        var el = document.getElementById('cookie-consent');
+        el.style.display = 'block';
+        document.body.style.paddingBottom = '80px';
     } else if (consent === 'accepted') {
         loadSabilytics();
     }
@@ -29,10 +31,12 @@ function loadSabilytics() {
 function acceptCookies() {
     localStorage.setItem('cookie_consent', 'accepted');
     document.getElementById('cookie-consent').style.display = 'none';
+    document.body.style.paddingBottom = '';
     loadSabilytics();
 }
 function declineCookies() {
     localStorage.setItem('cookie_consent', 'declined');
     document.getElementById('cookie-consent').style.display = 'none';
+    document.body.style.paddingBottom = '';
 }
 </script>

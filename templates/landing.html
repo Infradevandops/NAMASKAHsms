@@ -154,6 +154,70 @@
     .code-block { background: #1e293b; border-radius: 12px; padding: 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .code-block code { color: #e2e8f0; font-family: 'Monaco', monospace; font-size: 13px; white-space: pre; }
 
+    /* TESTIMONIALS */
+    .testimonials { padding: 80px 0; }
+    .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .testimonial-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+      transition: box-shadow 0.2s;
+    }
+    .testimonial-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+    .t-stars { color: #f59e0b; font-size: 16px; margin-bottom: 12px; letter-spacing: 2px; }
+    .t-text { font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .t-author { display: flex; align-items: center; gap: 12px; }
+    .t-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+    .t-name { font-weight: 700; font-size: 14px; }
+    .t-role { font-size: 12px; color: var(--text-muted); }
+
+    /* PRICING TEASER */
+    .pricing-teaser { padding: 64px 0; background: var(--bg-alt); }
+    .pricing-teaser-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+    @media (max-width: 640px) { .pricing-teaser-inner { grid-template-columns: 1fr; } }
+    .pt-card { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+    .pt-card.featured { border-color: var(--primary); border-width: 2px; }
+    .pt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; }
+    .pt-price { font-size: 32px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+    .pt-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+    .pt-features { list-style: none; font-size: 14px; color: var(--text-muted); }
+    .pt-features li { padding: 4px 0; }
+    .pt-features li::before { content: "✓ "; color: var(--primary); font-weight: 700; }
+    .pt-cta { text-align: center; margin-top: 32px; }
+
+    /* HERO VISUAL */
+    @media (min-width: 900px) {
+      .hero-inner { display: grid; grid-template-columns: 1fr 420px; gap: 48px; align-items: center; text-align: left; }
+      .hero-inner .hero-badge, .hero-inner h1, .hero-inner > p, .hero-cta, .hero-stats { text-align: left; justify-content: flex-start; }
+    }
+    .hero-visual-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12); overflow: hidden;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    .hvc-header { background: var(--primary); padding: 16px 20px; display: flex; align-items: center; gap: 10px; }
+    .hvc-header span { color: #fff; font-weight: 700; font-size: 14px; }
+    .hvc-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+    .hvc-body { padding: 20px; }
+    .hvc-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .hvc-row:last-child { border-bottom: none; }
+    .hvc-label { color: var(--text-muted); }
+    .hvc-val { font-weight: 600; color: var(--text); }
+    .hvc-code { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: 4px; }
+    .hvc-badge { background: #10b981; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 50px; }
+    @media (max-width: 899px) { .hero-visual-card { display: none; } }
+
+    /* PWA INSTALL BANNER */
+    #pwa-install-banner {
+      display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3); z-index: 95;
+      display: none; align-items: center; gap: 12px; font-size: 14px;
+      white-space: nowrap; max-width: calc(100vw - 32px);
+    }
+    #pwa-install-banner.visible { display: flex; }
+    #pwa-install-banner .pwa-install-btn { background: var(--primary); color: #fff; border: none; padding: 7px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; white-space: nowrap; }
+    #pwa-install-banner .pwa-dismiss-btn { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
+
     /* CTA */
     .cta { padding: 80px 0; background: var(--primary); text-align: center; }
     [data-theme="dark"] .cta { background: linear-gradient(135deg, #c0284e, #a01e3e); }
@@ -206,17 +270,34 @@
   <!-- HERO -->
   <section class="hero">
     <div class="shell">
-      <div class="hero-badge">🔒 Trusted by thousands of users</div>
-      <h1>Get Verified on <span>Any Platform</span><br>in Seconds</h1>
-      <p>Uber, DoorDash, Instacart, WhatsApp, Telegram — get real US phone numbers and receive verification codes instantly. No spam, no data brokers.</p>
-      <div class="hero-cta">
-        <a href="/auth/register" class="btn btn-primary">Start Verifying Free →</a>
-        <a href="#platforms" class="btn btn-outline">See Supported Platforms</a>
-      </div>
-      <div class="hero-stats">
-        <div class="stat"><span class="stat-num">1,800+</span><span class="stat-label">Supported Services</span></div>
-        <div class="stat"><span class="stat-num">&lt; 30s</span><span class="stat-label">Average Delivery</span></div>
-        <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Auto-Refund Guarantee</span></div>
+      <div class="hero-inner">
+        <div>
+          <div class="hero-badge">🔒 Trusted by thousands of users</div>
+          <h1>Get Verified on <span>Any Platform</span><br>in Seconds</h1>
+          <p>Uber, DoorDash, Instacart, WhatsApp, Telegram — get real US phone numbers and receive verification codes instantly. No spam, no data brokers.</p>
+          <div class="hero-cta">
+            <a href="/auth/register" class="btn btn-primary">Start Verifying Free →</a>
+            <a href="#platforms" class="btn btn-outline">See Supported Platforms</a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><span class="stat-num">1,800+</span><span class="stat-label">Supported Services</span></div>
+            <div class="stat"><span class="stat-num">&lt; 30s</span><span class="stat-label">Average Delivery</span></div>
+            <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Auto-Refund Guarantee</span></div>
+          </div>
+        </div>
+        <div class="hero-visual-card" aria-hidden="true">
+          <div class="hvc-header"><div class="hvc-dot"></div><span>WhatsApp Verification</span></div>
+          <div class="hvc-body">
+            <div class="hvc-row"><span class="hvc-label">Service</span><span class="hvc-val">WhatsApp</span></div>
+            <div class="hvc-row"><span class="hvc-label">Number</span><span class="hvc-val">+1 (415) 555-0192</span></div>
+            <div class="hvc-row"><span class="hvc-label">Status</span><span class="hvc-badge">Code Received</span></div>
+            <div class="hvc-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
+              <span class="hvc-label">Your Code</span>
+              <span class="hvc-code">847 291</span>
+            </div>
+            <div class="hvc-row"><span class="hvc-label">Delivery time</span><span class="hvc-val" style="color:#10b981;">12 seconds ⚡</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -296,6 +377,34 @@
     </div>
   </section>
 
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="shell">
+      <div class="section-header">
+        <h2>Trusted by Thousands</h2>
+        <p>Real users, real results</p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-text">"Got my Uber driver account verified in under 20 seconds. Tried 3 other services before this — none of them worked. Vrenum just works."</p>
+          <div class="t-author"><div class="t-avatar">M</div><div><div class="t-name">Marcus T.</div><div class="t-role">Uber Driver · Chicago</div></div></div>
+        </div>
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-text">"The auto-refund is real. I had one session time out and the credits were back in my wallet before I even refreshed the page. Incredible."</p>
+          <div class="t-author"><div class="t-avatar">S</div><div><div class="t-name">Sofia R.</div><div class="t-role">DoorDash Dasher · Miami</div></div></div>
+        </div>
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-text">"Using the API to automate verifications for our testing pipeline. The Pro plan pays for itself in the first week. Documentation is clean."</p>
+          <div class="t-author"><div class="t-avatar">A</div><div><div class="t-name">Alex K.</div><div class="t-role">Backend Engineer · Remote</div></div></div>
+        </div>
+      </div>
+      <p style="text-align:center; margin-top:32px; font-size:14px; color:var(--text-muted);"><a href="/reviews" style="color:var(--primary); text-decoration:none; font-weight:600;">See all reviews →</a></p>
+    </div>
+  </section>
+
   <!-- FEATURES -->
   <section class="features">
     <div class="shell">
@@ -328,6 +437,42 @@
           <h3><span>🌍</span> Works Globally</h3>
           <p>Use from anywhere in the world. Our US numbers work for international users.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING TEASER -->
+  <section class="pricing-teaser">
+    <div class="shell">
+      <div class="section-header">
+        <h2>Simple, Honest Pricing</h2>
+        <p>Start free. No credit card required.</p>
+      </div>
+      <div class="pricing-teaser-inner">
+        <div class="pt-card">
+          <div class="pt-label">Pay As You Go</div>
+          <div class="pt-price">$2.63<span style="font-size:16px; font-weight:400; color:var(--text-muted);">/SMS</span></div>
+          <div class="pt-desc">No subscription. Fund your balance and pay only when you verify.</div>
+          <ul class="pt-features">
+            <li>1,800+ supported services</li>
+            <li>Location &amp; ISP filters</li>
+            <li>Auto-refund guarantee</li>
+          </ul>
+        </div>
+        <div class="pt-card featured">
+          <div class="pt-label" style="color:var(--primary);">Pro Plan — Most Popular</div>
+          <div class="pt-price">$25<span style="font-size:16px; font-weight:400; color:var(--text-muted);">/month</span></div>
+          <div class="pt-desc">Includes $15 credit + API access. Best for regular users and developers.</div>
+          <ul class="pt-features">
+            <li>$15 monthly credit included</li>
+            <li>$1.80/SMS after credit</li>
+            <li>10 API keys + webhooks</li>
+            <li>Priority support</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-cta">
+        <a href="/pricing" class="btn btn-primary">See Full Pricing →</a>
       </div>
     </div>
   </section>
@@ -425,6 +570,13 @@ Response:
     </div>
   </footer>
 
+  <!-- PWA INSTALL BANNER -->
+  <div id="pwa-install-banner" role="banner" aria-label="Install app">
+    <span>📱 Install Vrenum SMS as an app</span>
+    <button class="pwa-install-btn" onclick="installPWA()">Install</button>
+    <button class="pwa-dismiss-btn" onclick="dismissPWA()" aria-label="Dismiss">&times;</button>
+  </div>
+
   {% include "includes/cookie_consent.html" %}
 
   <script nonce="{{ request.state.csp_nonce }}">
@@ -432,6 +584,25 @@ Response:
     window.addEventListener('scroll', () => {
       document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
     }, { passive: true });
+
+    // PWA install prompt
+    let _pwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      _pwaPrompt = e;
+      if (!localStorage.getItem('pwa_dismissed')) {
+        document.getElementById('pwa-install-banner').classList.add('visible');
+      }
+    });
+    function installPWA() {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; dismissPWA(); });
+    }
+    function dismissPWA() {
+      localStorage.setItem('pwa_dismissed', '1');
+      document.getElementById('pwa-install-banner').classList.remove('visible');
+    }
 
     // Mobile menu
     function toggleMobileMenu() {
