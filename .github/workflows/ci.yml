@@ -204,8 +204,6 @@ jobs:
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
         run: |
-          # Run stable core tests - gradually adding more
-          # TODO: Fix remaining test suite issues
           pytest tests/unit/test_api_key_service.py \
                  tests/unit/test_analytics_service.py \
                  tests/unit/test_balance_service.py \
@@ -235,7 +233,21 @@ jobs:
             --cov-report=xml \
             --cov-report=term-missing:skip-covered \
             --cov-fail-under=25 \
-            --tb=short
+            --tb=line \
+            -q 2>&1 | tee pytest_output.txt
+          EXIT=${PIPESTATUS[0]}
+          # Emit first 20 FAILED lines as annotations
+          grep '^FAILED\|^ERROR' pytest_output.txt | while read line; do
+            echo "::error::$line"
+          done
+          exit $EXIT
+
+      - name: Upload test output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-output-${{ github.run_id }}
+          path: pytest_output.txt
 
 
 
