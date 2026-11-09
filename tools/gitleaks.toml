@@ -63,6 +63,7 @@ paths = [
     '''deploy/docker/\.env\.production\.example''',
     '''\.env\.example''',
     '''\.env\.production\.example''',
+    '''\.env\.development''',
     '''.github/workflows/ci\.yml''',
     '''docs/operations/security/CREDENTIAL_ROTATION_CHECKLIST\.md''',
     '''scripts/deployment/setup_env\.sh''',
@@ -86,6 +87,10 @@ regexes = [
     '''test-jwt-secret-key-for-ci''',
     '''test_password_for_ci_only''',
     '''test-jwt-secret-key-for-ci-testing''',
+    # Dev placeholder values — not real credentials
+    '''dev-secret-key-change-in-production''',
+    '''dev-jwt-secret-key-change-in-production''',
+    '''change-in-production''',
     # Platform internal API key format (not real secrets)
     '''nsk_live_[a-zA-Z0-9]{24,128}''',
     '''nsk_[a-zA-Z0-9]{24,128}''',

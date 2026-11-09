@@ -1,6 +1,5 @@
 """Email template service for whitelabel custom emails"""
 
-import html as _html
 import logging
 import re
 from datetime import datetime, timezone
