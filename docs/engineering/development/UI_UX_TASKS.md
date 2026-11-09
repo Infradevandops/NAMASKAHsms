@@ -45,54 +45,48 @@
 
 ---
 
-## WHAT WAS DONE (HEAD commit)
+## PRODUCTION READINESS SCAN (commit 38544b51)
 
-### LP-002 — Dead `landing.css` deleted
-`static/css/landing.css` (782 lines) defined `.navbar`, `.hero-container`, `.hero-visual`,
-`.pricing-card` — none of which existed in `landing.html`. File deleted from repo.
+All actionable findings from full codebase scan fixed:
 
-### LP-007 — Pricing teaser section added
-New `<section class="pricing-teaser">` between API section and CTA:
-- Two cards: Pay-As-You-Go ($2.63/SMS) and Pro ($25/mo, featured with pink border)
-- Feature bullets on each card
-- "See Full Pricing →" CTA linking to `/pricing`
-- Responsive: 2-col on ≥640px, 1-col on mobile
-
-### LP-008 — PWA install prompt
-`#pwa-install-banner` fixed-position banner (bottom: 80px, above cookie consent):
-- Wired to `beforeinstallprompt` event
-- "Install" button calls `prompt()` on the deferred event
-- "✕" dismiss stores `pwa_dismissed` in `localStorage` — never shown again
-- Only appears if browser supports PWA install and user hasn't dismissed
-
-### LP-010 — Testimonials section added
-New `<section class="testimonials">` between How It Works and Features:
-- 3 cards: Marcus T. (Uber), Sofia R. (DoorDash), Alex K. (API/developer)
-- Star ratings, italic quote, avatar initial + name + role
-- "See all reviews →" link to `/reviews`
-- Dark mode aware via CSS vars
-
-### LP-011 — Hero visual element added
-Desktop (≥900px): hero splits into 2-col grid — text left, animated card right.
-Card shows a live-looking WhatsApp verification:
-- Service, number, status badge (green "Code Received"), code `847 291`, delivery time
-- `@keyframes float` animation (translateY 0→-12px, 4s loop)
-- Hidden on mobile (`display:none` at <900px) — no layout impact
-
-### XC-005 — Cookie consent z-index fixed
-- `z-index: 9999` → `z-index: 90` (below nav overlay at 98/99, below PWA banner at 95)
-- `document.body.style.paddingBottom = '80px'` set when banner shown
-- Padding cleared on accept/decline
-- Prevents cookie banner from covering mobile nav dropdown
+| Finding | Severity | Fix |
+|---------|----------|-----|
+| IP spoofing in rate limiter (X-Forwarded-For) | High | Fixed trust order in `unified_rate_limiting.py` |
+| In-memory CSRF/rate-limit (multi-process) | High | **Fixed — Redis-backed** (see below) |
+| Duplicate CSP middleware with `unsafe-inline` | High | **Fixed — `csp.py` deleted** (see below) |
+| CI never hard-blocks bad deploy | High | Fixed — smoke-test job added to `ci.yml` |
+| SQLAlchemy `is False` bug ×3 | Medium | Fixed in `auth_security.py`, `lifespan.py` |
+| JWT hardcoded 30-day expiry | Medium | Fixed — uses `settings.jwt_expiration_hours` |
+| CSP missing Turnstile/Google domains | Medium | Fixed in `security.py` |
+| Abandoned payment cleanup inverted logic | Medium | Fixed in `lifespan.py` |
+| Python 3.11 vs 3.9 mismatch | Medium | Fixed — `Dockerfile` pinned to `3.9-slim` |
+| CI artifact JSON files in repo | Medium | Fixed — `.gitignore` updated |
+| Month-end revenue monitor crash | Low | Fixed — `timedelta` approach in `lifespan.py` |
 
 ---
 
-## PRODUCTION READINESS NOTES
+## POST-SCAN FIXES (current session)
 
-All 30 UI/UX issues resolved. Pages are now:
+### SEC-001 — `app/middleware/csp.py` deleted
+Dead duplicate CSP middleware defining `'unsafe-inline'` with no nonce — weaker than the
+active nonce-based policy in `security.py`. Not imported anywhere but dangerous as a landmine.
+File deleted.
 
-- **Landing**: Full conversion funnel — hero visual, stats, testimonials, pricing teaser, proper mobile nav, PWA install prompt
-- **Auth**: Both pages have nav, dark-mode Turnstile, correct margins, theme-aware Google button, cross-links
-- **Pricing**: Dark-mode safe h1, scrollable comparison table, FAQ accordion, upgrade_to param passed
-- **Dashboard**: No upgrade button flash, mobile activity cards styled, stat font readable at 320px
-- **Cross-cutting**: PWA theme-color split light/dark, page titles branded, grid override scoped, focus-visible on CTAs, cookie z-index safe
+### SEC-002 — `app/core/security_hardening.py` Redis-backed
+`SecurityHardening.csrf_tokens` and `rate_limits` were plain dicts — not shared across
+Gunicorn workers (WORKERS=2), making effective limits double and CSRF tokens invisible
+cross-worker.
+
+**Fix**:
+- `generate_csrf_token` / `validate_csrf_token` → `cache_manager.set/get("csrf:{user_id}", ttl=3600)`
+- `check_rate_limit` → Redis `INCR` + `EXPIRE` pipeline on key `rl:{identifier}:{window}` — atomic, shared across all workers
+- Pure utility methods (`sanitize_input`, `validate_*`) unchanged — no state involved
+
+---
+
+## REMAINING OPEN ITEMS
+
+| Item | Status |
+|------|--------|
+| Telegram E2E verification (@vrenum_sms_bot) | ⏳ Pending manual test |
+| Python unit-tests `continue-on-error: true` | ⏳ Pre-existing failures need triage |
