@@ -34,12 +34,16 @@ jobs:
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
         with:
           clean: true
           fetch-depth: 0
           ref: ${{ github.sha }}
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clear pip cache
         run: |
           rm -rf ~/.cache/pip
