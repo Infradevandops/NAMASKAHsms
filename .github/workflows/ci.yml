@@ -190,6 +190,23 @@ jobs:
 
           echo "✅ Test database initialized with migrations"
 
+      - name: Check imports
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
+          ENVIRONMENT: testing
+          TESTING: '1'
+        run: |
+          python -c "import app.services.email_classes" && echo "email_classes OK"
+          python -c "import app.services.email_preference_policy" && echo "email_preference_policy OK"
+          python -c "import app.services.email_outbox_worker" && echo "email_outbox_worker OK"
+          python -c "import app.models.contact_submission" && echo "contact_submission OK"
+          python -c "import app.models.email_outbox" && echo "email_outbox OK"
+          python -c "import app.api.core.contact" && echo "contact OK"
+          python -c "import tests.unit.test_email_hardening" && echo "test_email_hardening OK"
+
       - name: Run unit tests
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
