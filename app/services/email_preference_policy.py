@@ -72,7 +72,11 @@ class EmailPreferencePolicy:
         if pref is not None:
             if not pref.enabled:
                 return False, "category_disabled"
-            methods = [m.strip() for m in (pref.delivery_methods or "").split(",") if m.strip()]
+            methods = [
+                m.strip()
+                for m in (pref.delivery_methods or "").split(",")
+                if m.strip()
+            ]
             if "email" not in methods:
                 return False, "email_not_in_delivery_methods"
             if (pref.frequency or "instant") == "never":
@@ -106,17 +110,20 @@ class EmailPreferencePolicy:
 
         result = {}
         for p in prefs:
-            methods = [m.strip() for m in (p.delivery_methods or "").split(",") if m.strip()]
+            methods = [
+                m.strip()
+                for m in (p.delivery_methods or "").split(",")
+                if m.strip()
+            ]
             result[p.notification_type] = {
                 "enabled": p.enabled,
                 "email_enabled": p.enabled and "email" in methods,
                 "frequency": p.frequency or "instant",
             }
 
-        # Derive global email_notifications_enabled from actual data
-        any_email_enabled = any(
-            v["email_enabled"] for v in result.values()
-        ) if result else False
+        any_email_enabled = (
+            any(v["email_enabled"] for v in result.values()) if result else False
+        )
 
         return {
             "email_notifications_enabled": any_email_enabled,
@@ -146,7 +153,11 @@ class EmailPreferencePolicy:
         if not pref:
             return False
 
-        methods = [m.strip() for m in (pref.delivery_methods or "").split(",") if m.strip()]
+        methods = [
+            m.strip()
+            for m in (pref.delivery_methods or "").split(",")
+            if m.strip()
+        ]
         if email_enabled:
             if "email" not in methods:
                 methods.append("email")
@@ -170,7 +181,11 @@ class EmailPreferencePolicy:
         )
         count = 0
         for p in prefs:
-            methods = [m.strip() for m in (p.delivery_methods or "").split(",") if m.strip()]
+            methods = [
+                m.strip()
+                for m in (p.delivery_methods or "").split(",")
+                if m.strip()
+            ]
             if "email" in methods:
                 methods = [m for m in methods if m != "email"]
                 p.delivery_methods = ",".join(methods) if methods else "toast"

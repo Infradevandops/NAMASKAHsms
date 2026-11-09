@@ -8,10 +8,10 @@ Start via lifespan.py:
 
 import asyncio
 import json
+import random
 import socket
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -25,13 +25,12 @@ _WORKER_ID = f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
 _BATCH_SIZE = 10
 _LEASE_SECONDS = 120
 _POLL_INTERVAL = 15  # seconds between sweeps
-_BACKOFF_BASE = 60   # seconds; doubles each retry up to ~32 min
+_BACKOFF_BASE = 60  # seconds; doubles each retry up to ~32 min
 
 
 def _next_attempt_delay(attempt: int) -> int:
     """Exponential backoff with jitter: 60s, 120s, 240s, 480s, 960s."""
-    import random
-    delay = min(_BACKOFF_BASE * (2 ** attempt), 960)
+    delay = min(_BACKOFF_BASE * (2**attempt), 960)
     return int(delay + random.uniform(0, delay * 0.1))
 
 
@@ -44,7 +43,8 @@ def _claim_batch(db: Session) -> list:
         db.query(EmailOutbox)
         .filter(
             EmailOutbox.status.in_(["pending", "retry_wait"]),
-            (EmailOutbox.next_attempt_at == None) | (EmailOutbox.next_attempt_at <= now),  # noqa: E711
+            (EmailOutbox.next_attempt_at == None)  # noqa: E711
+            | (EmailOutbox.next_attempt_at <= now),
         )
         .with_for_update(skip_locked=True)
         .limit(_BATCH_SIZE)
@@ -90,19 +90,11 @@ async def _process_row(row: EmailOutbox, db: Session) -> None:
     now = datetime.now(timezone.utc)
     row.attempt_count += 1
 
-    # Check optional preference before sending
+    # Optional preference check is best-effort; primary check is at enqueue time.
+    # We don't store user_id on outbox to minimise PII surface.
     if is_suppressible_by_opt_out(EmailClass(row.email_class)):
-        if row.category:
-            try:
-                from app.services.email_preference_policy import EmailPreferencePolicy
-                # Extract user_id from source_event_id if encoded, else skip check
-                # (we don't store user_id on outbox to minimise PII surface)
-                # Policy check is best-effort here; primary check is at enqueue time
-                pass
-            except Exception:
-                pass
+        pass  # future: load user_id from source_event_id and call can_send()
 
-    # Attempt send
     try:
         from app.services.email_service import email_service
 
@@ -123,7 +115,9 @@ async def _process_row(row: EmailOutbox, db: Session) -> None:
     except Exception as exc:
         err = str(exc)[:500]
         row.last_error = err
-        logger.warning(f"Outbox {row.id} attempt {row.attempt_count} failed: {err}")
+        logger.warning(
+            f"Outbox {row.id} attempt {row.attempt_count} failed: {err}"
+        )
 
         if row.attempt_count >= row.max_attempts:
             row.status = "failed_permanent"
