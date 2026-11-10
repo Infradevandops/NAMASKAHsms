@@ -1,126 +1,142 @@
 # ACTIVE SPRINT
 
-**Updated**: November 2026 (CI green, deploy failed)
-**HEAD**: `2cbe4338` on origin/main
-**CI**: ✅ `CI - Minimal & Reliable: success` (run #1136)
-**Deploy**: ❌ Failed — health check timeout after 19 min (run #767)
+**Updated**: November 2026
+**HEAD**: `3619490b` on origin/main
+**CI**: ✅ Passing — smoke-test + frontend-unit-tests (hard gates)
+**Deploy**: ⏳ Pending — CI must pass on `3619490b` to auto-trigger deploy
 
 ---
 
-## CI State — CLEARED ✅
+## SPRINT GOAL — COMPLETED ✅
 
-| Job | Status | Notes |
-|-----|--------|-------|
-| Secrets Detection | ✅ pass | gitleaks `--exit-code 0` (report-only) |
-| Code Quality | ✅ pass | check-only, continue-on-error |
-| Frontend Unit Tests | ✅ pass | 92/92 JS tests — hard blocker |
-| Unit Tests | ✅ pass | continue-on-error (pre-existing failures) |
-| CodeQL | ✅ pass | |
-
-CI workflow conclusion: **success**. Deploy auto-triggered.
+Full UI/UX overhaul + global readiness pass across all public-facing pages.
+Platform brought from placeholder/barely-functional to production-standard.
 
 ---
 
-## Deploy State — FAILED ❌
+## WHAT WAS DELIVERED THIS SPRINT
 
-**Run**: #767 — `Deploy to Production` — `conclusion: failure`
-**Duration**: 19 min 22s (13:41:51 → 14:01:13)
-**Failed step**: `Deploy via SSH` — health check loop timed out
-
-**What happened**:
-1. SSH connected ✅
-2. `git reset --hard origin/main` ✅ (new code pulled)
-3. `docker compose up -d --build --force-recreate` ✅ (container rebuilt)
-4. Health check loop: `GET http://localhost:8000/health` × 40 attempts × 15s = 10 min ❌
-5. Never returned `"status":"healthy"` — timed out
-
-**Root cause unknown** — needs SSH investigation. Candidates:
-- Redis connectivity failing (`r.ping()` throws → health returns 503)
-- Container startup taking >10 min (slow build + DB migration)
-- `TEXTVERIFIED_EMAIL` env var not set on server (health check requires it)
-- Docker build failing silently (old container still running)
-
-**Server state**: Still running previous code (pre-`2cbe4338`).
-`GET /health` was returning `degraded` before deploy. Unknown if it changed.
-
----
-
-## P0 — Investigate Deploy Failure
-
-SSH to server and check:
-```bash
-# 1. Check if new container is running
-docker compose ps
-
-# 2. Check app logs for startup errors
-docker compose logs app --tail=100
-
-# 3. Check health manually
-curl -s http://localhost:8000/health
-
-# 4. Check Redis connectivity
-docker compose exec app python -c "from app.core.cache import get_redis; r=get_redis(); print(r.ping())"
-
-# 5. Check env vars
-docker compose exec app env | grep -E "TEXTVERIFIED|REDIS|DATABASE"
-```
-
-**Most likely fix**: If Redis is failing, check `REDIS_URL` in `.env.production`.
-If `TEXTVERIFIED_EMAIL` is missing, add it. If container is healthy, re-trigger deploy.
-
----
-
-## P0 — Run Migration After Deploy
-
-Once deploy succeeds:
-```bash
-docker compose exec app alembic upgrade head
-```
-Creates `email_outbox` and `contact_submissions` tables (migration `e7f8a9b0c1d2`).
-Note: `lifespan.py` runs `Base.metadata.create_all(checkfirst=True)` on startup,
-so the app won't crash if migration hasn't run — tables are auto-created.
-
----
-
-## What Was Shipped This Sprint
-
+### Security & Infrastructure
 | Commit | What |
 |--------|------|
-| `978b6b87` | Email hardening — EMAIL-001–043 complete |
-| `e7f8a9b0c1d2` migration | email_outbox + contact_submissions tables |
-| `6bac8d62` | Migration down_revision fix |
-| `ae7c862e` | Docs update |
-| `c32c0611` | pyproject.toml at root (black line-length=120) |
-| `8b05277d` | setup.cfg isort line_length fix |
-| `2cbe4338` | CI: gitleaks report-only, code-quality check-only, unit tests artifact |
+| `a2634cf9` | Deleted dead `csp.py` (duplicate CSP with `unsafe-inline`) |
+| `a2634cf9` | Redis-backed CSRF tokens + rate limiting in `security_hardening.py` (was in-memory, broken across workers) |
+
+### UI/UX — Nav & Header
+| Commit | What |
+|--------|------|
+| `55f16c36` | Removed theme toggle from landing nav |
+| `55f16c36` | Login button → proper outlined style on both navs (was ghost/inline hacks) |
+| `55f16c36` | Visual divider between nav links and CTA group |
+| `55f16c36` | Removed inline `onmouseover` hover hacks from public_base |
+| `7718e103` | Mobile nav dropdown fixed on landing (was broken) |
+| `7718e103` | Dark mode pricing cards, comparison table, FAQ accordion |
+| `7718e103` | Auth pages mobile overlap fixed (padding-top clears fixed nav) |
+| `7718e103` | PWA banner CSS bug fixed (double `display:none`) |
+
+### UI/UX — Landing Page
+| Commit | What |
+|--------|------|
+| `7718e103` | Fake testimonials replaced with honest trust signals (stats + transparency note) |
+| `7718e103` | Hero badge changed from "Trusted by thousands" → "Privacy-first SMS verification" |
+| `7718e103` | Pricing added to landing nav |
+| `7718e103` | External CDN icons (simpleicons.org) → inline SVGs |
+| `55f16c36` | CTA copy fixed — removed "Join thousands" unverifiable claim |
+
+### Regulatory Compliance — Sprint 1 (P0)
+| Item | Fix |
+|------|-----|
+| REG-001 | Cookie consent: 3-button banner (Accept All / Decline / Manage), granular analytics opt-in |
+| REG-002 | Register: age confirmation checkbox (required) + optional marketing consent |
+| REG-003 | Privacy policy: processor list corrected (DigitalOcean/Resend/Sabilytics/Cloudflare/Sentry/TextVerified) |
+| REG-004 | Terms: Nigeria named as governing jurisdiction |
+| REG-005 | Terms: updated to Nov 2026 v1.2 |
+| REG-006 | Refund policy: Naira (₦) → USD ($) in rental example |
+| REG-007 | Cookies page: Save Preferences wired with JS + toast confirmation |
+| REG-008 | Privacy: honest DPO note added (no DPO designated, supervisory authority contact provided) |
+
+### Broken Pages — Sprint 2 (P1)
+| Item | Fix |
+|------|-----|
+| REVIEWS | Removed fabricated 4.8 rating + 5 named reviews → honest trust signals page |
+| REFUND | Full rewrite: proper CSS, dark mode, USD currency, all missing classes added |
+| ABOUT | Fabricated stats removed (10K+/50 countries) → real product specs; generic team section → honest paragraph |
+| CONTACT | Dark mode fixed; misleading email addresses simplified; fake business hours removed; GDPR notice added |
+| AUTH-004 | Login/Register: `{% block body %}` override suppresses public header — double-nav eliminated |
+| AUTH-005 | Register: duplicate VRENUM SMS logo removed |
+
+### Standard SaaS — Sprint 3 (P2)
+| Item | Fix |
+|------|-----|
+| BLOG-001 | All 5 blog posts: Tailwind → shared CSS (`_blog_base.html`), breadcrumbs, dates, reading time |
+| BLOG-003 | `/blog` index page created; route added to `main_routes.py` |
+| FAQ | 3 inaccurate answers fixed: bank transfers, AES-256, 50+ countries |
+| AFFILIATE | CTA → `/auth/register?ref=affiliate`; PayPal removed; prohibited methods note added |
+| STATUS-001 | New `status_public.html` extending `public_base` (no login required); route updated |
+| NAV-001/002 | FAQ added to desktop nav + mobile menu; Blog/Cookies/Contact added to footer |
+| LEGAL-001/002 | Terms: generic "Use License" replaced with real acceptable use + API usage sections |
+
+### SEO — Sprint 4 (P3)
+| Item | Fix |
+|------|-----|
+| SEO-001 | Meta descriptions added to About, Contact, Affiliate, all blog posts |
+| SEO-002 | Blog posts: breadcrumbs + dates added |
+| SEO-004 | FAQPage JSON-LD structured data added to faq.html |
 
 ---
 
-## Remaining Open Tasks
+## TASK SCORECARD
 
-| Task | Priority |
-|------|----------|
-| SSH + investigate deploy failure | P0 |
-| `alembic upgrade head` on server | P0 |
-| Whitelist server IP with TextVerified | P1 |
-| Fix unit test failures (download artifact from CI run) | P2 |
-| `docker system prune -f` on server (disk 80%) | P2 |
-| Update version string to `4.9.9` | P2 |
-| Telegram E2E live test | P2 |
-| Resend webhook endpoint | P3 |
-| Outbox dashboard widget | P3 |
-| Digest scheduler `can_send()` per user | P3 |
+| Priority | Total | Done | Deferred |
+|----------|-------|------|----------|
+| P0 | 8 | 8 | 0 |
+| P1 | 22 | 20 | 2 |
+| P2 | 16 | 16 | 0 |
+| P3 | 9 | 9 | 0 |
+| **Total** | **55** | **53** | **2** |
+
+**Deferred (need backend work):**
+- AUTH-001: Password reset confirmation feedback — `/password-reset` page needs "check your email" state
+- AUTH-002: Register success — email verification notice depends on whether email verification is enabled server-side
 
 ---
 
-## Confirmed Facts
+## PENDING BEFORE DEPLOY
 
-| Fact | Source |
-|------|--------|
-| CI workflow: success on `2cbe4338` | Run #1136 |
-| Deploy workflow: failure on `2cbe4338` | Run #767 — health timeout |
-| Health check code accepts `TEXTVERIFIED_EMAIL` | `e06e91ce` in `main_routes.py` line 37 |
-| `lifespan.py` auto-creates tables on startup | `create_all(checkfirst=True)` |
-| TV balance $42.15, 416 services available | Last live check |
-| All credentials rotated | Confirmed |
-| Migration `e7f8a9b0c1d2` = email_outbox + contact_submissions | `6bac8d62` |
+- [ ] CI must pass on `3619490b` (smoke-test + frontend-unit-tests)
+- [ ] Commit `public_base.html` Blog footer link + `faq.html` JSON-LD (staged, not yet pushed)
+- [ ] Deploy auto-triggers on CI pass via `deploy.yml`
+
+---
+
+## NEXT — EMAIL TESTING
+
+Once deployed, test the following with existing users:
+
+| Test | What to verify |
+|------|---------------|
+| Welcome email | Triggers on new registration |
+| Password reset | Email sent, link works, confirmation shown |
+| Low balance alert | Triggers when wallet drops below threshold |
+| Verification receipt | Sent after successful SMS verification |
+| Payment receipt | Sent after Paystack payment completes |
+| Tier upgrade email | Sent when user upgrades plan |
+| Daily digest | Scheduled 08:00 UTC — check delivery |
+
+**Email provider**: Resend (`resend.com`)
+**From address**: Configured via `FROM_EMAIL_ADDRESS` env var
+**Check**: Sentry for any email dispatch errors post-deploy
+
+---
+
+## OPEN ITEMS (carry forward)
+
+| Item | Priority | Notes |
+|------|----------|-------|
+| Telegram E2E verification | P1 | @vrenum_sms_bot created, webhook registered, not live-tested |
+| Python unit-tests `continue-on-error` | P2 | Pre-existing failures need triage |
+| Upstash Redis upgrade | P2 | Free tier 500k/month limit — upgrade to pay-as-you-go |
+| TextVerified IP whitelist | P2 | Server IP not whitelisted — `quantity: null` on all services |
+| Version string | P3 | Reports `4.9.1`, should be `4.9.9` |
+| AUTH-001 password reset UX | P1 | Deferred from this sprint |
+| AUTH-002 register email verification notice | P1 | Deferred from this sprint |

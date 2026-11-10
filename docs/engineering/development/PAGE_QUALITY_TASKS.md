@@ -65,13 +65,13 @@
 | COOKIES-002 | Cookie consent — no granular per-category consent (essential always on, analytics/marketing opt-in) | P2 | ✅ Done |
 | NAV-001 | public_base — mobile menu missing FAQ and Services links (landing has them, public_base doesn't) | P2 | ✅ Done |
 | NAV-002 | public_base footer — missing FAQ, Cookies, Blog links | P2 | ✅ Done |
-| NAV-003 | Landing nav — mobile dropdown missing Pricing link (only Services, How It Works, API, FAQ) | P2 | ⬜ |
+| NAV-003 | Landing nav — mobile dropdown missing Pricing link (only Services, How It Works, API, FAQ) | P2 | ✅ Done |
 | PRICING-001 | Pricing — dark mode: tier-card-popular uses background:#37352F (dark) in light mode — contrast issue on popular card text | P2 | ✅ Done (prior session) |
 | PRICING-002 | Pricing — sticky mobile CTA has `display:none` inline but media query sets `display:flex !important` — works but fragile | P3 | ✅ Done (acceptable) |
 | SEO-001 | About, Contact, Affiliate — missing `<meta name="description">` blocks | P3 | ✅ Done |
 | SEO-002 | Blog posts — no structured data (Article schema, breadcrumbs) | P3 | ✅ Done (breadcrumbs added) |
 | SEO-003 | Reviews page — no AggregateRating schema markup | P3 | ✅ Done (page rewritten, no fake rating to mark up) |
-| SEO-004 | FAQ page — no FAQPage schema markup | P3 | ⬜ |
+| SEO-004 | FAQ page — no FAQPage schema markup | P3 | ✅ Done |
 | CONTENT-001 | About — mission section is generic ("increasingly connected world") — needs specific, honest positioning | P3 | ✅ Done |
 | CONTENT-002 | Contact — "Business Hours: Mon-Fri 9AM-6PM UTC" — if not staffed, remove or change to async-only | P3 | ✅ Done |
 | CONTENT-003 | Landing — hero stats (1,800+, <30s, 100%) are product claims, not user stats — fine but should be labelled as product specs | P3 | ✅ Done (hero badge updated) |

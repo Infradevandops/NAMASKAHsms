@@ -138,6 +138,22 @@
 {% endblock %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"How do I create an account?","acceptedAnswer":{"@type":"Answer","text":"Sign up at vrenum.app — enter your email, create a password, accept the terms. Instant access on Freemium. No credit card required."}},
+    {"@type":"Question","name":"Is there a free trial?","acceptedAnswer":{"@type":"Answer","text":"Yes. New accounts start on Freemium — up to 20 verifications at no cost."}},
+    {"@type":"Question","name":"How long does it take to receive an SMS?","acceptedAnswer":{"@type":"Answer","text":"Most codes arrive within 5–30 seconds. If no code arrives within 2 minutes, your credits are automatically refunded."}},
+    {"@type":"Question","name":"What if I don't receive the SMS?","acceptedAnswer":{"@type":"Answer","text":"Credits are automatically refunded — no support ticket needed, no questions asked."}},
+    {"@type":"Question","name":"How much does each verification cost?","acceptedAnswer":{"@type":"Answer","text":"Verifications start at $2.63 on Freemium and Pay-As-You-Go. Pro ($25/mo) and Custom ($35/mo) plans include a monthly quota with lower overage rates."}},
+    {"@type":"Question","name":"Is vrenum.app GDPR compliant?","acceptedAnswer":{"@type":"Answer","text":"Yes. Export or delete your data any time from account settings. See our Privacy Policy for details."}},
+    {"@type":"Question","name":"Do you have an API?","acceptedAnswer":{"@type":"Answer","text":"Yes — a full REST API with documentation at /docs. Available on Pro and Custom plans."}},
+    {"@type":"Question","name":"Is there webhook support?","acceptedAnswer":{"@type":"Answer","text":"Yes. Configure webhooks in your dashboard to receive real-time HTTP callbacks when SMS codes arrive."}}
+  ]
+}
+</script>
 <div class="max-w-3xl mx-auto p-section">
 
   <!-- Header -->
