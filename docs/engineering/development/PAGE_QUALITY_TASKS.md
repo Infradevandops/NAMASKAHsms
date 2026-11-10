@@ -19,34 +19,34 @@
 
 | ID | Page / Area | Priority | Status |
 |----|-------------|----------|--------|
-| REG-001 | Cookie consent — no granular controls, no "Manage" link | P0 | ⬜ |
-| REG-002 | Register — no explicit marketing consent checkbox | P0 | ⬜ |
-| REG-003 | Privacy policy — lists AWS/SendGrid/GA as processors but app uses Resend/DigitalOcean/Sabilytics | P0 | ⬜ |
-| REG-004 | Terms — no jurisdiction named, no governing law country | P0 | ⬜ |
-| REG-005 | Terms — "Last Updated: May 2026" is stale, no version number | P0 | ⬜ |
-| REG-006 | Refund policy — uses "N" (Naira) currency symbol in examples, inconsistent with USD platform | P0 | ⬜ |
-| REG-007 | Cookies page — "Save Preferences" button does nothing (no JS handler) | P0 | ⬜ |
-| REG-008 | Privacy — no Data Protection Officer contact or EU representative named | P0 | ⬜ |
+| REG-001 | Cookie consent — no granular controls, no "Manage" link | P0 | ✅ Done |
+| REG-002 | Register — no explicit marketing consent checkbox | P0 | ✅ Done |
+| REG-003 | Privacy policy — lists AWS/SendGrid/GA as processors but app uses Resend/DigitalOcean/Sabilytics | P0 | ✅ Done |
+| REG-004 | Terms — no jurisdiction named, no governing law country | P0 | ✅ Done |
+| REG-005 | Terms — "Last Updated: May 2026" is stale, no version number | P0 | ✅ Done |
+| REG-006 | Refund policy — uses "N" (Naira) currency symbol in examples, inconsistent with USD platform | P0 | ✅ Done |
+| REG-007 | Cookies page — "Save Preferences" button does nothing (no JS handler) | P0 | ✅ Done |
+| REG-008 | Privacy — no Data Protection Officer contact or EU representative named | P0 | ✅ Done |
 | AUTH-001 | Login — no "Forgot password?" flow confirmation (link exists but no feedback if email sent) | P1 | ⬜ |
 | AUTH-002 | Register — success redirects to /auth/login after 1.5s with no email verification step shown | P1 | ⬜ |
-| AUTH-003 | Register — no age confirmation (service requires 18+, no checkbox or notice) | P1 | ⬜ |
+| AUTH-003 | Register — no age confirmation (service requires 18+, no checkbox or notice) | P1 | ✅ Done |
 | AUTH-004 | Login/Register — public_base header renders behind auth-nav on these pages (two navs stacked) | P1 | ⬜ |
-| AUTH-005 | Register — duplicate VRENUM SMS logo (one in auth-nav, one inside auth-container header) | P1 | ⬜ |
-| ABOUT-001 | About — stats are fabricated ("10K+ verifications", "50+ countries", "100+ services") — platform is new | P1 | ⬜ |
-| ABOUT-002 | About — "Team" section shows generic role cards with no real info — looks like a template | P1 | ⬜ |
-| ABOUT-003 | About — CTA says "Join thousands of users" — inconsistent with honesty stance | P1 | ⬜ |
-| CONTACT-001 | Contact — all email addresses (business@, security@, legal@) resolve to support@vrenum.app — misleading | P1 | ⬜ |
-| CONTACT-002 | Contact — no GDPR notice on contact form (data collected, how used, retention) | P1 | ⬜ |
-| CONTACT-003 | Contact — dark mode: contact-info and form-container backgrounds hardcoded white | P1 | ⬜ |
+| AUTH-005 | Register — duplicate VRENUM SMS logo (one in auth-nav, one inside auth-container header) | P1 | ✅ Done |
+| ABOUT-001 | About — stats are fabricated ("10K+ verifications", "50+ countries", "100+ services") — platform is new | P1 | ✅ Done |
+| ABOUT-002 | About — "Team" section shows generic role cards with no real info — looks like a template | P1 | ✅ Done |
+| ABOUT-003 | About — CTA says "Join thousands of users" — inconsistent with honesty stance | P1 | ✅ Done |
+| CONTACT-001 | Contact — all email addresses (business@, security@, legal@) resolve to support@vrenum.app — misleading | P1 | ✅ Done |
+| CONTACT-002 | Contact — no GDPR notice on contact form (data collected, how used, retention) | P1 | ✅ Done |
+| CONTACT-003 | Contact — dark mode: contact-info and form-container backgrounds hardcoded white | P1 | ✅ Done |
 | FAQ-001 | FAQ — "50+ countries" claim in answer — platform is US numbers only currently | P1 | ⬜ |
 | FAQ-002 | FAQ — "AES-256 encryption" claim in security section — not verified/documented anywhere | P1 | ⬜ |
 | FAQ-003 | FAQ — payment methods answer says "bank transfers" — Paystack card only currently | P1 | ⬜ |
-| REVIEWS-001 | Reviews — "4.8 rating based on verified user feedback" with 5 named reviews — fabricated social proof | P1 | ⬜ |
-| REVIEWS-002 | Reviews — uses Tailwind classes (mx-auto, px-4, etc.) but public_base doesn't load Tailwind | P1 | ⬜ |
-| REVIEWS-003 | Reviews — CTA links to /register (old path), should be /auth/register | P1 | ⬜ |
-| REFUND-001 | Refund — uses "N5", "N1.79" (Naira) in rental refund example — wrong currency | P1 | ⬜ |
-| REFUND-002 | Refund — no CSS/styling — renders as unstyled HTML inside public_base | P1 | ⬜ |
-| REFUND-003 | Refund — references `.legal-container`, `.legal-header`, `.legal-content`, `.success-box`, `.warning-box`, `.info-box` classes that don't exist anywhere | P1 | ⬜ |
+| REVIEWS-001 | Reviews — "4.8 rating based on verified user feedback" with 5 named reviews — fabricated social proof | P1 | ✅ Done |
+| REVIEWS-002 | Reviews — uses Tailwind classes (mx-auto, px-4, etc.) but public_base doesn't load Tailwind | P1 | ✅ Done |
+| REVIEWS-003 | Reviews — CTA links to /register (old path), should be /auth/register | P1 | ✅ Done |
+| REFUND-001 | Refund — uses "N5", "N1.79" (Naira) in rental refund example — wrong currency | P1 | ✅ Done |
+| REFUND-002 | Refund — no CSS/styling — renders as unstyled HTML inside public_base | P1 | ✅ Done |
+| REFUND-003 | Refund — references `.legal-container`, `.legal-header`, `.legal-content`, `.success-box`, `.warning-box`, `.info-box` classes that don't exist anywhere | P1 | ✅ Done |
 | BLOG-001 | Blog pages — use Tailwind utility classes (text-3xl, font-bold, etc.) but public_base doesn't load Tailwind — renders unstyled | P1 | ⬜ |
 | BLOG-002 | Blog — all 5 blog posts are thin SEO pages with minimal content, no author, no date, no schema markup | P2 | ⬜ |
 | BLOG-003 | Blog — no blog index page (/blog) — posts exist but are unreachable from nav | P2 | ⬜ |
@@ -55,16 +55,16 @@
 | AFFILIATE-003 | Affiliate — no terms/conditions for the affiliate program linked | P2 | ⬜ |
 | STATUS-001 | Status page — extends dashboard_base (requires login) — should be a public page | P2 | ⬜ |
 | STATUS-002 | Status page — shows mock data always, no real /api/providers/health endpoint wired | P2 | ⬜ |
-| LEGAL-001 | Terms — section 2 "Use License" reads like a generic website template, not an SMS API service ToS | P2 | ⬜ |
-| LEGAL-002 | Terms — no section on API usage limits, rate limits, or acceptable use for API customers | P2 | ⬜ |
+| LEGAL-001 | Terms — section 2 "Use License" reads like a generic website template, not an SMS API service ToS | P2 | ✅ Done |
+| LEGAL-002 | Terms — no section on API usage limits, rate limits, or acceptable use for API customers | P2 | ✅ Done |
 | LEGAL-003 | Terms — no section on account suspension criteria beyond "breach of terms" | P2 | ⬜ |
-| LEGAL-004 | Privacy — third-party list (AWS, SendGrid, GA) doesn't match actual stack (DigitalOcean, Resend, Sabilytics, Cloudflare, Sentry) | P2 | ⬜ |
-| LEGAL-005 | Cookies — "Save Preferences" button has no JS — clicking it does nothing | P2 | ⬜ |
-| LEGAL-006 | Cookies — dark mode: all sections hardcoded bg-white, border-gray-200 — invisible in dark mode | P2 | ⬜ |
-| COOKIES-001 | Cookie consent banner — only Accept/Decline, no "Manage preferences" link to /cookies | P2 | ⬜ |
-| COOKIES-002 | Cookie consent — no granular per-category consent (essential always on, analytics/marketing opt-in) | P2 | ⬜ |
-| NAV-001 | public_base — mobile menu missing FAQ and Services links (landing has them, public_base doesn't) | P2 | ⬜ |
-| NAV-002 | public_base footer — missing FAQ, Cookies, Blog links | P2 | ⬜ |
+| LEGAL-004 | Privacy — third-party list (AWS, SendGrid, GA) doesn't match actual stack (DigitalOcean, Resend, Sabilytics, Cloudflare, Sentry) | P2 | ✅ Done |
+| LEGAL-005 | Cookies — "Save Preferences" button has no JS — clicking it does nothing | P2 | ✅ Done |
+| LEGAL-006 | Cookies — dark mode: all sections hardcoded bg-white, border-gray-200 — invisible in dark mode | P2 | ✅ Done |
+| COOKIES-001 | Cookie consent banner — only Accept/Decline, no "Manage preferences" link to /cookies | P2 | ✅ Done |
+| COOKIES-002 | Cookie consent — no granular per-category consent (essential always on, analytics/marketing opt-in) | P2 | ✅ Done |
+| NAV-001 | public_base — mobile menu missing FAQ and Services links (landing has them, public_base doesn't) | P2 | ✅ Done |
+| NAV-002 | public_base footer — missing FAQ, Cookies, Blog links | P2 | ✅ Done |
 | NAV-003 | Landing nav — mobile dropdown missing Pricing link (only Services, How It Works, API, FAQ) | P2 | ⬜ |
 | PRICING-001 | Pricing — dark mode: tier-card-popular uses background:#37352F (dark) in light mode — contrast issue on popular card text | P2 | ⬜ |
 | PRICING-002 | Pricing — sticky mobile CTA has `display:none` inline but media query sets `display:flex !important` — works but fragile | P3 | ⬜ |
