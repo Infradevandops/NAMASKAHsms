@@ -1,31 +1,22 @@
 # OPS SUMMARY
 
-**Last Updated**: November 3, 2026
+**Last Updated**: November 10, 2026
 **CI Status**: ✅ Green — 25-file gate
-**Deploy Status**: All commits live
+**Deploy Status**: ✅ All commits live — HEAD `32d9b500`
+**TV**: ✅ Operational — $42.15 balance, pricing URL confirmed
 
 ---
 
-## TODAY'S SPRINT — 15 COMMITS (Nov 1, 2026)
+## CURRENT SERVER STATE
 
-### Verification Flow Hardening (v4.9.4–v4.9.7)
-| Commit | Fix | Live? |
-|--------|-----|-------|
-| `750a8d9f` | SSE purchase stream, dynamic ends_at, TV webhook, orphan recovery | ✅ |
-| `27fb5484` | Fix 405 on /api/notifications/categories | ✅ |
-| `c7787519` | Redis lock on _notify_waiting (duplicate notifications) | ✅ |
-| `59b2b3df` | Dark theme CSS hex fallbacks, 16 stability tests | ✅ |
-| `4724bbfd` | 18 TV webhook tests, CI gate 24 files, coverage floor 25% | ✅ |
-| `24496798` | Fix service_name field in Verification fixtures | ✅ |
-| `47d69fd1` | P0: availability gate, null-price filter, stock monitor, spinner | ✅ |
-| `2bf97dbc` | Green-CI-gated deploy, real /health endpoint | ✅ |
-| `325cbdc1` | Two-branch strategy, CI targets main PRs | ✅ |
-
-### TV SDK Correctness + Area Code (pending deploy)
-| Commit | Fix | Live? |
-|--------|-----|-------|
-| `3f805f8a` | TV SDK fixes (5 broken rental calls, voice pricing, max_price, reactivate, ends_at, area code city enrichment, 23h refresh) | ⏳ |
-| `ee895ce8` | Fix 2 broken reservation tests (SDK-correct mocks) | ⏳ CI running |
+| Check | Result |
+|-------|--------|
+| TV enabled | ✅ True |
+| TV balance | $42.15 |
+| Pricing URL `/pricing/verifications` | ✅ 200 — `{"serviceName":"whatsapp","price":1.5}` |
+| Old URL `/verifications/pricing` | ❌ 404 — confirmed dead |
+| Health endpoint | ✅ healthy |
+| Stock monitor | ✅ price-based availability |
 
 ---
 
@@ -37,26 +28,24 @@ secrets-scan → code-quality → frontend-unit-tests → unit-tests (BLOCKING)
                                                    → e2e-tests (non-blocking, main only)
 ```
 
-**Blocking gate** (24 test files, --cov-fail-under=25):
+**Blocking gate** (25 test files, --cov-fail-under=25):
 ```
-test_api_key_service      test_analytics_service    test_balance_service
-test_cache                test_models               test_utils
-test_carrier_lookup       test_phone_validator      test_stability_fixes
-test_tv_webhook           test_notification_service test_notification_center
-test_email_service        test_auth_service         test_refund_service
-test_pricing_calculator   test_tier_service         test_verification_flow
-test_sms_polling          test_fraud_detection      test_webhook_notifications
-test_security_utils       test_startup_smoke        test_mobile_responsiveness
+test_api_key_service        test_analytics_service      test_balance_service
+test_cache                  test_models                 test_utils
+test_carrier_lookup         test_phone_validator        test_stability_fixes
+test_tv_webhook             test_notification_service   test_notification_center
+test_email_service          test_auth_service           test_refund_service
+test_pricing_calculator     test_tier_service           test_verification_flow
+test_sms_polling            test_fraud_detection        test_webhook_notifications
+test_security_utils         test_textverified_service   test_startup_smoke
+test_mobile_responsiveness
 ```
 
-**Next to add** (stable, ready to wire):
+**Next batch to wire** (run locally first):
 ```
-test_textverified_service   ← fixed today, add now
-test_verification_endpoints
-test_payment_service
-test_auth_endpoints
-test_stock_monitor
-test_area_code_check
+test_verification_endpoints   test_payment_service    test_auth_endpoints
+test_wallet_service           test_transaction_service test_tier_manager
+test_quota_service            test_stock_monitor      test_area_code_check
 ```
 
 ---
@@ -65,12 +54,16 @@ test_area_code_check
 
 | Gap | Impact | Status |
 |-----|--------|--------|
-| TV pricing URL unverified (/verifications/pricing vs /pricing/verifications) | Medium — SDK uses correct path now, old path may still work | ⏳ Needs VPS test |
+| Area code price display shows base price, user charged base + $0.25 | Medium — UX/trust | 📋 P1 next |
 | Telegram E2E not live-tested | Low — code complete | ⏳ Manual test pending |
-| Coverage 25% vs 90% target | Medium — CI floor at 25% | 📋 Expanding gate each sprint |
+| Dead code: `_fetch_prices_inline`, `fetch_raw_services_with_quantity` | Low — confusion risk | 📋 P2 delete |
+| Coverage 25% vs 90% target | Medium | 📋 Expanding gate each sprint |
 | Integration tests non-blocking | Medium | 📋 Stabilise and promote |
+| `validating` SSE step does no real work | Low | 📋 P3 open |
+| No `transcribing` SSE status for voice | Low | 📋 P3 open |
+| Stock monitor docstring says "15-minute" (should be 90s) | Trivial | 📋 P3 1-line fix |
 | smsAndVoiceCombo capability unused | Low | 📋 Planned |
-| Reuse/Reactivate not surfaced in UI | Low — backend implemented | 📋 Planned |
+| Reuse/Reactivate not surfaced in UI | Low — backend done | 📋 Planned |
 
 ---
 
@@ -83,31 +76,19 @@ test_area_code_check
 | Redis | ✅ Running |
 | TV webhook endpoint | ✅ Live, registered in TV dashboard |
 | WebSocket manager | ✅ Active |
-| Background services (10 after pending deploy) | ✅ 9 active, 1 pending |
+| Background services (11 active) | ✅ All running |
 | Sentry error tracking | ✅ Active |
 | BetterStack uptime | ✅ Active |
-| GitHub Actions CI | ✅ Active (24-file gate) |
+| GitHub Actions CI | ✅ Active (25-file gate) |
 | Deploy workflow | ✅ CI-gated (deploy.yml) |
-
----
-
-## ENGINEERING DOCS PRODUCED THIS SPRINT
-
-| Doc | Purpose |
-|-----|---------|
-| `TV_API_REAL_FLOW.md` | SDK source truth — every file read, rental breakage confirmed |
-| `TV_API_FLOW_GAP_ASSESSMENT.md` | Gap analysis, implementation status table |
-| `PLATFORM_VERIFICATION_RENTAL_FLOW_STANDARD.md` | Provider-agnostic canonical flow |
-| `AREA_CODE_SELECTOR_FLOW.md` | Area code data flow, gaps, fixes, proactive capture |
-| `TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md` | Stock accuracy P0 fixes |
 
 ---
 
 ## NEXT OPS ACTIONS
 
-1. **Confirm CI green** on `ee895ce8` at https://github.com/Infradevandops/NAMASKAHsms/actions
-2. **Confirm deploy fired** — check server is running `ee895ce8`
-3. **VPS pricing URL test** — verify both TV pricing endpoint paths from the server
-4. **Add `test_textverified_service.py` to CI gate** — it's stable after today's test fixes
-5. **Telegram E2E** — manual test with real Telegram account
-6. **Monitor Sentry** — watch for any AttributeError from rental SDK fixes in first 24h
+1. **Fix area code price display** — pass `area_code=True` to `check_service_available()`
+   when area code selected so UI price includes the $0.25 surcharge
+2. **Telegram E2E** — manual test with real Telegram account
+3. **Delete dead code** — `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()`
+4. **CI coverage batch 2** — wire 9 more test files, raise floor to 30%
+5. **Monitor Sentry** — watch for errors from SDK fixes
