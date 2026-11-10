@@ -1,10 +1,40 @@
 <!-- Cookie Consent Banner -->
-<div id="cookie-consent" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1f2937;color:white;padding:16px 24px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
-    <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-        <p style="margin:0;font-size:14px;flex:1;min-width:200px;">We use cookies to improve your experience. By continuing, you agree to our <a href="/cookies" style="color:#FE3C72;text-decoration:underline;">Cookie Policy</a>.</p>
-        <div style="display:flex;gap:8px;">
-            <button onclick="acceptCookies()" style="background:#FE3C72;color:white;border:none;padding:8px 20px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Accept</button>
-            <button onclick="declineCookies()" style="background:transparent;color:#9CA3AF;border:1px solid #4B5563;padding:8px 20px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">Decline</button>
+<div id="cookie-consent" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1f2937;color:white;z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,0.25);">
+    <!-- Simple banner (default view) -->
+    <div id="cookie-simple" style="max-width:1200px;margin:0 auto;padding:14px 24px;padding-bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <p style="margin:0;font-size:14px;flex:1;min-width:200px;line-height:1.5;">
+            We use essential cookies to operate the site, and optional analytics cookies to improve it.
+            <a href="/cookies" style="color:#FE3C72;text-decoration:underline;white-space:nowrap;">Cookie Policy</a>
+        </p>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button onclick="showCookieDetails()" style="background:transparent;color:#9CA3AF;border:1px solid #4B5563;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap;">Manage</button>
+            <button onclick="declineCookies()" style="background:transparent;color:#9CA3AF;border:1px solid #4B5563;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Decline</button>
+            <button onclick="acceptAllCookies()" style="background:#FE3C72;color:white;border:none;padding:8px 20px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Accept All</button>
+        </div>
+    </div>
+    <!-- Granular preferences panel (hidden by default) -->
+    <div id="cookie-details" style="display:none;max-width:1200px;margin:0 auto;padding:20px 24px;padding-bottom:calc(20px + env(safe-area-inset-bottom));border-top:1px solid #374151;">
+        <p style="font-size:14px;font-weight:600;margin:0 0 16px 0;">Manage Cookie Preferences</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+            <label style="display:flex;align-items:flex-start;gap:12px;cursor:default;">
+                <input type="checkbox" checked disabled style="margin-top:2px;width:16px;height:16px;flex-shrink:0;">
+                <div>
+                    <span style="font-size:14px;font-weight:600;">Essential</span>
+                    <span style="font-size:12px;color:#9CA3AF;margin-left:8px;">(always on)</span>
+                    <p style="font-size:13px;color:#9CA3AF;margin:2px 0 0 0;">Login sessions, security, core functionality. Cannot be disabled.</p>
+                </div>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
+                <input type="checkbox" id="pref-analytics" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;cursor:pointer;">
+                <div>
+                    <span style="font-size:14px;font-weight:600;">Analytics</span>
+                    <p style="font-size:13px;color:#9CA3AF;margin:2px 0 0 0;">Helps us understand how the site is used so we can improve it (Sabilytics). No personal data sold.</p>
+                </div>
+            </label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="hideCookieDetails()" style="background:transparent;color:#9CA3AF;border:1px solid #4B5563;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Back</button>
+            <button onclick="savePreferences()" style="background:#FE3C72;color:white;border:none;padding:8px 20px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Save Preferences</button>
         </div>
     </div>
 </div>
@@ -15,10 +45,21 @@
         var el = document.getElementById('cookie-consent');
         el.style.display = 'block';
         document.body.style.paddingBottom = '80px';
-    } else if (consent === 'accepted') {
-        loadSabilytics();
+    } else {
+        var prefs = _getPrefs();
+        if (prefs.analytics) loadSabilytics();
     }
 })();
+
+function _getPrefs() {
+    try { return JSON.parse(localStorage.getItem('cookie_prefs') || '{}'); } catch(e) { return {}; }
+}
+
+function _hide() {
+    document.getElementById('cookie-consent').style.display = 'none';
+    document.body.style.paddingBottom = '';
+}
+
 function loadSabilytics() {
     if (document.querySelector('script[src*="sabilytics"]')) return;
     var s = document.createElement('script');
@@ -28,15 +69,40 @@ function loadSabilytics() {
     s.dataset.domain = 'vrenum.app';
     document.head.appendChild(s);
 }
-function acceptCookies() {
+
+function acceptAllCookies() {
     localStorage.setItem('cookie_consent', 'accepted');
-    document.getElementById('cookie-consent').style.display = 'none';
-    document.body.style.paddingBottom = '';
+    localStorage.setItem('cookie_prefs', JSON.stringify({analytics: true}));
+    _hide();
     loadSabilytics();
 }
+
 function declineCookies() {
     localStorage.setItem('cookie_consent', 'declined');
-    document.getElementById('cookie-consent').style.display = 'none';
-    document.body.style.paddingBottom = '';
+    localStorage.setItem('cookie_prefs', JSON.stringify({analytics: false}));
+    _hide();
+}
+
+function savePreferences() {
+    var analytics = document.getElementById('pref-analytics').checked;
+    localStorage.setItem('cookie_consent', analytics ? 'accepted' : 'declined');
+    localStorage.setItem('cookie_prefs', JSON.stringify({analytics: analytics}));
+    _hide();
+    if (analytics) loadSabilytics();
+}
+
+function showCookieDetails() {
+    var prefs = _getPrefs();
+    var el = document.getElementById('pref-analytics');
+    if (el) el.checked = !!prefs.analytics;
+    document.getElementById('cookie-simple').style.display = 'none';
+    document.getElementById('cookie-details').style.display = 'block';
+    document.body.style.paddingBottom = '160px';
+}
+
+function hideCookieDetails() {
+    document.getElementById('cookie-details').style.display = 'none';
+    document.getElementById('cookie-simple').style.display = 'flex';
+    document.body.style.paddingBottom = '80px';
 }
 </script>

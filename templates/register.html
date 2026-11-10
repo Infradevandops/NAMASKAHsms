@@ -263,7 +263,6 @@
 <div class="auth-container">
     <!-- Brand header -->
     <div style="text-align:center; margin-bottom:28px;">
-        <a href="/" style="display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; margin-bottom:16px;">VRENUM SMS</a>
         <h1 style="font-size:22px;font-weight:800;color:#21262D;margin:0;">Create your account</h1>
         <p style="font-size:14px;color:#9CA3AF;margin:4px 0 0;">Start verifying privately on vrenum.app</p>
     </div>
@@ -303,10 +302,22 @@
             <input type="password" class="form-input" id="confirm-password" required placeholder="Repeat your password" autocomplete="new-password">
         </div>
 
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: flex; align-items: start; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="age" required style="margin-top: 4px; width: 18px; height: 18px; cursor: pointer; flex-shrink:0;">
+                <span style="font-size: 14px; color: var(--text-primary, #21262D);">I confirm I am 13 years of age or older</span>
+            </label>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label style="display: flex; align-items: start; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="terms" required style="margin-top: 4px; width: 18px; height: 18px; cursor: pointer; flex-shrink:0;">
+                <span style="font-size: 14px; color: var(--text-primary, #21262D);">I agree to the <a href="/terms" target="_blank" style="color: var(--primary, #FE3C72); text-decoration: none;">Terms of Service</a> and <a href="/privacy" target="_blank" style="color: var(--primary, #FE3C72); text-decoration: none;">Privacy Policy</a></span>
+            </label>
+        </div>
         <div class="form-group" style="margin-bottom: 24px;">
             <label style="display: flex; align-items: start; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="terms" required style="margin-top: 4px; width: 18px; height: 18px; cursor: pointer;">
-                <span style="font-size: 14px; color: var(--text-primary, #21262D);">I agree to the <a href="/terms" target="_blank" style="color: var(--primary, #FE3C72); text-decoration: none;">Terms of Service</a> and <a href="/privacy" target="_blank" style="color: var(--primary, #FE3C72); text-decoration: none;">Privacy Policy</a></span>
+                <input type="checkbox" id="marketing" style="margin-top: 4px; width: 18px; height: 18px; cursor: pointer; flex-shrink:0;">
+                <span style="font-size: 14px; color: var(--text-muted, #9CA3AF);">I'd like to receive product updates and tips by email <span style="font-size:12px;">(optional)</span></span>
             </label>
         </div>
 
@@ -379,8 +390,16 @@
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
         const displayName = document.getElementById('display-name').value.trim();
+        const ageConfirmed = document.getElementById('age').checked;
         const termsAccepted = document.getElementById('terms').checked;
+        const marketingConsent = document.getElementById('marketing').checked;
 
+        if (!ageConfirmed) {
+            showError("You must confirm you are 13 years of age or older");
+            btn.disabled = false;
+            btn.textContent = "Create Account";
+            return;
+        }
         if (!termsAccepted) {
             showError("You must accept the Terms of Service and Privacy Policy");
             btn.disabled = false;
@@ -404,6 +423,7 @@
                     password,
                     display_name: displayName || undefined,
                     terms_accepted: termsAccepted,
+                    marketing_consent: marketingConsent,
                     turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || null
                 })
             });

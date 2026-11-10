@@ -80,6 +80,7 @@
             <!-- Desktop Navigation Links (hidden on mobile) -->
             <nav class="nav-links">
                 <a href="/pricing">Pricing</a>
+                <a href="/faq">FAQ</a>
                 <a href="/about">About</a>
                 <a href="/affiliate-program">Affiliates</a>
                 <a href="/contact">Contact</a>
@@ -97,14 +98,15 @@
         <!-- Mobile Menu Dropdown -->
         <div class="mobile-menu" id="mobile-menu">
             <a href="/pricing">Pricing</a>
+            <a href="/faq">FAQ</a>
             <a href="/about">About</a>
             <a href="/affiliate-program">Affiliates</a>
             <a href="/contact">Contact</a>
             {% if user %}
             <a href="/dashboard" style="background: var(--primary, #FE3C72); color: white; margin: 8px 20px; border-radius: 8px; text-align: center;">Dashboard</a>
             {% else %}
-            <a href="/auth/login">Login</a>
-            <a href="/auth/register" style="background: var(--primary, #FE3C72); color: white; margin: 8px 20px; border-radius: 8px; text-align: center;">Sign Up</a>
+            <a href="/auth/login">Log in</a>
+            <a href="/auth/register" style="background: var(--primary, #FE3C72); color: white; margin: 8px 20px; border-radius: 8px; text-align: center;">Get Started Free</a>
             {% endif %}
         </div>
     </header>
@@ -116,10 +118,13 @@
     <footer class="public-footer">
         <div>
             <a href="/pricing">Pricing</a>
+            <a href="/faq">FAQ</a>
             <a href="/about">About</a>
             <a href="/affiliate-program">Affiliates</a>
+            <a href="/contact">Contact</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
+            <a href="/cookies">Cookies</a>
             <a href="/refund">Refund</a>
             <a href="/status">Status</a>
         </div>
