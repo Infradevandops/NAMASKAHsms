@@ -1,59 +1,72 @@
 {% extends "public_base.html" %}
-{% block title %}WhatsApp Verification - Get SMS Code Instantly | Vrenum{% endblock %}
-{% block meta_description %}Get a temporary US phone number for WhatsApp verification. Instant SMS delivery, automatic refund guarantee. Start free.{% endblock %}
+{% block page_title %}WhatsApp Verification — Get Your SMS Code Instantly{% endblock %}
+{% block meta_description %}Get a real US phone number for WhatsApp verification. Instant SMS delivery, automatic refund if no code received. Start free.{% endblock %}
 
-{% block content %}
-<main class="blog-post container mx-auto px-4 py-12 max-w-3xl">
-  <h1 class="text-3xl font-bold mb-4">WhatsApp Verification — Get Your SMS Code Instantly</h1>
-  <p class="text-gray-600 mb-6">Need to verify WhatsApp? Get a US phone number in seconds. Automatic refund if code not received.</p>
+{% block head_extra %}
+{{ super() }}
+{% include "blog/_blog_base.html" %}
+{% endblock %}
 
-  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center mb-10">
-    <a href="/register" class="inline-block bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-pink-700 text-lg">Get Started Free →</a>
-    <p class="text-sm text-gray-500 mt-2">No subscription. Pay per verification. From $2.63.</p>
-  </div>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">How It Works</h2>
-  <ol class="list-decimal pl-6 space-y-2 mb-6">
-    <li><strong>Choose country</strong> — USA, UK, India, and 200+ more</li>
-    <li><strong>Get number</strong> — Instant virtual phone number</li>
-    <li><strong>Receive code</strong> — SMS appears in your dashboard automatically</li>
-    <li><strong>Done</strong> — WhatsApp verified in under 2 minutes</li>
-  </ol>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Why Vrenum for WhatsApp?</h2>
-  <ul class="list-disc pl-6 space-y-2 mb-6">
-    <li>✅ Real mobile US numbers — not VOIP (WhatsApp accepts them)</li>
-    <li>✅ Automatic refund if no SMS received</li>
-    <li>✅ Works for personal and business WhatsApp</li>
-    <li>✅ API available for bulk verifications (Pro plan)</li>
-  </ul>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">WhatsApp Verification Pricing by Country</h2>
-  <p class="text-gray-600 mb-4">Pricing starts at <strong>$2.63</strong>. Live per-country pricing is shown in your dashboard before you purchase. See the <a href="/services/whatsapp" class="text-pink-600 hover:underline">WhatsApp service page</a> for the current rate.</p>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Frequently Asked Questions</h2>
-  <div class="space-y-4 mb-8">
-    <div>
-      <h3 class="font-semibold">Does WhatsApp accept virtual numbers?</h3>
-      <p class="text-gray-600">Yes — Vrenum provides real mobile numbers (not VOIP), which WhatsApp accepts.</p>
+{% block public_content %}
+<div class="blog-wrap">
+    <div class="blog-breadcrumb"><a href="/">Home</a> › <a href="/blog">Blog</a> › WhatsApp Verification</div>
+    <h1>WhatsApp Verification — Get Your SMS Code Instantly</h1>
+    <div class="blog-meta">
+        <span>Updated November 2026</span>
+        <span>4 min read</span>
     </div>
-    <div>
-      <h3 class="font-semibold">How long does verification take?</h3>
-      <p class="text-gray-600">Usually under 60 seconds. The SMS code appears automatically in your dashboard.</p>
-    </div>
-    <div>
-      <h3 class="font-semibold">What if I don't receive the code?</h3>
-      <p class="text-gray-600">Your credits are automatically refunded — no questions asked.</p>
-    </div>
-    <div>
-      <h3 class="font-semibold">Can I use this for WhatsApp Business?</h3>
-      <p class="text-gray-600">Yes — works for both personal and WhatsApp Business accounts.</p>
-    </div>
-  </div>
 
-  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center">
-    <p class="text-lg font-semibold mb-2">Ready to verify WhatsApp?</p>
-    <a href="/register" class="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700">Get Started Free →</a>
-  </div>
-</main>
+    <p>Need to verify WhatsApp without using your personal number? Get a real US phone number in seconds and receive your code automatically.</p>
+
+    <div class="blog-cta">
+        <p>Start verifying WhatsApp now</p>
+        <a href="/auth/register">Get Started Free →</a>
+        <small>No subscription. Pay per verification. From $2.63.</small>
+    </div>
+
+    <h2>How It Works</h2>
+    <ol>
+        <li><strong>Sign up</strong> — free account, no credit card required</li>
+        <li><strong>Select WhatsApp</strong> — from 1,800+ supported services</li>
+        <li><strong>Get a US number</strong> — real mobile number, not VoIP</li>
+        <li><strong>Enter it in WhatsApp</strong> — WhatsApp sends the code</li>
+        <li><strong>Code appears in your dashboard</strong> — automatically, within seconds</li>
+    </ol>
+
+    <h2>Why Vrenum for WhatsApp?</h2>
+    <ul>
+        <li><strong>Real mobile numbers</strong> — not VoIP. WhatsApp rejects VoIP numbers; ours pass.</li>
+        <li><strong>Automatic refund</strong> — if no SMS arrives, credits return to your wallet instantly</li>
+        <li><strong>Works for personal and WhatsApp Business</strong></li>
+        <li><strong>API access</strong> — available on Pro plan for bulk verifications</li>
+    </ul>
+
+    <h2>Pricing</h2>
+    <p>WhatsApp verification starts at <strong>$2.63</strong>. Live pricing is shown in your dashboard before you purchase. Automatic refund if no code received.</p>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="blog-faq">
+        <div class="blog-faq-item">
+            <h3>Does WhatsApp accept virtual numbers?</h3>
+            <p>Yes — Vrenum provides real mobile numbers (not VoIP), which WhatsApp accepts. VoIP numbers are rejected.</p>
+        </div>
+        <div class="blog-faq-item">
+            <h3>How long does verification take?</h3>
+            <p>Usually under 30 seconds. The SMS code appears automatically in your dashboard.</p>
+        </div>
+        <div class="blog-faq-item">
+            <h3>What if I don't receive the code?</h3>
+            <p>Your credits are automatically refunded — no support ticket, no questions asked.</p>
+        </div>
+        <div class="blog-faq-item">
+            <h3>Can I use this for WhatsApp Business?</h3>
+            <p>Yes — works for both personal and WhatsApp Business accounts.</p>
+        </div>
+    </div>
+
+    <div class="blog-cta">
+        <p>Ready to verify WhatsApp?</p>
+        <a href="/auth/register">Get Started Free →</a>
+    </div>
+</div>
 {% endblock %}

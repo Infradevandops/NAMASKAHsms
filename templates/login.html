@@ -304,7 +304,13 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
-{% block public_content %}
+{% block body %}
+<div style="min-height:100vh;background:var(--bg-card,#fff);">
+{% block public_content %}{% endblock %}
+</div>
+<script src="/static/js/theme-toggle.js"></script>
+{% include "includes/cookie_consent.html" %}
+{% endblock %}
 <!-- Auth Nav -->
 <nav class="auth-nav">
     <a href="/" class="auth-nav-brand">VRENUM SMS</a>

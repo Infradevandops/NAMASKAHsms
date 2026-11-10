@@ -1,0 +1,72 @@
+{% extends "public_base.html" %}
+{% block page_title %}Blog — SMS Verification Guides{% endblock %}
+{% block meta_description %}Guides and tutorials on SMS verification, virtual phone numbers, and privacy. From the Vrenum team.{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+.blog-index-wrap { max-width: 860px; margin: 0 auto; }
+.blog-index-hero { margin-bottom: 48px; }
+.blog-index-hero h1 { font-size: clamp(24px,5vw,36px); font-weight: 800; color: #21262D; margin: 0 0 12px; }
+.blog-index-hero p { font-size: 17px; color: #6b7280; margin: 0; }
+.blog-card-grid { display: flex; flex-direction: column; gap: 16px; }
+.blog-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 24px 28px; text-decoration: none; display: block; transition: border-color 0.2s, box-shadow 0.2s; }
+.blog-card:hover { border-color: #FE3C72; box-shadow: 0 4px 20px rgba(254,60,114,0.08); }
+.blog-card-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #FE3C72; margin-bottom: 8px; }
+.blog-card h2 { font-size: 18px; font-weight: 700; color: #21262D; margin: 0 0 8px; line-height: 1.3; }
+.blog-card p { font-size: 14px; color: #6b7280; margin: 0 0 12px; line-height: 1.6; }
+.blog-card-meta { font-size: 12px; color: #9ca3af; }
+[data-theme="dark"] .blog-index-hero h1 { color: #f1f5f9; }
+[data-theme="dark"] .blog-index-hero p { color: #94a3b8; }
+[data-theme="dark"] .blog-card { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .blog-card:hover { border-color: #FE3C72; }
+[data-theme="dark"] .blog-card h2 { color: #f1f5f9; }
+[data-theme="dark"] .blog-card p { color: #94a3b8; }
+</style>
+{% endblock %}
+
+{% block public_content %}
+<div class="blog-index-wrap">
+    <div class="blog-index-hero">
+        <h1>Blog</h1>
+        <p>Guides on SMS verification, virtual phone numbers, and privacy.</p>
+    </div>
+
+    <div class="blog-card-grid">
+        <a href="/blog/whatsapp-verification" class="blog-card">
+            <div class="blog-card-tag">Guide</div>
+            <h2>WhatsApp Verification — Get Your SMS Code Instantly</h2>
+            <p>How to verify WhatsApp using a real US phone number. Instant delivery, automatic refund if no code received.</p>
+            <div class="blog-card-meta">November 2026 · 4 min read</div>
+        </a>
+
+        <a href="/blog/how-to-verify-whatsapp-without-phone-number" class="blog-card">
+            <div class="blog-card-tag">Guide</div>
+            <h2>How to Verify WhatsApp Without a Phone Number (2026)</h2>
+            <p>Step-by-step guide to verifying WhatsApp with a temporary US number. Protect your personal number.</p>
+            <div class="blog-card-meta">November 2026 · 5 min read</div>
+        </a>
+
+        <a href="/blog/temporary-phone-number-for-telegram" class="blog-card">
+            <div class="blog-card-tag">Guide</div>
+            <h2>Get a Temporary Phone Number for Telegram Verification</h2>
+            <p>Verify Telegram anonymously using a real US mobile number. Automatic refund guarantee.</p>
+            <div class="blog-card-meta">November 2026 · 4 min read</div>
+        </a>
+
+        <a href="/blog/usa-virtual-phone-numbers" class="blog-card">
+            <div class="blog-card-tag">Reference</div>
+            <h2>USA Virtual Phone Numbers for SMS Verification</h2>
+            <p>Everything you need to know about US virtual numbers — what they work with, pricing, and how to get one.</p>
+            <div class="blog-card-meta">November 2026 · 5 min read</div>
+        </a>
+
+        <a href="/blog/best-sms-verification-services" class="blog-card">
+            <div class="blog-card-tag">Comparison</div>
+            <h2>Best SMS Verification Services in 2026 (Compared)</h2>
+            <p>Honest comparison of Vrenum, SMS-Activate, TextVerified, and free services. Pricing, refunds, and API access.</p>
+            <div class="blog-card-meta">November 2026 · 6 min read</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

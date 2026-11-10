@@ -1,0 +1,43 @@
+{% block head_extra %}
+{{ super() }}
+<style>
+.blog-wrap { max-width: 760px; margin: 0 auto; }
+.blog-breadcrumb { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
+.blog-breadcrumb a { color: #FE3C72; text-decoration: none; }
+.blog-breadcrumb a:hover { text-decoration: underline; }
+.blog-meta { font-size: 13px; color: #9ca3af; margin-bottom: 32px; display: flex; gap: 16px; flex-wrap: wrap; }
+.blog-wrap h1 { font-size: clamp(22px,5vw,34px); font-weight: 800; color: #21262D; margin: 0 0 16px; line-height: 1.2; }
+.blog-wrap h2 { font-size: 20px; font-weight: 700; color: #21262D; margin: 36px 0 12px; }
+.blog-wrap h3 { font-size: 16px; font-weight: 700; color: #21262D; margin: 20px 0 8px; }
+.blog-wrap p { font-size: 15px; color: #4b5563; line-height: 1.8; margin-bottom: 16px; }
+.blog-wrap ul, .blog-wrap ol { margin: 0 0 16px 20px; }
+.blog-wrap li { font-size: 15px; color: #4b5563; line-height: 1.8; margin-bottom: 6px; }
+.blog-wrap strong { color: #21262D; }
+.blog-wrap a { color: #FE3C72; }
+.blog-cta { background: rgba(254,60,114,0.06); border: 1px solid rgba(254,60,114,0.2); border-radius: 14px; padding: 28px 24px; text-align: center; margin: 32px 0; }
+.blog-cta p { font-size: 16px; font-weight: 600; color: #21262D; margin: 0 0 8px; }
+.blog-cta small { font-size: 13px; color: #9ca3af; display: block; margin-top: 8px; }
+.blog-cta a { display: inline-block; background: #FE3C72; color: #fff; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; text-decoration: none; }
+.blog-cta a:hover { opacity: 0.9; }
+.blog-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; overflow-x: auto; display: block; }
+.blog-table th { background: #f9fafb; color: #374151; font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
+.blog-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+.blog-table tr.highlight { background: rgba(254,60,114,0.05); font-weight: 600; }
+.blog-faq { margin-bottom: 32px; }
+.blog-faq-item { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.blog-faq-item h3 { font-size: 15px; font-weight: 600; color: #21262D; padding: 14px 16px; margin: 0; }
+.blog-faq-item p { font-size: 14px; color: #6b7280; padding: 0 16px 14px; margin: 0; }
+[data-theme="dark"] .blog-wrap h1, [data-theme="dark"] .blog-wrap h2, [data-theme="dark"] .blog-wrap h3 { color: #f1f5f9; }
+[data-theme="dark"] .blog-wrap p, [data-theme="dark"] .blog-wrap li { color: #cbd5e1; }
+[data-theme="dark"] .blog-wrap strong { color: #f1f5f9; }
+[data-theme="dark"] .blog-cta { background: rgba(254,60,114,0.1); border-color: rgba(254,60,114,0.3); }
+[data-theme="dark"] .blog-cta p { color: #f1f5f9; }
+[data-theme="dark"] .blog-table th { background: #0f172a; color: #94a3b8; border-bottom-color: #334155; }
+[data-theme="dark"] .blog-table td { color: #cbd5e1; border-bottom-color: #1e293b; }
+[data-theme="dark"] .blog-faq-item { border-color: #334155; }
+[data-theme="dark"] .blog-faq-item h3 { color: #f1f5f9; }
+[data-theme="dark"] .blog-faq-item p { color: #94a3b8; }
+[data-theme="dark"] .blog-breadcrumb { color: #475569; }
+[data-theme="dark"] .blog-meta { color: #475569; }
+</style>
+{% endblock %}

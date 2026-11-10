@@ -804,7 +804,7 @@ async def affiliate_program_page(request: Request):
 
 @router.get("/status", response_class=HTMLResponse)
 async def status_page(request: Request):
-    return templates.TemplateResponse("status.html", {"request": request})
+    return templates.TemplateResponse("status_public.html", {"request": request})
 
 
 @router.get("/reviews", response_class=HTMLResponse)
@@ -981,6 +981,12 @@ async def supported_services_page(request: Request):
 async def pricing_comparison_page(request: Request):
     """Pricing Comparison - public SEO page."""
     return templates.TemplateResponse("pricing_comparison.html", {"request": request})
+
+
+@router.get("/blog", response_class=HTMLResponse)
+async def blog_index_page(request: Request):
+    """Blog index page."""
+    return templates.TemplateResponse("blog/index.html", {"request": request})
 
 
 @router.get("/blog/{slug}", response_class=HTMLResponse)

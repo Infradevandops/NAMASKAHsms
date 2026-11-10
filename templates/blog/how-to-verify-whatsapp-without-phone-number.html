@@ -1,53 +1,64 @@
 {% extends "public_base.html" %}
-{% block title %}How to Verify WhatsApp Without a Phone Number (2026 Guide){% endblock %}
+{% block page_title %}How to Verify WhatsApp Without a Phone Number (2026){% endblock %}
 {% block meta_description %}Step-by-step guide to verify WhatsApp using a temporary US phone number. Instant delivery, automatic refund.{% endblock %}
 
-{% block content %}
-<main class="blog-post container mx-auto px-4 py-12 max-w-3xl">
-  <h1 class="text-3xl font-bold mb-4">How to Verify WhatsApp Without a Phone Number (2026 Guide)</h1>
-  <p class="text-gray-600 mb-8">Need to verify WhatsApp but don't want to use your personal number? Get a temporary phone number for WhatsApp verification in under 2 minutes.</p>
+{% block head_extra %}
+{{ super() }}
+{% include "blog/_blog_base.html" %}
+{% endblock %}
 
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Why Use a Virtual Number for WhatsApp?</h2>
-  <ul class="list-disc pl-6 space-y-2 mb-6">
-    <li>Protect your personal number privacy</li>
-    <li>Create a second WhatsApp account</li>
-    <li>Verify WhatsApp for business use</li>
-    <li>Test WhatsApp integrations as a developer</li>
-  </ul>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Step-by-Step: Verify WhatsApp with Vrenum</h2>
-  <ol class="list-decimal pl-6 space-y-2 mb-6">
-    <li>Sign up at <a href="https://vrenum.app/register" class="text-pink-600 hover:underline">vrenum.app</a></li>
-    <li>Go to "New Verification" and select WhatsApp</li>
-    <li>Choose your country (USA, UK, Canada, etc.)</li>
-    <li>Click "Get Number" — receive a phone number instantly</li>
-    <li>Enter the number in WhatsApp's verification screen</li>
-    <li>Return to Vrenum — your SMS code appears automatically</li>
-    <li>Enter the code in WhatsApp — done!</li>
-  </ol>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Pricing</h2>
-  <p class="mb-6">WhatsApp verification starts at <strong>$2.63</strong>. Automatic refund if no SMS received.</p>
-
-  <h2 class="text-2xl font-semibold mt-8 mb-3">Frequently Asked Questions</h2>
-  <div class="space-y-4 mb-8">
-    <div>
-      <h3 class="font-semibold">Is this legal?</h3>
-      <p class="text-gray-600">Yes. Using virtual numbers for verification is legal in most countries.</p>
+{% block public_content %}
+<div class="blog-wrap">
+    <div class="blog-breadcrumb"><a href="/">Home</a> › <a href="/blog">Blog</a> › How to Verify WhatsApp Without a Phone Number</div>
+    <h1>How to Verify WhatsApp Without a Phone Number (2026 Guide)</h1>
+    <div class="blog-meta">
+        <span>Updated November 2026</span>
+        <span>5 min read</span>
     </div>
-    <div>
-      <h3 class="font-semibold">How long does the number last?</h3>
-      <p class="text-gray-600">Numbers are active for 20 minutes — enough time to receive your code.</p>
-    </div>
-    <div>
-      <h3 class="font-semibold">What if I don't receive the SMS?</h3>
-      <p class="text-gray-600">Vrenum automatically refunds your credits if no SMS is received.</p>
-    </div>
-  </div>
 
-  <div class="bg-pink-50 border border-pink-200 rounded-xl p-6 text-center">
-    <p class="text-lg font-semibold mb-2">Ready to verify WhatsApp?</p>
-    <a href="/register" class="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700">Get Started Free →</a>
-  </div>
-</main>
+    <p>Need to verify WhatsApp but don't want to use your personal number? This guide shows you how to get a temporary US phone number for WhatsApp verification in under 2 minutes.</p>
+
+    <h2>Why Use a Virtual Number for WhatsApp?</h2>
+    <ul>
+        <li>Keep your personal number private</li>
+        <li>Create a second WhatsApp account for business</li>
+        <li>Test WhatsApp integrations as a developer</li>
+        <li>Verify WhatsApp from a different country</li>
+    </ul>
+
+    <h2>Step-by-Step: Verify WhatsApp with Vrenum</h2>
+    <ol>
+        <li>Sign up at <a href="/auth/register">vrenum.app</a> — free, no credit card required</li>
+        <li>Add credits to your wallet (from $2.63)</li>
+        <li>Go to "New Verification" and select WhatsApp</li>
+        <li>Click "Get Number" — receive a US phone number instantly</li>
+        <li>Enter the number in WhatsApp's verification screen</li>
+        <li>Return to Vrenum — your SMS code appears automatically</li>
+        <li>Enter the code in WhatsApp — done</li>
+    </ol>
+
+    <div class="blog-cta">
+        <p>Try it now — automatic refund if no code received</p>
+        <a href="/auth/register">Get Started Free →</a>
+    </div>
+
+    <h2>Pricing</h2>
+    <p>WhatsApp verification starts at <strong>$2.63</strong>. Automatic refund if no SMS received within the session window.</p>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="blog-faq">
+        <div class="blog-faq-item">
+            <h3>Is this legal?</h3>
+            <p>Using virtual numbers for verification is legal in most countries. You are responsible for complying with WhatsApp's terms of service in your jurisdiction.</p>
+        </div>
+        <div class="blog-faq-item">
+            <h3>How long is the number active?</h3>
+            <p>Numbers are active for the duration of your verification session — typically 10–20 minutes, enough time to receive your code.</p>
+        </div>
+        <div class="blog-faq-item">
+            <h3>What if I don't receive the SMS?</h3>
+            <p>Vrenum automatically refunds your credits if no SMS is received before the session expires.</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
