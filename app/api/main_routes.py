@@ -1,6 +1,6 @@
 """Consolidated routing - all pages and redirects."""
 
-import logging
+import subprocess
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings as _get_settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -17,14 +18,8 @@ from app.utils.i18n import get_translations_for_template
 logger = get_logger(__name__)
 router = APIRouter(tags=["Pages"])
 
-# Templates directory
 TEMPLATES_DIR = Path("templates").resolve()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-
-# Inject app_version as a Jinja2 global so all templates can use {{ app_version }}
-import subprocess
-
-from app.core.config import get_settings as _get_settings
 
 
 def _get_asset_version() -> str:
