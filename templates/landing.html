@@ -55,17 +55,17 @@
     .nav-links { display: flex; gap: 32px; align-items: center; }
     .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 15px; transition: color 0.2s; }
     .nav-links a:hover { color: var(--primary); }
-    .nav-actions { display: flex; gap: 12px; align-items: center; }
-    .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
-    .btn-ghost { background: transparent; color: var(--text); }
-    .btn-ghost:hover { color: var(--primary); }
-    .btn-primary { background: var(--primary); color: #fff; }
+    .nav-actions { display: flex; gap: 10px; align-items: center; padding-left: 20px; border-left: 1px solid var(--border); }
+    .btn { padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; }
+    .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary { background: var(--primary); color: #fff; border: 1.5px solid var(--primary); }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-    .theme-btn { background: none; border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-    .mobile-toggle { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
+    .mobile-toggle { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
     @media (max-width: 768px) {
-      .nav-links, .nav-actions .btn { display: none; }
-      .mobile-toggle { display: block; }
+      .nav-links { display: none; }
+      .nav-actions { display: none; }
+      .mobile-toggle { display: flex; }
     }
     .nav-links.mobile-open {
       display: flex !important;
@@ -256,11 +256,10 @@
         <a href="/faq">FAQ</a>
       </div>
       <div class="nav-actions">
-        <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"><span id="theme-icon">🌙</span></button>
         {% if user %}
         <a href="/dashboard" class="btn btn-primary">Dashboard →</a>
         {% else %}
-        <a href="/auth/login" class="btn btn-ghost">Login</a>
+        <a href="/auth/login" class="btn btn-outline">Log in</a>
         <a href="/auth/register" class="btn btn-primary">Get Started Free</a>
         {% endif %}
       </div>
@@ -529,7 +528,7 @@ Response:
   <section class="cta">
     <div class="shell">
       <h2>Ready to Get Verified?</h2>
-      <p>Join thousands who trust Vrenum for their verification needs.</p>
+      <p>Real numbers. Instant codes. Automatic refunds if it doesn't work.</p>
       <a href="/auth/register" class="btn">Start Free — No Credit Card Required</a>
     </div>
   </section>

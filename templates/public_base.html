@@ -11,6 +11,15 @@
 .nav-links { display: flex; gap: 24px; align-items: center; }
 .nav-links a { color: #21262D; text-decoration: none; font-weight: 600; font-size: 15px; transition: color 0.2s; white-space: nowrap; }
 .nav-links a:hover { color: #FE3C72; }
+.nav-cta-group { display: flex; gap: 10px; align-items: center; padding-left: 20px; border-left: 1px solid rgba(0,0,0,0.1); }
+.nav-btn { display: inline-flex; align-items: center; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+.nav-btn-outline { background: transparent; color: #21262D; border: 1.5px solid #d1d5db; }
+.nav-btn-outline:hover { border-color: #FE3C72; color: #FE3C72; }
+.nav-btn-primary { background: #FE3C72; color: #fff !important; border: 1.5px solid #FE3C72; }
+.nav-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+[data-theme="dark"] .nav-cta-group { border-left-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .nav-btn-outline { color: #f1f5f9; border-color: #475569; }
+[data-theme="dark"] .nav-btn-outline:hover { border-color: #FE3C72; color: #FE3C72; }
 .public-content { flex: 1; padding: 40px; background: #ffffff; color: #21262D; }
 .public-footer { background: #f9fafb; border-top: 1px solid rgba(0,0,0,0.08); padding: 24px 40px; text-align: center; color: #6b7280; font-size: 14px; }
 .public-footer div { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: center !important; gap: 12px 24px !important; margin-bottom: 12px !important; }
@@ -48,6 +57,7 @@
     .public-header { padding: 16px 20px; display: flex !important; justify-content: space-between !important; align-items: center !important; }
     .public-content { padding: 20px; }
     .nav-links { display: none !important; }
+    .nav-cta-group { display: none !important; }
     .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; }
     .logo-badge { position: absolute; left: 50%; transform: translateX(-50%); }
 }
@@ -66,21 +76,22 @@
         <!-- Brand Logo (centered on mobile, left-aligned on desktop) -->
         <a href="/" class="logo-badge" style="order: 2; display:inline-block; padding:8px 16px; background:#FE3C72; border-radius:8px; color:white; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px; white-space: nowrap;">VRENUM SMS</a>
 
-        <div class="public-header-actions" style="order: 3; display: flex; align-items: center; gap: 16px;">
+        <div class="public-header-right" style="order:3; display:flex; align-items:center; gap:0;">
             <!-- Desktop Navigation Links (hidden on mobile) -->
             <nav class="nav-links">
                 <a href="/pricing">Pricing</a>
                 <a href="/about">About</a>
                 <a href="/affiliate-program">Affiliates</a>
                 <a href="/contact">Contact</a>
-
-                {% if user %}
-                <a href="/dashboard" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Dashboard</a>
-                {% else %}
-                <a href="/auth/login" class="btn-secondary" style="color: var(--text-primary, #21262D); padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary, #FE3C72)'" onmouseout="this.style.color='var(--text-primary, #21262D)'">Login</a>
-                <a href="/auth/register" class="btn-primary" style="background: var(--primary, #FE3C72); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign Up</a>
-                {% endif %}
             </nav>
+            <div class="nav-cta-group">
+                {% if user %}
+                <a href="/dashboard" class="nav-btn nav-btn-primary">Dashboard →</a>
+                {% else %}
+                <a href="/auth/login" class="nav-btn nav-btn-outline">Log in</a>
+                <a href="/auth/register" class="nav-btn nav-btn-primary">Get Started Free</a>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Mobile Menu Dropdown -->
