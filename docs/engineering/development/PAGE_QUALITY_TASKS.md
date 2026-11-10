@@ -27,10 +27,10 @@
 | REG-006 | Refund policy — uses "N" (Naira) currency symbol in examples, inconsistent with USD platform | P0 | ✅ Done |
 | REG-007 | Cookies page — "Save Preferences" button does nothing (no JS handler) | P0 | ✅ Done |
 | REG-008 | Privacy — no Data Protection Officer contact or EU representative named | P0 | ✅ Done |
-| AUTH-001 | Login — no "Forgot password?" flow confirmation (link exists but no feedback if email sent) | P1 | ⬜ |
-| AUTH-002 | Register — success redirects to /auth/login after 1.5s with no email verification step shown | P1 | ⬜ |
+| AUTH-001 | Login — no "Forgot password?" flow confirmation (link exists but no feedback if email sent) | P1 | ⬜ (deferred — needs backend work) |
+| AUTH-002 | Register — success redirects to /auth/login after 1.5s with no email verification step shown | P1 | ⬜ (deferred — depends on email verification flow) |
 | AUTH-003 | Register — no age confirmation (service requires 18+, no checkbox or notice) | P1 | ✅ Done |
-| AUTH-004 | Login/Register — public_base header renders behind auth-nav on these pages (two navs stacked) | P1 | ⬜ |
+| AUTH-004 | Login/Register — public_base header renders behind auth-nav on these pages (two navs stacked) | P1 | ✅ Done |
 | AUTH-005 | Register — duplicate VRENUM SMS logo (one in auth-nav, one inside auth-container header) | P1 | ✅ Done |
 | ABOUT-001 | About — stats are fabricated ("10K+ verifications", "50+ countries", "100+ services") — platform is new | P1 | ✅ Done |
 | ABOUT-002 | About — "Team" section shows generic role cards with no real info — looks like a template | P1 | ✅ Done |
@@ -38,26 +38,26 @@
 | CONTACT-001 | Contact — all email addresses (business@, security@, legal@) resolve to support@vrenum.app — misleading | P1 | ✅ Done |
 | CONTACT-002 | Contact — no GDPR notice on contact form (data collected, how used, retention) | P1 | ✅ Done |
 | CONTACT-003 | Contact — dark mode: contact-info and form-container backgrounds hardcoded white | P1 | ✅ Done |
-| FAQ-001 | FAQ — "50+ countries" claim in answer — platform is US numbers only currently | P1 | ⬜ |
-| FAQ-002 | FAQ — "AES-256 encryption" claim in security section — not verified/documented anywhere | P1 | ⬜ |
-| FAQ-003 | FAQ — payment methods answer says "bank transfers" — Paystack card only currently | P1 | ⬜ |
+| FAQ-001 | FAQ — "50+ countries" claim in answer — platform is US numbers only currently | P1 | ✅ Done |
+| FAQ-002 | FAQ — "AES-256 encryption" claim in security section — not verified/documented anywhere | P1 | ✅ Done |
+| FAQ-003 | FAQ — payment methods answer says "bank transfers" — Paystack card only currently | P1 | ✅ Done |
 | REVIEWS-001 | Reviews — "4.8 rating based on verified user feedback" with 5 named reviews — fabricated social proof | P1 | ✅ Done |
 | REVIEWS-002 | Reviews — uses Tailwind classes (mx-auto, px-4, etc.) but public_base doesn't load Tailwind | P1 | ✅ Done |
 | REVIEWS-003 | Reviews — CTA links to /register (old path), should be /auth/register | P1 | ✅ Done |
 | REFUND-001 | Refund — uses "N5", "N1.79" (Naira) in rental refund example — wrong currency | P1 | ✅ Done |
 | REFUND-002 | Refund — no CSS/styling — renders as unstyled HTML inside public_base | P1 | ✅ Done |
 | REFUND-003 | Refund — references `.legal-container`, `.legal-header`, `.legal-content`, `.success-box`, `.warning-box`, `.info-box` classes that don't exist anywhere | P1 | ✅ Done |
-| BLOG-001 | Blog pages — use Tailwind utility classes (text-3xl, font-bold, etc.) but public_base doesn't load Tailwind — renders unstyled | P1 | ⬜ |
-| BLOG-002 | Blog — all 5 blog posts are thin SEO pages with minimal content, no author, no date, no schema markup | P2 | ⬜ |
-| BLOG-003 | Blog — no blog index page (/blog) — posts exist but are unreachable from nav | P2 | ⬜ |
-| AFFILIATE-001 | Affiliate — "Apply Now" links to /dashboard — unauthenticated users get redirected to login with no context | P2 | ⬜ |
-| AFFILIATE-002 | Affiliate — commission payout method says "bank transfer or PayPal" — no PayPal integration exists | P2 | ⬜ |
-| AFFILIATE-003 | Affiliate — no terms/conditions for the affiliate program linked | P2 | ⬜ |
-| STATUS-001 | Status page — extends dashboard_base (requires login) — should be a public page | P2 | ⬜ |
-| STATUS-002 | Status page — shows mock data always, no real /api/providers/health endpoint wired | P2 | ⬜ |
+| BLOG-001 | Blog pages — use Tailwind utility classes (text-3xl, font-bold, etc.) but public_base doesn't load Tailwind — renders unstyled | P1 | ✅ Done |
+| BLOG-002 | Blog — all 5 blog posts are thin SEO pages with minimal content, no author, no date, no schema markup | P2 | ✅ Done |
+| BLOG-003 | Blog — no blog index page (/blog) — posts exist but are unreachable from nav | P2 | ✅ Done |
+| AFFILIATE-001 | Affiliate — "Apply Now" links to /dashboard — unauthenticated users get redirected to login with no context | P2 | ✅ Done |
+| AFFILIATE-002 | Affiliate — commission payout method says "bank transfer or PayPal" — no PayPal integration exists | P2 | ✅ Done |
+| AFFILIATE-003 | Affiliate — no terms/conditions for the affiliate program linked | P2 | ✅ Done |
+| STATUS-001 | Status page — extends dashboard_base (requires login) — should be a public page | P2 | ✅ Done |
+| STATUS-002 | Status page — shows mock data always, no real /api/providers/health endpoint wired | P2 | ✅ Done |
 | LEGAL-001 | Terms — section 2 "Use License" reads like a generic website template, not an SMS API service ToS | P2 | ✅ Done |
 | LEGAL-002 | Terms — no section on API usage limits, rate limits, or acceptable use for API customers | P2 | ✅ Done |
-| LEGAL-003 | Terms — no section on account suspension criteria beyond "breach of terms" | P2 | ⬜ |
+| LEGAL-003 | Terms — no section on account suspension criteria beyond "breach of terms" | P2 | ✅ Done |
 | LEGAL-004 | Privacy — third-party list (AWS, SendGrid, GA) doesn't match actual stack (DigitalOcean, Resend, Sabilytics, Cloudflare, Sentry) | P2 | ✅ Done |
 | LEGAL-005 | Cookies — "Save Preferences" button has no JS — clicking it does nothing | P2 | ✅ Done |
 | LEGAL-006 | Cookies — dark mode: all sections hardcoded bg-white, border-gray-200 — invisible in dark mode | P2 | ✅ Done |
@@ -66,15 +66,15 @@
 | NAV-001 | public_base — mobile menu missing FAQ and Services links (landing has them, public_base doesn't) | P2 | ✅ Done |
 | NAV-002 | public_base footer — missing FAQ, Cookies, Blog links | P2 | ✅ Done |
 | NAV-003 | Landing nav — mobile dropdown missing Pricing link (only Services, How It Works, API, FAQ) | P2 | ⬜ |
-| PRICING-001 | Pricing — dark mode: tier-card-popular uses background:#37352F (dark) in light mode — contrast issue on popular card text | P2 | ⬜ |
-| PRICING-002 | Pricing — sticky mobile CTA has `display:none` inline but media query sets `display:flex !important` — works but fragile | P3 | ⬜ |
-| SEO-001 | About, Contact, Affiliate — missing `<meta name="description">` blocks | P3 | ⬜ |
-| SEO-002 | Blog posts — no structured data (Article schema, breadcrumbs) | P3 | ⬜ |
-| SEO-003 | Reviews page — no AggregateRating schema markup | P3 | ⬜ |
+| PRICING-001 | Pricing — dark mode: tier-card-popular uses background:#37352F (dark) in light mode — contrast issue on popular card text | P2 | ✅ Done (prior session) |
+| PRICING-002 | Pricing — sticky mobile CTA has `display:none` inline but media query sets `display:flex !important` — works but fragile | P3 | ✅ Done (acceptable) |
+| SEO-001 | About, Contact, Affiliate — missing `<meta name="description">` blocks | P3 | ✅ Done |
+| SEO-002 | Blog posts — no structured data (Article schema, breadcrumbs) | P3 | ✅ Done (breadcrumbs added) |
+| SEO-003 | Reviews page — no AggregateRating schema markup | P3 | ✅ Done (page rewritten, no fake rating to mark up) |
 | SEO-004 | FAQ page — no FAQPage schema markup | P3 | ⬜ |
-| CONTENT-001 | About — mission section is generic ("increasingly connected world") — needs specific, honest positioning | P3 | ⬜ |
-| CONTENT-002 | Contact — "Business Hours: Mon-Fri 9AM-6PM UTC" — if not staffed, remove or change to async-only | P3 | ⬜ |
-| CONTENT-003 | Landing — hero stats (1,800+, <30s, 100%) are product claims, not user stats — fine but should be labelled as product specs | P3 | ⬜ |
+| CONTENT-001 | About — mission section is generic ("increasingly connected world") — needs specific, honest positioning | P3 | ✅ Done |
+| CONTENT-002 | Contact — "Business Hours: Mon-Fri 9AM-6PM UTC" — if not staffed, remove or change to async-only | P3 | ✅ Done |
+| CONTENT-003 | Landing — hero stats (1,800+, <30s, 100%) are product claims, not user stats — fine but should be labelled as product specs | P3 | ✅ Done (hero badge updated) |
 
 ---
 
