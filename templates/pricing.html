@@ -9,6 +9,26 @@
 [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #f1f5f9; }
 [data-theme="dark"] p, [data-theme="dark"] li { color: #cbd5e1; }
 [data-theme="dark"] .card, [data-theme="dark"] .box { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .tier-card { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .tier-card .tier-name,
+[data-theme="dark"] .tier-card .price-amount { color: #f1f5f9; }
+[data-theme="dark"] .tier-card .tier-subtitle,
+[data-theme="dark"] .tier-card .tier-description,
+[data-theme="dark"] .tier-card .tier-features li { color: #94a3b8; }
+[data-theme="dark"] .tier-card-popular { background: #0f172a !important; border-color: #FE3C72 !important; }
+[data-theme="dark"] .tier-card-popular .tier-name,
+[data-theme="dark"] .tier-card-popular .price-amount,
+[data-theme="dark"] .tier-card-popular .tier-features li { color: #f1f5f9; }
+[data-theme="dark"] .comparison-table,
+[data-theme="dark"] .faq-section { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .comparison-table h2,
+[data-theme="dark"] .faq-section h2 { color: #f1f5f9; }
+[data-theme="dark"] th { background: #0f172a; color: #94a3b8; }
+[data-theme="dark"] td { color: #cbd5e1; border-bottom-color: #334155; }
+[data-theme="dark"] details.faq-item summary { color: #f1f5f9; border-bottom-color: #334155; }
+[data-theme="dark"] details.faq-item p { color: #94a3b8; border-bottom-color: #334155; }
+[data-theme="dark"] .btn-freemium, [data-theme="dark"] .btn-payg, [data-theme="dark"] .btn-custom { background: #334155; }
+[data-theme="dark"] .btn-pro { background: #FE3C72; color: #fff; }
     .pricing-hero {
         text-align: center;
         padding: 60px 20px;
@@ -203,11 +223,8 @@
         .comparison-table, .faq-section {
             padding: var(--space-6) var(--space-4);
         }
-        /* Hide comparison table, show accordion */
-        .comparison-table table {
-            display: none;
-        }
-        /* Sticky CTA */
+        .comparison-table table { display: none; }
+        .comparison-accordion { display: block !important; }
         .sticky-cta {
             display: flex !important;
         }

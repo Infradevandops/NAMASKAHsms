@@ -57,7 +57,10 @@
 {% block body %}
 <div class="public-layout">
     <header class="public-header">
-        <!-- Mobile Hamburger Menu Button (visible on mobile, hidden on desktop) -->
+        <!-- Mobile Hamburger Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false" id="mobile-menu-btn" style="order:1;">
+            <span id="menu-icon">&#9776;</span>
+        </button>
         {% block mobile_hamburger %}{% endblock %}
 
         <!-- Brand Logo (centered on mobile, left-aligned on desktop) -->
@@ -118,42 +121,42 @@
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
     const icon = document.getElementById('menu-icon');
-    menu.classList.toggle('active');
-    icon.textContent = menu.classList.contains('active') ? '✕' : '☰';
+    const btn  = document.getElementById('mobile-menu-btn');
+    if (!menu) return;
+    const open = menu.classList.toggle('active');
+    if (icon) icon.textContent = open ? '\u2715' : '\u2630';
+    if (btn)  btn.setAttribute('aria-expanded', open);
 }
 
-// Close mobile menu when clicking on a link
+function _closeMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const icon = document.getElementById('menu-icon');
+    const btn  = document.getElementById('mobile-menu-btn');
+    if (!menu) return;
+    menu.classList.remove('active');
+    if (icon) icon.textContent = '\u2630';
+    if (btn)  btn.setAttribute('aria-expanded', 'false');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const menu = document.getElementById('mobile-menu');
-    const links = menu ? menu.querySelectorAll('a') : [];
-
-    links.forEach(link => {
-        link.addEventListener('click', function(e) {
-            menu.classList.remove('active');
-            document.getElementById('menu-icon').textContent = '☰';
+    if (menu) {
+        menu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', _closeMobileMenu);
         });
-    });
+    }
 });
 
-// Close mobile menu when clicking outside
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('mobile-menu');
-    const btn = document.querySelector('.mobile-menu-btn');
+    const btn  = document.getElementById('mobile-menu-btn');
     if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target)) {
-        menu.classList.remove('active');
-        document.getElementById('menu-icon').textContent = '☰';
+        _closeMobileMenu();
     }
 });
 
-// Close mobile menu on Escape key
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const menu = document.getElementById('mobile-menu');
-        if (menu) {
-            menu.classList.remove('active');
-            document.getElementById('menu-icon').textContent = '☰';
-        }
-    }
+    if (e.key === 'Escape') _closeMobileMenu();
 });
 </script>
 {% endblock %}
