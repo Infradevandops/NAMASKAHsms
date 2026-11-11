@@ -1,85 +1,66 @@
 # OPS SUMMARY
 
-**Last Updated**: November 2026
-**CI Status**: ✅ Green — 25-file gate
-**Deploy Status**: `331db1d5` pending CI → auto-deploy
-**TV**: ✅ Operational — $42.15 balance, pricing URL confirmed
+**Last Updated**: November 10, 2026
+**Remote HEAD**: `8b96b5ab` — 66/83 tasks done
+**Local HEAD**: `8c188763` — behind remote, pull needed
+**CI**: ⚠️ Unit tests failing (E-004 — triage needed, non-blocking)
+**Deploy**: ⚠️ Server behind — migration + restart needed after next code push
 
 ---
 
-## CURRENT SERVER STATE
+## SERVER STATE
 
 | Check | Result |
 |-------|--------|
 | TV enabled | ✅ True |
-| TV balance | $42.15 |
-| Pricing URL `/pricing/verifications` | ✅ 200 — `{"serviceName":"whatsapp","price":1.5}` |
-| Old URL `/verifications/pricing` | ❌ 404 — confirmed dead |
-| Health endpoint | ✅ healthy |
-| Stock monitor | ✅ price-based availability, depletion alerts wired |
-| Version string | ✅ 4.9.9 |
-| Dead code `_fetch_prices_inline` | ✅ Deleted |
-| Dead code `fetch_raw_services_with_quantity` | ✅ Deleted |
+| TV balance | $42.15 (last checked Nov 10) |
+| Pricing URL `/pricing/verifications` | ✅ 200 confirmed |
+| Server commit | `e06e91ce` (behind — everything to `8b96b5ab` pending) |
+| Migration pending | `expiry_warned_at`, `billing_period`, `annual_renewal_at`, `stock_watches`, `rental_back_orders`, `subscription_addons` |
 
 ---
 
 ## CI PIPELINE
 
 ```
-secrets-scan → code-quality → frontend-unit-tests → unit-tests (BLOCKING)
-                                                   → integration-tests (non-blocking)
-                                                   → e2e-tests (non-blocking, main only)
+secrets-scan (continue-on-error) → frontend-unit-tests (BLOCKING)
+                                 → smoke-test (BLOCKING)
+                                 → unit-tests (continue-on-error — currently failing)
+                                 → integration-tests (non-blocking)
+                                 → e2e-tests (non-blocking)
 ```
 
-**Blocking gate** (25 test files, --cov-fail-under=25):
-```
-test_api_key_service        test_analytics_service      test_balance_service
-test_cache                  test_models                 test_utils
-test_carrier_lookup         test_phone_validator        test_stability_fixes
-test_tv_webhook             test_notification_service   test_notification_center
-test_email_service          test_auth_service           test_refund_service
-test_pricing_calculator     test_tier_service           test_verification_flow
-test_sms_polling            test_fraud_detection        test_webhook_notifications
-test_security_utils         test_textverified_service   test_startup_smoke
-test_mobile_responsiveness
-```
-
-**Next batch to wire** (E-003 — run locally first):
-```
-test_verification_endpoints   test_payment_service    test_auth_endpoints
-test_wallet_service           test_transaction_service test_tier_manager
-test_quota_service            test_stock_monitor      test_area_code_check
-```
+**Blocking gate**: `frontend-unit-tests` (92/92 JS) + `smoke-test` (27/27 Python)
+**Non-blocking**: `unit-tests` — failing, needs E-004 triage
+**Action**: Download `unit-test-output-*` artifact from GitHub Actions run on `8c188763`
 
 ---
 
-## KNOWN GAPS
+## OPEN TASKS SUMMARY
 
-> All gaps tracked in `docs/status/MASTER_TASKS.md`. Summary below.
-
-| Gap | Task ID | Status |
-|-----|---------|--------|
-| `331db1d5` not confirmed live on server | A-001 | 📋 Manual |
-| 8 transactional emails not tested on live server | A-002 | 📋 Manual |
-| Area code price display shows base only (not base + $0.25) | A-003 | 📋 |
-| Telegram E2E not live-tested | A-005 | 📋 Manual |
-| Voice `transcribing` SSE status not emitted | B-002 | 📋 |
-| WebSocket `reuse_available` event not pushed | B-004 | 📋 |
-| Reuse banner not in UI | B-006 | 📋 |
-| `smsAndVoiceCombo` capability unused | B-008 | 📋 |
-| Annual plans not implemented | C-001–007 | 📋 |
-| PAYG API add-on not implemented | C-010–015 | 📋 |
-| Bulk credit discount UI not built | C-018–019 | 📋 |
-| Migration `f1a2b3c4d5e6` not run on server | — | 📋 Run post-deploy |
-| Stock watch UI (“Notify me” button) | D-005–007 | 📋 |
-| `create_reservation()` back-order detection | D-010 | 📋 |
-| Rentals back-order UI | D-013–015 | 📋 |
-| Rental expiry monitor 24h warning | D-017–020 | 📋 |
-| Admin portal inventory wiring | D-021–025 | 📋 |
-| Upstash Redis on free tier | E-001 | 📋 Manual |
-| TV IP not whitelisted | E-002 | 📋 Manual |
-| Coverage 25% vs 90% target | E-003 | 📋 |
-| Integration tests non-blocking | E-005 | ⚠️ Blocked on E-004 |
+| Priority | ID | Task | Status |
+|----------|----|------|--------|
+| P0 | G-001 | 12s purchase timeout + `purchasing_delayed` SSE | 📋 |
+| P0 | G-002 | SSE keepalive ping | 📋 |
+| P1 | G-003 | Orphan reconciliation worker | 📋 |
+| P1 | G-004 | Provider timeout contract (base_provider + 4 adapters) | 📋 |
+| P1 | G-006 | Circuit breaker | 📋 |
+| P1 | H-001 | Loading modal: arc spinner + TV 11-message sequence | 📋 |
+| P1 | H-002 | Step 3: carrier icon + MM:SS + full SMS + reuse btn | 📋 |
+| P1 | H-003 | Step 3 activity feed | 📋 |
+| P1 | H-004 | `purchasing_delayed` frontend state | 📋 (blocked G-001) |
+| P1 | H-006 | TV webhook auto-re-enable monitor | 📋 |
+| P2 | G-005 | Vrenum API contract doc | 📋 |
+| P2 | H-005 | Combo method picker card | 📋 |
+| P2 | E-004 | CI unit-test triage | 📋 |
+| Manual | A-001 | Deploy + alembic upgrade head | ⚠️ |
+| Manual | A-002 | Test 8 transactional emails | ⚠️ |
+| Manual | A-005 | Telegram E2E | ⚠️ |
+| Manual | C-001 | Paystack annual plan codes | ⚠️ |
+| Manual | C-010 | Paystack add-on plan | ⚠️ |
+| Manual | E-001 | Upstash Redis upgrade | ⚠️ |
+| Manual | E-002 | TV IP whitelist | ⚠️ |
+| Manual | G-002b | nginx proxy_read_timeout 30s | ⚠️ |
 
 ---
 
@@ -90,25 +71,9 @@ test_quota_service            test_stock_monitor      test_area_code_check
 | FastAPI app (gunicorn, 2 workers) | ✅ Running |
 | PostgreSQL | ✅ Running |
 | Redis | ✅ Running |
-| TV webhook endpoint | ✅ Live, registered in TV dashboard |
-| WebSocket manager | ✅ Active |
-| Background services (11 active) | ✅ All running |
-| Sentry error tracking | ✅ Active |
+| TV webhook endpoint | ✅ Live (monitor pending H-006) |
+| Background services | ✅ 11 active |
+| Sentry | ✅ Active |
 | BetterStack uptime | ✅ Active |
-| GitHub Actions CI | ✅ Active (25-file gate) |
-| Deploy workflow | ✅ CI-gated (deploy.yml) |
-
----
-
-## NEXT OPS ACTIONS
-
-See `docs/status/MASTER_TASKS.md` for full sprint breakdown. Immediate priorities:
-
-1. **A-001** — confirm `331db1d5` live on server
-2. **A-002** — test all 8 transactional emails including OTP
-3. **A-003** — fix area code price display (base + $0.25 surcharge)
-4. **A-005** — Telegram E2E manual test
-5. **Run migration** — `alembic upgrade head` for `f1a2b3c4d5e6` post-deploy
-6. **E-001** — upgrade Upstash Redis to pay-as-you-go
-7. **E-002** — submit server IP to TV support for whitelist
-8. **C-001** — create Paystack annual plan codes (15 min, zero engineering)
+| CI gate | ⚠️ Unit tests failing (non-blocking) |
+| Deploy workflow | ✅ CI-gated |
