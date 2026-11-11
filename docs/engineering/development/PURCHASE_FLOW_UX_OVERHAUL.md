@@ -239,6 +239,7 @@ check and auto-re-enable mechanism. Added as H-006 below.
 ```javascript
 const _TV_MESSAGES = [
     // Phase 1 — Searching (pricing_check + early purchasing)
+    // NOTE: exact TV copy — "unused" not "never used". Subtitle is a trust signal.
     { h: "Searching for unused numbers",                          s: "Filtering out recently recycled numbers" },
     { h: "Searching for unused numbers",                          s: "Verifying immediate number pool availability" },
     { h: "Searching for unused numbers",                          s: "Scanning number blocks for unused SIM" },
