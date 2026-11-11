@@ -1,7 +1,7 @@
 fastapi==0.123.5
 uvicorn[standard]==0.24.0
-gunicorn==21.2.0
-python-dotenv==1.0.0
+gunicorn==27.0.0
+python-dotenv==1.2.2
 pydantic==2.10.5
 pydantic-settings==2.6.1
 email-validator==2.2.0
@@ -10,17 +10,17 @@ alembic==1.13.1
 psycopg2-binary==2.9.11
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
-PyJWT==2.8.0
-requests==2.32.4
+PyJWT==2.15.0
+requests==2.33.0
 urllib3>=2.0.0,<3.0.0
 charset-normalizer>=3.4.0,<4
 jinja2==3.1.6
-python-multipart==0.0.18
-sentry-sdk[fastapi]==2.20.0
+python-multipart==0.0.31
+sentry-sdk[fastapi]==2.74.0
 redis==5.0.1
 textverified==0.1.0a1
 phonenumbers==8.13.48
-cryptography==44.0.1
+cryptography==50.0.0
 
 # Phase 2 Enhancement Dependencies
 pyotp==2.8.0
