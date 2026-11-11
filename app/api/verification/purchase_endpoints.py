@@ -888,6 +888,7 @@ async def request_verification_stream(
             return
 
         # Step 3: purchase (real TV create — blocks 5-30s, charge commits here)
+        # NOTE: SSE timeout is 25s to account for SDK's invisible 3x retry (up to 7s backoff)
         yield sse("purchasing", message="Securing your number...")
         from app.services.providers.provider_errors import ProviderError
         from app.services.providers.provider_router import ProviderRouter
@@ -919,7 +920,7 @@ async def request_verification_stream(
             )
             return
 
-        # Step 5: record DB write + debit
+        # Step 4: record DB write + debit (validating step removed — it did no real work)
         yield sse("recording", message="Almost done...")
         try:
             ends_at_dt = None

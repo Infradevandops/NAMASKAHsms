@@ -214,6 +214,26 @@ class PaymentService:
 
             logger.info(f"Credited {amount} to user {user_id}")
 
+            # Bulk credit bonus — applied after successful deposit
+            try:
+                bonus = calculate_bonus_credits(float(amount))
+                if bonus > 0:
+                    user.credits = type(user.credits)(float(user.credits) + bonus)
+                    bonus_tx = Transaction(
+                        user_id=user_id,
+                        reference=f"bonus_{reference}",
+                        type="bonus",
+                        amount=bonus,
+                        description=f"Bulk deposit bonus ({int(bonus / float(amount) * 100)}%)",
+                        status="completed",
+                        created_at=datetime.now(timezone.utc),
+                    )
+                    self.db.add(bonus_tx)
+                    self.db.commit()
+                    logger.info(f"Bulk bonus ${bonus:.2f} applied to user {user_id}")
+            except Exception as e:
+                logger.warning(f"Bulk bonus application failed (non-critical): {e}")
+
             # Track payment event
             try:
                 from app.services.event_tracking_service import EventTrackingService
@@ -466,6 +486,22 @@ class PaymentService:
 def get_payment_service(db: Session) -> PaymentService:
     """Get payment service instance."""
     return PaymentService(db)
+
+
+# Bulk credit bonus tiers — applied after successful Paystack webhook
+BULK_BONUS_TIERS = [
+    (200, 0.15),  # $200+ → 15% bonus
+    (100, 0.10),  # $100+ → 10% bonus
+    (50, 0.05),   # $50+  → 5% bonus
+]
+
+
+def calculate_bonus_credits(amount_usd: float) -> float:
+    """Return bonus credit amount for a deposit. 0.0 if below threshold."""
+    for threshold, rate in BULK_BONUS_TIERS:
+        if amount_usd >= threshold:
+            return round(amount_usd * rate, 2)
+    return 0.0
 
 
 # Alias used by tests

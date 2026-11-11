@@ -358,183 +358,6 @@ class TextVerifiedService:
             "TextVerified API failed after 3 attempts. Please try again in a few moments."
         )
 
-    async def fetch_raw_services_with_quantity(self) -> list:
-        """Fetch services list directly from TV API to capture quantity + price the SDK drops.
-
-        GET /api/pub/v2/services returns raw JSON with quantity and price per service.
-        The SDK Service.from_api() only maps serviceName + capability, dropping everything else.
-        """
-        if not self.enabled:
-            return []
-        try:
-            self.client.refresh_bearer()
-            resp = self.client.session.get(
-                f"{self.client.base_url}/api/pub/v2/services",
-                headers={
-                    "Authorization": f"Bearer {self.client.bearer.token}",
-                    "User-Agent": self.client.user_agent,
-                },
-                params={"numberType": "mobile", "reservationType": "verification"},
-                timeout=15.0,
-            )
-            if not resp.ok:
-                logger.warning(f"Raw services fetch failed: HTTP {resp.status_code}")
-                return []
-            data = resp.json()
-            items = data if isinstance(data, list) else data.get("data", [])
-            result = []
-            seen = set()
-            for item in items:
-                name = (
-                    item.get("serviceName")
-                    or item.get("service_name")
-                    or item.get("name")
-                    or ""
-                )
-                if not name or name in seen:
-                    continue
-                seen.add(name)
-                qty = (
-                    item.get("quantity")
-                    or item.get("qty")
-                    or item.get("availableCount")
-                    or item.get("available_count")
-                    or item.get("count")
-                )
-                price = item.get("price") or item.get("cost")
-                result.append(
-                    {
-                        "id": name,
-                        "name": name.title(),
-                        "price": float(price) if price is not None else None,
-                        "cost": float(price) if price is not None else None,
-                        "quantity": int(qty) if qty is not None else None,
-                        "capability": item.get("capability", "sms"),
-                    }
-                )
-            with_qty = sum(1 for r in result if r.get("quantity") is not None)
-            with_price = sum(1 for r in result if r.get("price") is not None)
-            logger.info(
-                f"Raw services: {len(result)} total, {with_qty} with quantity, {with_price} with price"
-            )
-            return result
-        except Exception as e:
-            logger.warning(f"fetch_raw_services_with_quantity failed: {e}")
-            return []
-
-    async def _fetch_prices_inline(self, services) -> list:
-        """Fetch real prices for services inline, prioritising popular ones.
-
-        Popular services are moved to the front so they get priced within
-        the 12s timeout window even when there are 2351 total services.
-        Semaphore reduced to 3 to avoid TV rate limiting.
-        """
-        # Popular services that must be priced first
-        _PRIORITY = {
-            "tinder",
-            "google",
-            "facebook",
-            "instagram",
-            "twitter",
-            "whatsapp",
-            "telegram",
-            "discord",
-            "snapchat",
-            "uber",
-            "lyft",
-            "amazon",
-            "microsoft",
-            "apple",
-            "paypal",
-            "coinbase",
-            "netflix",
-            "spotify",
-            "airbnb",
-            "doordash",
-            "linkedin",
-            "reddit",
-            "signal",
-            "viber",
-            "cashapp",
-            "venmo",
-            "binance",
-            "steam",
-            "twitch",
-            "github",
-        }
-        priority = [s for s in services if s.service_name.lower() in _PRIORITY]
-        rest = [s for s in services if s.service_name.lower() not in _PRIORITY]
-        ordered = priority + rest
-
-        sem = asyncio.Semaphore(3)  # reduced from 10 to avoid TV rate limiting
-
-        def _raw_pricing(service_name: str) -> dict:
-            """Call TV pricing endpoint directly."""
-            try:
-                self.client.refresh_bearer()
-                resp = self.client.session.post(
-                    f"{self.client.base_url}/api/pub/v2/pricing/verifications",
-                    headers={
-                        "Authorization": f"Bearer {self.client.bearer.token}",
-                        "User-Agent": self.client.user_agent,
-                    },
-                    json={
-                        "serviceName": service_name,
-                        "areaCode": False,
-                        "carrier": False,
-                        "numberType": "mobile",
-                        "capability": "sms",
-                    },
-                    timeout=8.0,
-                )
-                if resp.ok:
-                    data = resp.json()
-                    payload = data.get("data", data)
-                    return {
-                        "price": payload.get("price"),
-                        "quantity": payload.get("quantity")
-                        or payload.get("qty")
-                        or payload.get("availableCount")
-                        or payload.get("count"),
-                    }
-                return {"price": None, "quantity": None}
-            except Exception as e:
-                logger.debug(f"Raw pricing failed for {service_name}: {e}")
-                return {"price": None, "quantity": None}
-
-        async def _price(s) -> dict:
-            async with sem:
-                try:
-                    raw = await asyncio.wait_for(
-                        asyncio.to_thread(_raw_pricing, s.service_name),
-                        timeout=8.0,
-                    )
-                    price = raw.get("price")
-                    qty = raw.get("quantity")
-                    return {
-                        "id": s.service_name,
-                        "name": s.service_name.title(),
-                        "price": float(price) if price is not None else None,
-                        "cost": float(price) if price is not None else None,
-                        "quantity": int(qty) if qty is not None else None,
-                    }
-                except Exception:
-                    return {
-                        "id": s.service_name,
-                        "name": s.service_name.title(),
-                        "price": None,
-                        "cost": None,
-                        "quantity": None,
-                    }
-
-        results = await asyncio.gather(*[_price(s) for s in ordered])
-        priced = sum(1 for r in results if r["price"] is not None)
-        with_qty = sum(1 for r in results if r.get("quantity") is not None)
-        logger.info(
-            f"Inline pricing: {priced}/{len(results)} priced, {with_qty} with quantity"
-        )
-        return list(results)
-
     async def _fetch_and_cache_pricing(self, services) -> None:
         """Background task: fetch prices for all services, priority ones first.
         Updates the names cache with prices as they are fetched.
@@ -1404,6 +1227,56 @@ class TextVerifiedService:
         except Exception as e:
             logger.warning(f"Failed to reactivate verification {verification_id}: {e}")
             return False
+
+    async def reuse_verification(self, verification_id: str) -> Dict[str, Any]:
+        """Reuse a completed verification number for a different service.
+
+        TV charges less than a fresh purchase. Platform charges $0.25 convenience fee
+        (handled by the caller before this method is invoked).
+        Only call when reuse.reusable_until is in the future.
+        """
+        if not self.enabled:
+            raise RuntimeError("TextVerified service not available")
+        try:
+            result = await asyncio.to_thread(
+                self.client.verifications.reuse, verification_id
+            )
+            logger.info(f"Reused verification {verification_id} → new id {result.id}")
+            return {
+                "id": result.id,
+                "phone_number": result.number,
+                "ends_at": result.ends_at.isoformat(),
+                "total_cost": result.total_cost,
+                "tv_object": result,
+            }
+        except Exception as e:
+            logger.error(f"Failed to reuse verification {verification_id}: {e}")
+            raise
+
+    # Full ReservationState → platform status mapping
+    # CRITICAL: verificationRefunded must map to 'refunded_by_provider' so the
+    # platform skips issuing a second refund (double-refund prevention).
+    TV_STATE_MAP: Dict[str, str] = {
+        "verificationPending": "pending",
+        "verificationCompleted": "completed",
+        "verificationCanceled": "cancelled",
+        "verificationTimedOut": "timeout",
+        "verificationReported": "reported",
+        "verificationRefunded": "refunded_by_provider",  # skip platform refund
+        "verificationReused": "completed",
+        "verificationReactivated": "pending",
+        "renewableActive": "active",
+        "renewableOverdue": "overdue",
+        "renewableExpired": "expired",
+        "renewableRefunded": "refunded_by_provider",
+        "nonrenewableActive": "active",
+        "nonrenewableExpired": "expired",
+        "nonrenewableRefunded": "refunded_by_provider",
+    }
+
+    def map_tv_state(self, tv_state: str) -> str:
+        """Map a TV ReservationState value to platform status string."""
+        return self.TV_STATE_MAP.get(tv_state, "unknown")
 
     def _set_balance_cache(self, balance: float) -> None:
         """Cache balance value (used in tests)."""

@@ -422,6 +422,50 @@ UPDATE subscription_tiers SET overage_rate = 0.20 WHERE tier = 'custom';
 
 ---
 
+---
+
+## 💡 PLANNED REVENUE FEATURES (Not Yet Live)
+
+> Full specs: `docs/features/REVENUE_FEATURES_SPEC.md`
+
+### Annual Plans
+| Tier | Monthly | Annual | Savings |
+|------|---------|--------|---------|
+| Pro | $25/mo | $250/yr | 2 months free |
+| Custom | $35/mo | $350/yr | 2 months free |
+
+- Paystack plan codes to be created: `PLAN_PRO_ANNUAL`, `PLAN_CUSTOM_ANNUAL`
+- Billing period stored on subscription record (`monthly` | `annual`)
+- Renewal reminder email fires 30 days before annual renewal
+
+### PAYG API Add-On
+- **Price**: $10/month
+- **Includes**: 5 API keys
+- **Does not include**: Monthly quota, carrier filters, affiliate program
+- **Purpose**: Captures developers who need API access but don't justify full Pro upgrade
+- Paystack plan code to be created: `PLAN_PAYG_API_ADDON`
+
+### Bulk Credit Discount
+| Deposit | Bonus | Effective Rate |
+|---------|-------|----------------|
+| $10–$49 | 0% | $2.63/SMS |
+| $50–$99 | +5% | ~$2.50/SMS |
+| $100–$199 | +10% | ~$2.39/SMS |
+| $200+ | +15% | ~$2.29/SMS |
+
+- Bonus applied automatically after successful Paystack webhook
+- Bonus recorded as separate transaction type: `bonus`
+- Margin check: 5% bonus on $50 costs platform $1.39 — well within 44.5% margin
+
+### Reuse Surcharge
+- **Price**: $0.25 flat fee
+- **When**: After verification completes, if TV `reusable_until` is in the future
+- **Condition**: Only shown if user balance ≥ $0.25
+- **What user gets**: Same phone number reused for a different service
+- Full spec: `docs/features/REVENUE_FEATURES_SPEC.md` → Feature 2
+
+---
+
 ## 🔄 VERSION HISTORY
 
 | Version | Date | Changes |
@@ -429,6 +473,7 @@ UPDATE subscription_tiers SET overage_rate = 0.20 WHERE tier = 'custom';
 | 1.0 | May 12, 2026 | Initial pricing reference |
 | 1.1 | May 12, 2026 | Corrected base rate from $2.12 to $2.63 |
 | 1.3 | May 19, 2026 | Overage rates corrected: Pro $0.30→$1.80, Custom $0.20→$1.50 (profitable). Freemium monthly limit set to 20 SMS. |
+| 1.4 | November 2026 | Added planned revenue features: annual plans, PAYG API add-on, bulk credit discount, reuse surcharge |
 
 ---
 

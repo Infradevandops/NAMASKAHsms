@@ -190,6 +190,24 @@ class SMSPollingService:
                 code = text  # full transcription shown as the "code"
 
             if code:
+                # OPEN-2: emit transcribing status for voice before completing
+                if verification.capability == "voice":
+                    try:
+                        from app.services.verification_status_service import mark_verification_transcribing
+                        await mark_verification_transcribing(db, verification)
+                        from app.services.event_broadcaster import event_broadcaster
+                        asyncio.create_task(
+                            event_broadcaster.broadcast_verification_event(
+                                user_id=verification.user_id,
+                                event_type="progress",
+                                service_name=verification.service_name or "",
+                                verification_id=verification.id,
+                                status="transcribing",
+                                metadata={},
+                            )
+                        )
+                    except Exception:
+                        pass
                 await self._complete_verification(
                     verification,
                     db,
@@ -325,6 +343,45 @@ class SMSPollingService:
         from app.services.verification_status_service import mark_sms_code_received
 
         await mark_sms_code_received(db, v, sms_code, sms_text)
+
+        # Store reusable_until from TV details (REV-002 / OPEN-3)
+        try:
+            if v.activation_id and v.provider == "textverified":
+                details = await self.textverified.get_verification_details(v.activation_id)
+                reusable_until = details.get("reusable_until")
+                if reusable_until:
+                    from datetime import datetime as _dt
+                    v.reusable_until = _dt.fromisoformat(reusable_until.replace("Z", "+00:00"))
+                    db.commit()
+                    # Push reuse_available WebSocket event if balance >= $0.25
+                    try:
+                        from app.core.database import SessionLocal as _SL
+                        from app.models.user import User as _User
+                        _db2 = _SL()
+                        try:
+                            _u = _db2.query(_User).filter(_User.id == v.user_id).first()
+                            if _u and float(_u.credits or 0) >= 0.25:
+                                from app.services.event_broadcaster import event_broadcaster
+                                asyncio.create_task(
+                                    event_broadcaster.broadcast_verification_event(
+                                        user_id=v.user_id,
+                                        event_type="reuse_available",
+                                        service_name=v.service_name or "",
+                                        verification_id=v.id,
+                                        status="reuse_available",
+                                        metadata={
+                                            "reusable_until": reusable_until,
+                                            "fee": 0.25,
+                                            "verification_id": str(v.id),
+                                        },
+                                    )
+                                )
+                        finally:
+                            _db2.close()
+                    except Exception:
+                        pass
+        except Exception as _re:
+            logger.debug(f"Could not store reusable_until for {v.id}: {_re}")
 
         # Instrumentation
         latency = None

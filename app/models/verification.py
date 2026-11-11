@@ -127,6 +127,13 @@ class Verification(BaseModel):
         comment="Whether this failure qualifies for refund",
     )
 
+    # Reuse tracking (SDK: VerificationExpanded.reuse.reusable_until)
+    reusable_until = Column(DateTime, nullable=True, comment="TV reuse window expiry")
+    reused_from_id = Column(String, nullable=True, comment="Source verification ID if this was a reuse")
+
+    # TV expiry window
+    ends_at = Column(DateTime, nullable=True, comment="TV ends_at — real expiry from TextVerified")
+
     def __repr__(self) -> str:
         return f"<Verification id={self.id}>"
 
@@ -158,6 +165,7 @@ class NumberRental(BaseModel):
     released_at = Column(DateTime)
     auto_extend = Column(Boolean, default=False, nullable=False)
     warning_sent = Column(Boolean, default=False, nullable=False)
+    expiry_warned_at = Column(DateTime, nullable=True, comment="When 24h expiry warning was sent")
 
     def __repr__(self) -> str:
         return f"<NumberRental id={self.id}>"

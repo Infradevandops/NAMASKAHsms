@@ -83,16 +83,24 @@ After `purchasing` completes, `validating` fires immediately with zero real work
 ---
 
 ### OPEN-3 — `reuse` and `reactivate` never surfaced in UI
-**Severity**: P2 (cost saving)
+**Severity**: P2 (cost saving + revenue)
 **Files**: `textverified_service.py` (methods exist), `verification-flow.js`, `verify_modern.html`
+**Revenue spec**: `docs/features/REVENUE_FEATURES_SPEC.md` → Feature 2
 
 TV supports:
 - **Reactivate**: Resume a timed-out verification (extends window). Free retry, no repurchase.
 - **Reuse**: Use same number for a different service. Costs less than new purchase.
 
-Both methods are implemented in `textverified_service.py` but never called from the UI. The history page shows a "Verify Again" button but it creates a new verification rather than reusing.
+Both methods are implemented in `textverified_service.py` but never called from the UI.
 
-**Fix**: On the history page, if `reusable_until` is in the future, show "Reuse this number" button. On timeout, before issuing refund, check `can_reactivate` and offer "Try again (free)" to the user.
+**Reuse monetization**: Charge $0.25 convenience fee. Only shown if user balance ≥ $0.25. If balance is short, option doesn't appear — no friction.
+
+**Fix**:
+1. Store `reusable_until` on verification record after completion (from `tv_result.reuse.reusable_until`)
+2. Push WebSocket event `reuse_available` with fee and expiry
+3. Show dismissible banner in UI: "Reuse this number for another service — $0.25"
+4. New endpoint: `POST /api/verification/{id}/reuse` — deducts $0.25, calls `tv_service.reuse_verification()`
+5. On timeout, check `can_reactivate` before issuing refund — offer "Try again (free)" to user
 
 ---
 

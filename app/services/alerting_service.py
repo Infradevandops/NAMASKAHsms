@@ -132,5 +132,53 @@ class AlertingService:
             }
         )
 
+    async def send_stock_depleted_alert(self, service_name: str, watcher_count: int) -> None:
+        """Fire when a service transitions available → unavailable during stock monitor loop."""
+        await self.send_alert(
+            {
+                "type": "stock_depleted",
+                "severity": "warning",
+                "message": (
+                    f"⚠️ {service_name} is now out of stock on TextVerified. "
+                    f"{watcher_count} user(s) are watching this service. "
+                    "Check TV dashboard or contact TV support if this persists."
+                ),
+            }
+        )
+
+    async def send_back_order_queue_alert(self, service_name: str, queue_depth: int) -> None:
+        """Fire when back-order queue for a rental service exceeds 5 users."""
+        if queue_depth < 5:
+            return
+        await self.send_alert(
+            {
+                "type": "back_order_queue_depth",
+                "severity": "info",
+                "message": (
+                    f"📦 Back-order queue for {service_name} has {queue_depth} users waiting. "
+                    "Consider contacting TV to prioritise inventory for this service."
+                ),
+            }
+        )
+
+    async def send_rental_expiry_digest(self, expiring_rentals: list) -> None:
+        """Daily digest of rentals expiring in next 24h. Batched — one email, not per-rental."""
+        if not expiring_rentals:
+            return
+        lines = "".join(
+            f"<li>{r['service_name']} — user {r['user_email']} — expires {r['ends_at']}</li>"
+            for r in expiring_rentals
+        )
+        await self.send_alert(
+            {
+                "type": "rental_expiry_batch",
+                "severity": "info",
+                "message": (
+                    f"🗓️ {len(expiring_rentals)} rental(s) expire in the next 24 hours. "
+                    f"<ul>{lines}</ul>"
+                ),
+            }
+        )
+
 
 alerting_service = AlertingService()

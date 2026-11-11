@@ -63,6 +63,7 @@ from app.api.verification.outcome_endpoint import router as outcome_router
 from app.api.verification.pricing_endpoints import router as pricing_router
 from app.api.verification.router import router as verification_router
 from app.api.verification.tv_webhook import router as tv_webhook_router
+from app.api.verification.reuse_endpoint import router as reuse_router
 from app.api.websocket_endpoints import router as websocket_router
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -256,6 +257,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(billing_router, prefix="/api")
     fastapi_app.include_router(verification_router, prefix="/api")
     fastapi_app.include_router(tv_webhook_router)  # TV SMS webhook — no prefix, path defined in router
+    fastapi_app.include_router(reuse_router, prefix="/api")  # Verification reuse endpoint
     fastapi_app.include_router(error_tracking_router)  # Error tracking endpoints
 
     # Verification Feature Routers
@@ -263,6 +265,9 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(outcome_router, prefix="/api")
     fastapi_app.include_router(carrier_router, prefix="/api")
     fastapi_app.include_router(pricing_router, prefix="/api")
+
+    from app.api.core.stock_watch import router as stock_watch_router
+    fastapi_app.include_router(stock_watch_router, prefix="/api")
 
     # Version 1 API
     fastapi_app.include_router(v1_router)

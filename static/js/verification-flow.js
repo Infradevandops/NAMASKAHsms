@@ -314,8 +314,11 @@ function renderImmersiveItem(item, isPinned) {
 
         // Out-of-stock items are non-selectable — greyed out, pointer-events disabled
         const isUnavailable = !available;
-        const itemStyle = isUnavailable ? 'opacity:0.45;cursor:not-allowed;pointer-events:none;' : '';
+        const itemStyle = isUnavailable ? 'opacity:0.45;cursor:not-allowed;' : '';
         const clickAttr = isUnavailable ? '' : `onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})"`;
+        const watchBtn = isUnavailable
+            ? `<button onclick="event.stopPropagation();watchStock('${item.value.replace(/'/g,"\\'") }','${item.label.replace(/'/g,"\\'") }')" style="font-size:11px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:3px 8px;border-radius:4px;cursor:pointer;white-space:nowrap;" title="Get notified when available">\uD83D\uDD14 Notify me</button>`
+            : '';
 
         return `
             <div class="list-item" ${clickAttr} style="${itemStyle}">
@@ -332,6 +335,7 @@ function renderImmersiveItem(item, isPinned) {
                     <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
                         ${priceStr ? `<span style="font-size:12px;font-weight:600;color:#374151;">${priceStr}</span>` : ''}
                         ${rateStr ? `<span style="font-size:11px;color:#6b7280;">${rateStr}</span>` : ''}
+                        ${watchBtn}
                     </div>
                 </div>
                 <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
@@ -869,10 +873,6 @@ async function createVerification() {
                             updateLoadingMessage('Still working — this can take up to 30 seconds...');
                         }, 10000);
                         break;
-                    case 'validating':
-                        clearTimeout(VerificationFlow._purchasingTimer);
-                        updateLoadingMessage('Validating number quality...');
-                        break;
                     case 'recording':
                         updateLoadingMessage('Almost done...');
                         break;
@@ -989,7 +989,60 @@ document.addEventListener('ws:message', (e) => {
     if (e.detail && e.detail.type === 'sms_received') {
         handleWebSocketSmsReceived(e.detail);
     }
+    // REV-002 / OPEN-3: reuse available banner
+    if (e.detail && e.detail.type === 'reuse_available') {
+        showReuseBanner(e.detail);
+    }
 });
+
+function showReuseBanner(data) {
+    const existing = document.getElementById('reuse-banner');
+    if (existing) existing.remove();
+
+    const expiresAt = new Date(data.reusable_until).getTime();
+    const msLeft = expiresAt - Date.now();
+    if (msLeft <= 0) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'reuse-banner';
+    banner.style.cssText = 'background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;';
+    banner.innerHTML = `
+        <span style="color:#1d4ed8;">\uD83D\uDD01 Reuse this number for another service — <strong>$${(data.fee || 0.25).toFixed(2)}</strong></span>
+        <div style="display:flex;gap:8px;">
+            <button onclick="openReuseModal('${data.verification_id}')" style="background:#1d4ed8;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reuse</button>
+            <button onclick="document.getElementById('reuse-banner').remove()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:16px;">&times;</button>
+        </div>
+    `;
+
+    const step3 = document.getElementById('step-3-card');
+    if (step3) step3.insertAdjacentElement('afterbegin', banner);
+
+    // Auto-hide when window expires
+    setTimeout(() => banner.remove(), msLeft);
+}
+
+function openReuseModal(verificationId) {
+    const service = prompt('Enter the service name to verify (e.g. telegram, google):');
+    if (!service || !service.trim()) return;
+    fetch(`/api/verification/${verificationId}/reuse`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ service_name: service.trim().toLowerCase() })
+    }).then(async r => {
+        const data = await r.json();
+        if (r.ok) {
+            document.getElementById('reuse-banner')?.remove();
+            window.toast && window.toast.success(`Reuse started — waiting for SMS on ${data.phone_number}`);
+            // Navigate to new verification
+            window.location.href = `/verify?id=${data.verification_id}`;
+        } else {
+            window.toast && window.toast.error(data.detail || 'Reuse failed.');
+        }
+    }).catch(() => window.toast && window.toast.error('Connection error.'));
+}
 
 function showFallbackWarning(requested, assigned, sameState) {
     const existing = document.getElementById('fallback-warning');
@@ -1367,6 +1420,28 @@ function showError(title, message) {
 
 
 
+async function watchStock(serviceId, serviceLabel) {
+    try {
+        const res = await fetch('/api/notifications/stock-watch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({ service_name: serviceId, capability: 'sms' })
+        });
+        if (res.ok || res.status === 201) {
+            window.toast && window.toast.success(`\uD83D\uDD14 You'll be notified when ${serviceLabel} is back in stock.`);
+            // Re-render to show confirmed state
+            renderImmersiveList(_modalType, document.getElementById('modal-search-input')?.value || '');
+        } else {
+            window.toast && window.toast.error('Failed to set notification. Please try again.');
+        }
+    } catch (e) {
+        window.toast && window.toast.error('Connection error. Please try again.');
+    }
+}
+
 function _getServiceIcon(serviceId) {
     const iconMap = {
         whatsapp: 'whatsapp', telegram: 'telegram', google: 'google', facebook: 'facebook',
@@ -1551,8 +1626,19 @@ async function updatePricing() {
     // Fallback to local calculation
     let price = VerificationFlow.selectedServicePrice || 2.63;
     let filterCharges = 0;
-    if (VerificationFlow.userTier === 'payg' && areaCode) filterCharges += 0.25;
+    // PAYG area code surcharge — $0.25 added on top of base price
+    if ((VerificationFlow.userTier === 'payg' || VerificationFlow.userTier === 'freemium') && areaCode) filterCharges += 0.25;
     el.textContent = formatMoney(price + filterCharges);
+    // Show surcharge breakdown if area code selected
+    const surchargeEl = document.getElementById('pricing-area-code-fee');
+    if (surchargeEl) {
+        if (filterCharges > 0) {
+            surchargeEl.textContent = `+${formatMoney(filterCharges)} area code fee`;
+            surchargeEl.style.display = 'block';
+        } else {
+            surchargeEl.style.display = 'none';
+        }
+    }
 }
 // Phase 4 Area Code Check Logic
 let _acCheckTimeout = null;

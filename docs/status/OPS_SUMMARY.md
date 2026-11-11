@@ -1,8 +1,8 @@
 # OPS SUMMARY
 
-**Last Updated**: November 10, 2026
+**Last Updated**: November 2026
 **CI Status**: ✅ Green — 25-file gate
-**Deploy Status**: ✅ All commits live — HEAD `32d9b500`
+**Deploy Status**: `331db1d5` pending CI → auto-deploy
 **TV**: ✅ Operational — $42.15 balance, pricing URL confirmed
 
 ---
@@ -16,7 +16,10 @@
 | Pricing URL `/pricing/verifications` | ✅ 200 — `{"serviceName":"whatsapp","price":1.5}` |
 | Old URL `/verifications/pricing` | ❌ 404 — confirmed dead |
 | Health endpoint | ✅ healthy |
-| Stock monitor | ✅ price-based availability |
+| Stock monitor | ✅ price-based availability, depletion alerts wired |
+| Version string | ✅ 4.9.9 |
+| Dead code `_fetch_prices_inline` | ✅ Deleted |
+| Dead code `fetch_raw_services_with_quantity` | ✅ Deleted |
 
 ---
 
@@ -41,7 +44,7 @@ test_security_utils         test_textverified_service   test_startup_smoke
 test_mobile_responsiveness
 ```
 
-**Next batch to wire** (run locally first):
+**Next batch to wire** (E-003 — run locally first):
 ```
 test_verification_endpoints   test_payment_service    test_auth_endpoints
 test_wallet_service           test_transaction_service test_tier_manager
@@ -52,18 +55,31 @@ test_quota_service            test_stock_monitor      test_area_code_check
 
 ## KNOWN GAPS
 
-| Gap | Impact | Status |
-|-----|--------|--------|
-| Area code price display shows base price, user charged base + $0.25 | Medium — UX/trust | 📋 P1 next |
-| Telegram E2E not live-tested | Low — code complete | ⏳ Manual test pending |
-| Dead code: `_fetch_prices_inline`, `fetch_raw_services_with_quantity` | Low — confusion risk | 📋 P2 delete |
-| Coverage 25% vs 90% target | Medium | 📋 Expanding gate each sprint |
-| Integration tests non-blocking | Medium | 📋 Stabilise and promote |
-| `validating` SSE step does no real work | Low | 📋 P3 open |
-| No `transcribing` SSE status for voice | Low | 📋 P3 open |
-| Stock monitor docstring says "15-minute" (should be 90s) | Trivial | 📋 P3 1-line fix |
-| smsAndVoiceCombo capability unused | Low | 📋 Planned |
-| Reuse/Reactivate not surfaced in UI | Low — backend done | 📋 Planned |
+> All gaps tracked in `docs/status/MASTER_TASKS.md`. Summary below.
+
+| Gap | Task ID | Status |
+|-----|---------|--------|
+| `331db1d5` not confirmed live on server | A-001 | 📋 Manual |
+| 8 transactional emails not tested on live server | A-002 | 📋 Manual |
+| Area code price display shows base only (not base + $0.25) | A-003 | 📋 |
+| Telegram E2E not live-tested | A-005 | 📋 Manual |
+| Voice `transcribing` SSE status not emitted | B-002 | 📋 |
+| WebSocket `reuse_available` event not pushed | B-004 | 📋 |
+| Reuse banner not in UI | B-006 | 📋 |
+| `smsAndVoiceCombo` capability unused | B-008 | 📋 |
+| Annual plans not implemented | C-001–007 | 📋 |
+| PAYG API add-on not implemented | C-010–015 | 📋 |
+| Bulk credit discount UI not built | C-018–019 | 📋 |
+| Migration `f1a2b3c4d5e6` not run on server | — | 📋 Run post-deploy |
+| Stock watch UI (“Notify me” button) | D-005–007 | 📋 |
+| `create_reservation()` back-order detection | D-010 | 📋 |
+| Rentals back-order UI | D-013–015 | 📋 |
+| Rental expiry monitor 24h warning | D-017–020 | 📋 |
+| Admin portal inventory wiring | D-021–025 | 📋 |
+| Upstash Redis on free tier | E-001 | 📋 Manual |
+| TV IP not whitelisted | E-002 | 📋 Manual |
+| Coverage 25% vs 90% target | E-003 | 📋 |
+| Integration tests non-blocking | E-005 | ⚠️ Blocked on E-004 |
 
 ---
 
@@ -86,9 +102,13 @@ test_quota_service            test_stock_monitor      test_area_code_check
 
 ## NEXT OPS ACTIONS
 
-1. **Fix area code price display** — pass `area_code=True` to `check_service_available()`
-   when area code selected so UI price includes the $0.25 surcharge
-2. **Telegram E2E** — manual test with real Telegram account
-3. **Delete dead code** — `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()`
-4. **CI coverage batch 2** — wire 9 more test files, raise floor to 30%
-5. **Monitor Sentry** — watch for errors from SDK fixes
+See `docs/status/MASTER_TASKS.md` for full sprint breakdown. Immediate priorities:
+
+1. **A-001** — confirm `331db1d5` live on server
+2. **A-002** — test all 8 transactional emails including OTP
+3. **A-003** — fix area code price display (base + $0.25 surcharge)
+4. **A-005** — Telegram E2E manual test
+5. **Run migration** — `alembic upgrade head` for `f1a2b3c4d5e6` post-deploy
+6. **E-001** — upgrade Upstash Redis to pay-as-you-go
+7. **E-002** — submit server IP to TV support for whitelist
+8. **C-001** — create Paystack annual plan codes (15 min, zero engineering)

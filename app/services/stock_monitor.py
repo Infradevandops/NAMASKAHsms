@@ -98,7 +98,12 @@ async def refresh_stock_cache() -> None:
     TV's /api/pub/v2/services does not return quantity — fetch_raw_services_with_quantity
     always returns qty=0 for every service, making everything appear out of stock.
     The only reliable availability signal from TV is: price > 0 = in stock.
+    Fires admin alert when a service transitions available → unavailable.
+    Notifies stock watchers when a service transitions unavailable → available.
     """
+    previous = await cache.get(_STOCK_CACHE_KEY) or {}
+    prev_services: dict = previous.get("services", {})
+
     stock_map = await build_stock_map()
 
     if stock_map:
@@ -118,6 +123,98 @@ async def refresh_stock_cache() -> None:
             f"Stock refreshed: {available}/{len(stock_map)} available, {with_qty} with quantity"
         )
 
+        # Detect transitions: available → unavailable → alert admin
+        newly_depleted = [
+            slug for slug, data in stock_map.items()
+            if data.get("available") is False
+            and prev_services.get(slug, {}).get("available") is True
+        ]
+        if newly_depleted:
+            try:
+                from app.services.alerting_service import alerting_service
+                from app.models.stock_watch import StockWatch
+                from app.core.database import AsyncSessionLocal
+                from sqlalchemy import select, func
+                async with AsyncSessionLocal() as db:
+                    for slug in newly_depleted:
+                        result = await db.execute(
+                            select(func.count()).where(
+                                StockWatch.service_name == slug,
+                                StockWatch.notified_at.is_(None),
+                            )
+                        )
+                        watcher_count = result.scalar() or 0
+                        await alerting_service.send_stock_depleted_alert(slug, watcher_count)
+            except Exception as e:
+                logger.warning(f"Stock depletion alert failed: {e}")
+
+        # Detect transitions: unavailable → available → notify watchers (INV-001)
+        newly_available = [
+            slug for slug, data in stock_map.items()
+            if data.get("available") is True
+            and prev_services.get(slug, {}).get("available") is False
+        ]
+        if newly_available:
+            try:
+                await _notify_stock_watchers(newly_available, stock_map)
+            except Exception as e:
+                logger.warning(f"Stock watcher notification failed: {e}")
+
+        # Notify users watching services that just became available
+        newly_available = [
+            slug for slug, data in stock_map.items()
+            if data.get("available") is True
+            and prev_services.get(slug, {}).get("available") is not True
+        ]
+        if newly_available:
+            try:
+                await _notify_stock_watchers(newly_available, stock_map)
+            except Exception as e:
+                logger.warning(f"Stock watch notification failed: {e}")
+
+
+async def _notify_stock_watchers(newly_available: list, stock_map: dict) -> None:
+    """Notify users watching services that just came back in stock (INV-001)."""
+    try:
+        from app.core.database import SessionLocal
+        from app.models.stock_watch import StockWatch
+        from app.services.notification_service import NotificationService
+
+        db = SessionLocal()
+        try:
+            for slug in newly_available:
+                price = stock_map.get(slug, {}).get("price")
+                watches = (
+                    db.query(StockWatch)
+                    .filter(
+                        StockWatch.service_name == slug,
+                        StockWatch.notified_at.is_(None),
+                    )
+                    .all()
+                )
+                for watch in watches:
+                    try:
+                        notif_svc = NotificationService(db)
+                        notif_svc.create_notification(
+                            user_id=watch.user_id,
+                            notification_type="stock_available",
+                            title=f"\U0001f7e2 {slug.title()} is back in stock",
+                            message=(
+                                f"{slug.title()} numbers are available again"
+                                + (f" at ${price:.2f}" if price else "")
+                                + ". Buy now before they sell out."
+                            ),
+                        )
+                        watch.notified_at = datetime.now(timezone.utc)
+                    except Exception as e:
+                        logger.warning(f"Failed to notify watcher {watch.user_id} for {slug}: {e}")
+            db.commit()
+            logger.info(f"Notified watchers for {len(newly_available)} newly available services")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning(f"_notify_stock_watchers failed: {e}")
+
 
 async def get_stock_map() -> dict:
     """Get cached stock map, refreshing if stale."""
@@ -129,8 +226,8 @@ async def get_stock_map() -> dict:
 
 
 async def run_stock_monitor() -> None:
-    """Background loop — refreshes stock every 15 minutes."""
-    logger.info("✅ Service stock monitor started (15-min refresh)")
+    """Background loop — refreshes stock every 90 seconds."""
+    logger.info("✅ Service stock monitor started (90s refresh)")
     while True:
         try:
             await refresh_stock_cache()
@@ -139,3 +236,45 @@ async def run_stock_monitor() -> None:
         await asyncio.sleep(
             90
         )  # refresh before 120s TTL expires — keeps cache always warm
+
+
+async def _notify_stock_watchers(newly_available: list, stock_map: dict) -> None:
+    """Notify users watching services that just became available (D-004)."""
+    from datetime import datetime, timezone
+    from app.core.database import AsyncSessionLocal
+    from app.models.stock_watch import StockWatch
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as db:
+        for slug in newly_available:
+            result = await db.execute(
+                select(StockWatch).where(
+                    StockWatch.service_name == slug,
+                    StockWatch.notified_at.is_(None),
+                )
+            )
+            watches = result.scalars().all()
+            if not watches:
+                continue
+
+            price = stock_map.get(slug, {}).get("price")
+            for watch in watches:
+                try:
+                    from app.services.notification_service import NotificationService
+                    notif = NotificationService(db)
+                    await notif.create_notification(
+                        user_id=watch.user_id,
+                        type="stock_available",
+                        title=f"{watch.service_name.title()} numbers are back",
+                        message=(
+                            f"{watch.service_name.title()} numbers are available again"
+                            + (f" — ${price:.2f}" if price else "") + ". Buy now."
+                        ),
+                        data={"service_name": watch.service_name, "price": price},
+                    )
+                    watch.notified_at = datetime.now(timezone.utc)
+                except Exception as e:
+                    logger.warning(f"Watch notification failed for user {watch.user_id}: {e}")
+
+            await db.commit()
+            logger.info(f"Notified {len(watches)} watcher(s) for {slug}")

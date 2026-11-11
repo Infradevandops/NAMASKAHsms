@@ -1,24 +1,25 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
 **Last Updated**: November 2026
-**Overall Status**: ✅ Healthy — CI passing, deploy pending on `3619490b`
-**HEAD**: `3619490b` on origin/main
-**Version**: 4.9.0 (string reports 4.9.1 — update pending)
+**Overall Status**: ✅ Healthy — CI passing, `331db1d5` pending deploy
+**HEAD**: `331db1d5` on origin/main
+**Version**: 4.9.9
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Full UI/UX overhaul and global readiness pass complete. 53/55 page quality tasks done across all public-facing pages. Platform is now production-standard: honest content, regulatory compliance (GDPR cookie consent, age gate, marketing consent, correct legal docs), all broken pages fixed, blog styled and indexed, status page public.
+Full UI/UX overhaul, compliance sprint, OTP login, and concurrent sprint execution complete. Platform is production-standard. All public pages honest and compliant. Auth UX fixed. Dead SDK code removed. Revenue infrastructure (bulk bonus, reuse endpoint, models) written. Inventory notification backend wired. Consolidated DB migration ready to run.
 
-CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing begins.
+CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing and Telegram E2E are the next manual gates.
 
 ---
 
-## WHAT IS LIVE (last confirmed deploy: `e06e91ce`, Nov 6 2026)
+## WHAT IS LIVE (last confirmed deploy: `331db1d5` pending, prev `e06e91ce` Nov 6 2026)
 
 ### Verification Flow
 - ✅ SSE streaming purchase — real-time step feedback
+- ✅ `validating` step removed — was fake UX label
 - ✅ Dynamic `ends_at` from TV — no hardcoded timeout
 - ✅ TV webhook instant SMS delivery
 - ✅ Orphan verification recovery on page reload
@@ -26,35 +27,40 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 - ✅ Null-price services filtered from picker
 - ✅ Out-of-stock services greyed out in JS picker
 - ✅ Stock monitor 90s loop
+- ✅ `reuse_verification()` + `TV_STATE_MAP` (14 states) on `TextVerifiedService`
+- ✅ `POST /api/verification/{id}/reuse` endpoint (B-005)
+- ✅ `reusable_until`, `reused_from_id`, `ends_at` columns on verifications model
+
+### Auth
+- ✅ OTP passwordless login (`a7d45469`)
+- ✅ Password reset — inline confirmation state (`331db1d5`)
+- ✅ Register — email verification notice (`331db1d5`)
+- ✅ JWT expiry uses config (24h)
+- ✅ MFA (TOTP)
 
 ### Infrastructure
 - ✅ Real `/health` endpoint with DB + Redis checks
 - ✅ Redis-backed CSRF tokens + rate limiting (multi-worker safe)
-- ✅ Dead `csp.py` deleted (was duplicate CSP with `unsafe-inline`)
-- ✅ IP spoofing fix in rate limiter (X-Forwarded-For trust order)
-- ✅ SQLAlchemy `.is_(False)` bugs fixed (×3)
-- ✅ JWT expiry uses config (24h, not hardcoded 30 days)
+- ✅ IP spoofing fix in rate limiter
 - ✅ Dockerfile pinned to Python 3.9-slim
-- ✅ Smoke-test CI gate added
+- ✅ Smoke-test CI gate
+- ✅ Stock depletion admin email alert wired
+- ✅ `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()` deleted
 
-### Public Pages (pending deploy of `3619490b`)
-- ✅ Landing: honest trust signals, no fake testimonials, inline SVG icons, PWA banner fixed
-- ✅ Nav: theme toggle removed, outlined login button, visual CTA divider, FAQ in nav
-- ✅ Cookie consent: granular (Accept All / Decline / Manage), Sabilytics gated on consent
-- ✅ Cookies page: Save Preferences wired, dark mode, correct third-party list
-- ✅ Register: age confirmation, marketing consent, no duplicate logo, no double-nav
-- ✅ Login: no double-nav
-- ✅ Privacy: correct processor list, honest DPO note, Nov 2026 v1.1
-- ✅ Terms: Nigeria jurisdiction, acceptable use + API sections, Nov 2026 v1.2
-- ✅ Refund: full CSS, USD currency, dark mode
-- ✅ Reviews: honest trust signals (no fabricated rating/reviews)
-- ✅ About: real product stats (no fabricated 10K+/50 countries), honest team section
-- ✅ Contact: dark mode, simplified emails, GDPR notice, no fake business hours
-- ✅ FAQ: accurate answers (no AES-256/bank transfers/50 countries claims)
-- ✅ Blog: all 5 posts styled, breadcrumbs, dates; `/blog` index page; route added
-- ✅ Affiliate: CTA to `/auth/register?ref=affiliate`, no PayPal claim
-- ✅ Status: public page (no login required)
-- ✅ Footer: FAQ, Blog, Cookies, Contact all linked
+### Revenue Backend (written, pending migration + UI)
+- ✅ `calculate_bonus_credits()` + bulk bonus wired in `credit_user()` (C-016/017)
+- ✅ `SubscriptionAddon` model (C-009)
+- ✅ Consolidated migration `f1a2b3c4d5e6` — 6 schema changes, pending `alembic upgrade head`
+
+### Inventory Notification Backend (written, pending UI)
+- ✅ `StockWatch` model + API endpoints (D-002/003)
+- ✅ `_notify_stock_watchers()` in stock monitor (D-004)
+- ✅ `RentalBackOrder` model (D-009)
+- ✅ Back-order monitor worker (D-011/012)
+- ✅ `expiry_warned_at` column on `NumberRental` model
+
+### Public Pages
+- ✅ Landing, Nav, Cookie consent, Register, Login, Privacy, Terms, Refund, Reviews, About, Contact, FAQ, Blog, Affiliate, Status, Footer — all honest and compliant
 - ✅ FAQPage JSON-LD structured data
 
 ### Core Platform
@@ -62,7 +68,7 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 - ✅ Phase 1 Analytics (all 6 event types)
 - ✅ Telegram SMS forwarding (@vrenum_sms_bot — code complete, E2E pending)
 - ✅ Number rentals (5 endpoints, expiry monitor)
-- ✅ Voice verification (stable, audio player)
+- ✅ Voice verification (stable)
 - ✅ Area code intelligence + carrier verification
 - ✅ Fraud detection + MFA (TOTP)
 - ✅ Affiliate program + commission engine
@@ -76,13 +82,14 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| Telegram E2E not verified | P1 | Pending manual test |
-| TextVerified IP not whitelisted | P2 | `quantity: null` on all services — price-based fallback active |
-| Upstash Redis 500k/month limit | P2 | Reset manually; upgrade to pay-as-you-go recommended |
-| Python unit-tests `continue-on-error` | P2 | Pre-existing failures, not blocking deploy |
-| Version string reports 4.9.1 | P3 | Should be 4.9.9 |
-| AUTH-001 password reset UX | P1 | No "check your email" confirmation state |
-| AUTH-002 register email verification notice | P1 | No notice if email verification is required |
+| `331db1d5` not yet confirmed live | P1 | Pending CI + auto-deploy |
+| Telegram E2E not verified | P1 | Pending manual test (A-005) |
+| Area code price display shows base only | P1 | A-003 — not yet fixed |
+| TextVerified IP not whitelisted | P2 | `quantity: null` on all services — price fallback active (E-002) |
+| Upstash Redis 500k/month free tier | P2 | Upgrade to pay-as-you-go (E-001) |
+| Python unit-tests `continue-on-error` | P2 | Pre-existing failures, triage needed (E-004) |
+| Migration `f1a2b3c4d5e6` not yet run on server | P1 | Run `alembic upgrade head` post-deploy |
+| Sprint B/C/D UI work not started | P2 | See MASTER_TASKS.md |
 
 ---
 
@@ -90,7 +97,7 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 
 | Job | Status | Gate |
 |-----|--------|------|
-| Secrets Detection | ✅ pass | continue-on-error (false positive) |
+| Secrets Detection | ✅ pass | continue-on-error |
 | Code Quality | ✅ pass | continue-on-error |
 | Frontend Unit Tests | ✅ pass | **HARD BLOCK** (92/92 JS tests) |
 | Smoke Test | ✅ pass | **HARD BLOCK** (Python startup) |
@@ -103,7 +110,8 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 - **Production**: vrenum.app (DigitalOcean, Docker Compose)
 - **Deploy trigger**: CI pass on main → `deploy.yml` fires automatically
 - **Last confirmed live commit**: `e06e91ce` (Nov 6 2026)
-- **Pending deploy**: `3619490b` (Nov 2026 — full UI/UX + compliance sprint)
+- **Pending deploy**: `331db1d5` (Nov 2026 — OTP login + AUTH fixes + SSE fix + version bump)
+- **Post-deploy required**: `alembic upgrade head` for migration `f1a2b3c4d5e6`
 - **Rollback**: `git revert` → CI passes → auto-deploys
 
 ---
@@ -113,4 +121,5 @@ CI is passing. Deploy auto-triggers on CI success. Once deployed, email testing 
 - ✅ Sentry: https://dev-vp.sentry.io/issues/
 - ✅ BetterStack: https://uptime.betterstack.com/team/t545038/monitors/4422808
 - ✅ Revenue-zero alert: email at 18:00 UTC → ADMIN_NOTIFY_EMAIL
+- ✅ Stock depletion alert: fires on available → unavailable transition
 - ✅ Prometheus: metrics collection active
