@@ -919,9 +919,6 @@ async def request_verification_stream(
             )
             return
 
-        # Step 4: validate number quality
-        yield sse("validating", message="Validating number quality...")
-
         # Step 5: record DB write + debit
         yield sse("recording", message="Almost done...")
         try:

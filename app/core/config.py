@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Basic app settings
     app_name: str = "VRENUM SMS"
-    version: str = "4.9.1"
+    version: str = "4.9.9"
     environment: str = "development"
     debug: bool = False
 

@@ -280,6 +280,16 @@
 
     <div id="error-message" class="error-msg"></div>
 
+    <!-- AUTH-002: email verification notice (shown after successful registration) -->
+    <div id="email-verify-notice" style="display:none;text-align:center;padding:16px 0;">
+        <div style="font-size:48px;margin-bottom:12px;">📬</div>
+        <h2 style="font-size:20px;font-weight:700;color:var(--text-primary,#111827);margin:0 0 8px;">Check your email</h2>
+        <p style="color:var(--text-muted,#6b7280);font-size:14px;margin:0 0 4px;">We sent a verification link to</p>
+        <p id="notice-email" style="font-weight:600;color:var(--text-primary,#111827);font-size:14px;margin:0 0 20px;"></p>
+        <p style="color:var(--text-muted,#6b7280);font-size:13px;margin:0 0 20px;">Click the link in the email to activate your account. Check your spam folder if it doesn't arrive within a minute.</p>
+        <a href="/auth/login" style="display:inline-block;background:#FE3C72;color:#fff;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;">Go to Login →</a>
+    </div>
+
     <form id="register-form">
         <div class="form-group">
             <label class="form-label">Display Name</label>
@@ -435,12 +445,12 @@
             });
 
             if (res.ok) {
-                const successEl = document.getElementById('error-message');
-                successEl.textContent = 'Account created successfully! Please log in.';
-                successEl.style.display = 'block';
-                successEl.style.background = '#d1fae5';
-                successEl.style.color = '#065f46';
-                setTimeout(() => { window.location.href = '/auth/login'; }, 1500);
+                // AUTH-002: show email verification notice instead of auto-redirect
+                document.getElementById('register-form').style.display = 'none';
+                document.querySelector('.auth-tabs').style.display = 'none';
+                const notice = document.getElementById('email-verify-notice');
+                notice.style.display = 'block';
+                notice.querySelector('#notice-email').textContent = email;
             } else {
                 const data = await res.json();
                 showError(data.detail || "Registration failed");
