@@ -338,6 +338,29 @@
 
     <div id="error-message" class="error-msg"></div>
 
+    <!-- OTP Step (hidden until requested) -->
+    <div id="otp-step" style="display:none;">
+        <div id="otp-request-view">
+            <p style="font-size:14px;color:var(--text-muted,#9CA3AF);margin-bottom:16px;text-align:center;">We'll email you a 6-digit code. No password needed.</p>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="otp-email" required placeholder="you@example.com" autocomplete="email">
+            </div>
+            <button class="btn-auth" id="otp-send-btn" onclick="sendOTP()">Send Code</button>
+            <button style="width:100%;margin-top:8px;background:none;border:none;color:var(--text-muted,#9CA3AF);font-size:13px;cursor:pointer;" onclick="cancelOTPStep()">← Back to password login</button>
+        </div>
+        <div id="otp-verify-view" style="display:none;">
+            <p style="font-size:14px;color:var(--text-muted,#9CA3AF);margin-bottom:4px;text-align:center;">Enter the 6-digit code sent to</p>
+            <p id="otp-email-display" style="font-size:14px;font-weight:600;color:var(--text-primary,#111827);margin-bottom:16px;text-align:center;"></p>
+            <div class="form-group">
+                <label class="form-label">Login Code</label>
+                <input type="text" class="form-input" id="otp-code" maxlength="6" placeholder="000000" autocomplete="one-time-code" style="letter-spacing:6px;font-size:24px;text-align:center;">
+            </div>
+            <button class="btn-auth" id="otp-verify-btn" onclick="verifyOTP()">Sign In</button>
+            <button style="width:100%;margin-top:8px;background:none;border:none;color:var(--text-muted,#9CA3AF);font-size:13px;cursor:pointer;" onclick="showOTPRequest()">← Resend code</button>
+        </div>
+    </div>
+
     <form id="login-form">
         <div class="form-group">
             <label class="form-label">Email Address</label>
@@ -367,6 +390,7 @@
 
         <div class="cf-turnstile" data-sitekey="0x4AAAAAADSm2kHXMiekh0uj" data-theme="auto" style="margin-bottom: 16px;"></div>
         <button type="submit" class="btn-auth" id="login-btn">Sign In</button>
+        <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted,#9CA3AF);">No password? <a href="#" onclick="showOTPStep();return false;" style="color:#FE3C72;font-weight:600;">Login with email code</a></p>
     </form>
 
     <!-- MFA Step (hidden until needed) -->
@@ -557,10 +581,97 @@
         document.getElementById('login-btn').textContent = 'Sign In';
     }
 
-    // Allow Enter key on MFA input
+    // OTP login
+    function showOTPStep() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('mfa-step').style.display = 'none';
+        document.getElementById('otp-step').style.display = 'block';
+        document.getElementById('otp-request-view').style.display = 'block';
+        document.getElementById('otp-verify-view').style.display = 'none';
+        document.getElementById('error-message').style.display = 'none';
+        const savedEmail = localStorage.getItem('saved_email');
+        if (savedEmail) document.getElementById('otp-email').value = savedEmail;
+    }
+
+    function cancelOTPStep() {
+        document.getElementById('otp-step').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+    }
+
+    function showOTPRequest() {
+        document.getElementById('otp-verify-view').style.display = 'none';
+        document.getElementById('otp-request-view').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+    }
+
+    async function sendOTP() {
+        const email = document.getElementById('otp-email').value.trim();
+        if (!email) { showError('Enter your email address.'); return; }
+        const btn = document.getElementById('otp-send-btn');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        try {
+            const res = await fetch('/api/auth/otp/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            if (res.ok) {
+                document.getElementById('otp-email-display').textContent = email;
+                document.getElementById('otp-request-view').style.display = 'none';
+                document.getElementById('otp-verify-view').style.display = 'block';
+                document.getElementById('otp-code').focus();
+                document.getElementById('error-message').style.display = 'none';
+            } else if (res.status === 429) {
+                showError('Too many requests. Wait 15 minutes and try again.');
+            } else {
+                showError('Failed to send code. Please try again.');
+            }
+        } catch (err) {
+            showError('Connection error. Please try again.');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Send Code';
+    }
+
+    async function verifyOTP() {
+        const email = document.getElementById('otp-email').value.trim() ||
+                      document.getElementById('otp-email-display').textContent.trim();
+        const otp = document.getElementById('otp-code').value.trim();
+        if (!otp || otp.length < 6) { showError('Enter the 6-digit code.'); return; }
+        const btn = document.getElementById('otp-verify-btn');
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+        try {
+            const res = await fetch('/api/auth/otp/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                storeToken(data.access_token);
+                window.location.href = data.redirect || '/dashboard';
+            } else {
+                const data = await res.json();
+                showError(data.detail || 'Invalid or expired code.');
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        } catch (err) {
+            showError('Connection error. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('mfa-code')?.addEventListener('keydown', e => {
-            if (e.key === 'Enter') submitMFACode();
+        document.getElementById('otp-code')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') verifyOTP();
+        });
+        document.getElementById('otp-email')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') sendOTP();
         });
     });
 

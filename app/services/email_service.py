@@ -508,6 +508,44 @@ class EmailService:
 
     # ── Welcome email (Phase 8) ───────────────────────────────────────────────
 
+    async def send_otp_email(self, user_email: str, otp: str) -> bool:
+        html = f"""
+        <html>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td style="background:linear-gradient(135deg,#FE3C72,#E0245E);padding:32px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;">Vrenum</h1>
+                  <p style="margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">SMS Verification Platform</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px;text-align:center;">
+                  <h2 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">Your login code</h2>
+                  <p style="margin:0 0 32px;color:#6b7280;font-size:15px;">Use this code to sign in to your Vrenum account.</p>
+                  <div style="background:#f9fafb;border:2px dashed #e5e7eb;border-radius:12px;padding:24px;margin-bottom:24px;">
+                    <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#111827;font-family:monospace;">{otp}</span>
+                  </div>
+                  <p style="margin:0;color:#9ca3af;font-size:13px;">Expires in <strong>10 minutes</strong>. Do not share this code.</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                  <p style="margin:0;color:#9ca3af;font-size:12px;">
+                    If you didn't request this, ignore this email. Your account is safe.<br>
+                    &copy; 2026 Vrenum &middot; <a href="https://vrenum.app" style="color:#9ca3af;">vrenum.app</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+        </body></html>
+        """
+        return await self._send(user_email, "Your Vrenum login code", html)
+
     async def send_welcome_email(
         self,
         user_email: str,

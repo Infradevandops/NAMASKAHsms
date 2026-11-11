@@ -401,6 +401,115 @@ async def logout(
     return {"message": "Successfully logged out"}
 
 
+class OTPRequestModel(BaseModel):
+    email: EmailStr
+
+
+class OTPVerifyModel(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+@router.post("/otp/request")
+async def request_otp(data: OTPRequestModel, db: Session = Depends(get_db)):
+    """Send a 6-digit OTP to the user's email. Rate-limited to 3/15min per email."""
+    import random
+    import string
+
+    from app.core.cache import get_redis
+
+    redis = get_redis()
+    rate_key = f"otp_rate:{data.email}"
+    count = redis.incr(rate_key)
+    if count == 1:
+        redis.expire(rate_key, 900)  # 15-minute window
+    if count > 3:
+        raise HTTPException(status_code=429, detail="Too many OTP requests. Try again in 15 minutes.")
+
+    user = db.query(User).filter(User.email == data.email).first()
+    # Always return 200 to avoid email enumeration
+    if not user or not user.is_active:
+        return {"message": "If that email exists, a code has been sent."}
+
+    otp = "".join(random.choices(string.digits, k=6))
+    redis.setex(f"otp:{data.email}", 600, otp)  # 10-minute TTL
+
+    try:
+        from app.services.email_service import email_service
+        asyncio.create_task(email_service.send_otp_email(data.email, otp))
+    except Exception as e:
+        logger.warning(f"OTP email failed for {data.email}: {e}")
+
+    return {"message": "If that email exists, a code has been sent."}
+
+
+@router.post("/otp/verify", response_model=TokenResponse)
+async def verify_otp(data: OTPVerifyModel, db: Session = Depends(get_db)):
+    """Verify OTP and return JWT tokens."""
+    import uuid
+
+    from app.core.cache import get_redis
+
+    redis = get_redis()
+    stored = redis.get(f"otp:{data.email}")
+
+    if not stored or stored != data.otp.strip():
+        raise HTTPException(status_code=401, detail="Invalid or expired code.")
+
+    redis.delete(f"otp:{data.email}")
+
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Invalid or expired code.")
+
+    # Mark email as verified since they proved inbox access
+    if not user.email_verified:
+        user.email_verified = True
+
+    user.last_login = datetime.now(timezone.utc)
+    db.commit()
+
+    token_data = {
+        "user_id": str(user.id),
+        "email": user.email,
+        "iat": datetime.now(timezone.utc),
+        "jti": str(uuid.uuid4()),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours),
+    }
+    access_token = jwt.encode(token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+    refresh_data = {
+        "user_id": str(user.id),
+        "email": user.email,
+        "iat": datetime.now(timezone.utc),
+        "jti": str(uuid.uuid4()),
+        "exp": datetime.now(timezone.utc) + timedelta(days=30),
+        "type": "refresh",
+    }
+    refresh_token = jwt.encode(refresh_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+    try:
+        event_service = EventTrackingService(db)
+        event_service.track_login(user_id=str(user.id), ip_address=None, user_agent=None)
+    except Exception as e:
+        logger.warning(f"Failed to track OTP login event: {e}")
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "redirect": "/dashboard",
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "username": user.email.split("@")[0],
+            "credits": float(user.credits) if user.credits else 0.0,
+            "is_active": user.is_active,
+            "is_admin": user.is_admin,
+        },
+    }
+
+
 def _get_user_from_token(token: str, db: Session) -> User:
     """Decode JWT and return the User, raising 401/404 on failure."""
     try:
