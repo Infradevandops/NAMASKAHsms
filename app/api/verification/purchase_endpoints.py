@@ -14,20 +14,17 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
-from app.models.carrier_analytics import CarrierAnalytics
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
 from app.services.balance_service import BalanceService
 from app.services.event_tracking_service import EventTrackingService
 from app.services.notification_dispatcher import NotificationDispatcher
-from app.services.notification_service import NotificationService
 from app.services.pricing_calculator import PricingCalculator
 from app.services.purchase_intelligence import PurchaseIntelligenceService
 from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
-from app.services.transaction_service import TransactionService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -53,14 +50,10 @@ async def _get_provider_price(service: str) -> Optional[float]:
                     return price
                 # Cache hit but price is null — names-only cache was served.
                 # Do a single live pricing call for just this service.
-                logger.warning(
-                    f"Cached price null for '{service}', attempting live pricing fetch"
-                )
+                logger.warning(f"Cached price null for '{service}', attempting live pricing fetch")
                 return await _fetch_single_service_price(service)
         # Service not found in list at all — try live fetch directly
-        logger.warning(
-            f"Service '{service}' not found in provider list, attempting live fetch"
-        )
+        logger.warning(f"Service '{service}' not found in provider list, attempting live fetch")
         return await _fetch_single_service_price(service)
     except Exception as e:
         logger.error(f"Failed to fetch provider price for '{service}': {e}")
@@ -101,10 +94,7 @@ async def _fetch_single_service_price(service: str) -> Optional[float]:
             # Patch the cache entry so the next request is served from cache
             try:
                 from app.core.unified_cache import cache as _cache
-                from app.services.textverified_service import (
-                    _SERVICES_CACHE_KEY,
-                    _SERVICES_TTL,
-                )
+                from app.services.textverified_service import _SERVICES_CACHE_KEY, _SERVICES_TTL
 
                 cached = await _cache.get(_SERVICES_CACHE_KEY)
                 if cached:
@@ -141,7 +131,9 @@ async def get_verification_price(
         raise HTTPException(status_code=422, detail="Price unavailable for this service right now.")
     filters = {"area_code": area_code} if area_code else None
     if capability == "voice":
-        pricing = PricingCalculator.calculate_voice_cost(db, user_id, provider_price=provider_price, area_code=area_code)
+        pricing = PricingCalculator.calculate_voice_cost(
+            db, user_id, provider_price=provider_price, area_code=area_code
+        )
     else:
         pricing = PricingCalculator.calculate_sms_cost(db, user_id, filters, provider_price=provider_price)
     return {
@@ -170,15 +162,11 @@ async def request_verification(
     # Validate request
     if not request.service or len(request.service.strip()) == 0:
         logger.warning("Empty service name provided")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Service name is required"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Service name is required")
 
     if not request.country or len(request.country.strip()) == 0:
         logger.warning("Empty country code provided")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required")
 
     # SAFETY: Check for duplicate request using idempotency key from header or request body
     final_idempotency_key = idempotency_key or request.idempotency_key
@@ -189,9 +177,7 @@ async def request_verification(
             cache_key = f"idempotency:{user_id}:{final_idempotency_key}"
             cached_response = redis.get(cache_key)
             if cached_response:
-                logger.info(
-                    f"Returning cached response for idempotency key: {final_idempotency_key}"
-                )
+                logger.info(f"Returning cached response for idempotency key: {final_idempotency_key}")
                 return json.loads(cached_response)
         except Exception as cache_error:
             logger.warning(f"Redis cache check failed: {cache_error}")
@@ -232,9 +218,7 @@ async def request_verification(
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             logger.error(f"User {user_id} not found")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
         # Fraud scoring (non-blocking — never rejects, only logs)
         try:
@@ -313,9 +297,7 @@ async def request_verification(
             )
 
         # Fetch real provider price for this specific service
-        provider_price = avail.get("price") or await _get_provider_price(
-            request.service
-        )
+        provider_price = avail.get("price") or await _get_provider_price(request.service)
 
         # Calculate cost based on capability type
         if request.capability == "voice":
@@ -323,11 +305,12 @@ async def request_verification(
                 db, user_id, provider_price=provider_price, area_code=area_code
             )
         else:
-            filters = (
-                {"area_code": area_code, "city": city} if area_code or city else None
-            )
+            filters = {"area_code": area_code, "city": city} if area_code or city else None
             pricing_info = PricingCalculator.calculate_sms_cost(
-                db, user_id, filters, provider_price=provider_price,
+                db,
+                user_id,
+                filters,
+                provider_price=provider_price,
                 capability=request.capability,
             )
         sms_cost = pricing_info["total_cost"]
@@ -341,7 +324,8 @@ async def request_verification(
             use_free_verification = True
             sms_cost = 0.0
             logger.info(
-                f"User {user_id} has free verifications. Using free verification (remaining: {float(user.free_verifications)})"
+                f"User {user_id} has free verifications. "
+                f"Using free verification (remaining: {float(user.free_verifications)})"
             )
 
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
@@ -350,13 +334,14 @@ async def request_verification(
         if request.max_price is not None and sms_cost > request.max_price:
             raise HTTPException(
                 status_code=409,
-                detail=f"Price changed: expected ${request.max_price:.2f}, current price is ${sms_cost:.2f}. Please refresh and try again.",
+                detail=(
+                    f"Price changed: expected ${request.max_price:.2f}, "
+                    f"current price is ${sms_cost:.2f}. Please refresh and try again."
+                ),
             )
 
         # Check user has sufficient balance using unified service
-        balance_check = await BalanceService.check_sufficient_balance(
-            user_id, sms_cost, db
-        )
+        balance_check = await BalanceService.check_sufficient_balance(user_id, sms_cost, db)
 
         if not balance_check["sufficient"]:
             logger.warning(
@@ -375,12 +360,9 @@ async def request_verification(
 
         old_balance = balance_check["current_balance"]
 
-        logger.info(
-            f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
-        )
+        logger.info(f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}")
 
         area_code = request.area_codes[0] if request.area_codes else None
-        carrier = getattr(request, "carrier", None)
         city = request.city
 
         if area_code:
@@ -396,7 +378,8 @@ async def request_verification(
             try:
                 # Purchase via Router (Multi-provider with Failover)
                 logger.info(
-                    f"Initiating purchase through ProviderRouter - Service: {request.service}, Country: {request.country}"
+                    f"Initiating purchase through ProviderRouter - "
+                    f"Service: {request.service}, Country: {request.country}"
                 )
                 purchase_result = await provider_router.purchase_with_failover(
                     db=db,
@@ -409,13 +392,10 @@ async def request_verification(
                     selected_from_alternatives=request.selected_from_alternatives,
                     original_request=request.original_request,
                 )
-                provider_name = purchase_result.provider
             except AreaCodeUnavailableException as area_err:
                 # Area code is confirmed unavailable — handled by TextVerified path within router
                 db.rollback()
-                logger.warning(
-                    f"Area code unavailable for user {user_id}: {area_err.message}"
-                )
+                logger.warning(f"Area code unavailable for user {user_id}: {area_err.message}")
                 return JSONResponse(
                     status_code=422,
                     content={
@@ -439,9 +419,7 @@ async def request_verification(
 
             if isinstance(provider_err, ProviderError):
                 db.rollback()
-                logger.warning(
-                    f"Provider error [{provider_err.category}]: {provider_err.internal}"
-                )
+                logger.warning(f"Provider error [{provider_err.category}]: {provider_err.internal}")
                 try:
                     await notification_dispatcher.notify_verification_failed(
                         user_id=user_id,
@@ -452,11 +430,7 @@ async def request_verification(
                 except Exception:
                     pass
                 raise HTTPException(
-                    status_code=(
-                        503
-                        if provider_err.category not in ("no_inventory_country",)
-                        else 422
-                    ),
+                    status_code=(503 if provider_err.category not in ("no_inventory_country",) else 422),
                     detail=provider_err.user_message,
                 )
             raise
@@ -583,9 +557,7 @@ async def request_verification(
             verification.debit_transaction_id = balance_tx.id
         else:
             if use_free_verification:
-                user.free_verifications = type(user.free_verifications)(
-                    float(user.free_verifications) - 1.0
-                )
+                user.free_verifications = type(user.free_verifications)(float(user.free_verifications) - 1.0)
                 db.flush()
 
             success, error = await BalanceService.deduct_credits_for_verification(
@@ -647,17 +619,13 @@ async def request_verification(
             if purchase_result and purchase_result.order_id:
                 try:
                     # Attempt cancellation on provider side
-                    from app.services.providers.textverified_adapter import (
-                        TextVerifiedAdapter,
-                    )
+                    from app.services.providers.textverified_adapter import TextVerifiedAdapter
 
                     if purchase_result.provider == "textverified":
                         await TextVerifiedAdapter().cancel(purchase_result.order_id)
                     # Add other providers if they support explicit cancel
                 except Exception as cancel_error:
-                    logger.error(
-                        f"Failed to cancel number after rollback: {cancel_error}"
-                    )
+                    logger.error(f"Failed to cancel number after rollback: {cancel_error}")
 
             try:
                 await notification_dispatcher.notify_verification_failed(
@@ -697,9 +665,7 @@ async def request_verification(
 
         # CRITICAL: Commit transaction
         db.commit()
-        logger.info(
-            f"Transaction committed successfully for verification {verification.id}"
-        )
+        logger.info(f"Transaction committed successfully for verification {verification.id}")
 
         # Build response
         response = {
@@ -764,17 +730,13 @@ async def request_verification(
                 )
             )
         except Exception as email_err:
-            logger.warning(
-                f"Verification initiated email failed (non-critical): {email_err}"
-            )
+            logger.warning(f"Verification initiated email failed (non-critical): {email_err}")
 
         return response
 
     except HTTPException as http_err:
         db.rollback()
-        logger.warning(
-            f"HTTP exception in verification request: {http_err.status_code} - {http_err.detail}"
-        )
+        logger.warning(f"HTTP exception in verification request: {http_err.status_code} - {http_err.detail}")
         raise
     except ValueError as e:
         db.rollback()
@@ -806,9 +768,7 @@ async def request_verification(
         )
     except Exception as e:
         db.rollback()
-        logger.error(
-            f"Unexpected error in verification request: {str(e)}", exc_info=True
-        )
+        logger.error(f"Unexpected error in verification request: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again or contact support.",
@@ -873,24 +833,30 @@ async def request_verification_stream(
             )
         else:
             pricing_info = PricingCalculator.calculate_sms_cost(
-                db, user_id, None, provider_price=provider_price,
+                db,
+                user_id,
+                None,
+                provider_price=provider_price,
                 capability=request.capability,
             )
         sms_cost = pricing_info["total_cost"]
 
-        balance_check = await BalanceService.check_sufficient_balance(
-            user_id, sms_cost, db
-        )
+        balance_check = await BalanceService.check_sufficient_balance(user_id, sms_cost, db)
         if not balance_check["sufficient"]:
             yield sse(
                 "failed",
                 reason="insufficient_balance",
-                message=f"Insufficient balance. Available: ${balance_check['current_balance']:.2f}, Required: ${sms_cost:.2f}",
+                message=(
+                    f"Insufficient balance. Available: ${balance_check['current_balance']:.2f}, "
+                    f"Required: ${sms_cost:.2f}"
+                ),
             )
             return
 
         # Step 3: purchase (real TV create — blocks 5-30s, charge commits here)
-        # NOTE: SSE timeout is 25s to account for SDK's invisible 3x retry (up to 7s backoff)
+        # G-001: hard 12s ceiling — TV's SDK has invisible 3x retry (7s overhead).
+        # On timeout: yield purchasing_delayed (not failed — purchase may still succeed
+        # server-side), write Redis pending key for orphan reconciliation worker.
         yield sse("purchasing", message="Securing your number...")
         from app.services.providers.provider_errors import ProviderError
         from app.services.providers.provider_router import ProviderRouter
@@ -899,28 +865,83 @@ async def request_verification_stream(
         tier_manager = TierManager(db)
         user_tier = tier_manager.get_user_tier(user_id)
 
+        # G-002: keepalive ping every 5s — resets nginx idle timeout counter
+        stop_keepalive = asyncio.Event()
+
+        async def _keepalive():
+            while not stop_keepalive.is_set():
+                try:
+                    await asyncio.wait_for(asyncio.shield(stop_keepalive.wait()), timeout=5.0)
+                except asyncio.TimeoutError:
+                    pass  # expected — yield keepalive comment
+
+        keepalive_task = asyncio.create_task(_keepalive())
+
         try:
-            purchase_result = await provider_router.purchase_with_failover(
-                db=db,
-                service=request.service,
-                country=request.country,
-                area_code=area_code,
-                capability=request.capability,
-                city=request.city,
-                user_tier=user_tier,
-                selected_from_alternatives=request.selected_from_alternatives,
-                original_request=request.original_request,
+            purchase_result = await asyncio.wait_for(
+                provider_router.purchase_with_failover(
+                    db=db,
+                    service=request.service,
+                    country=request.country,
+                    area_code=area_code,
+                    capability=request.capability,
+                    city=request.city,
+                    user_tier=user_tier,
+                    selected_from_alternatives=request.selected_from_alternatives,
+                    original_request=request.original_request,
+                ),
+                timeout=12.0,
             )
+        except asyncio.TimeoutError:
+            # Purchase call exceeded 12s — TV may still assign a number server-side.
+            # Write pending key so orphan reconciliation worker can heal the DB.
+            try:
+                redis = get_redis()
+                import time
+
+                pending_key = f"purchase_pending:{user_id}:{request.service}:{int(time.time())}"
+                import json as _json
+
+                redis.setex(
+                    pending_key,
+                    120,
+                    _json.dumps(
+                        {
+                            "user_id": user_id,
+                            "service": request.service,
+                            "country": request.country,
+                            "capability": request.capability,
+                            "cost": sms_cost,
+                            "started_at": int(time.time()),
+                        }
+                    ),
+                )
+            except Exception as _re:
+                logger.warning(f"Failed to write purchase_pending key: {_re}")
+            stop_keepalive.set()
+            keepalive_task.cancel()
+            yield sse(
+                "purchasing_delayed",
+                message="This is taking longer than expected. Please do not close this tab.",
+            )
+            return
         except ProviderError as e:
+            stop_keepalive.set()
+            keepalive_task.cancel()
             yield sse("failed", reason=e.category, message=e.user_message)
             return
-        except Exception as e:
+        except Exception:
+            stop_keepalive.set()
+            keepalive_task.cancel()
             yield sse(
                 "failed",
                 reason="provider_error",
                 message="Provider temporarily unavailable. Your credits were not charged.",
             )
             return
+
+        stop_keepalive.set()
+        keepalive_task.cancel()
 
         # Step 4: record DB write + debit (validating step removed — it did no real work)
         yield sse("recording", message="Almost done...")
