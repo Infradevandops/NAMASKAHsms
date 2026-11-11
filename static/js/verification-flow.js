@@ -6,6 +6,7 @@ const VerificationFlow = {
     selectedServicePrice: null,
     selectedAreaCode: null,
     selectedCarrier: null,
+    selectedCapability: 'sms',
     verificationId: null,
     elapsedSeconds: 0,
     scanInterval: null,
@@ -444,6 +445,7 @@ function selectImmersiveItem(value, label, price) {
     if (_modalType === 'service') {
         VerificationFlow.selectedService = value;
         VerificationFlow.selectedServicePrice = price;
+        VerificationFlow.selectedCapability = item?.capability || 'sms';
 
         // Track recently used (max 5, deduplicated)
         _recentServices = [value, ..._recentServices.filter(id => id !== value)].slice(0, 5);
@@ -829,7 +831,7 @@ async function createVerification() {
             body: JSON.stringify({
                 service: serviceId,
                 country: 'US',
-                capability: 'sms',
+                capability: VerificationFlow.selectedCapability || 'sms',
                 area_codes: areaCode ? [areaCode] : [],
                 carriers: carrier ? [carrier] : [],
                 max_price: VerificationFlow.selectedServicePrice
@@ -1384,6 +1386,7 @@ function resetFlow() {
     VerificationFlow.selectedServicePrice = null;
     VerificationFlow.selectedAreaCode = null;
     VerificationFlow.selectedCarrier = null;
+    VerificationFlow.selectedCapability = 'sms';
     VerificationFlow.verificationId = null;
     VerificationFlow.elapsedSeconds = 0;
 

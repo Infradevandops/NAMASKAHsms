@@ -27,17 +27,12 @@ class PricingCalculator:
         user_id: str,
         filters: Optional[dict] = None,
         provider_price: Optional[float] = None,
+        capability: str = "sms",
     ) -> dict:
-        """Calculate total cost for SMS/voice verification.
-
-        Args:
-            provider_price: Raw cost from the provider (e.g. TextVerified)
-                            for this specific service. Required for purchase.
-        """
+        """Calculate total cost for SMS/voice/combo verification."""
         if not filters:
             filters = {}
 
-        # Provider price is the single source of truth
         if provider_price is None or provider_price <= 0:
             raise ValueError(
                 "Cannot calculate price: provider price unavailable for this service. "
@@ -49,7 +44,6 @@ class PricingCalculator:
 
         settings = get_settings()
 
-        # Try to get markup from active pricing template
         markup = Decimal(str(settings.price_markup))
         try:
             pt_service = PricingTemplateService(db)
@@ -70,16 +64,20 @@ class PricingCalculator:
 
         base_cost = round(float(Decimal(str(provider_price)) * markup), 2)
 
+        # smsAndVoiceCombo surcharge: +$0.50 on top of base
+        combo_fee = 0.50 if capability == "sms_and_voice" else 0.0
+
         if tier_name == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
 
         overage_charge = QuotaService.calculate_overage(
             db, user_id, base_cost, tier=tier_name
         )
-        total_cost = round(base_cost + overage_charge, 2)
+        total_cost = round(base_cost + combo_fee + overage_charge, 2)
 
         return {
             "base_cost": base_cost,
+            "combo_fee": combo_fee,
             "overage_charge": overage_charge,
             "total_cost": total_cost,
             "tier": tier_name,

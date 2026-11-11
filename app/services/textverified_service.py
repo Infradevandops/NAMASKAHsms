@@ -715,6 +715,10 @@ class TextVerifiedService:
             ReservationCapability.SMS
             if capability == "sms"
             else ReservationCapability.VOICE
+            if capability == "voice"
+            else ReservationCapability.SMS_AND_VOICE
+            if capability == "sms_and_voice"
+            else ReservationCapability.SMS
         )
 
         # Build preference list from live TextVerified data
@@ -1320,6 +1324,8 @@ class TextVerifiedService:
             cap = (
                 ReservationCapability.VOICE
                 if capability == "voice"
+                else ReservationCapability.SMS_AND_VOICE
+                if capability == "sms_and_voice"
                 else ReservationCapability.SMS
             )
             num_type = NumberType.VOIP if capability == "voice" else NumberType.MOBILE

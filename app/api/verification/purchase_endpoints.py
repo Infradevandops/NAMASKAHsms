@@ -278,7 +278,7 @@ async def request_verification(
         city = request.city
 
         # VOICE TIER GATE
-        if request.capability == "voice":
+        if request.capability in ("voice", "sms_and_voice"):
             if not tier_manager.check_tier_hierarchy(user_tier, "payg"):
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -327,7 +327,8 @@ async def request_verification(
                 {"area_code": area_code, "city": city} if area_code or city else None
             )
             pricing_info = PricingCalculator.calculate_sms_cost(
-                db, user_id, filters, provider_price=provider_price
+                db, user_id, filters, provider_price=provider_price,
+                capability=request.capability,
             )
         sms_cost = pricing_info["total_cost"]
 
@@ -872,7 +873,8 @@ async def request_verification_stream(
             )
         else:
             pricing_info = PricingCalculator.calculate_sms_cost(
-                db, user_id, None, provider_price=provider_price
+                db, user_id, None, provider_price=provider_price,
+                capability=request.capability,
             )
         sms_cost = pricing_info["total_cost"]
 

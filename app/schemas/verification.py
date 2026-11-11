@@ -129,8 +129,8 @@ class VerificationRequest(BaseModel):
 
         v = v.strip().lower()
 
-        if v not in ["sms", "voice"]:
-            raise ValueError("Capability must be 'sms' or 'voice'")
+        if v not in ["sms", "voice", "sms_and_voice"]:
+            raise ValueError("Capability must be 'sms', 'voice', or 'sms_and_voice'")
 
         return v
 
