@@ -1,7 +1,7 @@
 # ACTIVE SPRINT
 
 **Updated**: November 2026
-**HEAD**: `331db1d5` on origin/main
+**HEAD**: `bafb5db1` on origin/main
 **CI**: ✅ Passing — smoke-test + frontend-unit-tests (hard gates)
 **Deploy**: ⏳ Pending CI pass on `331db1d5` → auto-triggers via deploy.yml
 
