@@ -1,16 +1,119 @@
 # ACTIVE SPRINT
 
 **Updated**: November 2026
-**HEAD**: `3b3ae1bd` on origin/main
+**HEAD**: `331db1d5` on origin/main
 **CI**: ✅ Passing — smoke-test + frontend-unit-tests (hard gates)
-**Deploy**: ⏳ Pending CI pass on `3b3ae1bd` → auto-triggers via deploy.yml
+**Deploy**: ⏳ Pending CI pass → auto-triggers via deploy.yml
 
 ---
 
 ## SPRINT JUST COMPLETED ✅
 
-Full UI/UX overhaul + global readiness pass. 53/55 page quality tasks done.
-See `docs/engineering/development/PAGE_QUALITY_TASKS.md` for full scorecard.
+Concurrent sprint — OTP login + AUTH fixes + SSE fix + version bump. All pushed.
+
+**Commits this session**:
+- `a7d45469` — OTP login (passwordless email code auth)
+- `331db1d5` — AUTH-001, AUTH-002, OPEN-1, version 4.9.9
+
+---
+
+## ALL OPEN ITEMS
+
+### 🔴 P1 — Deploy & Verify
+
+| Item | Notes |
+|------|-------|
+| CI pass on `331db1d5` | Template + backend changes — smoke + JS tests should pass |
+| Deploy auto-triggers on CI pass | Via `deploy.yml` → SSH → docker compose up --build |
+| Confirm server pulls `331db1d5` | SSH: `cd ~/vrenum && git log --oneline -3` |
+
+---
+
+### 🔴 P1 — Email Testing (post-deploy)
+
+| Email | Trigger | How to test |
+|-------|---------|-------------|
+| OTP login code | `POST /api/auth/otp/request` | curl or use login page "Login with email code" link |
+| Welcome | New registration | Register a test account |
+| Password reset | `/password-reset` form submit | Submit with existing email, check inbox |
+| Low balance alert | Wallet drops below threshold | Manually deduct credits via admin |
+| Verification receipt | Successful SMS verification | Complete a real verification |
+| Payment receipt | Paystack payment completes | Make a small test payment |
+| Tier upgrade | User upgrades plan | Upgrade a test account |
+| Daily digest | Scheduled 08:00 UTC | Check Sentry/logs next morning |
+
+---
+
+### 🟡 P1 — Verification System (open items)
+
+| ID | Item | Severity | Status |
+|----|------|----------|--------|
+| OPEN-1 | `validating` SSE step removed | P3 | ✅ Done `331db1d5` |
+| OPEN-2 | No `transcribing` status for voice in SSE path | P3 | 📋 Open |
+| OPEN-3 | `reuse` + `reactivate` never surfaced in UI | P2 | 📋 Open |
+| OPEN-4 | Stock monitor docstring | P3 | ✅ Already correct |
+
+---
+
+### 🟡 P1 — Auth UX
+
+| ID | Item | Status |
+|----|------|--------|
+| AUTH-001 | Password reset inline confirmation state | ✅ Done `331db1d5` |
+| AUTH-002 | Register success email verification notice | ✅ Done `331db1d5` |
+| OTP-LOGIN | Passwordless login via email code | ✅ Done `a7d45469` |
+
+---
+
+### 🟡 P2 — Ops & Infrastructure
+
+| Item | Priority | Notes |
+|------|----------|-------|
+| Telegram E2E verification | P1 | @vrenum_sms_bot created, webhook registered, not live-tested |
+| Area code price display | P1 | UI shows base price, user charged base + $0.25 surcharge |
+| TextVerified IP whitelist | P2 | Server IP not whitelisted — `quantity: null` on all services |
+| Upstash Redis upgrade | P2 | Free tier 500k req/month. Hit limit once. Upgrade to pay-as-you-go |
+| Python unit-tests `continue-on-error` | P2 | Pre-existing failures — triage needed |
+| Dead code cleanup | P2 | `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()` — delete |
+| CI coverage expansion | P2 | Currently 25% floor |
+
+---
+
+### 🟡 P1 — Revenue Features
+
+| ID | Item | Effort |
+|----|------|--------|
+| REV-001 | Annual plans (Pro $250/yr, Custom $350/yr) | Trivial |
+| REV-002 | Reuse surcharge ($0.25) | Low |
+| REV-003 | PAYG API add-on ($10/mo, 5 keys) | Low |
+| REV-004 | Bulk credit discount (5%/10%/15%) | Low |
+
+### 🟡 P1 — Inventory Notifications
+
+| ID | Item | Status |
+|----|------|--------|
+| INV-001 | Service back-in-stock watch | 📋 Not live |
+| INV-002 | Rental back-order detection + notification | 📋 Not live |
+| INV-003 | Rental expiry 24h warning | 📋 Not live |
+| INV-004 | Admin alert: stock depletion email | ✅ Wired |
+| INV-005 | Admin alert: back-order queue depth | 📋 Not live |
+| INV-006 | Admin alert: rental expiry digest | 📋 Not live |
+| INV-007 | Admin portal: stock status column | 📋 Not live |
+| INV-008 | Admin portal: Stock Watches stat card | 📋 Not live |
+| INV-009 | Admin portal: Inventory section in Alerts | 📋 Not live |
+
+---
+
+## TASK FILE INDEX
+
+| File | What it covers |
+|------|---------------|
+| `docs/engineering/development/VERIFICATION_TASKS.md` | TV API gaps, open items — single source of truth |
+| `docs/status/OTP_LOGIN_TASKS.md` | OTP login E2E test instructions |
+| `docs/engineering/development/PAGE_QUALITY_TASKS.md` | 53/55 public page quality tasks |
+| `docs/status/PLATFORM_STATUS.md` | Current platform state |
+| `docs/status/OPS_SUMMARY.md` | CI pipeline, infrastructure, known gaps |
+
 
 **Key deliveries:**
 - Regulatory compliance: GDPR cookie consent (granular), age gate, marketing consent, correct legal docs (jurisdiction, processor list, DPO note)
@@ -25,98 +128,32 @@ See `docs/engineering/development/PAGE_QUALITY_TASKS.md` for full scorecard.
 
 ## ALL OPEN ITEMS
 
-### 🔴 P1 — Deploy & Verify
+> **All open tasks have moved to the master task file.**
+> See `docs/status/MASTER_TASKS.md` — single source of truth for all sprints.
 
-| Item | Notes |
-|------|-------|
-| CI pass on `3b3ae1bd` | Template-only changes — smoke + JS tests should pass |
-| Deploy auto-triggers on CI pass | Via `deploy.yml` → SSH → docker compose up --build |
-| Confirm server pulls `3b3ae1bd` | SSH: `cd ~/vrenum && git log --oneline -3` |
+### Quick reference — sprint map
 
----
+| Sprint | What | Status |
+|--------|------|--------|
+| A | Deploy & immediate fixes (8 tasks) | 📋 Not started |
+| B | Verification system polish — reuse, voice, SSE, ReservationState (9 tasks) | 📋 Not started |
+| C | Revenue features — annual plans, PAYG API add-on, bulk credit discount (19 tasks) | 📋 Not started |
+| D | Inventory notification system — stock watches, back-order, expiry, admin portal (25 tasks) | 📋 Partially wired |
+| E | Ops & infrastructure — Redis, TV IP, CI coverage (6 tasks) | 📋 Not started |
+| F | SDK remaining gaps — SSE timeout, refs to B (4 tasks) | 📋 Not started |
 
-### 🔴 P1 — Email Testing (post-deploy)
-
-Test all transactional emails with existing users on the live server.
-
-| Email | Trigger | How to test |
-|-------|---------|-------------|
-| Welcome | New registration | Register a test account |
-| Password reset | `/password-reset` form submit | Submit with existing email, check inbox |
-| Low balance alert | Wallet drops below threshold | Manually deduct credits via admin |
-| Verification receipt | Successful SMS verification | Complete a real verification |
-| Payment receipt | Paystack payment completes | Make a small test payment |
-| Tier upgrade | User upgrades plan | Upgrade a test account |
-| Daily digest | Scheduled 08:00 UTC | Check Sentry/logs next morning |
-
-**Email provider**: Resend
-**From address**: `FROM_EMAIL_ADDRESS` env var
-**Check**: Sentry → https://dev-vp.sentry.io/issues/ for any dispatch errors
-
----
-
-### 🟡 P1 — Auth UX (deferred from page quality sprint)
-
-| ID | Item | File | Notes |
-|----|------|------|-------|
-| AUTH-001 | Password reset — no "check your email" confirmation state | `templates/password_reset.html` | After form submit, page should show confirmation, not just reset |
-| AUTH-002 | Register success — no email verification notice | `templates/register.html` | If email verification is enabled server-side, show "Check your email" instead of auto-redirecting |
-
----
-
-### 🟡 P1 — Verification System (open items)
-
-Full context: `docs/engineering/development/VERIFICATION_TASKS.md`
-
-| ID | Item | Severity | File |
-|----|------|----------|------|
-| OPEN-1 | `validating` SSE step does no real work — fires immediately, misleads users | P3 | `purchase_endpoints.py` |
-| OPEN-2 | No `transcribing` status for voice in SSE path — voice shows as `pending` while transcribing | P3 | `purchase_endpoints.py` |
-| OPEN-3 | `reuse` + `reactivate` never surfaced in UI — cost-saving TV features unused | P2 | `verification-flow.js`, `verify_modern.html` |
-| OPEN-4 | Stock monitor docstring says "15-minute refresh" — should be 90s | P3 | `stock_monitor.py` |
-
----
-
-### 🟡 P2 — Ops & Infrastructure
-
-| Item | Priority | Notes |
-|------|----------|-------|
-| Telegram E2E verification | P1 | @vrenum_sms_bot created, webhook registered, not live-tested. Test: connect bot, send a verification, confirm SMS forwarded |
-| TextVerified IP whitelist | P2 | Server IP not whitelisted with TV — `quantity: null` on all services. Price-based fallback active. Contact TV support |
-| Upstash Redis upgrade | P2 | Free tier 500k req/month. Hit limit once. Upgrade to pay-as-you-go ($0.20/100k) |
-| Python unit-tests `continue-on-error` | P2 | Pre-existing failures. Triage: download artifact from last CI run, identify failing tests |
-| Dead code cleanup | P2 | `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()` — both superseded by SDK `verifications.pricing()`. Delete. |
-| Area code price display | P1 | UI shows base price, user charged base + $0.25 surcharge. Pass `area_code=True` to `check_service_available()` when area code selected |
-| CI coverage expansion | P2 | Currently 25% floor. Next batch: `test_verification_endpoints`, `test_payment_service`, `test_auth_endpoints`, `test_wallet_service` |
-| Version string | P3 | App reports `4.9.1`, should be `4.9.9`. Update `settings.version` |
-
----
-
-### 🟢 P3 — Polish
-
-| Item | Notes |
-|------|-------|
-| SEO-004 FAQPage JSON-LD | ✅ Done this sprint |
-| `validating` SSE step | Remove or wire to real work (OPEN-1 above) |
-| Stock monitor docstring | 1-line fix (OPEN-4 above) |
-| `smsAndVoiceCombo` capability | TV supports it, platform never uses it |
-| `ReservationState` full enum handling | Platform only maps 3 of 14 states |
+**A, B, C, D1, E, F run concurrently. D2/D3 after rental path stable. D4 after D1–D3 endpoints exist.**
 
 ---
 
 ## TASK FILE INDEX
 
-| File | What it covers |
-|------|---------------|
-| `docs/engineering/development/VERIFICATION_TASKS.md` | All TV API gaps, stock accuracy, purchase flow, open items — **single source of truth** |
-| `docs/engineering/development/PAGE_QUALITY_TASKS.md` | 53/55 public page quality tasks |
-| `docs/engineering/development/UI_UX_TASKS.md` | 30/30 UI/UX tasks (complete) |
-| `docs/status/FRONTEND_ACTIVE_TASKS.md` | 10/10 frontend tasks (complete) |
-| `docs/status/PLATFORM_STATUS.md` | Current platform state |
-| `docs/status/OPS_SUMMARY.md` | CI pipeline, infrastructure, known gaps |
-
-**Superseded (kept for reference only):**
-- `docs/engineering/TV_API_FLOW_GAP_ASSESSMENT.md`
-- `docs/engineering/TV_API_REAL_FLOW.md`
-- `docs/engineering/TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md`
-- `docs/engineering/development/TV_PURCHASE_FLOW_ALIGNMENT_TASK.md`
+| File | Role |
+|------|------|
+| `docs/status/MASTER_TASKS.md` | **Single source of truth — all open work** |
+| `docs/features/REVENUE_FEATURES_SPEC.md` | Full spec for Sprint C |
+| `docs/features/INVENTORY_NOTIFICATION_SYSTEM.md` | Full spec for Sprint D |
+| `docs/engineering/SDK_OPTIMIZATION_OPPORTUNITIES.md` | Background for Sprints B + F |
+| `docs/engineering/development/VERIFICATION_TASKS.md` | Historical context — open items superseded by MASTER_TASKS |
+| `docs/status/PLATFORM_STATUS.md` | Platform health — not a task file |
+| `docs/status/OPS_SUMMARY.md` | CI pipeline + infrastructure state |
