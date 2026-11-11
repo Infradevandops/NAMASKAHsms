@@ -1,6 +1,6 @@
 # MASTER TASK FILE — VRENUM SMS
 
-**Updated**: November 2026 — synced to HEAD `8b022c7d`
+**Updated**: November 2026 — synced to HEAD `d8f29f53`
 **Authority**: Single source of truth. All other task files defer here.
 **Status key**: 📋 Not started | ✅ Done | ⚠️ Blocked (manual/external)
 
@@ -113,7 +113,9 @@
 | D — Inventory Notifications | 25 | 25 | 0 | 0 |
 | E — Ops & Infrastructure | 6 | 4 | 1 | 1 |
 | F — SDK Gaps | 4 | 4 | 0 | 0 |
-| **Total** | **71** | **66** | **1** | **6** |
+| G — Provider Resilience | 6 | 0 | 6 | 0 |
+| H — Purchase Flow UX | 6 | 0 | 6 | 0 |
+| **Total** | **83** | **66** | **13** | **6** |
 
 ---
 
@@ -121,9 +123,11 @@
 
 | File | Role |
 |------|------|
-| `docs/status/MASTER_TASKS.md` | **This file — single source of truth** |
+| `docs/status/MASTER_TASKS.md` | **This file — historical record of all completed work** |
+| `docs/status/ACTIVE_SPRINT.md` | **Single actionable task list — all open work** |
+| `docs/engineering/PROVIDER_RESILIENCE_AND_PLATFORM_STANDARDS.md` | Full spec for Sprint G |
+| `docs/engineering/development/PURCHASE_FLOW_UX_OVERHAUL.md` | Full spec for Sprint H |
 | `docs/features/REVENUE_FEATURES_SPEC.md` | Full spec for Sprint C |
 | `docs/features/INVENTORY_NOTIFICATION_SYSTEM.md` | Full spec for Sprint D |
-| `docs/engineering/SDK_OPTIMIZATION_OPPORTUNITIES.md` | Background for B + F |
-| `docs/status/ACTIVE_SPRINT.md` | Points here |
-| `docs/status/OPS_SUMMARY.md` | Points here |
+| `docs/engineering/SDK_OPTIMIZATION_OPPORTUNITIES.md` | Sprint B + F — all done |
+| `docs/status/OPS_SUMMARY.md` | Ops reference |

@@ -1,62 +1,99 @@
-# ACTIVE SPRINT
+# ACTIVE SPRINT — VRENUM SMS
 
 **Updated**: November 2026
-**HEAD**: `f4b030d5` on origin/main
-**CI**: Pending pass on `f4b030d5` → auto-deploys via deploy.yml
-**Full task list**: `docs/status/MASTER_TASKS.md`
+**HEAD**: `d8f29f53` on origin/main
+**Authority**: This file is the single actionable task list. `MASTER_TASKS.md` is the historical record.
+**Spec docs**: Sprint G → `docs/engineering/PROVIDER_RESILIENCE_AND_PLATFORM_STANDARDS.md` | Sprint H → `docs/engineering/development/PURCHASE_FLOW_UX_OVERHAUL.md`
 
 ---
 
-## SPRINT STATUS
+## OVERALL STATUS
 
-| Sprint | Done | Open code | Manual/blocked |
-|--------|------|-----------|----------------|
-| A — Deploy & Fixes | 5/8 | 0 | 3 |
-| B — Verification Polish | 8/9 | 1 (B-008 smsAndVoiceCombo) | 0 |
-| C — Revenue Features | 14/19 | 5 | 2 (Paystack plans) |
-| D — Inventory Notifications | 15/25 | 10 | 0 |
-| E — Ops & Infrastructure | 0/6 | 4 | 2 |
-| F — SDK Gaps | 3/4 | 1 (see B-008) | 0 |
-| **Total** | **45/71** | **21** | **7** |
+| Sprint | Scope | Done | Open code | Manual/blocked |
+|--------|-------|------|-----------|----------------|
+| A — Deploy & Fixes | Server deploy, email tests, Telegram E2E | 5/8 | 0 | 3 |
+| B–F — Platform features | All 63 feature tasks | 61/63 | 1 | 6 |
+| G — Provider Resilience | Timeout, orphan recon, circuit breaker, SDK contract | 0/6 | 6 | 0 |
+| H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 0/6 | 6 | 0 |
+| **Total** | | **66/83** | **13** | **9** |
 
 ---
 
-## NEXT CODE TASKS (priority order)
+## OPEN CODE TASKS
 
-### High value / short
-| ID | Task | File | Time |
-|----|------|------|------|
-| E-006 | `wake_number=True` for rental polling | `textverified_service.py` | 15 min |
-| C-019 | `bonus_credits` in-app notification | `notification_service.py` | 15 min |
-| C-015 | Paystack webhook activates `SubscriptionAddon` on add-on payment | `payment_service.py` | 30 min |
-| C-006 | Settings page — show billing period | `templates/settings.html` | 30 min |
-| C-007 | Annual renewal reminder email (30 days before `annual_renewal_at`) | `email_service.py`, `lifespan.py` | 30 min |
-| D-017/018 | Expiry monitor 24h warning + digest call | `app/workers/expiry_monitor.py` | 45 min |
+### P0 — Ship before next deploy (stops money leak)
 
-### Medium
-| ID | Task | File | Time |
-|----|------|------|------|
-| B-008 | `smsAndVoiceCombo` capability | `schemas/`, `pricing_calculator.py`, `verification-flow.js` | 2h |
-| C-018 | Wallet bonus tier table + dynamic display | `templates/wallet.html` | 1h |
-| D-010 | `create_reservation()` back-order detection | `textverified_service.py` | 1h |
-| D-013 | Rentals page back-order UI | `templates/rentals_modern.html` | 1h |
-| D-006/014/019 | Notification center — 3 new types | `templates/notification_center.html` | 1h |
-| D-007/015/020 | 3 user emails (stock, rental_ready, rental_expiring) | `email_service.py` | 1h |
-
-### Ops
-| ID | Task | File | Time |
-|----|------|------|------|
-| E-003/004 | CI coverage triage + raise floor to 30% | `.github/workflows/ci.yml` | 2-3h |
+| ID | Task | File | Effort |
+|----|------|------|--------|
+| G-001 | `asyncio.wait_for(timeout=12s)` on TV purchase call in SSE stream — yield `purchasing_delayed` on timeout, write Redis pending key | `app/api/verification/purchase_endpoints.py` | 30 min |
+| G-002 | SSE keepalive ping every 5s + nginx `proxy_read_timeout 30s` (server config) | `purchase_endpoints.py` + server | 30 min |
 
 ---
 
-## MANUAL ACTIONS PENDING
+### P1 — Sprint G: Provider Resilience
 
-| Action | Where |
-|--------|-------|
-| Confirm latest commit live on server | SSH: `cd ~/vrenum && git log --oneline -3` |
-| Test 8 transactional emails | Resend dashboard |
-| Create Paystack annual plan codes (C-001) | Paystack dashboard |
-| Create Paystack PAYG API addon plan (C-010) | Paystack dashboard |
-| Upgrade Upstash Redis to pay-as-you-go (E-001) | Upstash dashboard |
-| TextVerified IP whitelist (E-002) | TV support ticket |
+| ID | Task | File | Effort |
+|----|------|------|--------|
+| G-003 | Orphan reconciliation worker — reads `purchase_pending:*` Redis keys, queries provider recent purchases, heals missing Verification rows, pushes WS `verification_ready` | `app/workers/orphan_reconciliation.py` (new), `lifespan.py` | 2h |
+| G-004 | Provider contract: add `PURCHASE_TIMEOUT_S=12`, `CANCEL_TIMEOUT_S=5`, `STATUS_TIMEOUT_S=8`, `MAX_PURCHASE_ATTEMPTS=1` to `SMSProvider` base class. Wrap `purchase_number()` in all 4 adapters with `asyncio.wait_for` | `app/services/providers/base_provider.py`, all adapters | 1h |
+| G-006 | Per-provider circuit breaker — 5 failures/60s → OPEN, 30s recovery, HALF-OPEN 1 test call. `ProviderRouter.get_provider()` skips OPEN providers | `app/services/providers/circuit_breaker.py` (new) | 2h |
+
+---
+
+### P1 — Sprint H: Purchase Flow UX
+
+| ID | Task | File | Effort |
+|----|------|------|--------|
+| H-001 | Purchase loading modal: dark card, arc-orbiting-icon spinner, exact TV 11-message sequence (4 phases), service title. Replaces current white card + separate spinner | `templates/verify_modern.html`, `verification-flow.js`, `verification-design-system.css` | 2.5h |
+| H-002 | Step 3: carrier icon from area code, MM:SS countdown from `ends_at`, full raw SMS text box, reuse button with cost + countdown ("Use again for $0.25 (0:47)"), info banner | `templates/verify_modern.html`, `verification-flow.js` | 2h |
+| H-003 | Step 3 scanning: replace radar pulse with scrolling activity feed log (4 entries max, fades in/out, rotates from 10-message pool every 3s) | `templates/verify_modern.html`, `sms-polling-ui.css` | 1h |
+| H-004 | `purchasing_delayed` SSE state: hide cancel, switch to patience messages, pulse progress bar, "do not close tab" warning | `verification-flow.js` | 30 min |
+| H-006 | TV webhook auto-re-enable monitor (30 min loop) — TV auto-disables webhook after deploy downtime; monitor re-enables it | `app/workers/webhook_health_monitor.py` (new), `lifespan.py` | 1h |
+
+---
+
+### P2 — Remaining
+
+| ID | Task | File | Effort |
+|----|------|------|--------|
+| G-005 | Vrenum public API contract doc — define provider-agnostic verification/rental objects, list what is hidden from public API, define SDK method surface + retry policy | `docs/engineering/VRENUM_API_CONTRACT.md` (new) | 2h (doc only) |
+| H-005 | Step 0 method picker: add SMS+Voice Combo card (3-column grid, +$0.50 badge) | `templates/verify_modern.html` | 20 min |
+| E-004 | Triage CI unit-test failures — download `unit-test-output-*` artifact from GitHub Actions, identify failing tests | CI artifacts | 1h |
+
+---
+
+## MANUAL / EXTERNAL ACTIONS
+
+| ID | Action | Where |
+|----|--------|-------|
+| A-001 | Deploy HEAD `d8f29f53` to server — `git pull && alembic upgrade head && ./restart.sh` | SSH `~/vrenum` |
+| A-002 | Test 8 transactional emails on live server | Resend dashboard + inbox |
+| A-005 | Telegram E2E — connect @vrenum_sms_bot, send verification, confirm SMS forwarded | Live server |
+| C-001 | Create Paystack annual plan codes (`PLAN_PRO_ANNUAL` ₦412,500/yr, `PLAN_CUSTOM_ANNUAL` ₦577,500/yr) | Paystack dashboard |
+| C-010 | Create Paystack add-on plan (`PLAN_PAYG_API_ADDON` ₦16,500/mo) | Paystack dashboard |
+| E-001 | Upgrade Upstash Redis to pay-as-you-go | Upstash dashboard |
+| E-002 | TextVerified IP whitelist — submit server IP | TV support ticket |
+| G-002b | Set nginx `proxy_read_timeout 30s` + `proxy_send_timeout 30s` on server | SSH nginx config |
+| H-006b | Verify TV webhook is still enabled after next deploy | TV API config page |
+
+---
+
+## EXECUTION ORDER
+
+```
+G-001 + G-002  →  deploy (A-001 + G-002b)  →  H-001 + H-002 + H-003 + H-006
+(stop the leak)   (nginx + alembic)            (core UX — independent of G)
+
+→  G-003 + G-004 + G-006  →  H-004  →  G-005 + H-005 + E-004
+   (resilience layer)         (needs G-001)   (polish + docs + CI triage)
+```
+
+---
+
+## SPEC REFERENCE
+
+| Sprint | Full spec |
+|--------|-----------|
+| G — Provider Resilience | `docs/engineering/PROVIDER_RESILIENCE_AND_PLATFORM_STANDARDS.md` |
+| H — Purchase Flow UX | `docs/engineering/development/PURCHASE_FLOW_UX_OVERHAUL.md` |
+| Historical A–F | `docs/status/MASTER_TASKS.md` |
