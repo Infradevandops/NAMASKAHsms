@@ -1,8 +1,11 @@
 # Verification System — Consolidated Task File
 
 **Created**: November 2026
-**Consolidates**: TV_API_FLOW_GAP_ASSESSMENT.md, TV_API_REAL_FLOW.md, TV_STOCK_VERIFICATION_FLOW_ASSESSMENT.md, TV_PURCHASE_FLOW_ALIGNMENT_TASK.md
-**Status**: Most work complete. 4 open items remain.
+**Updated**: November 2026 — post sprint execution
+**Status**: Open items reduced to 2. OPEN-1 and OPEN-4 closed. OPEN-3 partially done.
+
+> Open items are also tracked in `docs/status/MASTER_TASKS.md` (B-002, B-004, B-006, B-008).
+> This file is the technical reference for the verification system.
 
 ---
 
@@ -60,61 +63,50 @@
 
 ## OPEN ITEMS
 
-### OPEN-1 — `validating` SSE step does no real work
-**Severity**: P3 (UX only)
-**File**: `app/api/verification/purchase_endpoints.py`
-
-After `purchasing` completes, `validating` fires immediately with zero real work. It is a UX label only. Options:
-- Remove it — go straight `purchasing` → `recording`
-- Wire it to `get_verification_details()` to confirm number is live and surface `can_cancel` to frontend
-
-**Recommended**: Remove. The step misleads users into thinking validation is happening.
+### ~~OPEN-1~~ — `validating` SSE step ✅ DONE `331db1d5`
+Removed. SSE flow now goes straight `purchasing` → `recording`.
 
 ---
 
 ### OPEN-2 — No `transcribing` intermediate status for voice in SSE path
 **Severity**: P3 (UX only)
+**Master task**: B-002
 **File**: `app/api/verification/purchase_endpoints.py`
 
-`mark_verification_transcribing()` exists in `verification_status_service.py` but is never called from the SSE purchase path. Voice verifications waiting for transcription show as `pending` with no indication audio was received. Users think the verification is still waiting for a call.
+`mark_verification_transcribing()` exists in `verification_status_service.py` but is never called from the SSE purchase path. Voice verifications waiting for transcription show as `pending` with no indication audio was received.
 
 **Fix**: After `complete` event fires for voice, emit a `transcribing` SSE step before polling starts.
 
 ---
 
 ### OPEN-3 — `reuse` and `reactivate` never surfaced in UI
-**Severity**: P2 (cost saving + revenue)
-**Files**: `textverified_service.py` (methods exist), `verification-flow.js`, `verify_modern.html`
-**Revenue spec**: `docs/features/REVENUE_FEATURES_SPEC.md` → Feature 2
+**Severity**: P2 (revenue)
+**Master tasks**: B-003 through B-006
 
-TV supports:
-- **Reactivate**: Resume a timed-out verification (extends window). Free retry, no repurchase.
-- **Reuse**: Use same number for a different service. Costs less than new purchase.
+**Status**:
+- ✅ B-003: `reusable_until` column added to `Verification` model
+- ✅ B-005: `POST /api/verification/{id}/reuse` endpoint created (`reuse_endpoint.py`)
+- ✅ B-007: `TV_STATE_MAP` + `reuse_verification()` on `TextVerifiedService`
+- 📋 B-004: WebSocket `reuse_available` event not yet pushed from `sms_polling_service.py`
+- 📋 B-006: Reuse banner not yet in UI (`verification-flow.js`, `verify_modern.html`)
 
-Both methods are implemented in `textverified_service.py` but never called from the UI.
-
-**Reuse monetization**: Charge $0.25 convenience fee. Only shown if user balance ≥ $0.25. If balance is short, option doesn't appear — no friction.
-
-**Fix**:
-1. Store `reusable_until` on verification record after completion (from `tv_result.reuse.reusable_until`)
-2. Push WebSocket event `reuse_available` with fee and expiry
-3. Show dismissible banner in UI: "Reuse this number for another service — $0.25"
-4. New endpoint: `POST /api/verification/{id}/reuse` — deducts $0.25, calls `tv_service.reuse_verification()`
-5. On timeout, check `can_reactivate` before issuing refund — offer "Try again (free)" to user
+**Remaining fix**:
+1. In `sms_polling_service.py` after `_complete_verification()`: read `tv_result.reuse.reusable_until`, store on record, push WebSocket event `{type: "reuse_available", fee: 0.25, reusable_until: ...}` if balance ≥ $0.25
+2. In `verification-flow.js`: on `reuse_available` WS event, show dismissible banner with service picker link
 
 ---
 
-### OPEN-4 — Stock monitor docstring says "15-minute refresh" (should be 90s)
-**Severity**: P3 (docs)
-**File**: `app/services/stock_monitor.py` → `run_stock_monitor()`
+### ~~OPEN-4~~ — Stock monitor docstring ✅ DONE
+Fixed. Docstring now reads "refreshes stock every 90 seconds".
 
-```python
-# Current (wrong):
-"""Background loop — 15-minute refresh."""
+---
 
-# Fix:
-"""Background loop — refreshes stock every 90 seconds."""
-```
+### OPEN-5 (new) — `smsAndVoiceCombo` capability unused
+**Severity**: P3 (revenue)
+**Master task**: B-008
+**Files**: `app/schemas/verification.py`, `app/services/pricing_calculator.py`, `static/js/verification-flow.js`
+
+TV supports a third capability `smsAndVoiceCombo`. Platform only offers `sms` and `voice`. Add combo to the purchase schema enum, price at base + $0.50, pass through to `verifications.create()`. No polling changes needed — `sms.incoming()` handles both.
 
 ---
 
@@ -169,7 +161,12 @@ Platform maps to `pending/completed/failed` — `verificationReused` and `verifi
 - `price=null` from pricing endpoint = out of stock. This is our inference, not a documented TV signal, but it works in practice.
 
 ### SDK retry behaviour (invisible to our timeout logic)
-The SDK session has `Retry(total=3, backoff_factor=1)` on 429/5xx. A single `verifications.create()` can silently take up to 7 extra seconds (1+2+4s backoff) on top of normal response time. Our `asyncio.wait_for(..., timeout=15.0)` may not be long enough under load.
+The SDK session has `Retry(total=3, backoff_factor=1)` on 429/5xx. A single `verifications.create()` can silently take up to 7 extra seconds (1+2+4s backoff) on top of normal response time. SSE timeout comment added to `purchase_endpoints.py` noting this risk.
+
+### New SDK methods now implemented
+- `verifications.reuse(id)` — called from `POST /api/verification/{id}/reuse`
+- `TV_STATE_MAP` covers all 14 `ReservationState` values — `verificationRefunded` skips platform refund (double-refund prevention)
+- `map_tv_state(tv_state)` helper on `TextVerifiedService`
 
 ---
 

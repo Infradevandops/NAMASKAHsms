@@ -84,6 +84,17 @@
     </ul>
 </div>
 
+<!-- C-014: PAYG API add-on upsell (hidden by default, shown for PAYG users) -->
+<div id="api-addon-upsell" style="display:none;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h3 style="margin:0 0 4px;font-size:16px;color:#1e40af;">🔑 Unlock API Access</h3>
+            <p style="margin:0;font-size:14px;color:#3b82f6;">Add API access to your PAYG plan for <strong>$10/month</strong> — get 5 API keys, no tier upgrade needed.</p>
+        </div>
+        <button onclick="subscribeApiAddon()" style="background:#1d4ed8;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">Add API Access →</button>
+    </div>
+</div>
+
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h2 style="margin: 0;">Your API Keys</h2>
@@ -151,11 +162,39 @@
     async function loadApiKeys() {
         try {
             const token = localStorage.getItem('access_token');
-            const res = await fetch('/api/keys/', { headers: { 'Authorization': `Bearer ${token}` } });
-            apiKeys = res.ok ? (await res.json() || []) : [];
+            const [keysRes, meRes] = await Promise.all([
+                fetch('/api/keys/', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            apiKeys = keysRes.ok ? (await keysRes.json() || []) : [];
+            if (meRes.ok) {
+                const me = await meRes.json();
+                // Show upsell for PAYG users without addon
+                if ((me.tier || '').toLowerCase() === 'payg' && apiKeys.length === 0) {
+                    document.getElementById('api-addon-upsell').style.display = 'block';
+                }
+            }
             renderApiKeys();
         } catch (e) {
             document.getElementById('api-keys-container').innerHTML = '<div class="empty-state">Failed to load API keys</div>';
+        }
+    }
+
+    async function subscribeApiAddon() {
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/api/billing/addons/api-access/subscribe', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (res.ok && data.authorization_url) {
+                window.location.href = data.authorization_url;
+            } else {
+                window.errorHandler?.showToast(data.detail || 'Failed to initialize payment', 'error');
+            }
+        } catch (e) {
+            window.errorHandler?.showToast('Connection error', 'error');
         }
     }
 

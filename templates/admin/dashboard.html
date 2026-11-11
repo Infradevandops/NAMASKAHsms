@@ -85,6 +85,11 @@
                     <div style="font-size: 11px; color: var(--admin-text-muted);" id="stat-fraud-precision">Precision: --</div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-label">📦 Stock Watches Active</div>
+                    <div class="stat-value" id="stat-stock-watches">--</div>
+                    <div style="font-size:11px;color:var(--admin-text-muted);">Users waiting for back-in-stock</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-label">💰 Balance Sync</div>
                     <div class="stat-value" id="stat-balance-sync">--</div>
                     <div style="font-size: 11px; color: var(--admin-text-muted);" id="stat-balance-status">Checking...</div>
@@ -222,7 +227,7 @@
                     <div id="live-prices-container">
                         <table class="admin-table">
                             <thead>
-                                <tr><th>Service</th><th>Provider Cost</th><th>Active Price</th><th>Markup</th><th>Trend</th></tr>
+                                <tr><th>Service</th><th>Provider Cost</th><th>Active Price</th><th>Markup</th><th>Stock</th><th>Watchers</th><th>Trend</th></tr>
                             </thead>
                             <tbody id="live-inventory-table"></tbody>
                         </table>
@@ -416,8 +421,23 @@
         // Load balance sync on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadBalanceSyncStatus();
-            setInterval(loadBalanceSyncStatus, 60000); // Refresh every minute
+            loadStockWatchCount();
+            setInterval(loadBalanceSyncStatus, 60000);
+            setInterval(loadStockWatchCount, 120000);
         });
+
+        async function loadStockWatchCount() {
+            try {
+                const res = await fetch('/api/alerts/stock-watches/count', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token')}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const el = document.getElementById('stat-stock-watches');
+                    if (el) el.textContent = data.count || 0;
+                }
+            } catch (e) { /* non-critical */ }
+        }
 
         // Auto-refresh functionality
         let autoRefreshInterval = null;

@@ -3,146 +3,80 @@
 **Updated**: November 2026
 **HEAD**: `331db1d5` on origin/main
 **CI**: ✅ Passing — smoke-test + frontend-unit-tests (hard gates)
-**Deploy**: ⏳ Pending CI pass → auto-triggers via deploy.yml
+**Deploy**: ⏳ Pending CI pass on `331db1d5` → auto-triggers via deploy.yml
 
 ---
 
 ## SPRINT JUST COMPLETED ✅
 
-Concurrent sprint — OTP login + AUTH fixes + SSE fix + version bump. All pushed.
+Concurrent sprint execution — OTP login, AUTH fixes, SSE fix, version bump, SDK dead code removal, revenue backend, inventory notification backend, consolidated DB migration.
 
 **Commits this session**:
-- `a7d45469` — OTP login (passwordless email code auth)
-- `331db1d5` — AUTH-001, AUTH-002, OPEN-1, version 4.9.9
+- `a7d45469` — OTP passwordless login
+- `331db1d5` — AUTH-001, AUTH-002, OPEN-1 (validating step), version 4.9.9
+
+**Code written (not yet deployed)**:
+- `TV_STATE_MAP` (14 states) + `map_tv_state()` + `reuse_verification()` on `TextVerifiedService`
+- `POST /api/verification/{id}/reuse` endpoint
+- `calculate_bonus_credits()` + bulk bonus wired in `credit_user()`
+- `SubscriptionAddon`, `StockWatch`, `RentalBackOrder` models
+- Stock watch API endpoints (POST/DELETE/GET)
+- `_notify_stock_watchers()` in stock monitor
+- Back-order monitor worker
+- Consolidated migration `f1a2b3c4d5e6` (6 schema changes)
+- Dead code deleted: `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()`
+
+---
+
+## NEXT ACTIONS (in order)
+
+### 🔴 Immediate — Server
+
+| Action | Notes |
+|--------|-------|
+| Confirm `331db1d5` live | SSH: `cd ~/vrenum && git log --oneline -3` |
+| Run migration | `docker compose exec app alembic upgrade head` — applies `f1a2b3c4d5e6` |
+| Test 8 transactional emails | OTP code, welcome, password reset, low balance, verification receipt, payment receipt, tier upgrade, daily digest |
+| Telegram E2E | Connect @vrenum_sms_bot, send real verification, confirm SMS forwarded |
+
+### 🟡 Next Code Sprint
+
+| ID | Item | File |
+|----|------|------|
+| A-003 | Area code price display — pass `area_code=True` to `check_service_available()` | `purchase_endpoints.py`, `verification-flow.js` |
+| B-002 | Voice `transcribing` SSE status | `purchase_endpoints.py` |
+| B-004 | WebSocket `reuse_available` event | `sms_polling_service.py` |
+| B-006 | Reuse banner in UI | `verification-flow.js`, `verify_modern.html` |
+| B-008 | `smsAndVoiceCombo` capability | `schemas/verification.py`, `pricing_calculator.py` |
+| C-001 | Paystack annual plan codes | Paystack dashboard (15 min) |
+| C-003 | Tier upgrade endpoint — `billing_period` param | `app/api/billing/tiers.py` |
+| C-004 | Annual tier expiry = 365 days | `app/services/tier_service.py` |
+| C-005 | Pricing page monthly/annual toggle | `templates/pricing.html` |
+| C-011 | `can_use_api_keys()` — PAYG + addon | `app/services/tier_service.py` |
+| C-018 | Wallet top-up bonus tier UI | `templates/wallet.html` |
+| D-005 | "Notify me" button in verification picker | `static/js/verification-flow.js` |
+| D-010 | `create_reservation()` back-order detection | `app/services/textverified_service.py` |
+| D-017 | Expiry monitor 24h warning | `app/workers/expiry_monitor.py` |
+| D-021 | Admin dashboard stock columns | `templates/admin/dashboard.html` |
+| D-023 | Admin alerts page — real data | `templates/admin/alerts.html` |
+| E-001 | Upstash Redis upgrade | Upstash dashboard |
+| E-002 | TV IP whitelist | TV support ticket |
+| E-003 | CI coverage batch 2 (9 files → 30%) | `.github/workflows/ci.yml` |
 
 ---
 
 ## ALL OPEN ITEMS
 
-### 🔴 P1 — Deploy & Verify
+> Full task breakdown with status: `docs/status/MASTER_TASKS.md`
 
-| Item | Notes |
-|------|-------|
-| CI pass on `331db1d5` | Template + backend changes — smoke + JS tests should pass |
-| Deploy auto-triggers on CI pass | Via `deploy.yml` → SSH → docker compose up --build |
-| Confirm server pulls `331db1d5` | SSH: `cd ~/vrenum && git log --oneline -3` |
-
----
-
-### 🔴 P1 — Email Testing (post-deploy)
-
-| Email | Trigger | How to test |
-|-------|---------|-------------|
-| OTP login code | `POST /api/auth/otp/request` | curl or use login page "Login with email code" link |
-| Welcome | New registration | Register a test account |
-| Password reset | `/password-reset` form submit | Submit with existing email, check inbox |
-| Low balance alert | Wallet drops below threshold | Manually deduct credits via admin |
-| Verification receipt | Successful SMS verification | Complete a real verification |
-| Payment receipt | Paystack payment completes | Make a small test payment |
-| Tier upgrade | User upgrades plan | Upgrade a test account |
-| Daily digest | Scheduled 08:00 UTC | Check Sentry/logs next morning |
-
----
-
-### 🟡 P1 — Verification System (open items)
-
-| ID | Item | Severity | Status |
-|----|------|----------|--------|
-| OPEN-1 | `validating` SSE step removed | P3 | ✅ Done `331db1d5` |
-| OPEN-2 | No `transcribing` status for voice in SSE path | P3 | 📋 Open |
-| OPEN-3 | `reuse` + `reactivate` never surfaced in UI | P2 | 📋 Open |
-| OPEN-4 | Stock monitor docstring | P3 | ✅ Already correct |
-
----
-
-### 🟡 P1 — Auth UX
-
-| ID | Item | Status |
-|----|------|--------|
-| AUTH-001 | Password reset inline confirmation state | ✅ Done `331db1d5` |
-| AUTH-002 | Register success email verification notice | ✅ Done `331db1d5` |
-| OTP-LOGIN | Passwordless login via email code | ✅ Done `a7d45469` |
-
----
-
-### 🟡 P2 — Ops & Infrastructure
-
-| Item | Priority | Notes |
-|------|----------|-------|
-| Telegram E2E verification | P1 | @vrenum_sms_bot created, webhook registered, not live-tested |
-| Area code price display | P1 | UI shows base price, user charged base + $0.25 surcharge |
-| TextVerified IP whitelist | P2 | Server IP not whitelisted — `quantity: null` on all services |
-| Upstash Redis upgrade | P2 | Free tier 500k req/month. Hit limit once. Upgrade to pay-as-you-go |
-| Python unit-tests `continue-on-error` | P2 | Pre-existing failures — triage needed |
-| Dead code cleanup | P2 | `_fetch_prices_inline()` + `fetch_raw_services_with_quantity()` — delete |
-| CI coverage expansion | P2 | Currently 25% floor |
-
----
-
-### 🟡 P1 — Revenue Features
-
-| ID | Item | Effort |
-|----|------|--------|
-| REV-001 | Annual plans (Pro $250/yr, Custom $350/yr) | Trivial |
-| REV-002 | Reuse surcharge ($0.25) | Low |
-| REV-003 | PAYG API add-on ($10/mo, 5 keys) | Low |
-| REV-004 | Bulk credit discount (5%/10%/15%) | Low |
-
-### 🟡 P1 — Inventory Notifications
-
-| ID | Item | Status |
-|----|------|--------|
-| INV-001 | Service back-in-stock watch | 📋 Not live |
-| INV-002 | Rental back-order detection + notification | 📋 Not live |
-| INV-003 | Rental expiry 24h warning | 📋 Not live |
-| INV-004 | Admin alert: stock depletion email | ✅ Wired |
-| INV-005 | Admin alert: back-order queue depth | 📋 Not live |
-| INV-006 | Admin alert: rental expiry digest | 📋 Not live |
-| INV-007 | Admin portal: stock status column | 📋 Not live |
-| INV-008 | Admin portal: Stock Watches stat card | 📋 Not live |
-| INV-009 | Admin portal: Inventory section in Alerts | 📋 Not live |
-
----
-
-## TASK FILE INDEX
-
-| File | What it covers |
-|------|---------------|
-| `docs/engineering/development/VERIFICATION_TASKS.md` | TV API gaps, open items — single source of truth |
-| `docs/status/OTP_LOGIN_TASKS.md` | OTP login E2E test instructions |
-| `docs/engineering/development/PAGE_QUALITY_TASKS.md` | 53/55 public page quality tasks |
-| `docs/status/PLATFORM_STATUS.md` | Current platform state |
-| `docs/status/OPS_SUMMARY.md` | CI pipeline, infrastructure, known gaps |
-
-
-**Key deliveries:**
-- Regulatory compliance: GDPR cookie consent (granular), age gate, marketing consent, correct legal docs (jurisdiction, processor list, DPO note)
-- All broken pages fixed: refund CSS, reviews honest, about honest stats, contact dark mode + GDPR notice
-- Blog: all 5 posts styled + indexed at `/blog`, route added
-- Auth: double-nav eliminated on login/register, duplicate logo removed
-- Nav: FAQ in desktop + mobile, Blog/Cookies/Contact in footer
-- Status page: now public (no login required)
-- FAQPage JSON-LD structured data added
-
----
-
-## ALL OPEN ITEMS
-
-> **All open tasks have moved to the master task file.**
-> See `docs/status/MASTER_TASKS.md` — single source of truth for all sprints.
-
-### Quick reference — sprint map
-
-| Sprint | What | Status |
-|--------|------|--------|
-| A | Deploy & immediate fixes (8 tasks) | 📋 Not started |
-| B | Verification system polish — reuse, voice, SSE, ReservationState (9 tasks) | 📋 Not started |
-| C | Revenue features — annual plans, PAYG API add-on, bulk credit discount (19 tasks) | 📋 Not started |
-| D | Inventory notification system — stock watches, back-order, expiry, admin portal (25 tasks) | 📋 Partially wired |
-| E | Ops & infrastructure — Redis, TV IP, CI coverage (6 tasks) | 📋 Not started |
-| F | SDK remaining gaps — SSE timeout, refs to B (4 tasks) | 📋 Not started |
-
-**A, B, C, D1, E, F run concurrently. D2/D3 after rental path stable. D4 after D1–D3 endpoints exist.**
+| Sprint | What | Done | Remaining |
+|--------|------|------|-----------|
+| A | Deploy & immediate fixes | 5/8 | 3 |
+| B | Verification polish | 5/9 | 4 |
+| C | Revenue features | 4/19 | 15 |
+| D | Inventory notifications | 8/25 | 17 |
+| E | Ops & infrastructure | 0/6 | 5 + 1 blocked |
+| F | SDK gaps | 3/4 | 1 |
 
 ---
 
@@ -150,10 +84,9 @@ Concurrent sprint — OTP login + AUTH fixes + SSE fix + version bump. All pushe
 
 | File | Role |
 |------|------|
-| `docs/status/MASTER_TASKS.md` | **Single source of truth — all open work** |
+| `docs/status/MASTER_TASKS.md` | **Single source of truth — all open work with full status** |
 | `docs/features/REVENUE_FEATURES_SPEC.md` | Full spec for Sprint C |
 | `docs/features/INVENTORY_NOTIFICATION_SYSTEM.md` | Full spec for Sprint D |
 | `docs/engineering/SDK_OPTIMIZATION_OPPORTUNITIES.md` | Background for Sprints B + F |
-| `docs/engineering/development/VERIFICATION_TASKS.md` | Historical context — open items superseded by MASTER_TASKS |
-| `docs/status/PLATFORM_STATUS.md` | Platform health — not a task file |
-| `docs/status/OPS_SUMMARY.md` | CI pipeline + infrastructure state |
+| `docs/status/PLATFORM_STATUS.md` | Platform health snapshot |
+| `docs/status/OPS_SUMMARY.md` | CI pipeline + infrastructure + gap list |

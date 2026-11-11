@@ -381,9 +381,16 @@ async def lifespan(app):
 
             from app.services.stock_monitor import run_stock_monitor
             from app.services.email_outbox_worker import run_outbox_worker
+            from app.workers.back_order_monitor import run_back_order_monitor
 
             asyncio.create_task(run_stock_monitor())
-            startup_logger.info("✅ Service stock monitor started (15-min refresh)")
+            startup_logger.info("✅ Service stock monitor started (90s refresh)")
+
+            asyncio.create_task(run_back_order_monitor())
+            startup_logger.info("✅ Back-order monitor started (5-min interval)")
+
+            asyncio.create_task(run_outbox_worker())
+            startup_logger.info("✅ Email outbox worker started")
 
             asyncio.create_task(run_outbox_worker())
             startup_logger.info("✅ Email outbox worker started")

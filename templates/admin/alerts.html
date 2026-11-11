@@ -242,99 +242,75 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token');
 
-        const mockAlerts = [
-            { id: 1, name: 'High Error Rate', severity: 'critical', message: 'Error rate at 8.2% (threshold: 5%)', time: new Date(Date.now() - 300000), status: 'firing' },
-            { id: 2, name: 'Low Balance', severity: 'warning', message: 'Provider balance: $85 (threshold: $100)', time: new Date(Date.now() - 600000), status: 'firing' },
-            { id: 3, name: 'Slow Response', severity: 'info', message: 'Avg response time: 2.3s', time: new Date(Date.now() - 900000), status: 'resolved' }
-        ];
+        async function loadAlerts() {
+            try {
+                const res = await fetch('/api/alerts/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = res.ok ? await res.json() : { alerts: [], critical: 0, warning: 0, info: 0 };
+                const alerts = data.alerts || [];
+                const activeAlerts = alerts.filter(a => a.status === 'firing');
 
-        function loadAlerts() {
-            const activeAlerts = mockAlerts.filter(a => a.status === 'firing');
-            const resolvedToday = mockAlerts.filter(a => a.status === 'resolved').length;
+                document.getElementById('active-count').textContent = activeAlerts.length;
+                document.getElementById('resolved-count').textContent = alerts.filter(a => a.status === 'resolved').length;
+                document.getElementById('response-time').textContent = '--';
+                document.getElementById('critical-count').textContent = data.critical || 0;
+                document.getElementById('warning-count').textContent = data.warning || 0;
+                document.getElementById('info-count').textContent = data.info || 0;
 
-            document.getElementById('active-count').textContent = activeAlerts.length;
-            document.getElementById('resolved-count').textContent = resolvedToday;
-            document.getElementById('response-time').textContent = '12m';
-
-            const criticalCount = activeAlerts.filter(a => a.severity === 'critical').length;
-            const warningCount = activeAlerts.filter(a => a.severity === 'warning').length;
-            const infoCount = activeAlerts.filter(a => a.severity === 'info').length;
-
-            document.getElementById('critical-count').textContent = criticalCount;
-            document.getElementById('warning-count').textContent = warningCount;
-            document.getElementById('info-count').textContent = infoCount;
-
-            const container = document.getElementById('active-alerts');
-            if (activeAlerts.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--admin-text-muted);">✅ No active alerts</div>';
-            } else {
-                container.innerHTML = '<div class="alerts-grid">' + activeAlerts.map(alert => `
-                    <div class="alert-card alert-${alert.severity}">
-                        <div class="alert-header">
-                            <div class="alert-title">${alert.name}</div>
-                            <div class="alert-time">${getTimeAgo(alert.time)}</div>
+                const container = document.getElementById('active-alerts');
+                if (activeAlerts.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--admin-text-muted);">\u2705 No active alerts</div>';
+                } else {
+                    container.innerHTML = '<div class="alerts-grid">' + activeAlerts.map(alert => `
+                        <div class="alert-card alert-${alert.severity}">
+                            <div class="alert-header">
+                                <div class="alert-title">${alert.title}</div>
+                                <div class="alert-time">${new Date(alert.created_at).toLocaleTimeString()}</div>
+                            </div>
+                            <div class="alert-message">${alert.message}</div>
                         </div>
-                        <div class="alert-message">${alert.message}</div>
-                        <div class="alert-actions">
-                            <button class="btn-xs btn-resolve" onclick="resolveAlert(${alert.id})">Resolve</button>
-                            <button class="btn-xs btn-mute" onclick="muteAlert(${alert.id})">Mute 1h</button>
-                        </div>
-                    </div>
-                `).join('') + '</div>';
+                    `).join('') + '</div>';
+                }
+
+                loadAlertHistory(alerts);
+            } catch (e) {
+                console.error('Failed to load alerts:', e);
             }
-
-            loadAlertHistory();
         }
 
-        function loadAlertHistory() {
+        function loadAlertHistory(alerts) {
             const tbody = document.getElementById('alert-history');
-            tbody.innerHTML = mockAlerts.map(alert => `
+            if (!alerts || alerts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--admin-text-muted);">No alerts in last 24 hours</td></tr>';
+                return;
+            }
+            tbody.innerHTML = alerts.map(alert => `
                 <tr>
-                    <td>${alert.time.toLocaleTimeString()}</td>
-                    <td>${alert.name}</td>
+                    <td>${new Date(alert.created_at).toLocaleTimeString()}</td>
+                    <td>${alert.title}</td>
                     <td><span class="status-badge status-${alert.severity === 'critical' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'success'}">${alert.severity}</span></td>
                     <td>${alert.message}</td>
                     <td><span class="status-badge status-${alert.status === 'firing' ? 'danger' : 'success'}">${alert.status}</span></td>
-                    <td>${alert.status === 'resolved' ? '12m' : '-'}</td>
+                    <td>--</td>
                 </tr>
             `).join('');
         }
 
         function getTimeAgo(date) {
-            const minutes = Math.floor((new Date() - date) / 60000);
+            const minutes = Math.floor((new Date() - new Date(date)) / 60000);
             if (minutes < 60) return minutes + 'm ago';
-            const hours = Math.floor(minutes / 60);
-            return hours + 'h ago';
+            return Math.floor(minutes / 60) + 'h ago';
         }
 
-        function resolveAlert(id) {
-            const alert = mockAlerts.find(a => a.id === id);
-            if (alert) {
-                alert.status = 'resolved';
-                loadAlerts();
-            }
-        }
-
-        function muteAlert(id) {
-            alert('Alert muted for 1 hour');
-        }
-
-        function toggleAlert(type, enabled) {
-            console.log(`Alert ${type} ${enabled ? 'enabled' : 'disabled'}`);
-        }
-
-        function saveThreshold(type) {
-            alert(`Threshold for ${type} saved successfully`);
-        }
-
-        function toggleChannel(channel, enabled) {
-            console.log(`Channel ${channel} ${enabled ? 'enabled' : 'disabled'}`);
-        }
+        function toggleAlert(type, enabled) { console.log(`Alert ${type} ${enabled ? 'enabled' : 'disabled'}`); }
+        function saveThreshold(type) { alert(`Threshold for ${type} saved`); }
+        function toggleChannel(channel, enabled) { console.log(`Channel ${channel} ${enabled ? 'enabled' : 'disabled'}`); }
 
         loadAlerts();
-        setInterval(loadAlerts, 30000); // Refresh every 30 seconds
+        setInterval(loadAlerts, 30000);
     </script>
 </body>
 </html>

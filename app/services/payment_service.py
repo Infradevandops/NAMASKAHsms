@@ -212,6 +212,21 @@ class PaymentService:
             self.db.add(balance_tx)
             self.db.commit()
 
+            # Apply tier upgrade from metadata if present (handles billing_period)
+            try:
+                upgrade_to = payment_log.metadata.get("upgrade_to") if hasattr(payment_log, 'metadata') and payment_log.metadata else None
+                bp = payment_log.metadata.get("billing_period", "monthly") if hasattr(payment_log, 'metadata') and payment_log.metadata else "monthly"
+                if upgrade_to and upgrade_to in ("pro", "custom"):
+                    from datetime import timedelta
+                    user.subscription_tier = upgrade_to
+                    days = 365 if bp == "annual" else 30
+                    user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
+                    user.tier_upgraded_at = datetime.now(timezone.utc)
+                    self.db.commit()
+                    logger.info(f"Tier upgraded to {upgrade_to} ({bp}) for user {user_id}")
+            except Exception as _te:
+                logger.warning(f"Tier upgrade from webhook metadata failed: {_te}")
+
             logger.info(f"Credited {amount} to user {user_id}")
 
             # Bulk credit bonus — applied after successful deposit

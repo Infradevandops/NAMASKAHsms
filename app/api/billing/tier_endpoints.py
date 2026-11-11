@@ -3,7 +3,10 @@
 from datetime import datetime, timezone
 from typing import Optional
 
+from typing import Literal, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -15,6 +18,11 @@ from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
 router = APIRouter()
+
+
+class TierUpgradeRequest(BaseModel):
+    target_tier: str
+    billing_period: Literal["monthly", "annual"] = "monthly"
 
 
 @router.get("/current")
@@ -73,10 +81,12 @@ async def get_available_tiers(
 
 @router.post("/upgrade")
 async def upgrade_tier(
-    target_tier: str,
+    body: TierUpgradeRequest,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
+    target_tier = body.target_tier
+    billing_period = body.billing_period
     """Upgrade user to a higher tier."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -153,18 +163,27 @@ async def upgrade_tier(
         tier_config = TierConfig.get_tier_config(target_tier, db)
         monthly_fee = tier_config.get("monthly_fee_usd", 0)
 
+        # C-001/C-003: annual billing at 10-month price
+        ANNUAL_FEES = {"pro": 250.0, "custom": 350.0}
+        if billing_period == "annual" and target_tier in ANNUAL_FEES:
+            amount_usd = ANNUAL_FEES[target_tier]
+        else:
+            amount_usd = monthly_fee
+            billing_period = "monthly"
+
         payment_service = PaymentService(db)
         payment_result = await payment_service.initialize_payment(
             user_id=user_id,
             email=user.email,
-            amount_usd=monthly_fee,
-            metadata={"upgrade_to": target_tier, "user_id": user_id},
+            amount_usd=amount_usd,
+            metadata={"upgrade_to": target_tier, "user_id": user_id, "billing_period": billing_period},
         )
 
         return {
             "message": f"Complete payment to upgrade to {target_tier}",
             "current_tier": current_tier,
             "target_tier": target_tier,
+            "billing_period": billing_period,
             "status": "pending_payment",
             "authorization_url": payment_result["authorization_url"],
             "reference": payment_result["reference"],

@@ -18,27 +18,52 @@ class APIKeyService:
         self.db = db
 
     def can_create_key(self, user_id: str) -> bool:
-        """Check if user can create API key based on tier."""
+        """Check if user can create API key based on tier or active add-on."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             return False
 
-        config = TierConfig.get_tier_config(
-            user.subscription_tier or "freemium", self.db
-        )
-        limit = config.get("api_key_limit", 0)
+        tier = user.subscription_tier or "freemium"
 
-        if limit == 0:
-            return False
-        if limit == -1:
-            return True
+        # Pro/Custom: use tier config limit
+        if tier in ("pro", "custom"):
+            config = TierConfig.get_tier_config(tier, self.db)
+            limit = config.get("api_key_limit", 0)
+            if limit == 0:
+                return False
+            if limit == -1:
+                return True
+            current_count = (
+                self.db.query(APIKey)
+                .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
+                .count()
+            )
+            return current_count < limit
 
-        current_count = (
-            self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
-            .count()
-        )
-        return current_count < limit
+        # PAYG: check for active API add-on (C-011) — limit 5 keys
+        if tier == "payg":
+            try:
+                from app.models.subscription_addon import SubscriptionAddon
+                addon = (
+                    self.db.query(SubscriptionAddon)
+                    .filter(
+                        SubscriptionAddon.user_id == user_id,
+                        SubscriptionAddon.addon_type == "api_access",
+                        SubscriptionAddon.active.is_(True),
+                    )
+                    .first()
+                )
+                if addon:
+                    current_count = (
+                        self.db.query(APIKey)
+                        .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
+                        .count()
+                    )
+                    return current_count < 5  # C-012: payg_addon limit = 5
+            except Exception:
+                pass
+
+        return False
 
     def get_remaining_keys(self, user_id: str) -> int:
         """Get remaining API key slots for user."""

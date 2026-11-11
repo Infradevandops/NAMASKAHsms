@@ -93,7 +93,7 @@ const PricingManager = {
         if (!container) return;
 
         if (!forceRefresh) {
-            container.innerHTML = '<tr><td colspan="5" class="text-center">Syncing with TextVerified...</td></tr>';
+            container.innerHTML = '<tr><td colspan="7" class="text-center">Syncing with TextVerified...</td></tr>';
         }
 
         try {
@@ -153,17 +153,25 @@ const PricingManager = {
         const container = document.getElementById('live-inventory-table');
         if (!container) return;
 
-        container.innerHTML = this.livePrices.slice(0, 50).map(p => `
+        const watchCounts = data.watch_counts || {};
+
+        container.innerHTML = this.livePrices.slice(0, 50).map(p => {
+            const available = p.available !== false;
+            const stockDot = available
+                ? '<span style="color:#10b981;font-weight:600;">&#9679; In stock</span>'
+                : '<span style="color:#ef4444;font-weight:600;">&#9679; Out of stock</span>';
+            const watchers = watchCounts[p.service_id] || p.watchers || 0;
+            return `
             <tr>
                 <td class="font-bold">${p.service_name}</td>
                 <td class="text-muted">$${p.provider_cost.toFixed(3)}</td>
                 <td class="font-bold text-success">$${p.platform_price.toFixed(2)}</td>
                 <td><span class="badge badge-info">${p.markup_percentage.toFixed(0)}%</span></td>
-                <td>
-                    <button class="btn-icon" onclick="PricingManager.showHistory('${p.service_id}', '${p.service_name}')">📈</button>
-                </td>
-            </tr>
-        `).join('');
+                <td>${stockDot}</td>
+                <td>${watchers > 0 ? '<span style="color:#f59e0b;font-weight:600;">' + watchers + '</span>' : '<span style="color:var(--admin-text-muted);">0</span>'}</td>
+                <td><button class="btn-icon" onclick="PricingManager.showHistory('${p.service_id}', '${p.service_name}')">&#128200;</button></td>
+            </tr>`;
+        }).join('');
     },
 
     exportToCSV() {

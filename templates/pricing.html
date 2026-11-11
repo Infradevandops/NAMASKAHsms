@@ -241,6 +241,16 @@
     <div class="pricing-hero">
         <h1>Simple, Honest Pricing</h1>
         <p>Start free, upgrade as you grow. No hidden fees.</p>
+        <!-- C-005: Monthly/Annual toggle -->
+        <div style="display:inline-flex;align-items:center;gap:12px;margin-top:20px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:40px;padding:6px 16px;">
+            <span id="toggle-monthly-label" style="font-size:14px;font-weight:600;color:#FE3C72;">Monthly</span>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                <input type="checkbox" id="billing-toggle" onchange="switchBilling(this.checked)" style="opacity:0;width:0;height:0;">
+                <span style="position:absolute;inset:0;background:#e5e7eb;border-radius:24px;transition:0.3s;" id="toggle-track"></span>
+                <span style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2);" id="toggle-thumb"></span>
+            </label>
+            <span id="toggle-annual-label" style="font-size:14px;font-weight:600;color:#6b7280;">Annual <span style="background:#dcfce7;color:#166534;font-size:11px;padding:2px 6px;border-radius:4px;margin-left:4px;">Save 2 months</span></span>
+        </div>
     </div>
 
     <div class="tier-cards">
@@ -287,7 +297,7 @@
             <h2 class="tier-name">Pro</h2>
             <p class="tier-subtitle">For regular users</p>
             <div class="tier-price">
-                <span class="price-amount">$25</span>
+                <span class="price-amount" data-tier-price="pro">$25</span>
                 <span class="price-period">/month</span>
             </div>
             <p class="tier-description">For businesses and developers</p>
@@ -307,7 +317,7 @@
             <h2 class="tier-name">Custom</h2>
             <p class="tier-subtitle">For power users</p>
             <div class="tier-price">
-                <span class="price-amount">$35</span>
+                <span class="price-amount" data-tier-price="custom">$35</span>
                 <span class="price-period">/month</span>
             </div>
             <p class="tier-description">For high-volume users</p>
@@ -435,7 +445,39 @@
             window.location.href = '/dashboard';
             return;
         }
-        window.location.href = `/settings?tab=billing&upgrade_to=${tier}`;
+        const bp = document.getElementById('billing-toggle')?.checked ? 'annual' : 'monthly';
+        window.location.href = `/settings?tab=billing&upgrade_to=${tier}&billing_period=${bp}`;
+    }
+
+    let _isAnnual = false;
+    const _prices = {
+        monthly: { pro: '$25<span style="font-size:18px;color:#6b7280;">/month</span>', custom: '$35<span style="font-size:18px;color:#6b7280;">/month</span>' },
+        annual:  { pro: '$250<span style="font-size:18px;color:#6b7280;">/year</span>', custom: '$350<span style="font-size:18px;color:#6b7280;">/year</span>' }
+    };
+
+    function switchBilling(isAnnual) {
+        _isAnnual = isAnnual;
+        const track = document.getElementById('toggle-track');
+        const thumb = document.getElementById('toggle-thumb');
+        const mLabel = document.getElementById('toggle-monthly-label');
+        const aLabel = document.getElementById('toggle-annual-label');
+        if (isAnnual) {
+            track.style.background = '#FE3C72';
+            thumb.style.transform = 'translateX(20px)';
+            mLabel.style.color = '#6b7280';
+            aLabel.style.color = '#FE3C72';
+        } else {
+            track.style.background = '#e5e7eb';
+            thumb.style.transform = 'translateX(0)';
+            mLabel.style.color = '#FE3C72';
+            aLabel.style.color = '#6b7280';
+        }
+        // Update Pro and Custom price displays
+        const set = isAnnual ? _prices.annual : _prices.monthly;
+        document.querySelectorAll('[data-tier-price]').forEach(el => {
+            const tier = el.dataset.tierPrice;
+            if (set[tier]) el.innerHTML = set[tier];
+        });
     }
 </script>
 {% endblock %}
