@@ -535,6 +535,7 @@ class TextVerifiedService:
                     since=tv_verification.created_at,
                     timeout=timeout_seconds,
                     polling_interval=3.0,
+                    wake_number=True,
                 ):
                     # Master Check: Ensure message is strictly fresh (v6.0 Institutional Grade)
                     from datetime import timezone
@@ -1072,9 +1073,24 @@ class TextVerifiedService:
                 duration=duration_enum,
                 is_renewable=False,
                 always_on=True,
-                allow_back_order_reservations=False,
+                allow_back_order_reservations=True,
                 area_code_select_option=area_code_list,
             )
+
+            # D-010: detect back-order reservations
+            if hasattr(sale, 'back_order_reservations') and sale.back_order_reservations:
+                logger.info(f"Back-order reservation created for service={service}")
+                return {
+                    "id": None,
+                    "phone_number": None,
+                    "cost": float(sale.total) if hasattr(sale, 'total') else 0.0,
+                    "ends_at": None,
+                    "status": "back_ordered",
+                    "tv_object": None,
+                    "sale_id": sale.id,
+                    "back_ordered": True,
+                    "back_order_ids": [str(b) for b in sale.back_order_reservations],
+                }
 
             if not sale.reservations:
                 raise RuntimeError("TV returned a sale with no reservations")

@@ -499,6 +499,7 @@
                     <div>
                         <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span class="loading-spinner"></span> Loading...</div>
                         <div style="color: var(--text-muted, #9CA3AF); font-size: 14px;" id="billing-tier-features">Loading tier features...</div>
+                        <div style="color: var(--text-muted, #9CA3AF); font-size: 13px; margin-top: 4px;" id="billing-period-display" style="display:none;"></div>
                         <div style="color: var(--text-muted, #9CA3AF); font-size: 13px; margin-top: 4px;" id="billing-renews-at" style="display:none;"></div>
                     </div>
                     <div style="display:flex; gap:8px;">
@@ -1157,6 +1158,12 @@
                 if (d.subscription_renews_at) {
                     const el = document.getElementById('billing-renews-at');
                     if (el) { el.textContent = `Renews on ${new Date(d.subscription_renews_at).toLocaleDateString()}`; el.style.display = 'block'; }
+                }
+
+                // Billing period display (C-006)
+                if (d.billing_period) {
+                    const bp = document.getElementById('billing-period-display');
+                    if (bp) { bp.textContent = `Billing: ${d.billing_period === 'annual' ? 'Annual' : 'Monthly'}`; bp.style.display = 'block'; }
                 }
 
                 // Cancel button for paid tiers

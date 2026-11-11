@@ -566,6 +566,20 @@ async function loadRentals() {
 
 // Render rental card
 function renderRentalCard(rental) {
+    // D-013: back-order state UI
+    if (rental.status === 'back_ordered') {
+        return `
+        <div class="rental-card" style="border-color:#f59e0b;">
+            <div class="rental-header">
+                <div class="rental-phone" style="font-size:16px;color:#92400e;">⏳ In Queue — ${rental.service}</div>
+                <div class="rental-status" style="background:#fef3c7;color:#92400e;">Back-Ordered</div>
+            </div>
+            <p style="color:#6b7280;font-size:14px;margin:0 0 16px;">No numbers are available right now. You're in the queue and will be notified when one becomes available.</p>
+            <div class="rental-actions">
+                <button class="btn btn-secondary" onclick="cancelBackOrder(${rental.id})">❌ Cancel Queue</button>
+            </div>
+        </div>`;
+    }
     const expiresAt = new Date(rental.expires_at);
     const now = new Date();
     const remainingMs = expiresAt - now;
@@ -732,6 +746,19 @@ async function cancelRental(rentalId) {
     } catch (error) {
         window.toast?.error(error.message);
     }
+}
+
+// Cancel back-order
+async function cancelBackOrder(rentalId) {
+    if (!confirm('Cancel your place in the queue?')) return;
+    try {
+        const res = await fetch(`/api/rentals/${rentalId}/cancel`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
+        if (res.ok) { window.toast?.success('Removed from queue'); loadRentals(); }
+        else { const e = await res.json(); window.toast?.error(e.detail || 'Failed'); }
+    } catch(e) { window.toast?.error('Error'); }
 }
 
 // Close modal

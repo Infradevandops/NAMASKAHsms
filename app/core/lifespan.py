@@ -392,6 +392,94 @@ async def lifespan(app):
             asyncio.create_task(run_outbox_worker())
             startup_logger.info("✅ Email outbox worker started")
 
+            # C-007: Annual renewal reminder (30 days before annual_renewal_at)
+            async def start_annual_renewal_reminder_loop():
+                while True:
+                    try:
+                        from datetime import timedelta
+                        from app.core.database import SessionLocal
+                        from app.models.user import User
+                        from app.services.email_service import email_service
+                        now = datetime.now(timezone.utc)
+                        window_start = now + timedelta(days=29)
+                        window_end = now + timedelta(days=31)
+                        with SessionLocal() as db:
+                            users = db.query(User).filter(
+                                User.annual_renewal_at >= window_start,
+                                User.annual_renewal_at <= window_end,
+                                User.billing_period == "annual",
+                                User.is_active.is_(True),
+                            ).all()
+                            for u in users:
+                                try:
+                                    await email_service.send_annual_renewal_reminder_email(
+                                        user_email=u.email,
+                                        tier=u.subscription_tier or "pro",
+                                        renewal_date=u.annual_renewal_at.strftime("%B %d, %Y"),
+                                        user_name=getattr(u, "display_name", None),
+                                    )
+                                except Exception as ue:
+                                    startup_logger.warning(f"Annual renewal reminder failed for {u.id}: {ue}")
+                    except Exception as e:
+                        startup_logger.error(f"Annual renewal reminder loop error: {e}")
+                    await asyncio.sleep(86400)  # daily
+
+            asyncio.create_task(start_annual_renewal_reminder_loop())
+            startup_logger.info("✅ Annual renewal reminder loop started (daily)")
+
+            # D-017/D-018: Rental 24h expiry warning using expiry_warned_at
+            async def start_rental_24h_warning_loop():
+                while True:
+                    try:
+                        from datetime import timedelta
+                        from app.core.database import SessionLocal
+                        from app.models.verification import NumberRental
+                        from app.services.email_service import email_service
+                        from app.services.notification_service import NotificationService
+                        now = datetime.now(timezone.utc)
+                        warning_at = now + timedelta(hours=24)
+                        with SessionLocal() as db:
+                            expiring = db.query(NumberRental).filter(
+                                NumberRental.status == "active",
+                                NumberRental.expires_at <= warning_at,
+                                NumberRental.expires_at > now,
+                                NumberRental.expiry_warned_at.is_(None),
+                            ).all()
+                            for r in expiring:
+                                try:
+                                    hours_left = (r.expires_at - now).total_seconds() / 3600
+                                    # D-019: in-app notification
+                                    ns = NotificationService(db)
+                                    ns.create_notification(
+                                        user_id=r.user_id,
+                                        notification_type="rental_expiring",
+                                        title="Rental expiring soon",
+                                        message=f"{r.phone_number} expires in {hours_left:.0f}h.",
+                                    )
+                                    # D-020: email
+                                    from app.models.user import User
+                                    u = db.query(User).filter(User.id == r.user_id).first()
+                                    if u:
+                                        await email_service.send_rental_expiring_email(
+                                            user_email=u.email,
+                                            phone_number=r.phone_number,
+                                            service_name=r.service_name,
+                                            expires_at=r.expires_at.strftime("%Y-%m-%d %H:%M UTC"),
+                                            hours_remaining=hours_left,
+                                            user_name=getattr(u, "display_name", None),
+                                        )
+                                    r.expiry_warned_at = now
+                                except Exception as re:
+                                    startup_logger.warning(f"Rental 24h warning failed for {r.id}: {re}")
+                            if expiring:
+                                db.commit()
+                    except Exception as e:
+                        startup_logger.error(f"Rental 24h warning loop error: {e}")
+                    await asyncio.sleep(3600)  # hourly
+
+            asyncio.create_task(start_rental_24h_warning_loop())
+            startup_logger.info("✅ Rental 24h expiry warning loop started (hourly)")
+
             asyncio.create_task(run_outbox_worker())
             startup_logger.info("✅ Email outbox worker started")
 

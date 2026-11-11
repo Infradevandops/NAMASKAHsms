@@ -635,6 +635,55 @@ class EmailService:
         """
         return await self._send(user_email, "Welcome to Vrenum 🎉", html)
 
+    async def send_stock_available_email(self, user_email: str, service_name: str, user_name: Optional[str] = None) -> bool:
+        greeting = self._greeting(user_name)
+        btn = _PINK_BTN.format(url="https://vrenum.app/verify", label="Verify Now →")
+        unsub = self._unsub_footer()
+        html = f"""{_NOTIF_HEADER}
+          {greeting}
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">📦 {service_name} is back in stock!</h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">The service you were watching is now available. Grab a number before it sells out again.</p>
+          {btn}{unsub}{_NOTIF_FOOTER}"""
+        return await self._send(user_email, f"{service_name} is available — Vrenum", html)
+
+    async def send_rental_ready_email(self, user_email: str, phone_number: str, service_name: str, expires_at: str, user_name: Optional[str] = None) -> bool:
+        greeting = self._greeting(user_name)
+        btn = _PINK_BTN.format(url="https://vrenum.app/rentals", label="View Rental →")
+        unsub = self._unsub_footer()
+        html = f"""{_NOTIF_HEADER}
+          {greeting}
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">📱 Your rental number is ready!</h2>
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">Number: <strong>{phone_number}</strong></p>
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">Service: <strong>{service_name}</strong></p>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Expires: <strong>{expires_at}</strong></p>
+          {btn}{unsub}{_NOTIF_FOOTER}"""
+        return await self._send(user_email, f"Your {service_name} rental number is ready — Vrenum", html)
+
+    async def send_rental_expiring_email(self, user_email: str, phone_number: str, service_name: str, expires_at: str, hours_remaining: float, user_name: Optional[str] = None) -> bool:
+        greeting = self._greeting(user_name)
+        btn = _PINK_BTN.format(url="https://vrenum.app/rentals", label="Extend Rental →")
+        unsub = self._unsub_footer()
+        html = f"""{_NOTIF_HEADER}
+          {greeting}
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">⏰ Rental expiring in {hours_remaining:.0f} hours</h2>
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">Number: <strong>{phone_number}</strong></p>
+          <p style="margin:0 0 8px;color:#6b7280;font-size:15px;">Service: <strong>{service_name}</strong></p>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Expires: <strong>{expires_at}</strong></p>
+          {btn}{unsub}{_NOTIF_FOOTER}"""
+        return await self._send(user_email, f"Your {service_name} rental expires soon — Vrenum", html)
+
+    async def send_annual_renewal_reminder_email(self, user_email: str, tier: str, renewal_date: str, user_name: Optional[str] = None) -> bool:
+        greeting = self._greeting(user_name)
+        btn = _PINK_BTN.format(url="https://vrenum.app/settings?tab=billing", label="Manage Subscription →")
+        unsub = self._unsub_footer()
+        tier_display = tier.title()
+        html = f"""{_NOTIF_HEADER}
+          {greeting}
+          <h2 style="margin:0 0 16px;color:#111827;font-size:22px;font-weight:700;">📅 Your {tier_display} plan renews in 30 days</h2>
+          <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">Your annual {tier_display} subscription renews on <strong>{renewal_date}</strong>. No action needed — your plan will auto-renew.</p>
+          {btn}{unsub}{_NOTIF_FOOTER}"""
+        return await self._send(user_email, f"Your {tier_display} plan renews in 30 days — Vrenum", html)
+
     # ── Tier upgrade email (Phase 9) ──────────────────────────────────────────
 
     async def send_tier_upgrade_email(

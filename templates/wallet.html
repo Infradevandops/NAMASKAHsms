@@ -341,9 +341,19 @@
                     <button class="preset-btn" id="preset-100" onclick="initSettlement(100, this)"><span data-usd-amount="100">$100</span> <span class="bonus">+10%</span></button>
                 </div>
                 <div class="input-group">
-                    <input type="number" id="custom-usd" class="premium-input" placeholder="Amount in USD  min $5" aria-label="Custom deposit amount in USD">
+                    <input type="number" id="custom-usd" class="premium-input" placeholder="Amount in USD  min $5" aria-label="Custom deposit amount in USD" oninput="showBonusPreview(this.value)">
                     <button class="btn nsk-btn-primary" onclick="initSettlement(null, this)" style="padding: 14px 24px;">Initialize</button>
                 </div>
+                <div id="bonus-preview" style="display:none;margin-top:8px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;"></div>
+                <details style="margin-top:12px;">
+                    <summary style="font-size:13px;color:var(--text-muted,#9CA3AF);cursor:pointer;">Bulk deposit bonuses</summary>
+                    <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;">
+                        <tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:6px 8px;color:#6b7280;">Deposit</th><th style="text-align:right;padding:6px 8px;color:#6b7280;">Bonus</th></tr>
+                        <tr><td style="padding:6px 8px;">$50+</td><td style="text-align:right;padding:6px 8px;color:#10b981;font-weight:600;">+5%</td></tr>
+                        <tr><td style="padding:6px 8px;">$100+</td><td style="text-align:right;padding:6px 8px;color:#10b981;font-weight:600;">+10%</td></tr>
+                        <tr><td style="padding:6px 8px;">$200+</td><td style="text-align:right;padding:6px 8px;color:#10b981;font-weight:600;">+15%</td></tr>
+                    </table>
+                </details>
             </div>
 
             <!-- Crypto Layout -->
@@ -898,5 +908,21 @@
 
     // Run on boot
     document.addEventListener('DOMContentLoaded', initPage);
+
+    function showBonusPreview(val) {
+        const amt = parseFloat(val);
+        const el = document.getElementById('bonus-preview');
+        if (!el) return;
+        let bonus = 0, pct = 0;
+        if (amt >= 200) { pct = 15; bonus = amt * 0.15; }
+        else if (amt >= 100) { pct = 10; bonus = amt * 0.10; }
+        else if (amt >= 50) { pct = 5; bonus = amt * 0.05; }
+        if (bonus > 0) {
+            el.style.display = 'block';
+            el.textContent = `🎉 +${pct}% bonus — you'll receive $${(amt + bonus).toFixed(2)} in credits!`;
+        } else {
+            el.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}

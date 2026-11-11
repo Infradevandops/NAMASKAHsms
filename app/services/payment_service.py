@@ -216,12 +216,40 @@ class PaymentService:
             try:
                 upgrade_to = payment_log.metadata.get("upgrade_to") if hasattr(payment_log, 'metadata') and payment_log.metadata else None
                 bp = payment_log.metadata.get("billing_period", "monthly") if hasattr(payment_log, 'metadata') and payment_log.metadata else "monthly"
+                addon_type = payment_log.metadata.get("addon_type") if hasattr(payment_log, 'metadata') and payment_log.metadata else None
+
+                # C-015: Activate SubscriptionAddon on successful addon payment
+                if addon_type == "api_access":
+                    from app.models.subscription_addon import SubscriptionAddon
+                    existing = self.db.query(SubscriptionAddon).filter(
+                        SubscriptionAddon.user_id == user_id,
+                        SubscriptionAddon.addon_type == "api_access",
+                        SubscriptionAddon.is_active.is_(True),
+                    ).first()
+                    if not existing:
+                        from datetime import timedelta
+                        addon = SubscriptionAddon(
+                            user_id=user_id,
+                            addon_type="api_access",
+                            is_active=True,
+                            activated_at=datetime.now(timezone.utc),
+                            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+                        )
+                        self.db.add(addon)
+                        self.db.commit()
+                        logger.info(f"API access addon activated for user {user_id}")
+
                 if upgrade_to and upgrade_to in ("pro", "custom"):
                     from datetime import timedelta
                     user.subscription_tier = upgrade_to
                     days = 365 if bp == "annual" else 30
                     user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
                     user.tier_upgraded_at = datetime.now(timezone.utc)
+                    if bp == "annual":
+                        user.annual_renewal_at = user.tier_expires_at
+                        user.billing_period = "annual"
+                    else:
+                        user.billing_period = "monthly"
                     self.db.commit()
                     logger.info(f"Tier upgraded to {upgrade_to} ({bp}) for user {user_id}")
             except Exception as _te:
@@ -246,6 +274,18 @@ class PaymentService:
                     self.db.add(bonus_tx)
                     self.db.commit()
                     logger.info(f"Bulk bonus ${bonus:.2f} applied to user {user_id}")
+                    # C-019: in-app notification for bonus credits
+                    try:
+                        from app.services.notification_service import NotificationService
+                        ns = NotificationService(self.db)
+                        ns.create_notification(
+                            user_id=user_id,
+                            notification_type="bonus_credits",
+                            title="Bonus credits applied!",
+                            message=f"${bonus:.2f} bonus credits added for your ${amount:.0f}+ deposit.",
+                        )
+                    except Exception:
+                        pass
             except Exception as e:
                 logger.warning(f"Bulk bonus application failed (non-critical): {e}")
 
