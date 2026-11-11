@@ -1,7 +1,8 @@
 # ACTIVE SPRINT — VRENUM SMS
 
 **Updated**: November 2026
-**HEAD**: `d8f29f53` on origin/main
+**HEAD**: `5f3eb79a` on origin/main
+**Handover doc**: `docs/status/HANDOVER_NOV2026.md` — read this first if picking up mid-session
 **Authority**: This file is the single actionable task list. `MASTER_TASKS.md` is the historical record.
 **Spec docs**: Sprint G → `docs/engineering/PROVIDER_RESILIENCE_AND_PLATFORM_STANDARDS.md` | Sprint H → `docs/engineering/development/PURCHASE_FLOW_UX_OVERHAUL.md`
 
@@ -16,6 +17,9 @@
 | G — Provider Resilience | Timeout, orphan recon, circuit breaker, SDK contract | 0/6 | 6 | 0 |
 | H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 0/6 | 6 | 0 |
 | **Total** | | **66/83** | **13** | **9** |
+
+⚠️ G-001/002/003/004/006 were written to working tree but session was cancelled before commit.
+See `HANDOVER_NOV2026.md` → "Next Steps" for exact commit commands.
 
 ---
 
