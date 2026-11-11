@@ -246,7 +246,7 @@ async def run_stock_monitor() -> None:
 | — | Dead `carrier` reads on `VerificationExpanded` | 🟡 P1 | `textverified_service.py` | ✅ Fixed `3f805f8a` |
 | — | `reactivate` before `report` on timeout | 🟡 P1 | `sms_polling_service.py` | ✅ Fixed `3f805f8a` |
 | — | Area code modal shows state only, not city | 🟢 P2 | `area_code_endpoints.py` | ✅ Fixed `3f805f8a` |
-| — | Pricing URL `/verifications/pricing` vs `/pricing/verifications` | ⚠️ | `textverified_service.py` | ⚠️ Unverified — needs VPS test |
+| — | Pricing URL `/verifications/pricing` vs `/pricing/verifications` | ✅ | `textverified_service.py` | ✅ Confirmed: `/pricing/verifications` = 200, `/verifications/pricing` = 404 (Nov 10 2026) |
 
 ---
 

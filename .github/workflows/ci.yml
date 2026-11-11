@@ -2,9 +2,9 @@ name: CI - Minimal & Reliable
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]  # PRs targeting main must pass CI before merge
+    branches: [main]  # PRs targeting main must pass CI before merge
 
 env:
   PYTHON_VERSION: '3.9'
@@ -21,7 +21,8 @@ jobs:
           fetch-depth: 0  # full history so gitleaks can scan all commits in the push
       - name: Install gitleaks
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz \
+            | tar -xz
           sudo mv gitleaks /usr/local/bin/
       - name: Scan working tree for secrets
         run: |
@@ -225,10 +226,10 @@ jobs:
           done
 
           # Terminate all connections and drop database
-          psql -h localhost -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'vrenum_test';"
+          psql -h localhost -U postgres -c \
+            "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'vrenum_test';"
           psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS vrenum_test;"
           psql -h localhost -U postgres -c "CREATE DATABASE vrenum_test;"
-
           # Run migrations to ensure schema matches production
           alembic upgrade head
 
@@ -271,6 +272,7 @@ jobs:
                  tests/unit/test_fraud_detection.py \
                  tests/unit/test_webhook_notifications.py \
                  tests/unit/test_security_utils.py \
+                 tests/unit/test_textverified_service.py \
                  tests/smoke/test_startup_smoke.py \
                  tests/smoke/test_mobile_responsiveness.py \
             --cov=app \
@@ -287,7 +289,6 @@ jobs:
         with:
           name: unit-test-output-${{ github.run_id }}
           path: unit_test_output.txt
-
 
 
   # Stage 3: Integration tests (non-blocking for now)

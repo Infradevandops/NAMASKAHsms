@@ -47,11 +47,6 @@
 [data-theme="dark"] .mobile-menu a { color: #f1f5f9; border-bottom-color: rgba(255,255,255,0.05); }
 [data-theme="dark"] .mobile-menu a:hover { background: #334155; color: #FE3C72; }
 
-/* Theme toggle button specific dark-mode colors */
-.theme-toggle-btn { color: #21262D; border-color: rgba(0,0,0,0.1); }
-[data-theme="dark"] .theme-toggle-btn { color: #f1f5f9 !important; border-color: rgba(255,255,255,0.2) !important; }
-[data-theme="dark"] .theme-toggle-btn:hover { background: #334155 !important; }
-
 /* Responsive - Mobile only */
 @media (max-width: 768px) {
     .public-header { padding: 16px 20px; display: flex !important; justify-content: space-between !important; align-items: center !important; }
@@ -133,7 +128,6 @@
     </footer>
 </div>
 
-<script src="/static/js/theme-toggle.js"></script>
 <script>
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
