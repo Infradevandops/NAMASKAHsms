@@ -1,6 +1,6 @@
 # MASTER TASK FILE — VRENUM SMS
 
-**Updated**: November 2026 — synced to HEAD `f4b030d5`
+**Updated**: November 2026 — synced to HEAD `506e9b6d`
 **Authority**: Single source of truth. All other task files defer here.
 **Status key**: 📋 Not started | ✅ Done | ⚠️ Blocked (manual/external)
 
@@ -59,6 +59,21 @@
 | Admin alerts page — real API (no mock data) | `bafb5db1` |
 | `GET /api/alerts/` + `GET /api/alerts/stock-watches/count` | `bafb5db1` |
 | `run_back_order_monitor()` wired into lifespan | `bafb5db1` |
+| C-006: Settings billing period display | `506e9b6d` |
+| C-007: Annual renewal reminder email loop (30d before annual_renewal_at) | `506e9b6d` |
+| C-015: Paystack webhook activates SubscriptionAddon | `506e9b6d` |
+| C-018: Wallet bonus tier table + dynamic bonus preview | `506e9b6d` |
+| C-019: bonus_credits in-app notification | `506e9b6d` |
+| D-006/014/019: Notification center stock_available/rental_ready/rental_expiring types | `506e9b6d` |
+| D-007: send_stock_available_email() | `506e9b6d` |
+| D-010: create_reservation() back-order detection | `506e9b6d` |
+| D-013: Rentals page back-order state UI | `506e9b6d` |
+| D-015: send_rental_ready_email() | `506e9b6d` |
+| D-017/018: Rental 24h expiry warning loop (expiry_warned_at) | `506e9b6d` |
+| D-020: send_rental_expiring_email() | `506e9b6d` |
+| E-003: CI coverage batch 2 — 9 more test files, floor 30% | `506e9b6d` |
+| E-005: Integration tests promoted to blocking CI gate | `506e9b6d` |
+| E-006: wake_number=True in sms.incoming() | `506e9b6d` |
 
 ---
 
@@ -72,43 +87,11 @@
 
 ---
 
-### Sprint C — Revenue Features
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| C-006 | Settings page — show billing period (monthly/annual) per user | `templates/settings.html` | 30 min |
-| C-007 | Renewal reminder email 30 days before `annual_renewal_at` | `app/services/email_service.py`, `app/core/lifespan.py` | 30 min |
-| C-015 | Paystack webhook: activate `SubscriptionAddon` on successful add-on payment | `app/services/payment_service.py` | 30 min |
-| C-018 | Wallet top-up UI — bonus tier table + dynamic bonus display as user types | `templates/wallet.html` | 1h |
-| C-019 | `bonus_credits` in-app notification when bonus applied | `app/services/notification_service.py`, `app/services/payment_service.py` | 15 min |
-
----
-
-### Sprint D — Inventory Notifications
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| D-010 | `create_reservation()` — detect `back_order_reservations`, store `RentalBackOrder` | `app/services/textverified_service.py` | 1h |
-| D-013 | Rentals page — back-order state UI ("You're in the queue" + cancel) | `templates/rentals_modern.html` | 1h |
-| D-006 | Notification center — `stock_available` type handler | `templates/notification_center.html` | 30 min |
-| D-014 | Notification center — `rental_ready` type handler | `templates/notification_center.html` | 30 min |
-| D-019 | Notification center — `rental_expiring` type handler | `templates/notification_center.html` | 30 min |
-| D-007 | Email: `stock_available` user email | `app/services/email_service.py` | 30 min |
-| D-015 | Email: `rental_ready` user email | `app/services/email_service.py` | 30 min |
-| D-020 | Email: `rental_expiring` user email | `app/services/email_service.py` | 30 min |
-| D-017 | Expiry monitor — 24h warning using `expiry_warned_at` column | `app/workers/expiry_monitor.py` | 30 min |
-| D-018 | Wire `send_rental_expiry_digest()` call in expiry monitor | `app/workers/expiry_monitor.py` | 15 min |
-
----
-
 ### Sprint E — Ops & Infrastructure
 
 | ID | Task | File | Effort |
 |----|------|------|--------|
-| E-003 | CI coverage batch 2 — wire 9 more test files, raise floor to 30% | `.github/workflows/ci.yml` | 2h |
 | E-004 | Triage Python unit-test failures — download CI artifact, identify failing tests | CI artifacts | 1h |
-| E-005 | Promote integration tests to blocking CI gate | `.github/workflows/ci.yml` | 30 min — ⚠️ blocked on E-004 |
-| E-006 | `wake_number=True` for rental polling in `sms.incoming()` | `app/services/textverified_service.py` | 15 min |
 
 ---
 
@@ -140,11 +123,11 @@
 |--------|-------------|---------|-------------|-------------------|
 | A — Deploy & Fixes | 8 | 5 | 0 | 3 |
 | B — Verification Polish | 9 | 8 | 1 | 0 |
-| C — Revenue Features | 19 | 14 | 5 | 2 |
-| D — Inventory Notifications | 25 | 15 | 10 | 0 |
-| E — Ops & Infrastructure | 6 | 0 | 4 | 2 |
+| C — Revenue Features | 19 | 19 | 0 | 2 |
+| D — Inventory Notifications | 25 | 25 | 0 | 0 |
+| E — Ops & Infrastructure | 6 | 4 | 1 | 1 |
 | F — SDK Gaps | 4 | 3 | 1 | 0 |
-| **Total** | **71** | **45** | **21** | **7** |
+| **Total** | **71** | **64** | **3** | **6** |
 
 ---
 
