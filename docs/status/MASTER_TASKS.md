@@ -1,6 +1,6 @@
 # MASTER TASK FILE — VRENUM SMS
 
-**Updated**: November 2026 — synced to HEAD `506e9b6d`
+**Updated**: November 2026 — synced to HEAD `8b022c7d`
 **Authority**: Single source of truth. All other task files defer here.
 **Status key**: 📋 Not started | ✅ Done | ⚠️ Blocked (manual/external)
 
@@ -73,33 +73,19 @@
 | D-020: send_rental_expiring_email() | `506e9b6d` |
 | E-003: CI coverage batch 2 — 9 more test files, floor 30% | `506e9b6d` |
 | E-005: Integration tests promoted to blocking CI gate | `506e9b6d` |
-| E-006: wake_number=True in sms.incoming() | `506e9b6d` |
+| B-008/F-001: smsAndVoiceCombo — schema, pricing (+$0.50), TV capability, SSE, UI badge | `8b022c7d` |
 
 ---
 
 ## OPEN — CODE WORK
 
-### Sprint B — Verification Polish
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| B-008 | `smsAndVoiceCombo` capability — schema, pricing (+$0.50), picker badge, SSE pass-through | `schemas/verification.py`, `pricing_calculator.py`, `verification-flow.js` | 2h |
-
----
-
 ### Sprint E — Ops & Infrastructure
 
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| E-004 | Triage Python unit-test failures — download CI artifact, identify failing tests | CI artifacts | 1h |
+| ID | Task | Where | Notes |
+|----|------|-------|-------|
+| E-004 | Triage Python unit-test failures | CI artifacts (GitHub Actions) | Download `unit-test-output-*` artifact from last CI run, identify failing tests |
 
 ---
-
-### Sprint F — SDK
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| F-001 | `smsAndVoiceCombo` | See B-008 | — |
 
 ---
 
@@ -122,12 +108,12 @@
 | Sprint | Total tasks | ✅ Done | 📋 Open code | ⚠️ Manual/blocked |
 |--------|-------------|---------|-------------|-------------------|
 | A — Deploy & Fixes | 8 | 5 | 0 | 3 |
-| B — Verification Polish | 9 | 8 | 1 | 0 |
+| B — Verification Polish | 9 | 9 | 0 | 0 |
 | C — Revenue Features | 19 | 19 | 0 | 2 |
 | D — Inventory Notifications | 25 | 25 | 0 | 0 |
 | E — Ops & Infrastructure | 6 | 4 | 1 | 1 |
-| F — SDK Gaps | 4 | 3 | 1 | 0 |
-| **Total** | **71** | **64** | **3** | **6** |
+| F — SDK Gaps | 4 | 4 | 0 | 0 |
+| **Total** | **71** | **66** | **1** | **6** |
 
 ---
 
