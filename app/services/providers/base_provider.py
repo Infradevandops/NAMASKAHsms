@@ -77,9 +77,7 @@ class SMSProvider(ABC):
         ...
 
     @abstractmethod
-    async def check_messages(
-        self, order_id: str, created_after=None
-    ) -> List[MessageResult]:
+    async def check_messages(self, order_id: str, created_after=None) -> List[MessageResult]:
         """Check for received messages.
 
         Args:

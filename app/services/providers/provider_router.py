@@ -84,9 +84,7 @@ class ProviderRouter:
             "pvapins": self._get_pvapins(),
         }
 
-        enabled_map = {
-            name: adapter for name, adapter in provider_map.items() if adapter.enabled
-        }
+        enabled_map = {name: adapter for name, adapter in provider_map.items() if adapter.enabled}
 
         async def _safe_balance(name: str, adapter: SMSProvider) -> float:
             try:
@@ -147,9 +145,7 @@ class ProviderRouter:
                 return self._get_textverified(), bool(city), None
 
             # If unhealthy/degraded, don't return immediately, allow candidates to compete
-            logger.warning(
-                f"TextVerified US status is {metrics['status']}, evaluating alternatives..."
-            )
+            logger.warning(f"TextVerified US status is {metrics['status']}, evaluating alternatives...")
 
         # Gather enabled and capable providers
         if self._get_textverified().enabled:
@@ -174,17 +170,14 @@ class ProviderRouter:
         # ... [Scoring logic remains same for SMS]
         scored_candidates = []
         for name, adapter in candidates:
-            score = await scorer.calculate_provider_score(
-                service=service, country=country_upper, provider_name=name
-            )
+            score = await scorer.calculate_provider_score(service=service, country=country_upper, provider_name=name)
             scored_candidates.append((score, adapter, name))
 
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
         winner_score, winner_adapter, winner_name = scored_candidates[0]
 
         logger.info(
-            f"✓ Predictive Router selected {winner_name} (Score: {winner_score:.2f}) "
-            f"for {service}/{country_upper}"
+            f"✓ Predictive Router selected {winner_name} (Score: {winner_score:.2f}) " f"for {service}/{country_upper}"
         )
 
         # Handling city metadata
@@ -218,13 +211,9 @@ class ProviderRouter:
             codes = lookup(city)
             if codes:
                 resolved_area_code = codes[0]
-                logger.info(
-                    f"City '{city}' resolved to area codes {codes} for US request"
-                )
+                logger.info(f"City '{city}' resolved to area codes {codes} for US request")
             else:
-                logger.info(
-                    f"City '{city}' not in US map, proceeding without area code"
-                )
+                logger.info(f"City '{city}' not in US map, proceeding without area code")
 
         primary, city_attempted, pre_note = await self.get_provider(
             db, service, country, city, user_tier, capability=capability
@@ -276,9 +265,7 @@ class ProviderRouter:
                     result.city_note = f"Requested {city}, assigned nearby area"
 
             result.routing_reason = routing_reason
-            logger.info(
-                f"Purchase successful: {result.phone_number} via {primary.name}"
-            )
+            logger.info(f"Purchase successful: {result.phone_number} via {primary.name}")
             return result
 
         except ProviderError as e:
@@ -289,16 +276,10 @@ class ProviderRouter:
                 raise
 
             # Reroutable errors — try failover provider
-            if e.is_reroutable and getattr(
-                self._settings, "enable_provider_failover", True
-            ):
-                secondary = await self._get_failover_provider(
-                    db, primary, country, service, user_tier
-                )
+            if e.is_reroutable and getattr(self._settings, "enable_provider_failover", True):
+                secondary = await self._get_failover_provider(db, primary, country, service, user_tier)
                 if secondary:
-                    logger.warning(
-                        f"Failing over from {primary.name} to {secondary.name}"
-                    )
+                    logger.warning(f"Failing over from {primary.name} to {secondary.name}")
                     try:
                         # Re-build kwargs for secondary (might be a different provider type)
                         secondary_kwargs = {
@@ -310,26 +291,18 @@ class ProviderRouter:
                             "city": city_for_provider,
                         }
                         if secondary.name == "textverified":
-                            secondary_kwargs["selected_from_alternatives"] = (
-                                selected_from_alternatives
-                            )
+                            secondary_kwargs["selected_from_alternatives"] = selected_from_alternatives
                             secondary_kwargs["original_request"] = original_request
 
                         result = await secondary.purchase_number(**secondary_kwargs)
                         if pre_note and not result.city_note:
                             result.city_honoured = False
                             result.city_note = pre_note
-                        result.routing_reason = (
-                            f"failover {primary.name}->{secondary.name}"
-                        )
-                        logger.info(
-                            f"Failover successful: {result.phone_number} via {secondary.name}"
-                        )
+                        result.routing_reason = f"failover {primary.name}->{secondary.name}"
+                        logger.info(f"Failover successful: {result.phone_number} via {secondary.name}")
                         return result
                     except ProviderError as fe:
-                        logger.error(
-                            f"Failover provider {secondary.name} also failed [{fe.category}]: {fe.internal}"
-                        )
+                        logger.error(f"Failover provider {secondary.name} also failed [{fe.category}]: {fe.internal}")
             # All options exhausted
             raise ProviderError(
                 "all_providers_failed",
@@ -357,11 +330,7 @@ class ProviderRouter:
         if self._get_telnyx().enabled and failed_provider.name != "telnyx":
             if user_tier in ("pro", "custom"):
                 candidates.append(("telnyx", self._get_telnyx()))
-        if (
-            self._get_pvapins().enabled
-            and failed_provider.name != "pvapins"
-            and self._pvapins_covers(country_upper)
-        ):
+        if self._get_pvapins().enabled and failed_provider.name != "pvapins" and self._pvapins_covers(country_upper):
             candidates.append(("pvapins", self._get_pvapins()))
 
         if not candidates:
@@ -370,18 +339,14 @@ class ProviderRouter:
         # Score remaining candidates
         scored_candidates = []
         for name, adapter in candidates:
-            score = await scorer.calculate_provider_score(
-                service=service, country=country_upper, provider_name=name
-            )
+            score = await scorer.calculate_provider_score(service=service, country=country_upper, provider_name=name)
             scored_candidates.append((score, adapter, name))
 
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
 
         # We only failover to 'Healthy' enough providers in Phase 12
         if scored_candidates[0][0] < 0.3:  # Threshold for failover viability
-            logger.warning(
-                f"No viable failover candidates for {country_upper} (best score {scored_candidates[0][0]})"
-            )
+            logger.warning(f"No viable failover candidates for {country_upper} (best score {scored_candidates[0][0]})")
             return None
 
         return scored_candidates[0][1]

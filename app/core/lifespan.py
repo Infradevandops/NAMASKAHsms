@@ -55,9 +55,7 @@ async def lifespan(app):
             await asyncio.wait_for(cache.connect(), timeout=10.0)
             startup_logger.info("Unified cache initialized")
         except asyncio.TimeoutError:
-            startup_logger.warning(
-                "Cache connection timeout - continuing without cache"
-            )
+            startup_logger.warning("Cache connection timeout - continuing without cache")
         except Exception as e:
             startup_logger.warning(f"Cache initialization failed: {e}")
 
@@ -92,14 +90,10 @@ async def lifespan(app):
                     await asyncio.wait_for(refresh_stock_cache(), timeout=10.0)
                     startup_logger.info("Stock cache warmed at startup")
                 except Exception as stock_err:
-                    startup_logger.warning(
-                        f"Stock cache warm failed (non-critical): {stock_err}"
-                    )
+                    startup_logger.warning(f"Stock cache warm failed (non-critical): {stock_err}")
                 startup_logger.info("Cache pre-warming completed")
             except asyncio.TimeoutError:
-                startup_logger.warning(
-                    "Cache pre-warming timed out (will retry on next request)"
-                )
+                startup_logger.warning("Cache pre-warming timed out (will retry on next request)")
             except Exception as e:
                 startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
 
@@ -125,29 +119,21 @@ async def lifespan(app):
                 asyncio.create_task(refund_policy_enforcer.start_enforcement())
                 startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
             except Exception as e:
-                startup_logger.warning(
-                    f"⚠️  Refund policy enforcer failed to start: {e}"
-                )
+                startup_logger.warning(f"⚠️  Refund policy enforcer failed to start: {e}")
                 # Continue startup even if enforcer fails
 
             # Start institutional health audit loop (V6.0 Mastery)
-            from app.services.providers.provider_health_check import (
-                start_health_audit_loop,
-            )
+            from app.services.providers.provider_health_check import start_health_audit_loop
 
             asyncio.create_task(start_health_audit_loop())
-            startup_logger.info(
-                "✅ Institutional health audit loop started (every 4 hours)"
-            )
+            startup_logger.info("✅ Institutional health audit loop started (every 4 hours)")
 
             # Start daily growth snapshot loop (Institutional Mastery)
             async def start_daily_snapshot_loop():
                 while True:
                     try:
                         from app.core.database import get_session_local
-                        from app.services.target_tracking_service import (
-                            TargetTrackingService,
-                        )
+                        from app.services.target_tracking_service import TargetTrackingService
 
                         # Use sync session correctly
                         SessionLocal = get_session_local()
@@ -195,9 +181,7 @@ async def lifespan(app):
                                 r.released_at = now
                             if expired:
                                 db.commit()
-                                startup_logger.info(
-                                    f"Marked {len(expired)} rental(s) as expired"
-                                )
+                                startup_logger.info(f"Marked {len(expired)} rental(s) as expired")
 
                             # Send expiry warnings (1hr window)
                             from datetime import timedelta
@@ -215,9 +199,7 @@ async def lifespan(app):
                             )
                             for r in expiring_soon:
                                 try:
-                                    from app.services.notification_dispatcher import (
-                                        NotificationDispatcher,
-                                    )
+                                    from app.services.notification_dispatcher import NotificationDispatcher
 
                                     dispatcher = NotificationDispatcher(db)
                                     await dispatcher.send_notification(
@@ -266,18 +248,12 @@ async def lifespan(app):
                             )
                             for p in stale:
                                 p.state = "abandoned"
-                                tx = (
-                                    db.query(Transaction)
-                                    .filter(Transaction.reference == p.reference)
-                                    .first()
-                                )
+                                tx = db.query(Transaction).filter(Transaction.reference == p.reference).first()
                                 if tx and tx.status == "pending":
                                     tx.status = "abandoned"
                             if stale:
                                 db.commit()
-                                startup_logger.info(
-                                    f"Marked {len(stale)} abandoned Paystack checkout(s)"
-                                )
+                                startup_logger.info(f"Marked {len(stale)} abandoned Paystack checkout(s)")
                     except Exception as e:
                         startup_logger.error(f"Abandoned payment cleanup error: {e}")
                     await asyncio.sleep(3600)  # hourly
@@ -363,24 +339,18 @@ async def lifespan(app):
                                             user.email, notifs, stats, user_name=name
                                         )
                                     else:
-                                        await email_service.send_daily_digest_email(
-                                            user.email, notifs, user_name=name
-                                        )
+                                        await email_service.send_daily_digest_email(user.email, notifs, user_name=name)
                                 except Exception as ue:
-                                    startup_logger.warning(
-                                        f"Digest failed for {user.id}: {ue}"
-                                    )
+                                    startup_logger.warning(f"Digest failed for {user.id}: {ue}")
                     except Exception as e:
                         startup_logger.error(f"Digest scheduler error: {e}")
                     # Loop back — next sleep calculated at top
 
             asyncio.create_task(start_digest_scheduler())
-            startup_logger.info(
-                "✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)"
-            )
+            startup_logger.info("✅ Digest email scheduler started (daily 08:00 UTC, weekly Mon)")
 
-            from app.services.stock_monitor import run_stock_monitor
             from app.services.email_outbox_worker import run_outbox_worker
+            from app.services.stock_monitor import run_stock_monitor
             from app.workers.back_order_monitor import run_back_order_monitor
 
             asyncio.create_task(run_stock_monitor())
@@ -397,19 +367,25 @@ async def lifespan(app):
                 while True:
                     try:
                         from datetime import timedelta
+
                         from app.core.database import SessionLocal
                         from app.models.user import User
                         from app.services.email_service import email_service
+
                         now = datetime.now(timezone.utc)
                         window_start = now + timedelta(days=29)
                         window_end = now + timedelta(days=31)
                         with SessionLocal() as db:
-                            users = db.query(User).filter(
-                                User.annual_renewal_at >= window_start,
-                                User.annual_renewal_at <= window_end,
-                                User.billing_period == "annual",
-                                User.is_active.is_(True),
-                            ).all()
+                            users = (
+                                db.query(User)
+                                .filter(
+                                    User.annual_renewal_at >= window_start,
+                                    User.annual_renewal_at <= window_end,
+                                    User.billing_period == "annual",
+                                    User.is_active.is_(True),
+                                )
+                                .all()
+                            )
                             for u in users:
                                 try:
                                     await email_service.send_annual_renewal_reminder_email(
@@ -432,19 +408,25 @@ async def lifespan(app):
                 while True:
                     try:
                         from datetime import timedelta
+
                         from app.core.database import SessionLocal
                         from app.models.verification import NumberRental
                         from app.services.email_service import email_service
                         from app.services.notification_service import NotificationService
+
                         now = datetime.now(timezone.utc)
                         warning_at = now + timedelta(hours=24)
                         with SessionLocal() as db:
-                            expiring = db.query(NumberRental).filter(
-                                NumberRental.status == "active",
-                                NumberRental.expires_at <= warning_at,
-                                NumberRental.expires_at > now,
-                                NumberRental.expiry_warned_at.is_(None),
-                            ).all()
+                            expiring = (
+                                db.query(NumberRental)
+                                .filter(
+                                    NumberRental.status == "active",
+                                    NumberRental.expires_at <= warning_at,
+                                    NumberRental.expires_at > now,
+                                    NumberRental.expiry_warned_at.is_(None),
+                                )
+                                .all()
+                            )
                             for r in expiring:
                                 try:
                                     hours_left = (r.expires_at - now).total_seconds() / 3600
@@ -458,6 +440,7 @@ async def lifespan(app):
                                     )
                                     # D-020: email
                                     from app.models.user import User
+
                                     u = db.query(User).filter(User.id == r.user_id).first()
                                     if u:
                                         await email_service.send_rental_expiring_email(
@@ -489,13 +472,8 @@ async def lifespan(app):
                     await asyncio.sleep(23 * 3600)
                     try:
                         from app.core.unified_cache import cache as _cache
-                        from app.services.textverified_service import (
-                            _AC_STATE_CACHE_KEY,
-                            _AREA_CODES_CACHE_KEY,
-                        )
-                        from app.services.textverified_service import (
-                            TextVerifiedService as _TVS,
-                        )
+                        from app.services.textverified_service import _AC_STATE_CACHE_KEY, _AREA_CODES_CACHE_KEY
+                        from app.services.textverified_service import TextVerifiedService as _TVS
 
                         tv = _TVS()
                         if tv.enabled:
@@ -503,9 +481,7 @@ async def lifespan(app):
                             await _cache.set(_AC_STATE_CACHE_KEY, None, 1)
                             await tv.get_area_codes_list()
                             await tv._get_area_codes_by_state()
-                            startup_logger.info(
-                                "✅ Area code cache refreshed (23h loop)"
-                            )
+                            startup_logger.info("✅ Area code cache refreshed (23h loop)")
                     except Exception as e:
                         startup_logger.warning(f"Area code refresh failed: {e}")
 
@@ -525,9 +501,7 @@ async def lifespan(app):
                         await asyncio.sleep((target - now).total_seconds())
 
                         from app.core.database import SessionLocal
-                        from app.services.provider_settlement_service import (
-                            ProviderSettlementService,
-                        )
+                        from app.services.provider_settlement_service import ProviderSettlementService
 
                         with SessionLocal() as db:
                             svc = ProviderSettlementService(db)
@@ -541,9 +515,7 @@ async def lifespan(app):
                     await asyncio.sleep(3600)  # retry after 1h on error
 
             asyncio.create_task(start_margin_reconciliation_loop())
-            startup_logger.info(
-                "✅ TV margin reconciliation started (weekly Monday 09:00 UTC)"
-            )
+            startup_logger.info("✅ TV margin reconciliation started (weekly Monday 09:00 UTC)")
 
             # Month-end revenue target alert (last day of month 20:00 UTC)
             async def start_month_end_target_loop():
@@ -555,41 +527,29 @@ async def lifespan(app):
                         now = datetime.now(timezone.utc)
                         # Last day of current month at 20:00 UTC
                         last_day = calendar.monthrange(now.year, now.month)[1]
-                        target = now.replace(
-                            day=last_day, hour=20, minute=0, second=0, microsecond=0
-                        )
+                        target = now.replace(day=last_day, hour=20, minute=0, second=0, microsecond=0)
                         if now >= target:
                             # Already past — aim for next month's last day
                             next_month = now.replace(day=1) + timedelta(days=32)
-                            last_day = calendar.monthrange(
-                                next_month.year, next_month.month
-                            )[1]
-                            target = next_month.replace(
-                                day=last_day, hour=20, minute=0, second=0, microsecond=0
-                            )
+                            last_day = calendar.monthrange(next_month.year, next_month.month)[1]
+                            target = next_month.replace(day=last_day, hour=20, minute=0, second=0, microsecond=0)
                         await asyncio.sleep((target - now).total_seconds())
 
                         from app.core.database import get_session_local
-                        from app.services.target_tracking_service import (
-                            TargetTrackingService,
-                        )
+                        from app.services.target_tracking_service import TargetTrackingService
 
                         SessionLocal = get_session_local()
                         with SessionLocal() as db:
                             svc = TargetTrackingService(db)
                             fired = await svc.check_month_end_target()
                             if fired:
-                                startup_logger.warning(
-                                    "🚨 Month-end revenue target alert fired"
-                                )
+                                startup_logger.warning("🚨 Month-end revenue target alert fired")
                     except Exception as e:
                         startup_logger.error(f"Month-end target check error: {e}")
                     await asyncio.sleep(3600)  # retry after 1h on error
 
             asyncio.create_task(start_month_end_target_loop())
-            startup_logger.info(
-                "✅ Month-end revenue target alert started (last day of month 20:00 UTC)"
-            )
+            startup_logger.info("✅ Month-end revenue target alert started (last day of month 20:00 UTC)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 
