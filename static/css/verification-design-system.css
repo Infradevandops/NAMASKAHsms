@@ -1364,6 +1364,42 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 /* ============================================
+   ORBIT ARC SPINNER (H-001)
+   ============================================ */
+
+@keyframes orbit-arc {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.orbit-wrapper {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 24px;
+}
+
+.orbit-arc {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-top-color: #3b82f6;
+    border-right-color: #3b82f6;
+    animation: orbit-arc 1.2s linear infinite;
+}
+
+.orbit-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8f0fe;
+    border-radius: 50%;
+}
+
+/* ============================================
    RADAR/SCANNING ANIMATION FOR SMS POLLING
    ============================================ */
 .radar-pulse-ring {

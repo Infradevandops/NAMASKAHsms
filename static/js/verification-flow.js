@@ -43,11 +43,97 @@ function _getStockDot(serviceSlug) {
         + `</span>`;
 }
 
+// ============================================================
+// H-001: TV message sequence
+// ============================================================
+const _TV_MESSAGES = [
+    { h: 'Searching for unused numbers',                            s: 'Filtering out recently recycled numbers' },
+    { h: 'Searching for unused numbers',                            s: 'Verifying immediate number pool availability' },
+    { h: 'Searching for unused numbers',                            s: 'Scanning number blocks for unused SIM' },
+    { h: 'This service is experiencing high demand',                s: 'Estimating current queue length' },
+    { h: 'This service is experiencing high demand',                s: 'Reserving your place in queue' },
+    { h: 'This service is experiencing high demand',                s: 'We appreciate your patience' },
+    { h: 'Checking major carrier networks',                         s: 'Measuring latency and connection strength' },
+    { h: 'Checking major carrier networks',                         s: 'Pinging AT&T • T-Mobile • Verizon' },
+    { h: 'Checking current line availability for selected service', s: 'Initiating...' },
+    { h: 'Checking current line availability for selected service', s: 'Connecting to cellular network' },
+    { h: 'Checking current line availability for selected service', s: 'Connected!' },
+];
+let _msgIdx = 0, _msgTimer = null;
+function startPurchaseMessages(serviceLabel) {
+    const titleEl = document.getElementById('loading-service-title');
+    if (titleEl && serviceLabel) titleEl.textContent = serviceLabel;
+    _msgIdx = 0; _rotatePurchaseMsg();
+    _msgTimer = setInterval(_rotatePurchaseMsg, 3000);
+}
+function _rotatePurchaseMsg() {
+    const msg = _TV_MESSAGES[_msgIdx % _TV_MESSAGES.length];
+    const h = document.getElementById('purchase-loading-headline');
+    const s = document.getElementById('purchase-loading-subtitle');
+    if (h && s) {
+        h.style.opacity = '0'; s.style.opacity = '0';
+        setTimeout(() => { h.textContent = msg.h; s.textContent = msg.s; h.style.opacity = '1'; s.style.opacity = '1'; }, 300);
+    }
+    _msgIdx++;
+}
+function stopPurchaseMessages() { clearInterval(_msgTimer); }
+
+// H-002: carrier map + countdown
+const _AC_CARRIER_MAP = { '702':'att','213':'att','310':'att','404':'att','214':'att','312':'att','713':'att','212':'tmobile','646':'tmobile','917':'tmobile','347':'tmobile','718':'tmobile','617':'verizon','781':'verizon','508':'verizon','415':'verizon' };
+const _CARRIER_ICONS = { att:'🔵', tmobile:'💗', verizon:'🔴', generic:'📶' };
+function _getCarrierEmoji(ac) { return _CARRIER_ICONS[_AC_CARRIER_MAP[ac] || 'generic'] || '📶'; }
+function startCountdown(endsAtIso) {
+    clearInterval(VerificationFlow._countdownTimer);
+    const endsAt = new Date(endsAtIso).getTime();
+    const tick = () => {
+        const rem = Math.max(0, endsAt - Date.now());
+        const el = document.getElementById('time-left-display');
+        if (el) el.textContent = String(Math.floor(rem/60000)).padStart(2,'0') + ':' + String(Math.floor((rem%60000)/1000)).padStart(2,'0');
+        if (rem <= 0) { clearInterval(VerificationFlow._countdownTimer); stopPolling(); window.toast && window.toast.error('Verification timed out.'); goBack(); }
+    };
+    tick(); VerificationFlow._countdownTimer = setInterval(tick, 1000);
+}
+
+// H-003: activity feed
+const _SCAN_MSGS = ['Polling carrier network...','Listening for incoming SMS...','Scanning AT&T network...','Scanning T-Mobile network...','Checking for new messages...','Waiting for verification code...','Monitoring number activity...','Network scan in progress...','Awaiting SMS delivery...','Checking message queue...'];
+function addActivityEntry(text, isConfirmed) {
+    const feed = document.getElementById('activity-feed');
+    if (!feed) return;
+    const entry = document.createElement('div');
+    entry.style.cssText = 'padding:3px 0;opacity:0;transition:opacity 0.4s;display:flex;gap:8px;align-items:center;';
+    entry.innerHTML = '<span style="color:' + (isConfirmed ? '#22c55e' : '#3b82f6') + ';">' + (isConfirmed ? '✓' : '⟳') + '</span> ' + text;
+    feed.appendChild(entry);
+    setTimeout(() => { entry.style.opacity = '1'; }, 50);
+    while (feed.children.length > 4) { const old = feed.children[0]; old.style.opacity = '0'; setTimeout(() => old.remove(), 400); }
+}
+function startActivityFeed(phoneNumber) {
+    addActivityEntry('Number secured: ' + phoneNumber, true);
+    let i = 0;
+    VerificationFlow._activityTimer = setInterval(() => { addActivityEntry(_SCAN_MSGS[i % _SCAN_MSGS.length], false); i++; }, 3000);
+}
+function stopActivityFeed() { clearInterval(VerificationFlow._activityTimer); addActivityEntry('SMS code received!', true); }
+
+// H-002: reuse countdown button
+function startReuseCountdown(reusableUntilIso, fee) {
+    const btn = document.getElementById('reuse-countdown-btn');
+    const span = document.getElementById('reuse-countdown');
+    if (!btn || !span) return;
+    const endsAt = new Date(reusableUntilIso).getTime();
+    btn.style.display = 'block';
+    const tick = () => {
+        const rem = Math.max(0, endsAt - Date.now());
+        span.textContent = Math.floor(rem/60000) + ':' + String(Math.floor((rem%60000)/1000)).padStart(2,'0');
+        if (rem <= 0) { clearInterval(VerificationFlow._reuseTimer); btn.style.display = 'none'; }
+    };
+    tick(); VerificationFlow._reuseTimer = setInterval(tick, 1000);
+}
+
 function chooseMethod(method) {
     if (method === 'voice') {
         window.location.href = '/voice-verify';
         return;
     }
+    VerificationFlow.selectedCapability = method === 'combo' ? 'sms_and_voice' : 'sms';
     // SMS — show progress + step 1
     document.getElementById('step-0-card').style.display = 'none';
     document.getElementById('progress-indicator').style.display = 'block';
@@ -803,9 +889,12 @@ async function createVerification() {
     if (loadingCard) loadingCard.style.display = 'block';
     const iconEl = document.getElementById('loading-service-icon');
     if (iconEl) iconEl.src = _getServiceIcon(serviceId);
+    // H-001: start TV message rotation
+    const _svcLabelLoad = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
+    startPurchaseMessages(_svcLabelLoad);
 
     function updateLoadingMessage(msg) {
-        const el = document.getElementById('purchase-loading-message');
+        const el = document.getElementById('purchase-loading-headline');
         if (el) el.textContent = msg;
     }
     function hideCancelButton() {
@@ -813,6 +902,7 @@ async function createVerification() {
         if (btn) btn.style.display = 'none';
     }
     function hidePurchaseLoadingState() {
+        stopPurchaseMessages();
         if (loadingCard) loadingCard.style.display = 'none';
     }
 
@@ -868,19 +958,20 @@ async function createVerification() {
                         updateLoadingMessage('Checking your balance...');
                         break;
                     case 'purchasing':
-                        // Cancel still allowed here — charge has NOT committed yet
                         updateLoadingMessage('Securing your number...');
-                        // Show "still working" message if TV takes longer than 10s
-                        VerificationFlow._purchasingTimer = setTimeout(() => {
-                            updateLoadingMessage('Still working — this can take up to 30 seconds...');
-                        }, 10000);
+                        break;
+                    case 'purchasing_delayed':
+                        stopPurchaseMessages();
+                        { const _cb = document.getElementById('purchase-cancel-btn'); if (_cb) _cb.style.display = 'none'; }
+                        { const _hl = document.getElementById('purchase-loading-headline'); if (_hl) _hl.textContent = 'This service is experiencing high demand'; }
+                        { const _sl2 = document.getElementById('purchase-loading-subtitle'); if (_sl2) _sl2.textContent = 'Please do not close this tab'; }
                         break;
                     case 'recording':
                         updateLoadingMessage('Almost done...');
                         break;
                     case 'complete':
                         clearTimeout(VerificationFlow._purchasingTimer);
-                        hideCancelButton(); // charge committed — swap to post-charge cancel
+                        hideCancelButton();
                         hidePurchaseLoadingState();
                         VerificationFlow.verificationId = event.verification_id;
                         VerificationFlow.createdAt = event.created_at || new Date().toISOString();
@@ -891,9 +982,14 @@ async function createVerification() {
                         localStorage.setItem('active_verification_id', event.verification_id);
                         document.getElementById('phone-number').textContent = formatPhone(event.phone_number);
                         document.getElementById('display-verification-id').textContent = event.verification_id || '-';
-                        const _svcLabel = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
-                        document.getElementById('scanning-service-name').textContent = _svcLabel;
+                        { const _sl3 = (_modalItems['service'] || []).find(i => i.value === serviceId)?.label || serviceId;
+                          document.getElementById('scanning-service-name').textContent = _sl3; }
+                        { const _ac = event.assigned_area_code || '';
+                          const _pl = document.querySelector('.phone-label');
+                          if (_pl && _ac) _pl.textContent = _getCarrierEmoji(_ac) + ' ' + _ac + ' area'; }
+                        if (event.ends_at) startCountdown(event.ends_at);
                         updateProgress(3);
+                        startActivityFeed(event.phone_number);
                         startPolling();
                         if (event.fallback_applied) {
                             showFallbackWarning(event.requested_area_code, event.assigned_area_code, true);
@@ -903,8 +999,9 @@ async function createVerification() {
                         return;
                     case 'failed':
                         clearTimeout(VerificationFlow._purchasingTimer);
+                        stopPurchaseMessages();
                         hidePurchaseLoadingState();
-                        localStorage.removeItem('active_verification_id'); // prevent orphan recovery
+                        localStorage.removeItem('active_verification_id');
                         document.getElementById('step-2-card').style.display = 'block';
                         if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
                         const msg = event.message || 'Failed to create verification';
@@ -938,6 +1035,7 @@ function cancelPurchase() {
         VerificationFlow._streamAbort = null;
     }
     clearTimeout(VerificationFlow._purchasingTimer);
+    stopPurchaseMessages();
     localStorage.removeItem('active_verification_id');
     const loadingCard = document.getElementById('purchase-loading-card');
     if (loadingCard) loadingCard.style.display = 'none';
@@ -966,13 +1064,18 @@ function handleWebSocketSmsReceived(message) {
         message.verification_id === VerificationFlow.verificationId
     ) {
         stopPolling();
+        stopActivityFeed();
         VerificationFlow.smsReceived = true;
 
         document.getElementById('sms-code').textContent = message.sms_code || '------';
         document.getElementById('code-received').style.display = 'block';
         const scanContainer = document.querySelector('.scanning-container');
         if (scanContainer) scanContainer.style.display = 'none';
-
+        if (message.sms_text) {
+            const _box = document.getElementById('sms-full-text-box');
+            const _txt = document.getElementById('sms-full-text');
+            if (_box && _txt) { _txt.textContent = message.sms_text; _box.style.display = 'block'; }
+        }
         document.getElementById('receipt-carrier').textContent = 'Auto';
         document.getElementById('receipt-area-code').textContent = 'Any';
 
@@ -994,6 +1097,7 @@ document.addEventListener('ws:message', (e) => {
     // REV-002 / OPEN-3: reuse available banner
     if (e.detail && e.detail.type === 'reuse_available') {
         showReuseBanner(e.detail);
+        startReuseCountdown(e.detail.reusable_until, e.detail.fee);
     }
 });
 
@@ -1097,11 +1201,16 @@ function startPolling() {
                 if ((data.status === 'completed' || data.status === 'success') && data.sms_code) {
                     VerificationFlow.smsReceived = true;
                     stopPolling();
+                    stopActivityFeed();
 
                     document.getElementById('sms-code').textContent = data.sms_code;
                     document.getElementById('code-received').style.display = 'block';
                     document.querySelector('.scanning-container').style.display = 'none';
-
+                    if (data.sms_text) {
+                        const _box2 = document.getElementById('sms-full-text-box');
+                        const _txt2 = document.getElementById('sms-full-text');
+                        if (_box2 && _txt2) { _txt2.textContent = data.sms_text; _box2.style.display = 'block'; }
+                    }
                     document.getElementById('receipt-carrier').textContent = data.assigned_carrier || data.operator || 'Auto';
                     document.getElementById('receipt-area-code').textContent = data.assigned_area_code || 'Any';
 

@@ -49,7 +49,7 @@
     <div class="verification-card" id="step-0-card">
         <h2>Choose Verification Method</h2>
         <p style="color:var(--text-muted,#6b7280);margin-bottom:24px;">How would you like to receive your code?</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <button type="button" onclick="chooseMethod('sms')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 16px;background:#fff;border:2px solid #e5e7eb;border-radius:14px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;" onmouseover="this.style.borderColor='#FE3C72';this.style.boxShadow='0 0 0 3px rgba(254,60,114,0.1)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
                 <span style="font-size:36px;">📱</span>
                 <span style="font-size:16px;font-weight:700;color:#111827;">SMS</span>
@@ -59,6 +59,12 @@
                 <span style="font-size:36px;">📞</span>
                 <span style="font-size:16px;font-weight:700;color:#111827;">Voice Call</span>
                 <span style="font-size:12px;color:#6b7280;">2–5 minutes</span>
+            </button>
+            <button type="button" onclick="chooseMethod('combo')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px 16px;background:#fff;border:2px solid #e5e7eb;border-radius:14px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;position:relative;" onmouseover="this.style.borderColor='#0ea5e9';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'" onmouseout="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                <span style="font-size:36px;">📱📞</span>
+                <span style="font-size:16px;font-weight:700;color:#111827;">SMS + Voice</span>
+                <span style="font-size:12px;color:#6b7280;">Best coverage</span>
+                <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:600;">+$0.50</span>
             </button>
         </div>
         <div style="margin-top:20px;">
@@ -176,15 +182,19 @@
     <!-- Immersive Modal Container (Task 3) -->
     <div id="immersive-modal-container"></div>
 
-    <!-- Purchase Loading State (shown during SSE stream, between step 2 and step 3) -->
-    <div class="verification-card" id="purchase-loading-card" style="display:none; text-align:center; padding:40px 24px;">
-        <div style="margin-bottom:16px;">
-            <img id="loading-service-icon" src="" style="width:64px;height:64px;border-radius:12px;" onerror="this.style.display='none'">
+    <!-- Purchase Loading State (H-001: dark card + arc spinner + TV message sequence) -->
+    <div id="purchase-loading-card" style="display:none;text-align:center;padding:32px 24px;background:#0f172a;color:#fff;border-radius:20px;margin-bottom:16px;">
+        <div style="font-size:20px;font-weight:800;margin-bottom:24px;" id="loading-service-title">Verifying</div>
+        <div class="orbit-wrapper">
+            <div class="orbit-arc"></div>
+            <div class="orbit-icon">
+                <img id="loading-service-icon" src="" onerror="this.style.display='none'" style="width:52px;height:52px;border-radius:10px;">
+            </div>
         </div>
-        <div class="scanning-text" id="purchase-loading-message" style="font-size:15px;font-weight:600;color:#374151;margin-bottom:24px;">Confirming availability...</div>
-        <div style="width:48px;height:48px;border:3px solid rgba(254,60,114,0.2);border-top-color:#FE3C72;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 24px;"></div>
-        <button id="purchase-cancel-btn" class="btn btn-secondary" style="width:100%;" onclick="cancelPurchase()">
-            Cancel (you will not be charged)
+        <div id="purchase-loading-headline" style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:8px;min-height:48px;transition:opacity 0.3s;">Searching for unused numbers</div>
+        <div id="purchase-loading-subtitle" style="font-size:14px;color:#94a3b8;margin-bottom:28px;min-height:40px;transition:opacity 0.3s;">Filtering out recently recycled numbers</div>
+        <button id="purchase-cancel-btn" onclick="cancelPurchase()" style="width:100%;padding:14px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#cbd5e1;font-size:14px;font-weight:600;cursor:pointer;">
+            Cancel (You will not be charged)
         </button>
     </div>
 
@@ -245,21 +255,15 @@
             </div>
         </div>
 
-        <!-- Scanning Animation -->
+        <!-- Scanning Animation (H-003: activity feed replaces radar pulse) -->
         <div class="scanning-container" id="scanning-container">
-            <div class="radar-pulse-ring">
-                <div style="font-size: 28px; z-index: 2;">📡</div>
+            <div style="background:#1e3a5f;border:1px solid #1d4ed8;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#93c5fd;text-align:left;">
+                ℹ Waiting to receive an SMS. Services may take multiple attempts to succeed.
             </div>
-            <div>
-                <div class="scanning-text" id="scanning-text-state">Establishing secure connection...</div>
-                <div class="scanning-service" id="scanning-service-name"></div>
-            </div>
+            <div id="activity-feed" style="text-align:left;font-size:13px;color:#94a3b8;max-height:120px;overflow:hidden;margin-bottom:16px;"></div>
+            <div class="scanning-service" id="scanning-service-name" style="font-size:13px;color:#6b7280;margin-bottom:8px;"></div>
             <div class="scanning-time">
-                <strong><span id="elapsed-time">0</span>s</strong> elapsed &nbsp;·&nbsp;
-                <span id="progress-remaining">~120s remaining</span>
-            </div>
-            <div id="progress-info" style="display:none;">
-                <span id="progress-elapsed"></span>
+                <strong id="time-left-display">--:--</strong> remaining
             </div>
             <div class="scanning-progress">
                 <div class="scanning-progress-bar" id="scanning-progress-bar"></div>
@@ -277,6 +281,15 @@
                 <button class="copy-code-btn" id="copy-code-btn" onclick="copySMSCode()" aria-label="Copy SMS code to clipboard">
                     <span id="copy-code-icon"></span>
                     <span id="copy-code-text">Copy Code</span>
+                </button>
+                <!-- Full raw SMS (H-002) -->
+                <div id="sms-full-text-box" style="display:none;margin-top:12px;background:#1e293b;border-radius:8px;padding:12px 16px;text-align:left;">
+                    <div style="font-size:11px;color:#64748b;margin-bottom:6px;">Full message</div>
+                    <div id="sms-full-text" style="font-size:13px;color:#e2e8f0;word-break:break-word;font-family:monospace;line-height:1.5;"></div>
+                </div>
+                <!-- Reuse button with countdown (H-002) -->
+                <button id="reuse-countdown-btn" style="display:none;width:100%;margin-top:12px;padding:12px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#93c5fd;font-size:14px;font-weight:600;cursor:pointer;" onclick="openReuseModal(VerificationFlow.verificationId)">
+                    Use again for $0.25 (<span id="reuse-countdown">0:47</span>)
                 </button>
                 <div class="auto-copy-row">
                     <span class="auto-copy-label">Auto-copy on arrival</span>
