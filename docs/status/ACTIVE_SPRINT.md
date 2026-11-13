@@ -23,45 +23,19 @@ Action      : git pull origin main before any code work
 |--------|-------|------|-----------|----------------|
 | A — Deploy & Fixes | Server deploy, email tests, Telegram E2E | 5/8 | 0 | 3 |
 | B–F — Platform features | All 63 feature tasks | 61/63 | 1 | 6 |
-| G — Provider Resilience | Timeout, orphan recon, circuit breaker | 0/6 | 6 | 0 |
-| H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 0/6 | 6 | 0 |
-| **Total** | | **66/83** | **13** | **9** |
+| G — Provider Resilience | Timeout, orphan recon, circuit breaker | 6/6 | 0 | 0 |
+| H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 6/6 | 0 | 0 |
+| **Total** | | **78/83** | **0** | **9** |
 
 ---
 
 ## OPEN CODE TASKS
-
-### P0 — Ship before next deploy (stops money leak)
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| G-001 | `asyncio.wait_for(timeout=12s)` on TV purchase call in SSE stream — yield `purchasing_delayed` on timeout, write Redis `purchase_pending:*` key | `app/api/verification/purchase_endpoints.py` | 30 min |
-| G-002 | SSE keepalive ping every 5s (prevents nginx dropping connection) | `purchase_endpoints.py` | 15 min |
-
-### P1 — Sprint G: Provider Resilience
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| G-003 | Orphan reconciliation worker — reads `purchase_pending:*` Redis keys, queries provider recent purchases, heals missing Verification rows, pushes WS `verification_ready` | `app/workers/orphan_reconciliation.py` (new) + `lifespan.py` | 2h |
-| G-004 | Provider contract: `PURCHASE_TIMEOUT_S=12`, `CANCEL_TIMEOUT_S=5`, `STATUS_TIMEOUT_S=8`, `MAX_PURCHASE_ATTEMPTS=1` on `SMSProvider` base class. Wrap `purchase_number()` in all 4 adapters | `app/services/providers/base_provider.py` + all adapters | 1h |
-| G-006 | Per-provider circuit breaker — 5 failures/60s → OPEN, 30s recovery. `ProviderRouter.get_provider()` skips OPEN providers | `app/services/providers/circuit_breaker.py` (new) + `provider_router.py` | 2h |
-
-### P1 — Sprint H: Purchase Flow UX
-
-| ID | Task | File | Effort |
-|----|------|------|--------|
-| H-001 | Purchase loading modal: dark card, arc-orbiting-icon spinner, exact TV 11-message sequence (4 phases) | `templates/verify_modern.html`, `verification-flow.js`, `verification-design-system.css` | 2.5h |
-| H-002 | Step 3: carrier icon from area code, MM:SS countdown from `ends_at`, full raw SMS text box, reuse button with cost + countdown | `templates/verify_modern.html`, `verification-flow.js` | 2h |
-| H-003 | Step 3 scanning: replace radar pulse with scrolling activity feed log (10-message pool, rotates every 3s, max 4 visible) | `templates/verify_modern.html`, `sms-polling-ui.css` | 1h |
-| H-004 | `purchasing_delayed` SSE state: hide cancel, switch to patience messages, pulse progress bar, "do not close tab" warning | `verification-flow.js` | 30 min |
-| H-006 | TV webhook auto-re-enable monitor (30 min loop) — TV auto-disables webhook after deploy downtime | `app/workers/webhook_health_monitor.py` (new) + `lifespan.py` | 1h |
 
 ### P2 — Polish
 
 | ID | Task | File | Effort |
 |----|------|------|--------|
 | G-005 | Vrenum public API contract doc — provider-agnostic verification/rental objects, SDK surface | `docs/engineering/VRENUM_API_CONTRACT.md` (new) | 2h doc |
-| H-005 | Step 0 method picker: add SMS+Voice Combo card (3-column grid, +$0.50 badge) | `templates/verify_modern.html` | 20 min |
 | E-004 | Triage CI unit-test failures — download `unit-test-output-*` artifact from GitHub Actions | CI artifacts | 1h |
 
 ---
