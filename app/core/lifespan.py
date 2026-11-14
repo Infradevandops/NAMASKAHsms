@@ -359,6 +359,14 @@ async def lifespan(app):
             asyncio.create_task(run_back_order_monitor())
             startup_logger.info("✅ Back-order monitor started (5-min interval)")
 
+            from app.workers.orphan_reconciliation import run_orphan_reconciliation
+            asyncio.create_task(run_orphan_reconciliation())
+            startup_logger.info("✅ Orphan reconciliation worker started (60s interval)")
+
+            from app.workers.webhook_health_monitor import run_webhook_health_monitor
+            asyncio.create_task(run_webhook_health_monitor())
+            startup_logger.info("✅ TV webhook health monitor started (30-min interval)")
+
             asyncio.create_task(run_outbox_worker())
             startup_logger.info("✅ Email outbox worker started")
 
