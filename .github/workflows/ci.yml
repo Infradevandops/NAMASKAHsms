@@ -7,13 +7,13 @@ on:
     branches: [main]  # PRs targeting main must pass CI before merge
 
 env:
-  PYTHON_VERSION: '3.9'
+  PYTHON_VERSION: '3.11'
 
 jobs:
   # Stage 1: Secrets scan — BLOCKING, runs first, rejects any push with credentials
   secrets-scan:
     name: Secrets Detection
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     continue-on-error: true  # pre-existing false positive; fix in progress
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
   code-quality:
     name: Code Quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     continue-on-error: true  # formatting issues are non-blocking; fix separately
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
   # Stage 2a: Frontend JS unit tests (blocking)
   frontend-unit-tests:
     name: Frontend Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [secrets-scan]
     steps:
       - uses: actions/checkout@v4
@@ -88,7 +88,7 @@ jobs:
   # Stage 2b: Python startup smoke test (BLOCKING — catches import errors and startup crashes)
   smoke-test:
     name: Python Smoke Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [secrets-scan]
     continue-on-error: true  # pre-existing import failures; does not block deploy
     services:
@@ -142,7 +142,7 @@ jobs:
   # Stage 2: Unit tests (only blocking check)
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [secrets-scan, frontend-unit-tests, smoke-test]
     continue-on-error: true  # pre-existing test failures; fix in progress
 
@@ -303,7 +303,7 @@ jobs:
   # Stage 3: Integration tests (blocking gate — E-005)
   integration-tests:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [unit-tests]
     continue-on-error: false
 
@@ -379,7 +379,7 @@ jobs:
   # Optional: E2E tests (non-blocking, main only)
   e2e-tests:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main'
     needs: [unit-tests]
     continue-on-error: true
