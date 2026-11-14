@@ -51,7 +51,7 @@ Action      : git pull origin main before any code work
 | C-010 | Create Paystack add-on plan (`PLAN_PAYG_API_ADDON` ₦16,500/mo) | Paystack dashboard |
 | E-001 | Upgrade Upstash Redis to pay-as-you-go | Upstash dashboard |
 | E-002 | TextVerified IP whitelist — submit server IP `169.255.57.146` | TV support ticket |
-| G-002b | Set nginx `proxy_read_timeout 30s` + `proxy_send_timeout 30s` | SSH nginx config |
+| G-002b | nginx SSE timeout — in-repo `deploy/nginx/nginx.conf`, deployed via `docker compose up --build` | ✅ in repo, deploys with A-001 |
 | H-006b | Verify TV webhook is still enabled after next deploy | TV API config page |
 
 ---
