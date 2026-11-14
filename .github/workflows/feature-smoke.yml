@@ -21,7 +21,7 @@ jobs:
       ADMIN_NOTIFY_EMAIL: ${{ secrets.ADMIN_NOTIFY_EMAIL }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Install test dependencies
         run: pip install httpx pytest pytest-asyncio
