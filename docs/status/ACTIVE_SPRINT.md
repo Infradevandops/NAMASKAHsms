@@ -25,7 +25,7 @@ Action      : git pull origin main before any code work
 | B–F — Platform features | All 63 feature tasks | 61/63 | 1 | 6 |
 | G — Provider Resilience | Timeout, orphan recon, circuit breaker | 6/6 | 0 | 0 |
 | H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 6/6 | 0 | 0 |
-| **Total** | | **78/83** | **0** | **9** |
+| **Total** | | **79/83** | **0** | **9** |
 
 ---
 
@@ -35,7 +35,7 @@ Action      : git pull origin main before any code work
 
 | ID | Task | File | Effort |
 |----|------|------|--------|
-| G-005 | Vrenum public API contract doc — provider-agnostic verification/rental objects, SDK surface | `docs/engineering/VRENUM_API_CONTRACT.md` (new) | 2h doc |
+| G-005 | Vrenum public API contract doc — provider-agnostic verification/rental objects, SDK surface | `docs/engineering/VRENUM_API_CONTRACT.md` (new) | 2h doc | ✅ |
 | E-004 | Triage CI unit-test failures — download `unit-test-output-*` artifact from GitHub Actions | CI artifacts | 1h |
 
 ---
