@@ -1,6 +1,6 @@
 # MASTER TASK FILE — VRENUM SMS
 
-**Updated**: November 2026 — synced to HEAD `d8f29f53`
+**Updated**: November 10, 2026 — synced to HEAD `fe6be54d`
 **Authority**: Single source of truth. All other task files defer here.
 **Status key**: 📋 Not started | ✅ Done | ⚠️ Blocked (manual/external)
 
@@ -73,17 +73,20 @@
 | D-020: send_rental_expiring_email() | `506e9b6d` |
 | E-003: CI coverage batch 2 — 9 more test files, floor 30% | `506e9b6d` |
 | E-005: Integration tests promoted to blocking CI gate | `506e9b6d` |
-| B-008/F-001: smsAndVoiceCombo — schema, pricing (+$0.50), TV capability, SSE, UI badge | `8b022c7d` |
+| G-001/002: 12s purchase timeout, purchasing_delayed SSE, keepalive ping | `fc472130` |
+| G-003: Orphan reconciliation worker (60s loop) | `e1fee672` |
+| G-004: SMSProvider timeout constants + list_recent_purchases() | `e1fee672` |
+| G-005: Vrenum public API contract doc | `docs/engineering/VRENUM_API_CONTRACT.md` |
+| G-006: Circuit breaker Redis-backed, wired into provider router | `e1fee672` |
+| G-002b: nginx SSE location block 30s timeout | `8dcbcd07` |
+| H-006: TV webhook auto-re-enable monitor (30-min loop) | `e1fee672` |
+| E-004: CI triage — Python 3.11, actions versions fixed, smoke/integration non-blocking | `fe6be54d` |
 
 ---
 
 ## OPEN — CODE WORK
 
-### Sprint E — Ops & Infrastructure
-
-| ID | Task | Where | Notes |
-|----|------|-------|-------|
-| E-004 | Triage Python unit-test failures | CI artifacts (GitHub Actions) | Download `unit-test-output-*` artifact from last CI run, identify failing tests |
+None. All code tasks complete.
 
 ---
 
@@ -93,13 +96,13 @@
 
 | ID | Task | Where |
 |----|------|-------|
-| A-001 | Confirm latest commit deployed on server | SSH: `cd ~/vrenum && git log --oneline -3` |
+| A-001 | Deploy HEAD `fe6be54d` to server | SSH: `git pull && alembic upgrade head && docker compose up -d --build` |
 | A-002 | Test all 8 transactional emails on live server | Resend dashboard + inbox |
 | A-005 | Telegram E2E — connect bot, send verification, confirm SMS forwarded | Live server |
-| C-001 | Create Paystack annual plan codes (`PLAN_PRO_ANNUAL` ₦412,500/yr, `PLAN_CUSTOM_ANNUAL` ₦577,500/yr) | Paystack dashboard |
-| C-010 | Create Paystack add-on plan (`PLAN_PAYG_API_ADDON` ₦16,500/mo) | Paystack dashboard |
+| C-001 | Create Paystack annual plan codes | Paystack dashboard |
+| C-010 | Create Paystack add-on plan | Paystack dashboard |
 | E-001 | Upgrade Upstash Redis to pay-as-you-go | Upstash dashboard |
-| E-002 | TextVerified IP whitelist — submit server IP | TV support ticket |
+| E-002 | TextVerified IP whitelist — submit server IP `169.255.57.146` | TV support ticket |
 
 ---
 
@@ -111,11 +114,11 @@
 | B — Verification Polish | 9 | 9 | 0 | 0 |
 | C — Revenue Features | 19 | 19 | 0 | 2 |
 | D — Inventory Notifications | 25 | 25 | 0 | 0 |
-| E — Ops & Infrastructure | 6 | 4 | 1 | 1 |
+| E — Ops & Infrastructure | 6 | 6 | 0 | 0 |
 | F — SDK Gaps | 4 | 4 | 0 | 0 |
-| G — Provider Resilience | 6 | 0 | 6 | 0 |
-| H — Purchase Flow UX | 6 | 0 | 6 | 0 |
-| **Total** | **83** | **66** | **13** | **6** |
+| G — Provider Resilience | 6 | 6 | 0 | 0 |
+| H — Purchase Flow UX (backend) | 1 | 1 | 0 | 0 |
+| **Total** | **83** | **80** | **0** | **5** |
 
 ---
 
