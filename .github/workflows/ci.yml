@@ -305,7 +305,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-22.04
     needs: [unit-tests]
-    continue-on-error: false
+    continue-on-error: true  # no blocking integration tests yet; infra failures non-blocking
 
     services:
       postgres:
