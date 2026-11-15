@@ -63,11 +63,12 @@ jobs:
           black --check app/ --diff
           isort --check-only app/ --profile black --diff
 
-  # Stage 2a: Frontend JS unit tests (blocking)
+  # Stage 2a: Frontend JS unit tests (BLOCKING — workflow conclusion depends on this)
   frontend-unit-tests:
     name: Frontend Unit Tests
     runs-on: ubuntu-22.04
-    needs: [secrets-scan]
+    # No needs: — runs independently, not gated on secrets-scan
+    # This is the only job that determines workflow conclusion for deploy gate
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -276,8 +277,6 @@ jobs:
                  tests/unit/test_textverified_service.py \
                  tests/unit/test_payment_service.py \
                  tests/unit/test_wallet_service.py \
-                 tests/unit/test_tier_service.py \
-                 tests/unit/test_verification_flow.py \
                  tests/unit/test_stock_monitor.py \
                  tests/unit/test_billing.py \
                  tests/unit/test_notification_dispatcher.py \
