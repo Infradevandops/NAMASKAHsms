@@ -1,10 +1,5 @@
-# Gitleaks Configuration — Strict Mode
-# Scans ALL files. No blanket path exemptions for docs/ or scripts/.
-# Any push containing a real credential pattern is rejected by CI.
-#
+# Gitleaks Configuration
 # Rules are precise to avoid false positives on test fixtures.
-# Test files use password123/admin123 as fixture values — those are
-# intentionally NOT matched here (they are not real credentials).
 
 [[rules]]
 id = "high-entropy-api-key"
@@ -71,18 +66,9 @@ secretGroup = 2
     '''config/\.env\.production\.example''',
   ]
 
+# Global allowlist — single regexes array (TOML does not allow duplicate keys)
 [allowlist]
-description = "Allowlist — only specific placeholder files, never entire folders"
-regexes = [
-    # Rotated credentials in git history (commit 6a4789de) — already removed from working tree
-    # These were exposed in .env.production and have been rotated. Allowlisted to stop
-    # gitleaks from blocking CI on history it cannot change.
-    '''MSZ9Lr6XnKPTBNjnrHjD6mXi0ESmYUX7pdDEve9TbK8msE3hag6N1OQcPYREg''',
-    '''Y5eeFXLVbqmNAx8L6HuP37NtvvjLSMNA''',
-    '''Namaskah2024SecureJWTKeyForProductionUse32Chars''',
-    '''2ce37686e54217bc6539cce15a0b3a3b''',
-    '''11893866195-r9q595mc77j5n2c0j1neki1lmr3es3fb''',
-]
+description = "Global allowlist"
 paths = [
     '''config/\.env\.example''',
     '''config/\.env\.production\.example''',
@@ -96,24 +82,32 @@ paths = [
     '''deploy/monitoring/docker-compose\.yml'''
 ]
 regexes = [
-    # Placeholder patterns — not real values
+    # ── Rotated historical credentials (commit 6a4789de, .env.production) ──
+    # File removed in commit 816bc760. Credentials rotated. Cannot rewrite
+    # shared history — allowlisted here so gitleaks stops flagging old commits.
+    '''MSZ9Lr6XnKPTBNjnrHjD6mXi0ESmYUX7pdDEve9TbK8msE3hag6N1OQcPYREg''',
+    '''Y5eeFXLVbqmNAx8L6HuP37NtvvjLSMNA''',
+    '''Namaskah2024SecureJWTKeyForProductionUse32Chars''',
+    '''2ce37686e54217bc6539cce15a0b3a3b''',
+    '''11893866195-r9q595mc77j5n2c0j1neki1lmr3es3fb''',
+    # ── Placeholder patterns — not real values ──
     '''your[-_]?[a-z\-]+[-_]?key''',
     '''your[-_]?[a-z\-]+[-_]?secret''',
     '''your[-_]?[a-z\-]+[-_]?password''',
     '''xxxxxxxxxxxxxxxxxxxxxxxxxxxx''',
     '''<[a-z\-]+>''',
     '''change[-_]?me''',
-    # Template/placeholder DB URLs — not real credentials
+    # Template/placeholder DB URLs
     '''postgresql://user:password@host''',
     '''postgresql://[^:]+:\$\{[A-Z_]+\}@''',
     '''postgresql://[^:]+:<[A-Z_]+>@''',
     '''\$\{POSTGRES_PASSWORD\}''',
-    # CI test values — these are intentional test-only strings
+    # CI test values
     '''test-secret-key-for-ci''',
     '''test-jwt-secret-key-for-ci''',
     '''test_password_for_ci_only''',
     '''test-jwt-secret-key-for-ci-testing''',
-    # Dev/local placeholder values — not real credentials
+    # Dev/local placeholder values
     '''dev-secret-key-change-in-production''',
     '''dev-jwt-secret-key-change-in-production''',
     '''local-jwt-secret-key''',
