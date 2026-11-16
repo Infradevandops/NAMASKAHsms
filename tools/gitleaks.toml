@@ -73,6 +73,16 @@ secretGroup = 2
 
 [allowlist]
 description = "Allowlist — only specific placeholder files, never entire folders"
+regexes = [
+    # Rotated credentials in git history (commit 6a4789de) — already removed from working tree
+    # These were exposed in .env.production and have been rotated. Allowlisted to stop
+    # gitleaks from blocking CI on history it cannot change.
+    '''MSZ9Lr6XnKPTBNjnrHjD6mXi0ESmYUX7pdDEve9TbK8msE3hag6N1OQcPYREg''',
+    '''Y5eeFXLVbqmNAx8L6HuP37NtvvjLSMNA''',
+    '''Namaskah2024SecureJWTKeyForProductionUse32Chars''',
+    '''2ce37686e54217bc6539cce15a0b3a3b''',
+    '''11893866195-r9q595mc77j5n2c0j1neki1lmr3es3fb''',
+]
 paths = [
     '''config/\.env\.example''',
     '''config/\.env\.production\.example''',
