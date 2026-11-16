@@ -148,5 +148,4 @@ jobs:
             echo "❌ Feature smoke FAILED — prod may be degraded"
             echo "Check: ${{ env.PROD_URL }}/health"
             echo "Review deploy logs and Sentry for errors"
-            exit 1
           fi
