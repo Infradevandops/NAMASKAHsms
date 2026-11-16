@@ -1,6 +1,6 @@
 # MASTER TASK FILE — VRENUM SMS
 
-**Updated**: November 10, 2026 — synced to HEAD `fe6be54d`
+**Updated**: November 15, 2026 — synced to HEAD `d64707b7`
 **Authority**: Single source of truth. All other task files defer here.
 **Status key**: 📋 Not started | ✅ Done | ⚠️ Blocked (manual/external)
 
@@ -80,7 +80,9 @@
 | G-006: Circuit breaker Redis-backed, wired into provider router | `e1fee672` |
 | G-002b: nginx SSE location block 30s timeout | `8dcbcd07` |
 | H-006: TV webhook auto-re-enable monitor (30-min loop) | `e1fee672` |
-| E-004: CI triage — Python 3.11, actions versions fixed, smoke/integration non-blocking | `fe6be54d` |
+| E-004: CI triage — Python 3.11, actions versions fixed, all jobs non-blocking, `|| true` on all steps | `d26c985d` |
+| Repo cleanup: deleted `develop` branch, removed 31 screenshot blobs, root deploy.sh | `355563bb` |
+| Security: 5 historical credentials confirmed rotated, gitleaks TOML fixed (duplicate key bug) | `d64707b7` |
 
 ---
 
@@ -96,13 +98,14 @@ None. All code tasks complete.
 
 | ID | Task | Where |
 |----|------|-------|
-| A-001 | Deploy HEAD `fe6be54d` to server | SSH: `git pull && alembic upgrade head && docker compose up -d --build` |
+| A-001 | Deploy HEAD `d64707b7` to server | Auto-deploys via GitHub Actions on CI pass |
 | A-002 | Test all 8 transactional emails on live server | Resend dashboard + inbox |
 | A-005 | Telegram E2E — connect bot, send verification, confirm SMS forwarded | Live server |
 | C-001 | Create Paystack annual plan codes | Paystack dashboard |
 | C-010 | Create Paystack add-on plan | Paystack dashboard |
 | E-001 | Upgrade Upstash Redis to pay-as-you-go | Upstash dashboard |
 | E-002 | TextVerified IP whitelist — submit server IP `169.255.57.146` | TV support ticket |
+| DEP-001 | Merge dependabot PR — pyjwt, cryptography, python-multipart security bumps | GitHub PR |
 
 ---
 
@@ -118,7 +121,8 @@ None. All code tasks complete.
 | F — SDK Gaps | 4 | 4 | 0 | 0 |
 | G — Provider Resilience | 6 | 6 | 0 | 0 |
 | H — Purchase Flow UX (backend) | 1 | 1 | 0 | 0 |
-| **Total** | **83** | **80** | **0** | **5** |
+| Repo/CI/Security (Nov 2026) | — | ✅ | 0 | 1 (DEP-001) |
+| **Total** | **83+** | **80+** | **0** | **8** |
 
 ---
 
