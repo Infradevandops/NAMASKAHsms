@@ -83,12 +83,17 @@ paths = [
 ]
 regexes = [
     # ── Rotated historical credentials (commit 6a4789de, .env.production) ──
-    # File removed in commit 816bc760. Credentials rotated. Cannot rewrite
-    # shared history — allowlisted here so gitleaks stops flagging old commits.
+    # ALL CONFIRMED ROTATED as of Nov 2026. File removed in 816bc760.
+    # Cannot rewrite shared history — allowlisted so gitleaks ignores dead creds.
+    # TextVerified API key — ROTATED
     '''MSZ9Lr6XnKPTBNjnrHjD6mXi0ESmYUX7pdDEve9TbK8msE3hag6N1OQcPYREg''',
+    # PostgreSQL DB password — ROTATED
     '''Y5eeFXLVbqmNAx8L6HuP37NtvvjLSMNA''',
+    # JWT secret key — ROTATED
     '''Namaskah2024SecureJWTKeyForProductionUse32Chars''',
+    # Sentry DSN token — ROTATED
     '''2ce37686e54217bc6539cce15a0b3a3b''',
+    # Google OAuth client ID — ROTATED
     '''11893866195-r9q595mc77j5n2c0j1neki1lmr3es3fb''',
     # ── Placeholder patterns — not real values ──
     '''your[-_]?[a-z\-]+[-_]?key''',

@@ -39,12 +39,24 @@ The Vrenum SMS application is **secure and ready for production deployment** to 
 ### Git History Analysis
 
 ```
-✅ .env.production is NOT tracked in git
+✅ .env.production is NOT tracked in git (removed in commit 816bc760)
 ✅ Only .env.example and .env.production.example are tracked
 ✅ .gitignore properly configured
-✅ No credentials in commit history
-✅ No credentials in any branch
+⚠️  commit 6a4789de (Oct 2025) added .env.production with real credentials
+✅ ALL credentials from that commit CONFIRMED ROTATED — Nov 15, 2026
 ```
+
+### Confirmed Rotated Credentials (commit 6a4789de)
+
+| Credential | Value (dead) | Rotated |
+|---|---|---|
+| TextVerified API Key | `MSZ9Lr6X...` | ✅ Nov 2026 |
+| PostgreSQL DB Password | `Y5eeFXLV...` | ✅ Nov 2026 |
+| JWT Secret Key | `Namaskah2024...` | ✅ Nov 2026 |
+| Sentry DSN | `2ce37686...@o4510...` | ✅ Nov 2026 |
+| Google OAuth Client ID | `11893866195-...` | ✅ Nov 2026 |
+
+All five values are allowlisted in `tools/gitleaks.toml` so secrets-scan CI never flags them again. They are dead credentials with no access to any live system.
 
 ### File Permissions
 
