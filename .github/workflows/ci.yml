@@ -123,8 +123,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip wheel
-          pip install -r requirements.txt --prefer-binary --use-deprecated=legacy-resolver
-          pip install -r requirements/requirements-test.txt --prefer-binary --use-deprecated=legacy-resolver
+          pip install -r requirements.txt --prefer-binary
+          pip install -r requirements/requirements-test.txt --prefer-binary
       - name: Run startup smoke tests
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/vrenum_test
@@ -207,8 +207,8 @@ jobs:
 
           # Use pip cache and pre-built wheels for faster installation
           pip install --upgrade pip wheel
-          pip install -r requirements.txt --prefer-binary --use-deprecated=legacy-resolver
-          pip install -r requirements/requirements-test.txt --prefer-binary --use-deprecated=legacy-resolver
+          pip install -r requirements.txt --prefer-binary
+          pip install -r requirements/requirements-test.txt --prefer-binary
 
       - name: Initialize test database
         env:
@@ -340,8 +340,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip wheel
-          pip install -r requirements.txt --prefer-binary --use-deprecated=legacy-resolver
-          pip install -r requirements/requirements-test.txt --prefer-binary --use-deprecated=legacy-resolver
+          pip install -r requirements.txt --prefer-binary
+          pip install -r requirements/requirements-test.txt --prefer-binary
 
       - name: Initialize test database
         env:
@@ -416,7 +416,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt --prefer-binary --use-deprecated=legacy-resolver
+          pip install -r requirements.txt --prefer-binary
           pip install pytest pytest-asyncio pytest-playwright pytest-html
 
       - name: Initialize Database

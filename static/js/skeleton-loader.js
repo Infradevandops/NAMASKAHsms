@@ -221,6 +221,8 @@ SkeletonLoader.withLoading = async function(container, loadFn, options = {}) {
 };
 
 // Export for use in other modules
+export { SkeletonLoader };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { SkeletonLoader };
 }
