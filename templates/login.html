@@ -305,13 +305,8 @@
 {% endblock %}
 
 {% block body %}
-<div style="min-height:100vh;background:var(--bg-card,#fff);">
-{% block public_content %}{% endblock %}
-</div>
 <script src="/static/js/theme-toggle.js"></script>
-{% include "includes/cookie_consent.html" %}
-{% endblock %}
-<!-- Auth Nav -->
+<div style="min-height:100vh;background:var(--bg-card,#fff);">
 <nav class="auth-nav">
     <a href="/" class="auth-nav-brand">VRENUM SMS</a>
     <div class="auth-nav-links">
@@ -321,6 +316,7 @@
         </a>
         <a href="/pricing">Pricing</a>
         <a href="/faq">FAQ</a>
+        <button onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark/light mode" style="background:none;border:none;cursor:pointer;color:var(--text-muted,#6b7280);padding:4px;display:flex;align-items:center;font-size:16px;" id="auth-theme-btn">🌙</button>
     </div>
 </nav>
 
@@ -702,4 +698,6 @@
         }
     }
 </script>
+</div>
+{% include "includes/cookie_consent.html" %}
 {% endblock %}

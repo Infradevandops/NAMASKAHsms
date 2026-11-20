@@ -261,6 +261,7 @@
         <a href="/auth/login" class="btn btn-outline">Log in</a>
         <a href="/auth/register" class="btn btn-primary">Get Started Free</a>
         {% endif %}
+        <button onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark/light mode" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;display:flex;align-items:center;font-size:18px;" id="landing-theme-btn">🌙</button>
       </div>
       <button class="mobile-toggle" onclick="toggleMobileMenu()" aria-label="Menu" aria-expanded="false" id="mobile-toggle">☰</button>
     </div>
@@ -635,6 +636,7 @@ Response:
       document.getElementById('nav').after(overlay);
     });
   </script>
+  <script src="/static/js/theme-toggle.js"></script>
   {% include "includes/pwa_sw.html" %}
 </body>
 </html>

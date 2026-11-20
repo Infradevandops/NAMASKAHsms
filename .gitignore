@@ -86,6 +86,7 @@ e06_*.json
 .coverage
 coverage.xml
 htmlcov/
+coverage/
 .tox/
 .hypothesis/
 

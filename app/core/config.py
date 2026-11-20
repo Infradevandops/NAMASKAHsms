@@ -6,8 +6,6 @@ from typing import List, Optional, Union
 from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
-from app.core.secrets import SecretsManager
-
 
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
@@ -53,7 +51,7 @@ class Settings(BaseSettings):
         # Fallback to SQLite only in non-production
         if os.getenv("ENVIRONMENT") == "production":
             raise ValueError("DATABASE_URL must be set in production")
-        return "sqlite:///./data/namaskah.db"
+        return "sqlite:///./data/vrenum.db"
 
     # Redis settings
     redis_url: str = "redis://localhost:6379/0"
@@ -96,12 +94,8 @@ class Settings(BaseSettings):
     # External API settings
     textverified_api_key: Optional[str] = None
     textverified_user_id: Optional[str] = None
-    textverified_email: Optional[str] = (
-        None  # used as api_username by TextVerifiedService
-    )
-    textverified_webhook_secret: Optional[str] = (
-        None  # whsec_... from TV API Webhooks page
-    )
+    textverified_email: Optional[str] = None  # used as api_username by TextVerifiedService
+    textverified_webhook_secret: Optional[str] = None  # whsec_... from TV API Webhooks page
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 
@@ -277,9 +271,7 @@ class Settings(BaseSettings):
 
         if os.getenv("ENVIRONMENT") == "production":
             if not value or len(value) < 32:
-                raise ValueError(
-                    "Secret keys must be at least 32 characters long and set in production"
-                )
+                raise ValueError("Secret keys must be at least 32 characters long and set in production")
         if value and len(value) < 32:
             raise ValueError("Secret keys must be at least 32 characters long")
         return value
@@ -300,9 +292,7 @@ class Settings(BaseSettings):
             raise ValueError("Base URL must start with http:// or https://")
         return value
 
-    model_config = ConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
-    )
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
 
 
 @lru_cache()

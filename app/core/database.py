@@ -47,9 +47,7 @@ class DatabaseConnectionManager:
         """Record a connection failure."""
         self.circuit_breaker_failures += 1
         self.circuit_breaker_last_failure = time.time()
-        logger.warning(
-            f"Database failure recorded. Count: {self.circuit_breaker_failures}"
-        )
+        logger.warning(f"Database failure recorded. Count: {self.circuit_breaker_failures}")
 
     def record_success(self):
         """Record a successful connection."""
@@ -64,9 +62,7 @@ class DatabaseConnectionManager:
         for attempt in range(self.max_retries):
             try:
                 if "sqlite" in database_url:
-                    engine = create_engine(
-                        database_url, connect_args={"check_same_thread": False}
-                    )
+                    engine = create_engine(database_url, connect_args={"check_same_thread": False})
                 else:
                     engine = create_engine(
                         database_url,
@@ -78,7 +74,7 @@ class DatabaseConnectionManager:
                         echo=False,
                         connect_args={
                             "connect_timeout": 10,
-                            "application_name": "namaskah_sms",
+                            "application_name": "vrenum_sms",
                         },
                     )
 
@@ -86,9 +82,7 @@ class DatabaseConnectionManager:
                 with engine.connect() as conn:
                     conn.execute(text("SELECT 1"))
 
-                logger.info(
-                    f"Database engine created successfully on attempt {attempt + 1}"
-                )
+                logger.info(f"Database engine created successfully on attempt {attempt + 1}")
                 self.record_success()
                 return engine
 
@@ -126,24 +120,16 @@ class DatabaseConnectionManager:
 
     def _create_fallback_engine(self):
         """Create SQLite fallback engine."""
-        if settings.environment == "production" and not os.getenv(
-            "ALLOW_SQLITE_FALLBACK"
-        ):
-            logger.error(
-                "Production requires PostgreSQL. Set ALLOW_SQLITE_FALLBACK=true for fallback."
-            )
+        if settings.environment == "production" and not os.getenv("ALLOW_SQLITE_FALLBACK"):
+            logger.error("Production requires PostgreSQL. Set ALLOW_SQLITE_FALLBACK=true for fallback.")
             raise RuntimeError("Database connection failed and fallback not allowed")
 
-        fallback_db = "sqlite:///./namaskah_fallback.db"
+        fallback_db = "sqlite:///./data/vrenum_fallback.db"
         logger.warning(f"Using SQLite fallback: {fallback_db}")
 
         try:
-            self.engine = create_engine(
-                fallback_db, connect_args={"check_same_thread": False}
-            )
-            self.SessionLocal = sessionmaker(
-                autocommit=False, autoflush=False, bind=self.engine
-            )
+            self.engine = create_engine(fallback_db, connect_args={"check_same_thread": False})
+            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
             # Test fallback connection
             with self.engine.connect() as conn:

@@ -1,8 +1,6 @@
-import logging
-
-logger = logging.getLogger(__name__)
 """User profile API endpoints."""
 
+import logging
 import os
 import uuid
 
@@ -13,6 +11,8 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/user", tags=["user"])
 
 AVATAR_DIR = "static/avatars"
@@ -22,10 +22,26 @@ ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 MAX_SIZE = 2 * 1024 * 1024  # 2MB
 
 
+@router.get("/balance")
+async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Get current user balance — live from TextVerified for admin, local for regular users."""
+    try:
+        from app.services.balance_service import BalanceService
+
+        balance_info = await BalanceService.get_user_balance(user_id, db)
+        return {
+            "balance": balance_info["balance"],
+            "credits": balance_info["balance"],
+            "source": balance_info.get("source"),
+            "currency": "USD",
+        }
+    except Exception as e:
+        logger.error(f"Error fetching balance: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve balance")
+
+
 @router.get("/me")
-async def get_current_user(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     try:
         """Get current user profile."""
         user = db.query(User).filter(User.id == user_id).first()
@@ -56,21 +72,13 @@ async def upload_avatar(
     try:
         """Upload user avatar image."""
         if avatar.content_type not in ALLOWED_TYPES:
-            raise HTTPException(
-                status_code=400, detail="Invalid file type. Use JPEG, PNG, WebP or GIF."
-            )
+            raise HTTPException(status_code=400, detail="Invalid file type. Use JPEG, PNG, WebP or GIF.")
 
         contents = await avatar.read()
         if len(contents) > MAX_SIZE:
-            raise HTTPException(
-                status_code=400, detail="File too large. Maximum size is 2MB."
-            )
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 2MB.")
 
-        ext = (
-            avatar.filename.rsplit(".", 1)[-1].lower()
-            if "." in avatar.filename
-            else "jpg"
-        )
+        ext = avatar.filename.rsplit(".", 1)[-1].lower() if "." in avatar.filename else "jpg"
         filename = f"{user_id}_{uuid.uuid4().hex[:8]}.{ext}"
         filepath = os.path.join(AVATAR_DIR, filename)
 
