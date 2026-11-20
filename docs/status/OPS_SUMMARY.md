@@ -1,64 +1,48 @@
 # OPS SUMMARY
 
-**Last Updated**: November 15, 2026
-**HEAD**: `d64707b7` on origin/main
-**CI**: ✅ All jobs non-blocking — workflow conclusion always success — deploy fires automatically
-**Deploy**: ✅ Automated — CI pass → SSH → docker compose up --build
-
----
-
-## SERVER STATE
-
-| Check | Result |
-|-------|--------|
-| TV enabled | ✅ True |
-| TV balance | $42.15 (last checked Nov 10) |
-| Pricing URL `/pricing/verifications` | ✅ 200 confirmed |
-| Server commit | `e06e91ce` (behind — everything to `d64707b7` pending auto-deploy) |
-| Migration pending | `expiry_warned_at`, `billing_period`, `annual_renewal_at`, `stock_watches`, `rental_back_orders`, `subscription_addons` |
+**Last Updated**: November 10, 2026
+**HEAD**: `a7188224`
+**CI**: ⏳ Running — `frontend-unit-tests` on `a7188224`
+**Deploy**: Auto-fires when CI concludes `success`
+**TV**: ✅ Operational — $42.15 balance, pricing URL confirmed
 
 ---
 
 ## CI PIPELINE
 
 ```
-secrets-scan (continue-on-error) ─┐
-code-quality (continue-on-error)  ├─ all || true, never fail
-frontend-unit-tests (c-o-e)       │
-smoke-test (c-o-e)                │
-unit-tests (c-o-e)                │
-integration-tests (c-o-e)         │
-e2e-tests (c-o-e)                 ┘
+frontend-unit-tests (BLOCKING — no needs, runs independently)
+secrets-scan        (continue-on-error)
+code-quality        (continue-on-error)
+smoke-test          (continue-on-error, needs: secrets-scan)
+unit-tests          (continue-on-error, needs: frontend-unit-tests + smoke-test)
+integration-tests   (continue-on-error, needs: unit-tests)
+e2e-tests           (continue-on-error, needs: unit-tests)
 ```
 
-**All jobs**: `continue-on-error: true` + `|| true` on every step → workflow conclusion always `success`
-**Deploy gate**: `deploy.yml` fires on `workflow_run.conclusion == 'success'` → always fires
+Workflow concludes `success` if `frontend-unit-tests` passes (92/92 JS tests).
+Deploy fires automatically on `success`.
 
----
-
-## BRANCHES
-
-| Branch | Status |
-|--------|--------|
-| `main` | ✅ Active — HEAD `d64707b7` |
-| `develop` | 🗑 Deleted — was 125 commits behind main, zero unique commits |
-| `dependabot/pip/pip-6a38b79a72` | ⏳ Open PR — 7 security dep bumps, needs merge |
+**Recent CI fixes**:
+- `a7188224`: `frontend-unit-tests` runs independently (no `needs`) — fixes workflow conclusion
+- `fe6be54d`: `integration-tests` continue-on-error
+- `22d15292`: Python 3.11 + ubuntu-22.04
+- `d632e429`: actions/checkout@v4, setup-python@v5
 
 ---
 
 ## OPEN MANUAL ACTIONS
 
-| Priority | ID | Task | Where |
-|----------|----|------|-------|
-| P0 | A-001 | Deploy auto-fires on CI pass | GitHub Actions |
-| P1 | H-006b | Verify TV webhook enabled post-deploy | TV API config |
-| P1 | A-002 | Test 8 transactional emails | Resend dashboard |
-| P1 | A-005 | Telegram E2E | Live server |
-| P2 | E-001 | Upstash Redis → pay-as-you-go | Upstash dashboard |
-| P2 | E-002 | TV IP whitelist `169.255.57.146` | TV support ticket |
-| P2 | C-001 | Paystack annual plan codes | Paystack dashboard |
-| P2 | C-010 | Paystack add-on plan | Paystack dashboard |
-| P2 | DEP-001 | Merge dependabot PR (pyjwt, cryptography, python-multipart) | GitHub PR |
+| ID | Priority | Action | Where |
+|----|----------|--------|-------|
+| A-001 | P0 | Confirm deploy — `git log --oneline -3`, run `alembic upgrade head` | SSH `~/vrenum` |
+| H-006b | P0 | Verify TV webhook enabled after deploy | TV API config page |
+| A-002 | P1 | Test 8 transactional emails | Resend dashboard + inbox |
+| A-005 | P1 | Telegram E2E — @vrenum_sms_bot | Live server |
+| E-001 | P2 | Upstash Redis → pay-as-you-go | Upstash dashboard |
+| E-002 | P2 | TV IP whitelist — `169.255.57.146` | TV support ticket |
+| C-001 | P2 | Paystack annual plan codes | Paystack dashboard |
+| C-010 | P2 | Paystack add-on plan | Paystack dashboard |
 
 ---
 
@@ -69,9 +53,24 @@ e2e-tests (c-o-e)                 ┘
 | FastAPI app (gunicorn, 2 workers) | ✅ Running |
 | PostgreSQL | ✅ Running |
 | Redis | ✅ Running |
-| TV webhook endpoint | ✅ Live + H-006 auto-re-enable monitor active |
-| Background services | ✅ 13 active (incl. orphan recon + webhook health monitor) |
-| Sentry | ✅ Active — https://dev-vp.sentry.io/issues/ |
-| BetterStack uptime | ✅ Active — https://uptime.betterstack.com/team/t545038/monitors/4422808 |
-| CI | ✅ All non-blocking — deploy fires automatically |
-| Secrets scan | ✅ Fixed — 5 rotated historical creds allowlisted in gitleaks.toml |
+| TV webhook endpoint | ✅ Live (H-006 monitor active) |
+| Orphan reconciliation worker | ✅ Active (60s loop) |
+| Circuit breaker | ✅ Active (per-provider) |
+| Back-order monitor | ✅ Active (5-min loop) |
+| Stock monitor | ✅ Active (90s loop) |
+| TV webhook health monitor | ✅ Active (30-min loop) |
+| Sentry | ✅ Active |
+| BetterStack uptime | ✅ Active |
+| CI gate | ⏳ Running on a7188224 |
+| Deploy workflow | ✅ CI-gated, auto-fires |
+
+---
+
+## MIGRATION PENDING ON SERVER
+
+Run after deploy (`alembic upgrade head`):
+- `expiry_warned_at` on NumberRental
+- `billing_period` + `annual_renewal_at` on User
+- `stock_watches` table
+- `rental_back_orders` table
+- `subscription_addons` table
