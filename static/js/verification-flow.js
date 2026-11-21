@@ -140,7 +140,7 @@ function chooseMethod(method) {
     document.getElementById('step-1-card').style.display = 'block';
 }
 
- Call this whenever tier changes or service is selected.
+/* Call this whenever tier changes or service is selected.
  * Controls: upsell, subscribed-tip, advanced-options, area-code lock, carrier lock.
  */
 function applyTierGating() {
