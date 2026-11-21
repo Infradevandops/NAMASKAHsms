@@ -59,7 +59,7 @@ class UnifiedRateLimiter:
 
     def __init__(self):
         self.settings = get_settings()
-        self._lock = asyncio.Lock()
+        self._lock: Optional[asyncio.Lock] = None
 
         self.user_buckets: Dict[str, TokenBucket] = {}
         self.ip_buckets: Dict[str, TokenBucket] = {}
@@ -143,9 +143,7 @@ class UnifiedRateLimiter:
 
         return request.client.host if request.client else "unknown"
 
-    def check_token_bucket_limit(
-        self, user_id: Optional[str], ip: str
-    ) -> Tuple[bool, int]:
+    def check_token_bucket_limit(self, user_id: Optional[str], ip: str) -> Tuple[bool, int]:
         """Check rate limit using token bucket algorithm."""
         if ip not in self.ip_buckets:
             self.ip_buckets[ip] = TokenBucket(capacity=20, refill_rate=2.0)
@@ -188,9 +186,7 @@ class UnifiedRateLimiter:
 
         return True, 0
 
-    def _clean_old_requests(
-        self, request_times: deque, window: int, current_time: float
-    ):
+    def _clean_old_requests(self, request_times: deque, window: int, current_time: float):
         """Remove old requests outside the window."""
         while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
@@ -218,6 +214,8 @@ class UnifiedRateLimiter:
         self, request: Request, user_id: Optional[str] = None
     ) -> Tuple[bool, int, Dict[str, Any]]:
         """Check all rate limits and return result."""
+        if self._lock is None:
+            self._lock = asyncio.Lock()
         async with self._lock:
             current_time = time.time()
             ip = self.get_client_ip(request)
@@ -252,9 +250,7 @@ class UnifiedRateLimiter:
                     {"limit_type": "burst", "retry_after": bucket_retry},
                 )
 
-            window_allowed, window_retry = self.check_sliding_window_limit(
-                user_id, ip, config, current_time
-            )
+            window_allowed, window_retry = self.check_sliding_window_limit(user_id, ip, config, current_time)
             if not window_allowed:
                 return (
                     False,
@@ -350,13 +346,12 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
         """Apply unified rate limiting."""
         user_id = getattr(request.state, "user_id", None)
 
-        allowed, retry_after, metadata = await self.rate_limiter.check_rate_limit(
-            request, user_id
-        )
+        allowed, retry_after, metadata = await self.rate_limiter.check_rate_limit(request, user_id)
 
         if not allowed:
             logger.warning(
-                f"Rate limit exceeded for {user_id or 'anonymous'} from {self.rate_limiter.get_client_ip(request)}: {metadata}"
+                f"Rate limit exceeded for {user_id or 'anonymous'} "
+                f"from {self.rate_limiter.get_client_ip(request)}: {metadata}"
             )
 
             return JSONResponse(
@@ -379,9 +374,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
 
         if metadata:
             response.headers["X-RateLimit-Limit"] = str(metadata.get("limit", ""))
-            response.headers["X-RateLimit-Remaining"] = str(
-                metadata.get("remaining", "")
-            )
+            response.headers["X-RateLimit-Remaining"] = str(metadata.get("remaining", ""))
             response.headers["X-RateLimit-Reset"] = str(metadata.get("reset", ""))
             response.headers["X-System-Load"] = f"{metadata.get('system_load', 0):.2f}"
 
