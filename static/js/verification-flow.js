@@ -531,7 +531,10 @@ function selectImmersiveItem(value, label, price) {
     if (_modalType === 'service') {
         VerificationFlow.selectedService = value;
         VerificationFlow.selectedServicePrice = price;
-        VerificationFlow.selectedCapability = item?.capability || 'sms';
+        const _item = (_modalItems['service'] || []).find(i => i.value === value);
+        if (VerificationFlow.selectedCapability !== 'sms_and_voice') {
+            VerificationFlow.selectedCapability = _item?.capability || 'sms';
+        }
 
         // Track recently used (max 5, deduplicated)
         _recentServices = [value, ..._recentServices.filter(id => id !== value)].slice(0, 5);
