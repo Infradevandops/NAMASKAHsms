@@ -464,7 +464,7 @@ async function createRental() {
     const btn = document.getElementById('create-rental-btn');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<span>Creating rental...</span>';
+    btn.classList.add('btn-loader');
 
     try {
         const payload = {
@@ -520,6 +520,7 @@ async function createRental() {
         window.toast?.error(error.message);
     } finally {
         btn.disabled = false;
+        btn.classList.remove('btn-loader');
         btn.innerHTML = originalText;
         updateCreateButton();
     }
@@ -528,6 +529,7 @@ async function createRental() {
 // Load rentals
 async function loadRentals() {
     const container = document.getElementById('rentals-container');
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:40px;color:#6b7280;"><div style="width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:#FE3C72;border-radius:50%;animation:spin 0.8s linear infinite;"></div><span>Loading rentals...</span></div>`;
 
     try {
         const response = await fetch('/api/rentals/active', {
@@ -638,7 +640,7 @@ async function viewMessages(rentalId) {
     const modal = document.getElementById('rental-modal');
     const content = document.getElementById('modal-content');
 
-    content.innerHTML = '<div style="text-align: center; padding: 40px;">Loading messages...</div>';
+    content.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:40px;"><div style="width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:#FE3C72;border-radius:50%;animation:spin 0.8s linear infinite;"></div><span style="color:#6b7280;">Loading messages...</span></div>`;
     modal.style.display = 'block';
 
     try {

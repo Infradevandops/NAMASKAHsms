@@ -548,7 +548,7 @@ async function createVerification() {
 
     const btn = event.target;
     btn.disabled = true;
-    btn.textContent = 'Getting number...';
+    btn.classList.add('btn-loader');
 
     try {
         const response = await fetch('/api/verification/request', {
@@ -583,6 +583,7 @@ async function createVerification() {
         showError('Failed to create verification', error.message);
     } finally {
         btn.disabled = false;
+        btn.classList.remove('btn-loader');
         btn.textContent = 'Get Number';
     }
 }

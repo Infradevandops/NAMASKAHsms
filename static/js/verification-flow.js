@@ -888,6 +888,7 @@ async function createVerification() {
 
     // Show purchase loading card, hide step-2
     document.getElementById('step-2-card').style.display = 'none';
+    if (btn) btn.classList.add('btn-loader');
     const loadingCard = document.getElementById('purchase-loading-card');
     if (loadingCard) loadingCard.style.display = 'block';
     const iconEl = document.getElementById('loading-service-icon');
@@ -976,6 +977,7 @@ async function createVerification() {
                         clearTimeout(VerificationFlow._purchasingTimer);
                         hideCancelButton();
                         hidePurchaseLoadingState();
+                        if (btn) btn.classList.remove('btn-loader');
                         VerificationFlow.verificationId = event.verification_id;
                         VerificationFlow.createdAt = event.created_at || new Date().toISOString();
                         if (event.ends_at) {
@@ -1006,7 +1008,7 @@ async function createVerification() {
                         hidePurchaseLoadingState();
                         localStorage.removeItem('active_verification_id');
                         document.getElementById('step-2-card').style.display = 'block';
-                        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
+                        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; btn.classList.remove('btn-loader'); }
                         const msg = event.message || 'Failed to create verification';
                         if (event.reason === 'no_inventory') {
                             const slug = (serviceId || '').toLowerCase();
@@ -1026,7 +1028,7 @@ async function createVerification() {
         const loadingCard = document.getElementById('purchase-loading-card');
         if (loadingCard) loadingCard.style.display = 'none';
         document.getElementById('step-2-card').style.display = 'block';
-        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; btn.classList.remove('btn-loader'); }
         window.toast && window.toast.error(error.message || 'Failed to create verification');
     }
 }
@@ -1044,7 +1046,7 @@ function cancelPurchase() {
     if (loadingCard) loadingCard.style.display = 'none';
     document.getElementById('step-2-card').style.display = 'block';
     const btn = document.getElementById('get-number-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Get Number →'; btn.classList.remove('btn-loader'); }
     window.toast && window.toast.info('Purchase cancelled.');
 }
 
