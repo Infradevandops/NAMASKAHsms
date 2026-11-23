@@ -1,7 +1,7 @@
 """Telegram notification service"""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import httpx
@@ -19,9 +19,7 @@ class TelegramService:
 
     def __init__(self):
         self.bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
-        self.base_url = (
-            f"https://api.telegram.org/bot{self.bot_token}" if self.bot_token else None
-        )
+        self.base_url = f"https://api.telegram.org/bot{self.bot_token}" if self.bot_token else None
         self.rate_limit_delay = 0.034  # ~30 msg/sec limit
 
     def _get_flag_emoji(self, country_code: str) -> str:
@@ -32,9 +30,7 @@ class TelegramService:
         # Convert to regional indicator symbols
         return "".join(chr(127397 + ord(c)) for c in country_code.upper())
 
-    async def send_message(
-        self, chat_id: int, text: str, parse_mode: str = "Markdown"
-    ) -> Dict[str, Any]:
+    async def send_message(self, chat_id: int, text: str, parse_mode: str = "Markdown") -> Dict[str, Any]:
         """
         Send a message to a Telegram chat
 
@@ -64,17 +60,13 @@ class TelegramService:
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPStatusError as e:
-            logger.error(
-                f"Telegram API error: {e.response.status_code} - {e.response.text}"
-            )
+            logger.error(f"Telegram API error: {e.response.status_code} - {e.response.text}")
             return {"ok": False, "error": str(e)}
         except Exception as e:
             logger.error(f"Failed to send Telegram message: {e}")
             return {"ok": False, "error": str(e)}
 
-    async def send_verification_code(
-        self, db: Session, user_id: int, verification: Verification
-    ) -> bool:
+    async def send_verification_code(self, db: Session, user_id: int, verification: Verification) -> bool:
         """
         Send SMS verification code to user's Telegram
 
@@ -101,28 +93,16 @@ class TelegramService:
             return False
 
         # Check forwarding rules
-        rules = (
-            db.query(TelegramForwardingRule)
-            .filter(TelegramForwardingRule.user_id == user_id)
-            .first()
-        )
+        rules = db.query(TelegramForwardingRule).filter(TelegramForwardingRule.user_id == user_id).first()
 
         if rules and not rules.forward_all:
             # Check service filter
-            if (
-                rules.service_filter
-                and verification.service_name not in rules.service_filter
-            ):
-                logger.debug(
-                    f"Service {verification.service_name} not in filter, skipping"
-                )
+            if rules.service_filter and verification.service_name not in rules.service_filter:
+                logger.debug(f"Service {verification.service_name} not in filter, skipping")
                 return False
 
             # Check country filter
-            if (
-                rules.country_filter
-                and verification.country not in rules.country_filter
-            ):
+            if rules.country_filter and verification.country not in rules.country_filter:
                 logger.debug(f"Country {verification.country} not in filter, skipping")
                 return False
 
@@ -156,7 +136,7 @@ Verification ID: #{verification.id}
 
         if result.get("ok"):
             # Update last_message_at
-            connection.last_message_at = datetime.utcnow()
+            connection.last_message_at = datetime.now(timezone.utc)
             db.commit()
             logger.info(f"Sent verification code to Telegram for user {user_id}")
             return True

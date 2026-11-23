@@ -3,7 +3,7 @@
 import asyncio
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.core.database import engine
 from app.core.init_admin import init_admin_user
@@ -360,10 +360,12 @@ async def lifespan(app):
             startup_logger.info("✅ Back-order monitor started (5-min interval)")
 
             from app.workers.orphan_reconciliation import run_orphan_reconciliation
+
             asyncio.create_task(run_orphan_reconciliation())
             startup_logger.info("✅ Orphan reconciliation worker started (60s interval)")
 
             from app.workers.webhook_health_monitor import run_webhook_health_monitor
+
             asyncio.create_task(run_webhook_health_monitor())
             startup_logger.info("✅ TV webhook health monitor started (30-min interval)")
 
@@ -473,6 +475,24 @@ async def lifespan(app):
 
             asyncio.create_task(run_outbox_worker())
             startup_logger.info("✅ Email outbox worker started")
+
+            # I-009: Notification cleanup (daily — purge notifications older than 30 days)
+            async def start_notification_cleanup_loop():
+                while True:
+                    await asyncio.sleep(86400)  # run daily
+                    try:
+                        from app.core.database import SessionLocal
+                        from app.services.notification_service import NotificationService
+
+                        with SessionLocal() as db:
+                            count = NotificationService(db).cleanup_old_notifications(days=30)
+                            if count:
+                                startup_logger.info(f"Notification cleanup: removed {count} old notifications")
+                    except Exception as e:
+                        startup_logger.warning(f"Notification cleanup failed: {e}")
+
+            asyncio.create_task(start_notification_cleanup_loop())
+            startup_logger.info("✅ Notification cleanup loop started (daily, 30-day TTL)")
 
             # Area code cache refresh (every 23h — before 24h TTL expires)
             async def run_area_code_refresh():

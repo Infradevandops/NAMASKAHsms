@@ -45,22 +45,14 @@ class SMSPollingService:
         db = None
         try:
             db = SessionLocal()
-            verification = (
-                db.query(Verification)
-                .filter(Verification.id == verification_id)
-                .first()
-            )
+            verification = db.query(Verification).filter(Verification.id == verification_id).first()
 
             if not verification or verification.status != "pending":
-                logger.info(
-                    f"Verification {verification_id} no longer pending, stopping poll"
-                )
+                logger.info(f"Verification {verification_id} no longer pending, stopping poll")
                 return
 
             if not verification.activation_id:
-                logger.warning(
-                    f"No activation_id for verification {verification_id} — marking failed"
-                )
+                logger.warning(f"No activation_id for verification {verification_id} — marking failed")
                 verification.status = "failed"
                 verification.failure_reason = "no_activation_id"
                 db.commit()
@@ -88,8 +80,7 @@ class SMSPollingService:
                 await self._poll_pvapins(verification, db, timeout_seconds)
             else:
                 logger.warning(
-                    f"Unknown provider '{provider}' for verification {verification_id}, "
-                    f"handling as timeout"
+                    f"Unknown provider '{provider}' for verification {verification_id}, " f"handling as timeout"
                 )
                 await self._handle_timeout(verification, db, reason="sms_timeout")
 
@@ -108,14 +99,11 @@ class SMSPollingService:
 
     async def _poll_textverified(self, verification, db, timeout_seconds: float):
         """Poll TextVerified using standard sms.incoming() method."""
-        tv_details = await self.textverified.get_verification_details(
-            verification.activation_id
-        )
+        tv_details = await self.textverified.get_verification_details(verification.activation_id)
 
         if not tv_details:
             logger.warning(
-                f"Could not get TV details for {verification.activation_id}, "
-                f"falling back to legacy polling"
+                f"Could not get TV details for {verification.activation_id}, " f"falling back to legacy polling"
             )
             await self._poll_legacy(verification, db, timeout_seconds)
             return
@@ -139,10 +127,7 @@ class SMSPollingService:
         # carrier does not exist on VerificationExpanded (confirmed from SDK dtypes.py)
         # tv_details.get("carrier") will always be None — no-op removed
 
-        logger.info(
-            f"Polling {verification.id} via sms.incoming() "
-            f"(timeout={timeout_seconds:.0f}s)"
-        )
+        logger.info(f"Polling {verification.id} via sms.incoming() " f"(timeout={timeout_seconds:.0f}s)")
 
         try:
             from app.services.event_broadcaster import event_broadcaster
@@ -161,22 +146,14 @@ class SMSPollingService:
             pass
 
         # Notify user we're still waiting
-        asyncio.create_task(
-            self._notify_waiting(
-                verification.user_id, verification.service_name, str(verification.id)
-            )
-        )
+        asyncio.create_task(self._notify_waiting(verification.user_id, verification.service_name, str(verification.id)))
 
         # Standard TextVerified poll
-        result = await self.textverified.poll_sms_standard(
-            tv_obj, timeout_seconds=timeout_seconds
-        )
+        result = await self.textverified.poll_sms_standard(tv_obj, timeout_seconds=timeout_seconds)
 
         # Reload verification
         db.expire(verification)
-        verification = (
-            db.query(Verification).filter(Verification.id == verification.id).first()
-        )
+        verification = db.query(Verification).filter(Verification.id == verification.id).first()
         if not verification or verification.status != "pending":
             return
 
@@ -194,8 +171,10 @@ class SMSPollingService:
                 if verification.capability == "voice":
                     try:
                         from app.services.verification_status_service import mark_verification_transcribing
+
                         await mark_verification_transcribing(db, verification)
                         from app.services.event_broadcaster import event_broadcaster
+
                         asyncio.create_task(
                             event_broadcaster.broadcast_verification_event(
                                 user_id=verification.user_id,
@@ -226,25 +205,17 @@ class SMSPollingService:
         from app.services.providers.telnyx_adapter import TelnyxAdapter
 
         adapter = TelnyxAdapter()
-        logger.info(
-            f"Polling {verification.id} via Telnyx (timeout={timeout_seconds:.0f}s)"
-        )
+        logger.info(f"Polling {verification.id} via Telnyx (timeout={timeout_seconds:.0f}s)")
 
         # Compute interval once per session — avoids a DB query on every loop tick
-        delay = self.adaptive.get_optimal_interval(
-            db, service=verification.service_name
-        )
+        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
         start_time = datetime.now(timezone.utc)
-        while (
-            datetime.now(timezone.utc) - start_time
-        ).total_seconds() < timeout_seconds:
+        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
                     msg = messages[-1]
-                    await self._complete_verification(
-                        verification, db, msg.text, msg.code
-                    )
+                    await self._complete_verification(verification, db, msg.text, msg.code)
                     return
             except Exception as e:
                 logger.warning(f"Telnyx polling error for {verification.id}: {e}")
@@ -274,25 +245,17 @@ class SMSPollingService:
         from app.services.providers.fivesim_adapter import FiveSimAdapter
 
         adapter = FiveSimAdapter()
-        logger.info(
-            f"Polling {verification.id} via 5sim (timeout={timeout_seconds:.0f}s)"
-        )
+        logger.info(f"Polling {verification.id} via 5sim (timeout={timeout_seconds:.0f}s)")
 
         # Compute interval once per session — avoids a DB query on every loop tick
-        delay = self.adaptive.get_optimal_interval(
-            db, service=verification.service_name
-        )
+        delay = self.adaptive.get_optimal_interval(db, service=verification.service_name)
         start_time = datetime.now(timezone.utc)
-        while (
-            datetime.now(timezone.utc) - start_time
-        ).total_seconds() < timeout_seconds:
+        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
                     msg = messages[-1]
-                    await self._complete_verification(
-                        verification, db, msg.text, msg.code
-                    )
+                    await self._complete_verification(verification, db, msg.text, msg.code)
                     return
             except Exception as e:
                 logger.warning(f"5sim polling error for {verification.id}: {e}")
@@ -351,17 +314,20 @@ class SMSPollingService:
                 reusable_until = details.get("reusable_until")
                 if reusable_until:
                     from datetime import datetime as _dt
+
                     v.reusable_until = _dt.fromisoformat(reusable_until.replace("Z", "+00:00"))
                     db.commit()
                     # Push reuse_available WebSocket event if balance >= $0.25
                     try:
                         from app.core.database import SessionLocal as _SL
                         from app.models.user import User as _User
+
                         _db2 = _SL()
                         try:
                             _u = _db2.query(_User).filter(_User.id == v.user_id).first()
                             if _u and float(_u.credits or 0) >= 0.25:
                                 from app.services.event_broadcaster import event_broadcaster
+
                                 asyncio.create_task(
                                     event_broadcaster.broadcast_verification_event(
                                         user_id=v.user_id,
@@ -386,11 +352,7 @@ class SMSPollingService:
         # Instrumentation
         latency = None
         if v.created_at:
-            created_at = (
-                v.created_at.replace(tzinfo=timezone.utc)
-                if v.created_at.tzinfo is None
-                else v.created_at
-            )
+            created_at = v.created_at.replace(tzinfo=timezone.utc) if v.created_at.tzinfo is None else v.created_at
             latency = int((v.completed_at - created_at).total_seconds())
 
         asyncio.create_task(
@@ -423,9 +385,7 @@ class SMSPollingService:
         try:
             from app.services.telegram_service import telegram_service
 
-            asyncio.create_task(
-                telegram_service.send_verification_code(db, v.user_id, v)
-            )
+            asyncio.create_task(telegram_service.send_verification_code(db, v.user_id, v))
         except Exception as e:
             logger.warning(f"Telegram forwarding failed: {e}")
 
@@ -433,17 +393,13 @@ class SMSPollingService:
         try:
             from app.services.onesignal_service import onesignal_service
 
-            asyncio.create_task(
-                onesignal_service.send_sms_notification(
-                    db, v.user_id, v.id, v.sms_code or ""
-                )
-            )
+            asyncio.create_task(onesignal_service.send_sms_notification(db, v.user_id, v.id, v.sms_code or ""))
         except Exception as e:
             logger.warning(f"OneSignal notification failed: {e}")
 
         try:
             dispatcher = NotificationDispatcher(db)
-            dispatcher.on_sms_received(v)
+            await dispatcher.on_sms_received(v)
         except Exception:
             pass
 
@@ -463,9 +419,7 @@ class SMSPollingService:
         except Exception:
             pass
 
-        logger.info(
-            f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
-        )
+        logger.info(f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}")
 
         # Send verification completed email (non-blocking)
         try:
@@ -489,9 +443,7 @@ class SMSPollingService:
         except Exception as _e:
             logger.warning(f"Verification completed email failed (non-critical): {_e}")
 
-    async def _handle_timeout(
-        self, verification: Verification, db, reason: str = "timeout"
-    ):
+    async def _handle_timeout(self, verification: Verification, db, reason: str = "timeout"):
         from app.core.constants import FailureReason
         from app.services.verification_status_service import mark_verification_failed
 
@@ -502,14 +454,10 @@ class SMSPollingService:
                 lock_key = f"lock:verification_timeout:{verification.id}"
                 acquired = redis.set(lock_key, "1", nx=True, ex=30)  # type: ignore[func-returns-value]
                 if not acquired:
-                    logger.info(
-                        f"Timeout for {verification.id} already being handled by another worker, skipping"
-                    )
+                    logger.info(f"Timeout for {verification.id} already being handled by another worker, skipping")
                     return
         except Exception as e:
-            logger.warning(
-                f"Redis lock unavailable for {verification.id}, proceeding without lock: {e}"
-            )
+            logger.warning(f"Redis lock unavailable for {verification.id}, proceeding without lock: {e}")
 
         # Calculate reason
         failure_reason = FailureReason.SMS_NOT_DELIVERED
@@ -535,16 +483,12 @@ class SMSPollingService:
 
         try:
             if provider == "textverified":
-                details = await self.textverified.get_verification_details(
-                    verification.activation_id
-                )
+                details = await self.textverified.get_verification_details(verification.activation_id)
                 can_reactivate = details.get("can_reactivate", False)
                 can_report = details.get("can_report", True)
 
                 if can_reactivate:
-                    reactivated = await self.textverified.reactivate_verification(
-                        verification.activation_id
-                    )
+                    reactivated = await self.textverified.reactivate_verification(verification.activation_id)
                     if reactivated:
                         logger.info(f"Reactivated {verification.id} — restarting poll")
                         # Reset DB status to pending and restart poll
@@ -554,34 +498,24 @@ class SMSPollingService:
                         return
 
                 if can_report:
-                    provider_refunded = await self.textverified.report_verification(
-                        verification.activation_id
-                    )
+                    provider_refunded = await self.textverified.report_verification(verification.activation_id)
                 else:
-                    logger.warning(
-                        f"can_report=False for {verification.activation_id} — skipping report"
-                    )
+                    logger.warning(f"can_report=False for {verification.activation_id} — skipping report")
             elif provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
 
-                provider_refunded = await TelnyxAdapter().report_failed(
-                    verification.activation_id
-                )
+                provider_refunded = await TelnyxAdapter().report_failed(verification.activation_id)
             elif provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
 
-                provider_refunded = await FiveSimAdapter().report_failed(
-                    verification.activation_id
-                )
+                provider_refunded = await FiveSimAdapter().report_failed(verification.activation_id)
         except Exception as e:
             logger.warning(f"Failed to recoup from provider {provider}: {e}")
 
         if provider_refunded:
             logger.info(f"✅ RECOUPED: {verification.id} from {provider}")
         else:
-            logger.warning(
-                f"⚠️ RECOUP FAILED: {verification.id} from {provider} (Potential leakage)"
-            )
+            logger.warning(f"⚠️ RECOUP FAILED: {verification.id} from {provider} (Potential leakage)")
 
         # --- PHASE 2 & 10 INSTRUMENTATION ---
         asyncio.create_task(
@@ -596,9 +530,7 @@ class SMSPollingService:
 
         logger.info(f"Verification {verification.id} timed out")
 
-    async def _notify_waiting(
-        self, user_id: str, service_name: str, verification_id: str = ""
-    ):
+    async def _notify_waiting(self, user_id: str, service_name: str, verification_id: str = ""):
         """Send 'still waiting' notification after 20 seconds."""
         await asyncio.sleep(20)
         # Distributed lock — prevent duplicate notifications from multiple workers
@@ -611,9 +543,7 @@ class SMSPollingService:
                     if not acquired:
                         return
             except Exception as e:
-                logger.warning(
-                    f"Redis lock unavailable for waiting notif {verification_id}: {e}"
-                )
+                logger.warning(f"Redis lock unavailable for waiting notif {verification_id}: {e}")
         db = None
         try:
             db = SessionLocal()
@@ -630,17 +560,13 @@ class SMSPollingService:
             if db:
                 db.close()
 
-    async def _poll_legacy(
-        self, verification: Verification, db, timeout_seconds: float
-    ):
+    async def _poll_legacy(self, verification: Verification, db, timeout_seconds: float):
         """Legacy polling fallback with progressive delay."""
         import re
 
         start_time = datetime.now(timezone.utc)
         delay = 2.0
-        while (
-            datetime.now(timezone.utc) - start_time
-        ).total_seconds() < timeout_seconds:
+        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
             if verification.status != "pending":
                 break
 
@@ -651,28 +577,18 @@ class SMSPollingService:
                 )
                 if sms_data and sms_data.get("messages"):
                     latest = sms_data["messages"][-1]
-                    sms_text = (
-                        latest if isinstance(latest, str) else latest.get("text", "")
-                    )
-                    pre_parsed = (
-                        latest.get("code", "") if isinstance(latest, dict) else ""
-                    )
+                    sms_text = latest if isinstance(latest, str) else latest.get("text", "")
+                    pre_parsed = latest.get("code", "") if isinstance(latest, dict) else ""
 
                     if pre_parsed:
                         extracted_code = pre_parsed
                     else:
                         hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_text)
                         plain = re.findall(r"\b(\d{4,8})\b", sms_text)
-                        extracted_code = (
-                            hyphen[-1].replace("-", "")
-                            if hyphen
-                            else plain[-1] if plain else None
-                        )
+                        extracted_code = hyphen[-1].replace("-", "") if hyphen else plain[-1] if plain else None
 
                     if extracted_code:
-                        await self._complete_verification(
-                            verification, db, sms_text, extracted_code
-                        )
+                        await self._complete_verification(verification, db, sms_text, extracted_code)
                         return
             except Exception as e:
                 logger.warning(f"Legacy check_sms failed: {e}")
@@ -691,11 +607,7 @@ class SMSPollingService:
             db = None
             try:
                 db = SessionLocal()
-                pending = (
-                    db.query(Verification)
-                    .filter(Verification.status == "pending")
-                    .all()
-                )
+                pending = db.query(Verification).filter(Verification.status == "pending").all()
                 for v in pending:
                     if v.id not in self.polling_tasks:
                         await self.start_polling(v.id, v.phone_number)

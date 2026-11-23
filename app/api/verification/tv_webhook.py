@@ -36,9 +36,7 @@ def _verify_signature(payload: bytes, signature_header: str, secret: str) -> boo
     if not signature_header or not secret:
         return not secret
     try:
-        raw_secret = (
-            secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
-        )
+        raw_secret = secret.replace("whsec_", "") if secret.startswith("whsec_") else secret
         try:
             secret_bytes = base64.b64decode(raw_secret + "==")
         except Exception:
@@ -115,11 +113,7 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
     # Find verification by TV's reservation ID (most reliable)
     verification = None
     if reservation_id:
-        verification = (
-            db.query(Verification)
-            .filter(Verification.activation_id == reservation_id)
-            .first()
-        )
+        verification = db.query(Verification).filter(Verification.activation_id == reservation_id).first()
 
     # Fallback: match by phone number
     if not verification and phone_number:
@@ -135,10 +129,7 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
         )
 
     if not verification:
-        logger.warning(
-            f"TV webhook: no verification found for "
-            f"reservationId={reservation_id} phone={phone_number}"
-        )
+        logger.warning(f"TV webhook: no verification found for " f"reservationId={reservation_id} phone={phone_number}")
         return {"ok": True}  # 200 so TV doesn't retry/disable
 
     if verification.status != "pending":
@@ -151,22 +142,25 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
     db.commit()
 
     logger.info(
-        f"TV webhook: SMS delivered — verification={verification.id} "
-        f"user={verification.user_id} code={parsed_code}"
+        f"TV webhook: SMS delivered — verification={verification.id} " f"user={verification.user_id} code={parsed_code}"
     )
 
     # Push instantly to user's browser via WebSocket
+    # Guard: only push if debit committed (refund_eligible=False means charge went through)
     try:
-        await websocket_manager.broadcast_to_user(
-            str(verification.user_id),
-            {
-                "type": "sms_received",
-                "verification_id": str(verification.id),
-                "sms_code": parsed_code,
-                "sms_text": sms_content,
-                "phone_number": verification.phone_number,
-            },
-        )
+        if not getattr(verification, "refund_eligible", True):
+            await websocket_manager.broadcast_to_user(
+                str(verification.user_id),
+                {
+                    "type": "sms_received",
+                    "verification_id": str(verification.id),
+                    "sms_code": parsed_code,
+                    "sms_text": sms_content,
+                    "phone_number": verification.phone_number,
+                },
+            )
+        else:
+            logger.debug(f"TV webhook: skipping WS push for {verification.id} — debit not confirmed")
     except Exception as e:
         logger.warning(f"TV webhook: WebSocket push failed (non-fatal): {e}")
 

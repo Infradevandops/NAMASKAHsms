@@ -95,9 +95,7 @@ async def _reconcile_once():
         try:
             with SessionLocal() as db:
                 # Check not already recorded
-                existing = db.query(Verification).filter(
-                    Verification.activation_id == match["order_id"]
-                ).first()
+                existing = db.query(Verification).filter(Verification.activation_id == match["order_id"]).first()
                 if existing:
                     redis.delete(key)
                     continue
@@ -123,8 +121,11 @@ async def _reconcile_once():
                 db.flush()
 
                 success, error = await BalanceService.deduct_credits_for_verification(
-                    db=db, user=user, verification=verification,
-                    cost=cost, service_name=service,
+                    db=db,
+                    user=user,
+                    verification=verification,
+                    cost=cost,
+                    service_name=service,
                     country_code=pending.get("country", "US"),
                 )
                 if not success:
@@ -139,22 +140,27 @@ async def _reconcile_once():
                     f"number={match['phone_number']} id={verification.id}"
                 )
 
-                # Notify user via WebSocket
+                # Notify user via WebSocket (I-005: purchase_healed event)
                 try:
-                    from app.services.websocket_manager import websocket_manager
-                    await websocket_manager.send_to_user(user_id, {
-                        "type": "verification_ready",
-                        "verification_id": str(verification.id),
-                        "phone_number": match["phone_number"],
-                        "service": service,
-                        "message": "Your number is ready!",
-                    })
+                    from app.websocket.manager import manager as websocket_manager
+
+                    await websocket_manager.broadcast_to_user(
+                        str(user_id),
+                        {
+                            "type": "purchase_healed",
+                            "verification_id": str(verification.id),
+                            "phone_number": match["phone_number"],
+                            "service": service,
+                            "message": "Your number is ready!",
+                        },
+                    )
                 except Exception as ws_err:
                     logger.warning(f"Orphan recon WS notify failed: {ws_err}")
 
                 # Start polling
                 try:
                     from app.services.sms_polling_service import sms_polling_service
+
                     asyncio.create_task(sms_polling_service.start_polling(verification.id))
                 except Exception:
                     pass

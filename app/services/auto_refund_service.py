@@ -25,15 +25,9 @@ class AutoRefundService:
         self.db = db
         self.credit_service = CreditService(db)
 
-    async def process_verification_refund(
-        self, verification_id: str, reason: str
-    ) -> Optional[dict]:
+    async def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
         """Process automatic refund for a failed verification."""
-        verification = (
-            self.db.query(Verification)
-            .filter(Verification.id == verification_id)
-            .first()
-        )
+        verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
         if not verification:
             logger.error(f"Verification {verification_id} not found")
@@ -50,9 +44,7 @@ class AutoRefundService:
         )
 
         if existing_refund:
-            logger.info(
-                f"Verification {verification_id} already refunded: {existing_refund.id}"
-            )
+            logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
             return None
 
         # PRODUCTION FIX: Allow "error" status for refunds (common failure state)
@@ -140,11 +132,7 @@ class AutoRefundService:
             transaction_reference = f"refund_{verification.id}"
 
             # Check for duplicate transaction (idempotency)
-            existing_tx = (
-                self.db.query(Transaction)
-                .filter(Transaction.reference == transaction_reference)
-                .first()
-            )
+            existing_tx = self.db.query(Transaction).filter(Transaction.reference == transaction_reference).first()
 
             if existing_tx:
                 logger.warning(
@@ -222,11 +210,20 @@ class AutoRefundService:
                         new_balance=new_balance,
                     )
                 else:
+                    _reason_display = {
+                        "sms_timeout": "SMS not received in time",
+                        "area_code_mismatch": "Area code mismatch",
+                        "carrier_mismatch": "Carrier mismatch",
+                        "voip_detected": "VOIP number detected",
+                        "not_mobile": "Landline number detected",
+                        "no_activation_id": "Purchase could not be confirmed",
+                        "provider_timeout": "Provider timed out",
+                    }.get(reason, "Verification could not be completed")
                     await notification_dispatcher.notify_verification_failed(
                         user_id=verification.user_id,
                         verification_id=verification_id,
                         service=verification.service_name,
-                        reason=f"Refunded: {reason}",
+                        reason=_reason_display,
                     )
 
                 logger.info(f"✓ Refund notification sent to {verification.user_id}")
@@ -254,9 +251,7 @@ class AutoRefundService:
             error_context = {
                 "verification_id": verification_id,
                 "user_id": verification.user_id if verification else None,
-                "refund_amount": (
-                    refund_amount_float if "refund_amount_float" in locals() else None
-                ),
+                "refund_amount": (refund_amount_float if "refund_amount_float" in locals() else None),
                 "old_balance": old_balance if "old_balance" in locals() else None,
                 "reason": reason,
                 "error_type": type(e).__name__,
@@ -277,9 +272,7 @@ class AutoRefundService:
                 "context": error_context,
             }
 
-    def reconcile_unrefunded_verifications(
-        self, days_back: int = 30, dry_run: bool = True
-    ) -> dict:
+    def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
         """Scan for unrefunded failed verifications and process refunds."""
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
@@ -331,11 +324,7 @@ class AutoRefundService:
             if not dry_run:
                 import asyncio
 
-                result = asyncio.run(
-                    self.process_verification_refund(
-                        verification.id, verification.status
-                    )
-                )
+                result = asyncio.run(self.process_verification_refund(verification.id, verification.status))
                 if result:
                     report["refunded_now"] += 1
                     report["total_amount_refunded"] += result["refund_amount"]

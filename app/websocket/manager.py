@@ -14,6 +14,7 @@ class ConnectionManager:
     def __init__(self):
         # user_id -> Set of WebSocket connections
         self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self._channels: Dict[str, Set[str]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: str):
         """Accept and store WebSocket connection."""
@@ -30,8 +31,7 @@ class ConnectionManager:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)
         logger.info(
-            f"✅ WebSocket connected: user={user_id}, "
-            f"total_connections={len(self.active_connections[user_id])}"
+            f"✅ WebSocket connected: user={user_id}, " f"total_connections={len(self.active_connections[user_id])}"
         )
 
     def disconnect(self, websocket: WebSocket, user_id: str):
@@ -44,8 +44,7 @@ class ConnectionManager:
             logger.info(f"🔌 All connections closed for user {user_id}")
         else:
             logger.info(
-                f"🔌 WebSocket disconnected: user={user_id}, "
-                f"remaining={len(self.active_connections[user_id])}"
+                f"🔌 WebSocket disconnected: user={user_id}, " f"remaining={len(self.active_connections[user_id])}"
             )
 
     async def send_personal_message(self, message: dict, user_id: str):
@@ -98,19 +97,15 @@ class ConnectionManager:
         return True
 
     def subscribe_user(self, user_id: str, channel: str) -> bool:
-        if not hasattr(self, "_channels"):
-            self._channels: Dict[str, Set[str]] = {}
         self._channels.setdefault(channel, set()).add(user_id)
         return True
 
     def unsubscribe_user(self, user_id: str, channel: str) -> bool:
-        if hasattr(self, "_channels") and channel in self._channels:
+        if channel in self._channels:
             self._channels[channel].discard(user_id)
         return True
 
     async def broadcast_to_channel(self, channel: str, message: dict) -> int:
-        if not hasattr(self, "_channels"):
-            return 0
         sent = 0
         for user_id in self._channels.get(channel, set()):
             if await self.broadcast_to_user(user_id, message):

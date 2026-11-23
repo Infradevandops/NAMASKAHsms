@@ -20,20 +20,16 @@ class NotificationDispatcher:
 
             from app.websocket.manager import manager
 
-            payload = (
-                notification.to_dict()
-                if hasattr(notification, "to_dict")
-                else notification
-            )
+            payload = notification.to_dict() if hasattr(notification, "to_dict") else notification
 
-            asyncio.create_task(
-                manager.send_personal_message(
-                    {"type": "notification", "data": payload}, user_id
-                )
-            )
-            logger.info(
-                f"Notification broadcasted to user {user_id}: {payload.get('title', 'No title')}"
-            )
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(manager.send_personal_message({"type": "notification", "data": payload}, user_id))
+            except RuntimeError:
+                # No running loop — called from sync context, skip WS push
+                logger.debug(f"No running event loop for WS broadcast to {user_id}")
+                return
+            logger.info(f"Notification broadcasted to user {user_id}: {payload.get('title', 'No title')}")
         except Exception as e:
             logger.error(f"Failed to broadcast notification via WebSocket: {e}")
 
@@ -48,9 +44,7 @@ class NotificationDispatcher:
             if user and hasattr(notification, "title"):
                 # Extract plain values now while session is open — avoids detached instance error
                 user_email = user.email
-                user_name = (
-                    getattr(user, "display_name", None) or user.email.split("@")[0]
-                )
+                user_name = getattr(user, "display_name", None) or user.email.split("@")[0]
                 notif_title = notification.title
                 notif_message = notification.message
                 notif_type = getattr(notification, "type", "info")
@@ -116,9 +110,7 @@ class NotificationDispatcher:
             logger.error(f"Failed to create verification_completed notification: {e}")
         return False
 
-    async def notify_verification_failed(
-        self, user_id: str, verification_id: str, service: str, reason: str
-    ) -> bool:
+    async def notify_verification_failed(self, user_id: str, verification_id: str, service: str, reason: str) -> bool:
         """Notify when verification fails."""
         try:
             notification = self.notification_service.create_notification(
@@ -135,9 +127,7 @@ class NotificationDispatcher:
             logger.error(f"Failed to create verification_failed notification: {e}")
         return False
 
-    async def notify_payment_completed(
-        self, user_id: str, amount: float, new_balance: float
-    ) -> bool:
+    async def notify_payment_completed(self, user_id: str, amount: float, new_balance: float) -> bool:
         """Notify when payment is completed."""
         try:
             notification = self.notification_service.create_notification(
@@ -183,9 +173,7 @@ class NotificationDispatcher:
     ) -> bool:
         """Notify when verification is cancelled with refund."""
         try:
-            balance_str = (
-                f" New balance: ${new_balance:.2f}" if new_balance is not None else ""
-            )
+            balance_str = f" New balance: ${new_balance:.2f}" if new_balance is not None else ""
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_cancelled",
@@ -200,9 +188,7 @@ class NotificationDispatcher:
             logger.error(f"Failed to create verification_cancelled notification: {e}")
         return False
 
-    async def on_refund_completed(
-        self, user_id: str, amount: float, reference: str, new_balance: float
-    ) -> bool:
+    async def on_refund_completed(self, user_id: str, amount: float, reference: str, new_balance: float) -> bool:
         """Notify when any refund is completed."""
         try:
             notification = self.notification_service.create_notification(
@@ -219,9 +205,7 @@ class NotificationDispatcher:
             logger.error(f"Failed to create refund_completed notification: {e}")
         return False
 
-    async def notify_balance_deducted(
-        self, user_id: str, amount: float, service: str, new_balance: float
-    ) -> bool:
+    async def notify_balance_deducted(self, user_id: str, amount: float, service: str, new_balance: float) -> bool:
         """Notify when credits are deducted for a verification purchase."""
         try:
             notification = self.notification_service.create_notification(
@@ -250,16 +234,12 @@ class NotificationDispatcher:
         try:
             if same_state:
                 title = "Area Code Substituted"
-                message = (
-                    f"{service}: requested {requested_area_code}, "
-                    f"assigned {assigned_area_code} (same state)"
-                )
+                message = f"{service}: requested {requested_area_code}, " f"assigned {assigned_area_code} (same state)"
                 ntype = "area_code_fallback"
             else:
                 title = "⚠️ Cross-State Area Code"
                 message = (
-                    f"{service}: requested {requested_area_code}, "
-                    f"assigned {assigned_area_code} (different state)"
+                    f"{service}: requested {requested_area_code}, " f"assigned {assigned_area_code} (different state)"
                 )
                 ntype = "area_code_cross_state"
 
@@ -270,10 +250,7 @@ class NotificationDispatcher:
                 message=message,
             )
             self._broadcast_notification(user_id, notification)
-            logger.info(
-                f"Created {ntype} notification for {user_id}: "
-                f"{requested_area_code} → {assigned_area_code}"
-            )
+            logger.info(f"Created {ntype} notification for {user_id}: " f"{requested_area_code} → {assigned_area_code}")
             return True
         except Exception as e:
             logger.error(f"Failed to create area_code_fallback notification: {e}")
@@ -304,10 +281,7 @@ class NotificationDispatcher:
 
             if is_final:
                 title = f"Final Retry Attempt ({attempt}/{max_attempts})"
-                message = (
-                    f"{service}: Accepting number on final attempt "
-                    f"(reason: {friendly_reason})"
-                )
+                message = f"{service}: Accepting number on final attempt " f"(reason: {friendly_reason})"
             else:
                 title = f"Retry {attempt}/{max_attempts}"
                 message = f"{service}: Retrying purchase because {friendly_reason}"

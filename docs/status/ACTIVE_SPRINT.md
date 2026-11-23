@@ -15,9 +15,10 @@
 | B–F — Platform features | All 63 feature tasks | 63/63 | 0 | 6 |
 | G — Provider Resilience | Timeout, orphan recon, circuit breaker, nginx | 6/6 | 0 | 0 |
 | H — Purchase Flow UX | Loading modal, step 3, activity feed, webhook monitor | 6/6 | 0 | 0 |
-| **Total** | | **80/83** | **0** | **9** |
+| I — Notification/WS Hardening | 10 notification + WS fixes | 10/10 | 0 | 0 |
+| **Total** | | **90/93** | **0** | **9** |
 
-**Zero open code tasks. All remaining work is manual/external.**
+**Sprint I complete. All 10 notification/WebSocket hardening tasks shipped.**
 
 ---
 
@@ -95,18 +96,83 @@ Now `frontend-unit-tests` runs independently. If it passes → workflow = `succe
 
 ---
 
+## SPRINT I — NOTIFICATION & WEBSOCKET HARDENING
+
+**Added**: November 2026
+**Scope**: Fix 8 known weaknesses + 1 critical silent-failure gap in the notification/WS layer
+
+### Background: Silent Notification Delivery on Failed Transactions
+
+The most dangerous gap is not in the 8 structural weaknesses — it's a **silent success notification
+delivered to the user even when the underlying transaction has failed**.
+
+The flow is:
+1. `purchase_endpoints.py` → SSE stream emits `complete` → frontend advances to step 3
+2. `sms_polling_service._complete_verification()` fires `on_sms_received()` + `event_broadcaster.broadcast_verification_event(completed)` + email
+3. **BUT**: if `BalanceService.deduct_credits_for_verification()` fails after the TV number is
+   already purchased (race condition, DB error, quota overflow), the SSE stream yields `failed`
+   with `reason=debit_failed` — yet the polling service may still be running against the
+   verification record that was `db.flush()`-ed but never committed.
+4. In `_handle_timeout()`, `mark_verification_failed()` calls `AutoRefundService` which sends
+   a refund notification — but the `notify_verification_failed()` call inside `auto_refund_service`
+   uses the raw `reason` string (e.g. `"sms_timeout"`) as the user-facing message, not a
+   human-readable string.
+5. In `_complete_verification()`, `dispatcher.on_sms_received(v)` is called **synchronously**
+   (not awaited) — `on_sms_received` is `async def`. This means the DB notification is created
+   but the WebSocket broadcast inside it (`asyncio.create_task`) is fired from a sync call
+   context, which is unreliable.
+6. The TV webhook path (`tv_webhook.py`) sets `verification.status = "completed"` and pushes
+   `sms_received` via WS **before** checking whether the debit actually committed. If the
+   verification record exists (from `db.flush()`) but the debit rolled back, the user sees
+   a code delivered for a transaction that never charged — or worse, was double-charged.
+7. No WS event is sent on `purchasing_delayed` SSE state — user's browser has no real-time
+   signal that the orphan reconciliation worker healed the purchase. They only find out by
+   polling or refreshing.
+
+---
+
+### I — Tasks
+
+| ID | Priority | Description | File(s) |
+|----|----------|-------------|---------|
+| I-001 | P0 | **Fix `on_sms_received` not awaited** — called as sync in `_complete_verification()`, async def silently no-ops the WS broadcast | `sms_polling_service.py` |
+| I-002 | P0 | **TV webhook guard: verify debit committed before pushing `sms_received` WS event** — check `verification.status == "completed"` AND `verification.refund_eligible == False` before broadcast | `tv_webhook.py` |
+| I-003 | P0 | **`mark-all-read` URL mismatch** — JS calls `POST /api/notifications/mark-all-read`, endpoint is `/read-all`. Silent failure in production | `notification_endpoints.py`, `notification-system.js` |
+| I-004 | P1 | **`asyncio.create_task()` in sync `_broadcast_notification()`** — only works if event loop is running at call site; silent drop from workers/threads. Wrap in `asyncio.get_event_loop().create_task()` with running-loop guard | `notification_dispatcher.py` |
+| I-005 | P1 | **`purchasing_delayed` has no WS event** — orphan reconciliation worker heals the purchase but user gets no real-time signal. Broadcast `{type: "purchase_healed", verification_id, phone_number}` from orphan worker on successful heal | `workers/orphan_reconciliation.py`, `notification-system.js` |
+| I-006 | P1 | **Refund notification uses raw reason string as user message** — `notify_verification_failed(reason=f"Refunded: {reason}")` exposes internal codes like `sms_timeout`, `area_code_mismatch` to users | `auto_refund_service.py` |
+| I-007 | P2 | **`get_unread_count` defined twice** in `notification_service.py` — second definition shadows first silently | `notification_service.py` |
+| I-008 | P2 | **`_channels` dict lazy-init with `hasattr`** — initialize in `ConnectionManager.__init__` to prevent AttributeError on direct access | `app/websocket/manager.py` |
+| I-009 | P2 | **No notification cleanup scheduler** — `cleanup_old_notifications(days=30)` exists but is never called. Wire into lifespan or a periodic task | `core/lifespan.py` or `startup.py` |
+| I-010 | P3 | **Telegram `datetime.utcnow()` (naive) vs rest of codebase `timezone.utc` (aware)** — will cause comparison errors when `last_message_at` is compared to aware datetimes | `telegram_service.py` |
+
+---
+
+### I — Deferred (external dependency)
+
+| ID | Reason |
+|----|--------|
+| FCM legacy API migration | FCM v1 HTTP API requires service account key — external config change, not code |
+| APNs stub → real impl | No iOS users yet — deferred until demand |
+| Push notification keys | Gated on `FCM_SERVER_KEY` / `ONESIGNAL_APP_ID` env vars — ops task |
+| Missed WS message persistence | No "deliver on reconnect" queue — deferred, requires Redis pub/sub or outbox pattern |
+
+---
+
 ## NEXT PHASE (after deploy confirmed)
 
-No code tasks remain. Next engineering work is:
+No code tasks remain from Sprints A–H. Next engineering work is:
 
-1. **Phase 2 Analytics** — cohort retention, revenue breakdown, churn signal
+1. **Sprint I** — Notification & WebSocket hardening (tasks above)
+
+2. **Phase 2 Analytics** — cohort retention, revenue breakdown, churn signal
    Pre-work: assess `user_events` + `purchase_outcomes` tables
    Task doc: `docs/features/PHASE2_ANALYTICS.md` (to be created)
 
-2. **SDK Libraries** — Python + JS client wrapping the public API
+3. **SDK Libraries** — Python + JS client wrapping the public API
    Spec: `docs/engineering/VRENUM_API_CONTRACT.md`
 
-3. **CI coverage push** — 30% → 60% (wire more test files, raise `--cov-fail-under`)
+4. **CI coverage push** — 30% → 60% (wire more test files, raise `--cov-fail-under`)
 
 ---
 

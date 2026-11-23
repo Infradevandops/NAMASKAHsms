@@ -480,6 +480,10 @@ class NotificationSystem {
                 // TV webhook delivered SMS instantly — route to verification flow if active
                 this.handleSmsReceived(message);
                 break;
+            case 'purchase_healed':
+                // Orphan reconciliation worker healed a delayed purchase
+                this.handlePurchaseHealed(message);
+                break;
             case 'pong':
                 // Keep-alive response
                 console.log('🏓 Pong received');
@@ -509,6 +513,20 @@ class NotificationSystem {
                 navigator.clipboard.writeText(message.sms_code).catch(() => {});
             }
         }
+    }
+
+    handlePurchaseHealed(message) {
+        // Orphan worker healed a delayed purchase — advance verification flow if on purchasing_delayed
+        if (typeof VerificationFlow !== 'undefined' && VerificationFlow.currentStep === 1) {
+            if (typeof VerificationFlow.onPurchaseHealed === 'function') {
+                VerificationFlow.onPurchaseHealed(message);
+            }
+        }
+        this.showCustomToast(
+            'Number Ready',
+            `Your ${message.service || ''} number is ready: ${message.phone_number || ''}`,
+            'success'
+        );
     }
 
     handleNewNotification(notification) {
