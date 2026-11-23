@@ -53,17 +53,6 @@ async function loadBalance(silent = false) {
             return;
         }
 
-        // Check if user is admin
-        const userRes = await fetch('/api/user/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (userRes.ok) {
-            const userData = await userRes.json();
-            // Always show account credit balance for consistency with notifications
-        }
-
-        // For non-admin users, show their account balance
         const res = await fetch('/api/billing/balance', {
             headers: {
                 'Authorization': `Bearer ${token}`,

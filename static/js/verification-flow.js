@@ -648,25 +648,7 @@ function updateProgress(step) {
 
 function confirmService() {
     if (!VerificationFlow.selectedService) return;
-    const item = (_modalItems['service'] || []).find(i => i.value === VerificationFlow.selectedService);
-    document.getElementById('pricing-service').textContent = item?.label || VerificationFlow.selectedService;
-    document.getElementById('pricing-time').textContent = item?.estimated_seconds ? `~${item.estimated_seconds}s` : '~30s';
-
-    // Show area code if selected
-    if (VerificationFlow.selectedAreaCode) {
-        const acItem = (_modalItems['area-code'] || []).find(i => i.value === VerificationFlow.selectedAreaCode);
-        document.getElementById('pricing-area-code').textContent = acItem ? `${acItem.value}${acItem.sub ? ' — ' + acItem.sub : ''}` : VerificationFlow.selectedAreaCode;
-        document.getElementById('pricing-area-code-row').style.display = '';
-    } else {
-        document.getElementById('pricing-area-code-row').style.display = 'none';
-    }
-
-
-
-    updatePricing();
-    loadBalance(); // Refresh balance before confirming
-    updateProgress(2);
-    setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
+    createVerification();
 }
 
 const _LS_SERVICES_KEY = 'nsk_services_cache';
