@@ -193,10 +193,10 @@ let _pinnedServices = JSON.parse(localStorage.getItem('nsk_pinned_services') || 
 let _recentServices = JSON.parse(localStorage.getItem('nsk_recent_services') || '[]');
 
 function openImmersiveModal(type) {
-    // Check if services are available
+    // If services still loading, queue the open
     if (type === 'service' && (!_modalItems['service'] || _modalItems['service'].length === 0)) {
-        window.toast && window.toast.error('Services unavailable. Please refresh the page.');
-        return;  // Don't open modal
+        VerificationFlow._pendingModalOpen = true;
+        return;
     }
 
     _modalType = type;
@@ -750,6 +750,15 @@ async function loadServices() {
         // Hide retry button on success
         const retryBtn = document.getElementById('service-retry-btn');
         if (retryBtn) retryBtn.style.display = 'none';
+
+        // Auto-open modal if user is waiting on step 1 with no service selected
+        if (!VerificationFlow.selectedService && VerificationFlow.currentStep === 1) {
+            VerificationFlow._pendingModalOpen = false;
+            openImmersiveModal('service');
+        } else if (VerificationFlow._pendingModalOpen) {
+            VerificationFlow._pendingModalOpen = false;
+            openImmersiveModal('service');
+        }
 
         // Subscribe to updates
         window.ServiceStore.subscribe((updatedServices) => {
