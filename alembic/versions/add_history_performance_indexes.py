@@ -19,34 +19,16 @@ depends_on = None
 
 def upgrade():
     """Add performance indexes for history queries."""
-    # Index for sorting by created_at (most common query)
-    op.create_index(
-        "idx_verifications_created_at_desc",
-        "verifications",
-        [sa.text("created_at DESC")],
-        unique=False,
-    )
+    conn = op.get_bind()
 
-    # Composite index for user + status + created_at (filtered queries)
-    op.create_index(
-        "idx_verifications_user_status_created",
-        "verifications",
-        ["user_id", "status", sa.text("created_at DESC")],
-        unique=False,
-    )
-
-    # Index for phone number searches (LIKE queries)
-    op.create_index(
-        "idx_verifications_phone_number",
-        "verifications",
-        ["phone_number"],
-        unique=False,
-    )
-
-    # Index for SMS code lookups
-    op.create_index(
-        "idx_verifications_sms_code", "verifications", ["sms_code"], unique=False
-    )
+    indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_verifications_created_at_desc ON verifications (created_at DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_verifications_user_status_created ON verifications (user_id, status, created_at DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_verifications_phone_number ON verifications (phone_number)",
+        "CREATE INDEX IF NOT EXISTS idx_verifications_sms_code ON verifications (sms_code)",
+    ]
+    for sql in indexes:
+        conn.execute(sa.text(sql))
 
 
 def downgrade():
