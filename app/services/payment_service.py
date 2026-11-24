@@ -3,7 +3,6 @@
 import asyncio
 import hashlib
 import hmac
-import json
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
@@ -28,11 +27,7 @@ class PaymentService:
 
     def _check_idempotency(self, idempotency_key: str) -> Optional[Dict]:
         """Check if operation already processed."""
-        existing = (
-            self.db.query(PaymentLog)
-            .filter(PaymentLog.idempotency_key == idempotency_key)
-            .first()
-        )
+        existing = self.db.query(PaymentLog).filter(PaymentLog.idempotency_key == idempotency_key).first()
 
         if existing and existing.state == "completed":
             return {
@@ -156,12 +151,7 @@ class PaymentService:
 
         try:
             # Check if already credited with SELECT FOR UPDATE
-            payment_log = (
-                self.db.query(PaymentLog)
-                .filter(PaymentLog.reference == reference)
-                .with_for_update()
-                .first()
-            )
+            payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).with_for_update().first()
 
             if not payment_log:
                 raise ValueError(f"Payment log {reference} not found")
@@ -171,9 +161,7 @@ class PaymentService:
                 return True
 
             # Atomic update with SELECT FOR UPDATE
-            user = (
-                self.db.query(User).filter(User.id == user_id).with_for_update().first()
-            )
+            user = self.db.query(User).filter(User.id == user_id).with_for_update().first()
 
             if not user:
                 raise ValueError(f"User {user_id} not found")
@@ -214,20 +202,38 @@ class PaymentService:
 
             # Apply tier upgrade from metadata if present (handles billing_period)
             try:
-                upgrade_to = payment_log.metadata.get("upgrade_to") if hasattr(payment_log, 'metadata') and payment_log.metadata else None
-                bp = payment_log.metadata.get("billing_period", "monthly") if hasattr(payment_log, 'metadata') and payment_log.metadata else "monthly"
-                addon_type = payment_log.metadata.get("addon_type") if hasattr(payment_log, 'metadata') and payment_log.metadata else None
+                upgrade_to = (
+                    payment_log.metadata.get("upgrade_to")
+                    if hasattr(payment_log, "metadata") and payment_log.metadata
+                    else None
+                )
+                bp = (
+                    payment_log.metadata.get("billing_period", "monthly")
+                    if hasattr(payment_log, "metadata") and payment_log.metadata
+                    else "monthly"
+                )
+                addon_type = (
+                    payment_log.metadata.get("addon_type")
+                    if hasattr(payment_log, "metadata") and payment_log.metadata
+                    else None
+                )
 
                 # C-015: Activate SubscriptionAddon on successful addon payment
                 if addon_type == "api_access":
                     from app.models.subscription_addon import SubscriptionAddon
-                    existing = self.db.query(SubscriptionAddon).filter(
-                        SubscriptionAddon.user_id == user_id,
-                        SubscriptionAddon.addon_type == "api_access",
-                        SubscriptionAddon.is_active.is_(True),
-                    ).first()
+
+                    existing = (
+                        self.db.query(SubscriptionAddon)
+                        .filter(
+                            SubscriptionAddon.user_id == user_id,
+                            SubscriptionAddon.addon_type == "api_access",
+                            SubscriptionAddon.is_active.is_(True),
+                        )
+                        .first()
+                    )
                     if not existing:
                         from datetime import timedelta
+
                         addon = SubscriptionAddon(
                             user_id=user_id,
                             addon_type="api_access",
@@ -241,6 +247,7 @@ class PaymentService:
 
                 if upgrade_to and upgrade_to in ("pro", "custom"):
                     from datetime import timedelta
+
                     user.subscription_tier = upgrade_to
                     days = 365 if bp == "annual" else 30
                     user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
@@ -277,12 +284,14 @@ class PaymentService:
                     # C-019: in-app notification for bonus credits
                     try:
                         from app.services.notification_service import NotificationService
+
                         ns = NotificationService(self.db)
                         ns.create_notification(
                             user_id=user_id,
                             notification_type="bonus_credits",
                             title="Bonus credits applied!",
                             message=f"${bonus:.2f} bonus credits added for your ${amount:.0f}+ deposit.",
+                            link="/billing-history",
                         )
                     except Exception:
                         pass
@@ -320,15 +329,11 @@ class PaymentService:
 
                 dispatcher = NotificationDispatcher(self.db)
                 _fire(
-                    dispatcher.notify_payment_completed(
-                        user_id=user_id, amount=amount, new_balance=float(user.credits)
-                    )
+                    dispatcher.notify_payment_completed(user_id=user_id, amount=amount, new_balance=float(user.credits))
                 )
 
                 # Send payment receipt email with user name
-                display_name = (
-                    getattr(user, "display_name", None) or user.email.split("@")[0]
-                )
+                display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
                 _fire(
                     email_service.send_payment_receipt(
                         user.email,
@@ -337,9 +342,7 @@ class PaymentService:
                             "amount_usd": amount,
                             "credits_added": amount,
                             "new_balance": float(user.credits),
-                            "timestamp": datetime.now(timezone.utc).strftime(
-                                "%Y-%m-%d %H:%M UTC"
-                            ),
+                            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
                             "user_name": display_name,
                         },
                     )
@@ -365,9 +368,7 @@ class PaymentService:
 
             # Revenue recognition (GAAP)
             try:
-                from app.services.revenue_recognition_service import (
-                    RevenueRecognitionService,
-                )
+                from app.services.revenue_recognition_service import RevenueRecognitionService
 
                 _fire(
                     RevenueRecognitionService(self.db).recognize_revenue(
@@ -420,9 +421,7 @@ class PaymentService:
             logger.error(f"Webhook signature verification error: {e}")
             return False
 
-    async def credit_user_with_lock(
-        self, user_id: str, amount: float, reference: str
-    ) -> bool:
+    async def credit_user_with_lock(self, user_id: str, amount: float, reference: str) -> bool:
         """Credit user with distributed lock to prevent race conditions."""
         redis = get_redis()
         lock_key = f"payment_lock:{reference}"
@@ -456,28 +455,18 @@ class PaymentService:
 
                 # Exponential backoff
                 wait_time = 2**attempt
-                logger.warning(
-                    f"Webhook retry {attempt + 1}/{max_retries} after {wait_time}s: {e}"
-                )
+                logger.warning(f"Webhook retry {attempt + 1}/{max_retries} after {wait_time}s: {e}")
                 await asyncio.sleep(wait_time)
 
-    def _log_failed_webhook(
-        self, user_id: str, amount: float, reference: str, error: str
-    ):
+    def _log_failed_webhook(self, user_id: str, amount: float, reference: str, error: str):
         """Log failed webhook to dead letter queue."""
         try:
             # Update PaymentLog with error
-            payment_log = (
-                self.db.query(PaymentLog)
-                .filter(PaymentLog.reference == reference)
-                .first()
-            )
+            payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
 
             if payment_log:
                 payment_log.state = "failed"
-                payment_log.error_message = (
-                    f"Webhook processing failed after retries: {error}"
-                )
+                payment_log.error_message = f"Webhook processing failed after retries: {error}"
                 self.db.commit()
 
             logger.error(f"Dead letter queue: {reference} - {error}")
@@ -500,9 +489,7 @@ class PaymentService:
     async def process_webhook(self, event: str, payload: dict) -> Dict[str, Any]:
         """Process a Paystack webhook event."""
         if event == "charge.success":
-            reference = payload.get("reference") or payload.get("data", {}).get(
-                "reference"
-            )
+            reference = payload.get("reference") or payload.get("data", {}).get("reference")
             if reference:
                 return await self.verify_payment(reference)
             return {"status": "error", "message": "No reference"}
@@ -519,22 +506,22 @@ class PaymentService:
         )
         return [
             {
-                "reference": l.reference,
-                "amount_usd": l.amount_usd,
-                "status": l.status,
-                "created_at": str(l.created_at),
+                "reference": log.reference,
+                "amount_usd": log.amount_usd,
+                "status": log.status,
+                "created_at": str(log.created_at),
             }
-            for l in logs
+            for log in logs
         ]
 
     def get_payment_summary(self, user_id: str) -> Dict[str, Any]:
         """Get payment summary stats for a user."""
         logs = self.db.query(PaymentLog).filter(PaymentLog.user_id == user_id).all()
-        total = sum(float(l.amount_usd or 0) for l in logs if l.status == "success")
+        total = sum(float(log.amount_usd or 0) for log in logs if log.status == "success")
         return {
             "total_paid": total,
             "transaction_count": len(logs),
-            "successful": sum(1 for l in logs if l.status == "success"),
+            "successful": sum(1 for log in logs if log.status == "success"),
         }
 
 
@@ -547,7 +534,7 @@ def get_payment_service(db: Session) -> PaymentService:
 BULK_BONUS_TIERS = [
     (200, 0.15),  # $200+ → 15% bonus
     (100, 0.10),  # $100+ → 10% bonus
-    (50, 0.05),   # $50+  → 5% bonus
+    (50, 0.05),  # $50+  → 5% bonus
 ]
 
 

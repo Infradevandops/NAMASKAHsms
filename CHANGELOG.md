@@ -2,6 +2,13 @@
 
 All notable changes to the Vrenum SMS project.
 
+## [Verification Flow UX] - November 23, 2026
+
+### Changed
+- **Step 1 loading banner** (`templates/verify_modern.html`, `static/js/verification-flow.js`): After choosing a verification method in Step 0, Step 1 now shows a dark branded loading banner instead of a generic spinner-in-input. Banner headline is method-specific — `"Initiating number for verification / SMS"` or `"Initiating number for verification / SMS + Voice Call"` — with a pink arc spinner and `"Fetching available services from provider"` subtext. `Back` / `Continue →` buttons are hidden until services finish loading, then auto-reveal and the service modal opens automatically. On API error the banner switches to a red-tinted error state.
+
+---
+
 ## [CI/Security/Repo Cleanup] - November 15, 2026
 
 ### Fixed

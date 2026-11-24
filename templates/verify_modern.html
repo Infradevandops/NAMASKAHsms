@@ -102,6 +102,15 @@
         <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
 
+        <!-- Service Loading Banner (shown while API loads, hidden after) -->
+        <div id="service-loading-banner" style="display:none;margin-bottom:20px;padding:20px 20px 18px;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border-radius:14px;text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+                <div style="width:22px;height:22px;border:2.5px solid rgba(254,60,114,0.3);border-top-color:#FE3C72;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+                <span id="service-loading-banner-text" style="font-size:15px;font-weight:700;color:#f1f5f9;letter-spacing:-0.2px;">Initiating verification…</span>
+            </div>
+            <p style="font-size:12px;color:#64748b;margin:0;">Fetching available services from provider</p>
+        </div>
+
         <!-- Saved Presets (Pro+ only) -->
         <div id="presets-section" style="display:none; margin-bottom:var(--spacing-md);">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
@@ -173,7 +182,7 @@
         <!-- Selection summary chips -->
         <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); flex-wrap:wrap; gap:8px;"></div>
 
-        <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
+        <div id="step-1-actions" style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
             <button class="btn btn-secondary" onclick="window.location.href='/dashboard'" aria-label="Go back to dashboard">Back</button>
             <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled aria-label="Continue to pricing">Continue →</button>
         </div>
@@ -205,12 +214,12 @@
 
         <div class="pricing-row">
             <span class="pricing-label">Service</span>
-            <span class="pricing-value" id="pricing-service">-</span>
+            <span class="pricing-value" id="pricing-service" style="font-size:15px;">-</span>
         </div>
 
         <div class="pricing-row">
             <span class="pricing-label">Cost</span>
-            <span class="pricing-value" id="pricing-cost">$0.80</span>
+            <span class="pricing-value" id="pricing-cost">-</span>
         </div>
 
         <div class="pricing-row">
@@ -232,7 +241,7 @@
 
         <div class="pricing-row">
             <span class="pricing-label">Your Balance</span>
-            <span class="pricing-value" id="pricing-balance">$100.00</span>
+            <span class="pricing-value" id="pricing-balance">-</span>
         </div>
 
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">

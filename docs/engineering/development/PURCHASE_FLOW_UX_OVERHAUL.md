@@ -2,7 +2,7 @@
 # "Make the wait feel like something is happening"
 
 **Created**: November 2026
-**Status**: 📋 Not started
+**Status**: ✅ Sprint H complete — all 7 tasks done
 **Reference screenshots**: `docs/artifacts/` — TV's purchase flow captured Oct 31 2026 04:22–05:50
 **Depends on**: Sprint G-001 + G-002 must ship first (keepalive + nginx timeout)
 
@@ -488,17 +488,37 @@ async def run_webhook_health_monitor():
 
 ---
 
+### H-007 — Step 1 loading banner: branded initiating state per method ✅ DONE
+**Files**: `templates/verify_modern.html`, `static/js/verification-flow.js`
+**Effort**: 1h
+**Priority**: P1
+
+**Problem**: After choosing a method in Step 0, Step 1 appeared immediately with services still loading. The input showed a generic `"Loading services from provider..."` placeholder with a small spinner, and the `Continue →` button was already visible (disabled). No indication of which method was chosen or what was happening.
+
+**Fix**:
+- Added a dark branded loading banner inside `step-1-card` (shown while API loads, hidden after)
+- Banner shows a pink arc spinner + method-specific headline:
+  - SMS → `"Initiating number for verification / SMS"`
+  - SMS + Voice → `"Initiating number for verification / SMS + Voice Call"`
+- Subtext: `"Fetching available services from provider"`
+- `Back` / `Continue →` buttons hidden behind `#step-1-actions` div until services finish loading
+- On load success: banner hides, buttons reveal, service modal auto-opens
+- On load error: banner switches to red-tinted error state, buttons reveal so user can retry
+
+---
+
 ## PROGRESS SUMMARY
 
 | ID | Task | Effort | Priority | Status |
 |----|------|--------|----------|--------|
-| H-001 | Loading modal: arc spinner + exact TV message sequence | 2.5h | P0 | 📋 |
-| H-002 | Step 3: carrier icon + MM:SS countdown + full SMS + reuse btn | 2h | P0 | 📋 |
-| H-003 | Step 3 scanning: activity feed log | 1h | P1 | 📋 |
-| H-004 | `purchasing_delayed` state | 30 min | P1 | 📋 (blocked G-001) |
-| H-005 | Step 0: Combo method picker card | 20 min | P2 | 📋 |
-| H-006 | TV webhook auto-re-enable monitor | 1h | P1 | 📋 |
-| **Total** | | **~7.5h** | | **0/6** |
+| H-001 | Loading modal: arc spinner + exact TV message sequence | 2.5h | P0 | ✅ Done |
+| H-002 | Step 3: carrier icon + MM:SS countdown + full SMS + reuse btn | 2h | P0 | ✅ Done |
+| H-003 | Step 3 scanning: activity feed log | 1h | P1 | ✅ Done |
+| H-004 | `purchasing_delayed` state | 30 min | P1 | ✅ Done |
+| H-005 | Step 0: Combo method picker card | 20 min | P2 | ✅ Done |
+| H-006 | TV webhook auto-re-enable monitor | 1h | P1 | ✅ Done |
+| H-007 | Step 1 loading banner: branded initiating state per method | 1h | P1 | ✅ Done |
+| **Total** | | **~8.5h** | | **7/7** |
 
 ---
 

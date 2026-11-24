@@ -310,6 +310,7 @@ class NotificationDispatcher:
                 notification_type="sms_received",
                 title="SMS Code Received",
                 message=f"Verification code received for {verification.service_name}",
+                link=f"/history?id={verification.id}",
             )
 
             self._broadcast_notification(verification.user_id, notification)

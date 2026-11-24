@@ -27,6 +27,7 @@ class NotificationService:
         title: str,
         message: str,
         data: Optional[Dict[str, Any]] = None,
+        link: Optional[str] = None,
     ) -> Notification:
         """Create a new notification.
 
@@ -51,7 +52,7 @@ class NotificationService:
         # Create notification
         # Create notification
         # Note: Model does not support 'data' field currently
-        notification = Notification(user_id=user_id, type=notification_type, title=title, message=message)
+        notification = Notification(user_id=user_id, type=notification_type, title=title, message=message, link=link)
 
         self.db.add(notification)
         self.db.commit()
@@ -112,6 +113,7 @@ class NotificationService:
                     "title": n.title,
                     "message": n.message,
                     "is_read": n.is_read,
+                    "link": n.link,
                     "created_at": n.created_at.isoformat() if n.created_at else None,
                 }
                 for n in notifications

@@ -428,7 +428,23 @@
         }
 
         loadSummary();
-        loadTransactions(1);
+        loadTransactions(1).then(() => {
+            // Deep link: ?highlight=<transaction_id>
+            const highlightId = new URLSearchParams(window.location.search).get('highlight');
+            if (highlightId) {
+                setTimeout(() => {
+                    const rows = document.querySelectorAll('#transactionsTable tr');
+                    rows.forEach(row => {
+                        if (row.textContent.includes(highlightId.substring(0, 12))) {
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            row.style.transition = 'background 0.4s';
+                            row.style.background = 'rgba(254,60,114,0.12)';
+                            setTimeout(() => { row.style.background = ''; }, 3000);
+                        }
+                    });
+                }, 600);
+            }
+        });
     </script>
 </body>
 </html>

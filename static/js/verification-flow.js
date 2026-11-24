@@ -134,7 +134,21 @@ function chooseMethod(method) {
         return;
     }
     VerificationFlow.selectedCapability = method === 'combo' ? 'sms_and_voice' : 'sms';
-    // SMS — show progress + step 1
+
+    // Set branded loading banner text based on chosen method
+    const _methodLabels = {
+        sms: 'Initiating number for verification / SMS',
+        combo: 'Initiating number for verification / SMS + Voice Call',
+    };
+    const banner = document.getElementById('service-loading-banner');
+    const bannerText = document.getElementById('service-loading-banner-text');
+    if (bannerText) bannerText.textContent = _methodLabels[method] || 'Initiating verification…';
+
+    // Show banner, hide action buttons until services load
+    if (banner) banner.style.display = 'block';
+    const actions = document.getElementById('step-1-actions');
+    if (actions) actions.style.display = 'none';
+
     document.getElementById('step-0-card').style.display = 'none';
     document.getElementById('progress-indicator').style.display = 'block';
     document.getElementById('step-1-card').style.display = 'block';
@@ -626,11 +640,6 @@ function updateContinueBtn() {
     }
 
     if (btn) btn.disabled = !VerificationFlow.selectedService || isErrorState;
-
-    // Refresh balance when entering step 2 UI
-    if (VerificationFlow.currentStep === 2) {
-        loadStatusInfo();
-    }
 }
 
 function updateProgress(step) {
@@ -648,7 +657,17 @@ function updateProgress(step) {
 
 function confirmService() {
     if (!VerificationFlow.selectedService) return;
-    createVerification();
+    // Show Step 2 pricing card with loading state, then fetch live price
+    updateProgress(2);
+    const costEl = document.getElementById('pricing-cost');
+    const balEl = document.getElementById('pricing-balance');
+    const svcEl = document.getElementById('pricing-service');
+    if (costEl) costEl.innerHTML = '<span style="display:inline-block;width:48px;height:14px;background:#f3f4f6;border-radius:4px;animation:shimmer 1.4s infinite linear;background-image:linear-gradient(90deg,#f3f4f6 0px,#e5e7eb 40px,#f3f4f6 80px);background-size:200px 100%;"></span>';
+    if (balEl) balEl.innerHTML = '<span style="display:inline-block;width:56px;height:14px;background:#f3f4f6;border-radius:4px;animation:shimmer 1.4s infinite linear;background-image:linear-gradient(90deg,#f3f4f6 0px,#e5e7eb 40px,#f3f4f6 80px);background-size:200px 100%;"></span>';
+    const svcLabel = (_modalItems['service'] || []).find(i => i.value === VerificationFlow.selectedService)?.label || VerificationFlow.selectedService;
+    if (svcEl) svcEl.textContent = svcLabel;
+    updatePricing();
+    loadBalance();
 }
 
 const _LS_SERVICES_KEY = 'nsk_services_cache';
@@ -733,6 +752,12 @@ async function loadServices() {
         const retryBtn = document.getElementById('service-retry-btn');
         if (retryBtn) retryBtn.style.display = 'none';
 
+        // Hide loading banner, reveal action buttons
+        const banner = document.getElementById('service-loading-banner');
+        if (banner) banner.style.display = 'none';
+        const actions = document.getElementById('step-1-actions');
+        if (actions) actions.style.display = 'flex';
+
         // Auto-open modal if user is waiting on step 1 with no service selected
         if (!VerificationFlow.selectedService && VerificationFlow.currentStep === 1) {
             VerificationFlow._pendingModalOpen = false;
@@ -761,6 +786,18 @@ async function loadServices() {
         window.toast && window.toast.error(
             'Unable to load services from provider. Please refresh the page or contact support if the issue persists.'
         );
+
+        // Update banner to error state
+        const bannerOnErr = document.getElementById('service-loading-banner');
+        const bannerTextOnErr = document.getElementById('service-loading-banner-text');
+        if (bannerOnErr) {
+            bannerOnErr.style.background = 'linear-gradient(135deg,#1c0a0a 0%,#2d1515 100%)';
+            bannerOnErr.style.display = 'block';
+        }
+        if (bannerTextOnErr) bannerTextOnErr.textContent = 'Unable to load services from provider';
+        // Reveal actions so user can see retry
+        const actionsOnErr = document.getElementById('step-1-actions');
+        if (actionsOnErr) actionsOnErr.style.display = 'flex';
 
         // Disable service selection
         if (input) {

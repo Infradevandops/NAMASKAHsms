@@ -1,9 +1,9 @@
 # PLATFORM STATUS — AUTHORITATIVE SOURCE
 
-**Last Updated**: November 15, 2026
+**Last Updated**: November 23, 2026
 **HEAD**: `d64707b7` on origin/main
 **Overall Status**: ✅ Healthy — CI passing, auto-deploy active
-**Version**: 4.9.9
+**Version**: 4.9.0
 
 ---
 
@@ -34,6 +34,7 @@ Remaining work is manual/external only: deploy confirmation, email testing, Tele
 - ✅ Activity feed replacing radar pulse
 - ✅ `purchasing_delayed` frontend handler
 - ✅ SMS+Voice Combo method picker card
+- ✅ Step 1 branded loading banner — method-specific initiating text, hides action buttons until services load
 
 ### Provider Resilience (Sprint G)
 - ✅ 12s `asyncio.wait_for` on all purchase calls
