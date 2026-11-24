@@ -163,8 +163,12 @@ class BalanceService:
                 created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
-            # Flush balance_tx first so its PK exists before the verification FK update
-            db.flush()
+            # Flush only balance_tx so its PK is committed to the session
+            # before we set the FK on verification — prevents FK violation
+            db.flush([balance_tx])
+
+            # Now safe: balance_tx row exists, set FK
+            verification.debit_transaction_id = balance_tx.id
 
             # 2. Create Transaction (for analytics/history - Legacy Parity)
             transaction = Transaction(
@@ -179,11 +183,6 @@ class BalanceService:
                 created_at=datetime.now(timezone.utc),
             )
             db.add(transaction)
-
-            # Now safe: balance_tx row exists in DB, FK will resolve
-            verification.debit_transaction_id = balance_tx.id
-
-            # Atomic Sync: Mirror IDs for parity
             transaction.payment_log_id = balance_tx.id
 
             db.flush()
