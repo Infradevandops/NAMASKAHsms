@@ -182,8 +182,12 @@ class BalanceService:
             # Flush balance_tx + transaction INSERTs first (without touching verification)
             # then use raw SQL to set the FK — avoids SQLAlchemy flush-order FK violation
             db.flush([balance_tx, transaction])
+            from sqlalchemy import text as sa_text
+
             db.execute(
-                "UPDATE verifications SET debit_transaction_id = :tx_id, updated_at = :now " "WHERE id = :v_id",
+                sa_text(
+                    "UPDATE verifications SET debit_transaction_id = :tx_id, updated_at = :now " "WHERE id = :v_id"
+                ),
                 {
                     "tx_id": balance_tx.id,
                     "now": datetime.now(timezone.utc),
