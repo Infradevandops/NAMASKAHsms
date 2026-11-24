@@ -1552,7 +1552,27 @@ function resetFlow() {
     document.getElementById('code-received').style.display = 'none';
     const fw = document.getElementById('fallback-warning');
     if (fw) fw.remove();
+    document.getElementById('orphan-resume-banner')?.remove();
     document.getElementById('step-0-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function _resumeOrphan(orphanId) {
+    document.getElementById('orphan-resume-banner')?.remove();
+    document.getElementById('step-0-card').style.display = 'none';
+    document.getElementById('progress-indicator').style.display = 'block';
+    if (VerificationFlow._orphanPhone) {
+        document.getElementById('phone-number').textContent = formatPhone(VerificationFlow._orphanPhone);
+    }
+    if (VerificationFlow._orphanEndsAt) startCountdown(VerificationFlow._orphanEndsAt);
+    updateProgress(3);
+    startPolling();
+    window.toast && window.toast.info('Resuming your active verification.');
+}
+
+function _dismissOrphan() {
+    localStorage.removeItem('active_verification_id');
+    VerificationFlow.verificationId = null;
+    document.getElementById('orphan-resume-banner')?.remove();
 }
 
 function showError(title, message) {
@@ -1669,7 +1689,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-    // Orphaned verification recovery — restore active session if user navigated away
+    // Orphaned verification recovery — show dismissible resume banner on Step 0
     const orphanId = localStorage.getItem('active_verification_id');
     if (orphanId) {
         const token = localStorage.getItem('access_token');
@@ -1683,12 +1703,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                     VerificationFlow.totalDurationMs =
                         new Date(data.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
                 }
-                document.getElementById('step-0-card').style.display = 'none';
-                document.getElementById('progress-indicator').style.display = 'block';
-                document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
-                updateProgress(3);
-                startPolling();
-                window.toast && window.toast.info('Resuming your active verification.');
+                // Show resume banner on Step 0 instead of hijacking the flow
+                const step0 = document.getElementById('step-0-card');
+                const endsAt = data.ends_at ? new Date(data.ends_at) : null;
+                const timeLeft = endsAt ? Math.max(0, Math.round((endsAt - Date.now()) / 1000)) : null;
+                const timeStr = timeLeft ? `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')} remaining` : '';
+                // Store phone for resume
+                VerificationFlow._orphanPhone = data.phone_number;
+                VerificationFlow._orphanEndsAt = data.ends_at;
+                const banner = document.createElement('div');
+                banner.id = 'orphan-resume-banner';
+                banner.style.cssText = 'margin-bottom:16px;padding:14px 16px;background:linear-gradient(135deg,#0f172a,#1e1b4b);border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;';
+                banner.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                        <div style="width:10px;height:10px;border-radius:50%;background:#FE3C72;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite;"></div>
+                        <div style="min-width:0;">
+                            <div style="font-size:14px;font-weight:700;color:#f1f5f9;">Active verification in progress</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:2px;">${formatPhone(data.phone_number)}${timeStr ? ' &nbsp;·&nbsp; ' + timeStr : ''}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-shrink:0;">
+                        <button onclick="_resumeOrphan('${orphanId}')" style="padding:8px 16px;background:#FE3C72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Resume</button>
+                        <button onclick="_dismissOrphan()" style="padding:8px 12px;background:rgba(255,255,255,0.08);color:#94a3b8;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Dismiss</button>
+                    </div>
+                `;
+                if (step0) step0.insertAdjacentElement('beforebegin', banner);
             } else {
                 localStorage.removeItem('active_verification_id');
             }

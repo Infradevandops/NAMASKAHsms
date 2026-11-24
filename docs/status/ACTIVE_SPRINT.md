@@ -56,7 +56,7 @@
 | J-005 | P1 | Back button on Step 2 → should go to Step 1 (service selection), verify `goBack()` does this correctly | `goBack()` from step 2 calls `updateProgress(1)` — correct, but Step 0 must not re-appear | `verification-flow.js` |
 | J-006 | P1 | Voice Call path redirects to `/voice-verify` (separate page) — assess whether `voice_verify_modern.html` has the same Step 0/1 stacking bug | `voice_verify_modern.html` |
 | J-007 | P2 | Screenshot 1 (18.22.03) shows old UI without Step 0 — Cloudflare cache serving stale JS/HTML | Purge Cloudflare cache after deploy | Cloudflare dashboard |
-| J-008 | P2 | Step 2 "Pricing & Details" — `loadStatusInfo` was undefined (now removed), verify Step 2 renders correctly with shimmer then live price | Manual test after J-001 fix | — |
+| J-009 | P1 | Orphan recovery silently hijacks Step 0 — if `active_verification_id` exists in localStorage, shows Step 1 directly without letting user choose method or dismiss. Should show a dismissible "Resume verification?" banner on Step 0 instead | `verification-flow.js` |
 
 ---
 
