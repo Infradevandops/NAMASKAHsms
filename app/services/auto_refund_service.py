@@ -33,18 +33,8 @@ class AutoRefundService:
             logger.error(f"Verification {verification_id} not found")
             return None
 
-        existing_refund = (
-            self.db.query(Transaction)
-            .filter(
-                Transaction.user_id == verification.user_id,
-                Transaction.type == "verification_refund",
-                Transaction.description.contains(verification_id),
-            )
-            .first()
-        )
-
-        if existing_refund:
-            logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
+        if verification.refunded:
+            logger.info(f"Verification {verification_id} already refunded, skipping")
             return None
 
         # PRODUCTION FIX: Allow "error" status for refunds (common failure state)
@@ -296,17 +286,7 @@ class AutoRefundService:
         }
 
         for verification in failed_verifications:
-            existing_refund = (
-                self.db.query(Transaction)
-                .filter(
-                    Transaction.user_id == verification.user_id,
-                    Transaction.type == "verification_refund",
-                    Transaction.description.contains(verification.id),
-                )
-                .first()
-            )
-
-            if existing_refund:
+            if verification.refunded:
                 report["already_refunded"] += 1
                 continue
 
