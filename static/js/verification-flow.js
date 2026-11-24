@@ -1707,12 +1707,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load presets (Pro+ only, non-blocking)
     loadPresets();
 
-    updateProgress(1);
+    // NOTE: do NOT call updateProgress(1) here — Step 1 is only shown
+    // after the user picks a method in Step 0 via chooseMethod().
+    // Exceptions: orphan recovery (handled above) and ?service= param (handled below).
 
     // Pre-select service from query param
     const params = new URLSearchParams(window.location.search);
     const preService = params.get('service');
     if (preService) {
+        // Skip Step 0 — treat as SMS method pre-selected
+        VerificationFlow.selectedCapability = 'sms';
+        document.getElementById('step-0-card').style.display = 'none';
+        document.getElementById('progress-indicator').style.display = 'block';
+        const actions = document.getElementById('step-1-actions');
+        if (actions) actions.style.display = 'none';
+        updateProgress(1);
         // Wait for services to be ready
         let retries = 0;
         const checkServices = setInterval(() => {
@@ -1728,6 +1737,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.getElementById('service-display').textContent = preService;
                     document.getElementById('service-selected-display').style.display = 'flex';
                     document.getElementById('continue-btn').disabled = false;
+                    if (actions) actions.style.display = 'flex';
                 }
             }
         }, 100);

@@ -1,9 +1,95 @@
 # ACTIVE SPRINT — VRENUM SMS
 
-**Updated**: November 10, 2026
-**HEAD**: `a7188224`
-**Status**: All code complete — CI fix pushed, awaiting deploy
+**Updated**: November 24, 2026
+**HEAD**: `2168274e`
+**Status**: Verification flow UX fixes in progress
 **Authority**: Single actionable task list. `MASTER_TASKS.md` is the historical record.
+
+---
+
+## SPRINT J — VERIFICATION FLOW USER JOURNEY FIXES
+
+**Opened**: November 24, 2026
+**Trigger**: Live screenshots showing broken step sequencing on `/verify`
+
+### User Journey Audit — What Should Happen vs What Does
+
+#### Intended flow (your illustration)
+```
+/verify loads
+  └─ Step 0: Choose Method (SMS / Voice Call / SMS+Voice)
+       └─ User picks one
+            └─ Step 1: Select Service (modal auto-opens, loading banner shown)
+                 └─ User picks service
+                      └─ Step 2: Pricing & Details (shimmer → live price)
+                           └─ User clicks "Get Number"
+                                └─ Purchase loading card (dark, arc spinner, TV messages)
+                                     └─ Step 3: Phone number + waiting for SMS
+                                          └─ SMS received → code displayed
+```
+
+#### Actual flow (from screenshots)
+```
+/verify loads
+  └─ Step 0 AND Step 1 BOTH visible simultaneously ← BUG J-001
+       └─ Step 1 shows "Loading services from provider..." with Back/Continue
+          visible BEFORE user picks a method ← BUG J-002
+       └─ "Saved Presets / No presets yet" visible in Step 1 while Step 0 still showing ← BUG J-003
+       └─ Voice Call click → redirects to /voice-verify (separate page) ← CORRECT
+       └─ SMS / SMS+Voice click → Step 0 hides, Step 1 shows ← CORRECT after fix
+            └─ Service modal opens (dark modal, 2357 services) ← CORRECT
+                 └─ User picks service → Step 2 shown ← CORRECT after fix
+                      └─ Back button on Step 2 → goes to Step 1 ← needs verification
+                      └─ Back button on Step 1 → goes to Step 0 ← needs verification
+```
+
+---
+
+### J — Tasks
+
+| ID | Priority | Issue | Fix | File |
+|----|----------|-------|-----|------|
+| J-001 | P0 | `updateProgress(1)` called in `DOMContentLoaded` unconditionally — sets `step-1-card` to `display:block` before user picks a method, so both Step 0 and Step 1 render simultaneously | Remove `updateProgress(1)` from `DOMContentLoaded`; Step 1 is only shown by `chooseMethod()` | `verification-flow.js` |
+| J-002 | P0 | Step 1 Back/Continue buttons visible during service loading (before method chosen) | Already fixed by `step-1-actions` hide/show — but J-001 means it shows anyway | Resolved by J-001 |
+| J-003 | P0 | "Saved Presets" section visible in Step 1 while Step 0 still showing | Resolved by J-001 |
+| J-004 | P1 | Back button on Step 1 → should go to Step 0 (method picker), currently goes to `/dashboard` | Change Step 1 Back button `onclick` to `resetFlow()` which shows Step 0 | `verify_modern.html` |
+| J-005 | P1 | Back button on Step 2 → should go to Step 1 (service selection), verify `goBack()` does this correctly | `goBack()` from step 2 calls `updateProgress(1)` — correct, but Step 0 must not re-appear | `verification-flow.js` |
+| J-006 | P1 | Voice Call path redirects to `/voice-verify` (separate page) — assess whether `voice_verify_modern.html` has the same Step 0/1 stacking bug | `voice_verify_modern.html` |
+| J-007 | P2 | Screenshot 1 (18.22.03) shows old UI without Step 0 — Cloudflare cache serving stale JS/HTML | Purge Cloudflare cache after deploy | Cloudflare dashboard |
+| J-008 | P2 | Step 2 "Pricing & Details" — `loadStatusInfo` was undefined (now removed), verify Step 2 renders correctly with shimmer then live price | Manual test after J-001 fix | — |
+
+---
+
+### J-001 Fix (root cause)
+
+**File**: `static/js/verification-flow.js`
+**Change**: Remove `updateProgress(1)` from `DOMContentLoaded`.
+Step 1 visibility is controlled exclusively by `chooseMethod()`. The progress indicator
+and step cards must only appear after a method is chosen.
+
+**Exception**: If `?service=` query param is present OR orphan recovery fires,
+step 0 should be skipped and step 1 shown directly — handle these cases explicitly.
+
+---
+
+## OVERALL PROGRESS
+
+| Sprint | Scope | Done | Open |
+|--------|-------|------|------|
+| A–I | All previous sprints | 90/93 | 3 manual/external |
+| J | Verification flow journey fixes | 0/8 | 8 |
+
+---
+
+## MANUAL / EXTERNAL ACTIONS (carried over)
+
+| ID | Priority | Action |
+|----|----------|--------|
+| A-005 | P1 | Telegram E2E — connect @vrenum_sms_bot, trigger verification, confirm SMS forwarded |
+| E-001 | P2 | Upgrade Upstash Redis to pay-as-you-go |
+| E-002 | P2 | TextVerified IP whitelist — submit server IP `169.255.57.146` |
+| J-007 | P2 | Purge Cloudflare cache after J-001 deploy |
+
 
 ---
 
