@@ -23,74 +23,69 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # M-001: verifications — reuse + ends_at columns
-    with op.batch_alter_table("verifications") as batch_op:
-        batch_op.add_column(sa.Column("reusable_until", sa.DateTime(), nullable=True))
-        batch_op.add_column(sa.Column("reused_from_id", sa.String(), nullable=True))
-        batch_op.add_column(sa.Column("ends_at", sa.DateTime(), nullable=True))
+    conn = op.get_bind()
 
-    # M-002: subscriptions — annual billing
-    with op.batch_alter_table("subscriptions", schema=None) as batch_op:
-        batch_op.add_column(
-            sa.Column("billing_period", sa.String(10), nullable=False, server_default="monthly")
+    # M-001: verifications columns
+    for col in ["reusable_until", "reused_from_id", "ends_at"]:
+        conn.execute(sa.text(f"ALTER TABLE verifications ADD COLUMN IF NOT EXISTS {col} {'VARCHAR' if col == 'reused_from_id' else 'TIMESTAMP'}"))
+
+    # M-002: subscriptions columns
+    conn.execute(sa.text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS billing_period VARCHAR(10) NOT NULL DEFAULT 'monthly'"))
+    conn.execute(sa.text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS annual_renewal_at TIMESTAMP"))
+
+    # M-003: subscription_addons
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS subscription_addons (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL,
+            addon_type VARCHAR(50) NOT NULL,
+            price_usd NUMERIC(10,2) NOT NULL,
+            active BOOLEAN NOT NULL DEFAULT true,
+            started_at TIMESTAMP NOT NULL,
+            expires_at TIMESTAMP,
+            paystack_subscription_code VARCHAR(100),
+            created_at TIMESTAMP,
+            updated_at TIMESTAMP,
+            CONSTRAINT uq_user_addon_type UNIQUE (user_id, addon_type)
         )
-        batch_op.add_column(sa.Column("annual_renewal_at", sa.DateTime(), nullable=True))
+    """))
+    conn.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_subscription_addons_user_id ON subscription_addons (user_id)"))
 
-    # M-003: subscription_addons table
-    op.create_table(
-        "subscription_addons",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("user_id", sa.String(), nullable=False),
-        sa.Column("addon_type", sa.String(50), nullable=False),
-        sa.Column("price_usd", sa.Numeric(10, 2), nullable=False),
-        sa.Column("active", sa.Boolean(), nullable=False, server_default="true"),
-        sa.Column("started_at", sa.DateTime(), nullable=False),
-        sa.Column("expires_at", sa.DateTime(), nullable=True),
-        sa.Column("paystack_subscription_code", sa.String(100), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("user_id", "addon_type", name="uq_user_addon_type"),
-    )
-    op.create_index("ix_subscription_addons_user_id", "subscription_addons", ["user_id"])
+    # M-004: stock_watches
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS stock_watches (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL,
+            service_name VARCHAR(100) NOT NULL,
+            capability VARCHAR(20) NOT NULL DEFAULT 'sms',
+            notified_at TIMESTAMP,
+            created_at TIMESTAMP,
+            updated_at TIMESTAMP,
+            CONSTRAINT uq_stock_watch UNIQUE (user_id, service_name, capability)
+        )
+    """))
+    conn.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_stock_watches_user_id ON stock_watches (user_id)"))
+    conn.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_stock_watches_service_name ON stock_watches (service_name)"))
 
-    # M-004: stock_watches table
-    op.create_table(
-        "stock_watches",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("user_id", sa.String(), nullable=False),
-        sa.Column("service_name", sa.String(100), nullable=False),
-        sa.Column("capability", sa.String(20), nullable=False, server_default="sms"),
-        sa.Column("notified_at", sa.DateTime(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("user_id", "service_name", "capability", name="uq_stock_watch"),
-    )
-    op.create_index("ix_stock_watches_user_id", "stock_watches", ["user_id"])
-    op.create_index("ix_stock_watches_service_name", "stock_watches", ["service_name"])
+    # M-005: rental_back_orders
+    conn.execute(sa.text("""
+        CREATE TABLE IF NOT EXISTS rental_back_orders (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL,
+            tv_back_order_id VARCHAR(100) NOT NULL UNIQUE,
+            service_name VARCHAR(100) NOT NULL,
+            capability VARCHAR(20) NOT NULL DEFAULT 'sms',
+            credits_held NUMERIC(10,4) NOT NULL,
+            fulfilled_at TIMESTAMP,
+            notified_at TIMESTAMP,
+            created_at TIMESTAMP,
+            updated_at TIMESTAMP
+        )
+    """))
+    conn.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_rental_back_orders_user_id ON rental_back_orders (user_id)"))
 
-    # M-005: rental_back_orders table
-    op.create_table(
-        "rental_back_orders",
-        sa.Column("id", sa.String(), nullable=False),
-        sa.Column("user_id", sa.String(), nullable=False),
-        sa.Column("tv_back_order_id", sa.String(100), nullable=False),
-        sa.Column("service_name", sa.String(100), nullable=False),
-        sa.Column("capability", sa.String(20), nullable=False, server_default="sms"),
-        sa.Column("credits_held", sa.Numeric(10, 4), nullable=False),
-        sa.Column("fulfilled_at", sa.DateTime(), nullable=True),
-        sa.Column("notified_at", sa.DateTime(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("tv_back_order_id"),
-    )
-    op.create_index("ix_rental_back_orders_user_id", "rental_back_orders", ["user_id"])
-
-    # M-006: number_rentals — expiry warning column
-    with op.batch_alter_table("number_rentals") as batch_op:
-        batch_op.add_column(sa.Column("expiry_warned_at", sa.DateTime(), nullable=True))
+    # M-006: number_rentals
+    conn.execute(sa.text("ALTER TABLE number_rentals ADD COLUMN IF NOT EXISTS expiry_warned_at TIMESTAMP"))
 
 
 def downgrade() -> None:
