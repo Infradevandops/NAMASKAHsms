@@ -163,12 +163,6 @@ class BalanceService:
                 created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
-            # Flush only balance_tx so its PK is committed to the session
-            # before we set the FK on verification — prevents FK violation
-            db.flush([balance_tx])
-
-            # Now safe: balance_tx row exists, set FK
-            verification.debit_transaction_id = balance_tx.id
 
             # 2. Create Transaction (for analytics/history - Legacy Parity)
             transaction = Transaction(
@@ -185,7 +179,20 @@ class BalanceService:
             db.add(transaction)
             transaction.payment_log_id = balance_tx.id
 
-            db.flush()
+            # Flush balance_tx + transaction INSERTs first (without touching verification)
+            # then use raw SQL to set the FK — avoids SQLAlchemy flush-order FK violation
+            db.flush([balance_tx, transaction])
+            db.execute(
+                "UPDATE verifications SET debit_transaction_id = :tx_id, updated_at = :now " "WHERE id = :v_id",
+                {
+                    "tx_id": balance_tx.id,
+                    "now": datetime.now(timezone.utc),
+                    "v_id": str(verification.id),
+                },
+            )
+            # Keep the in-memory object in sync
+            verification.debit_transaction_id = balance_tx.id
+            db.expire(verification)  # force reload on next access to stay consistent
             logger.info(f"Ledger Synced for {user.id}: -${cost:.2f} (Ref: {verification.id})")
 
             # Notifications
