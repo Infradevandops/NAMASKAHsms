@@ -537,6 +537,7 @@ async def request_verification(
                 created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
+            verification.debit_transaction_id = balance_tx.id
 
             # Legacy Transaction (for History/Analytics)
             from app.models.transaction import Transaction
@@ -554,7 +555,6 @@ async def request_verification(
             db.add(legacy_tx)
 
             db.flush()
-            verification.debit_transaction_id = balance_tx.id
         else:
             if use_free_verification:
                 user.free_verifications = type(user.free_verifications)(float(user.free_verifications) - 1.0)
