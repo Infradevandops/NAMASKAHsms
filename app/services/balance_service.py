@@ -37,9 +37,7 @@ class BalanceService:
             # Admin: Always fetch from TextVerified with row-level locking for sync
             try:
                 # Use a fresh lock-protected query for the update phase
-                admin_user = (
-                    db.query(User).filter(User.id == user_id).with_for_update().first()
-                )
+                admin_user = db.query(User).filter(User.id == user_id).with_for_update().first()
                 if not admin_user:
                     raise ValueError("Admin user lost during sync")
 
@@ -89,9 +87,7 @@ class BalanceService:
             }
 
     @staticmethod
-    async def check_sufficient_balance(
-        user_id: str, required_amount: float, db: Session
-    ) -> Dict[str, Any]:
+    async def check_sufficient_balance(user_id: str, required_amount: float, db: Session) -> Dict[str, Any]:
         """Check if user has sufficient balance.
 
         Returns:
@@ -153,7 +149,6 @@ class BalanceService:
 
         try:
             # Update user credits
-            old_balance = float(user.credits)
             user.credits -= type(user.credits)(cost)
             new_balance = float(user.credits)
 
@@ -168,6 +163,8 @@ class BalanceService:
                 created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
+            # Flush balance_tx first so its PK exists before the verification FK update
+            db.flush()
 
             # 2. Create Transaction (for analytics/history - Legacy Parity)
             transaction = Transaction(
@@ -183,17 +180,14 @@ class BalanceService:
             )
             db.add(transaction)
 
-            # Fix: Ensure verification points to the audit ledger
+            # Now safe: balance_tx row exists in DB, FK will resolve
             verification.debit_transaction_id = balance_tx.id
 
             # Atomic Sync: Mirror IDs for parity
             transaction.payment_log_id = balance_tx.id
 
-            # Use flush instead of commit to allow caller to manage the transaction boundary
             db.flush()
-            logger.info(
-                f"Ledger Synced for {user.id}: -${cost:.2f} (Ref: {verification.id})"
-            )
+            logger.info(f"Ledger Synced for {user.id}: -${cost:.2f} (Ref: {verification.id})")
 
             # Notifications
             try:
@@ -204,8 +198,6 @@ class BalanceService:
                 # We use a background task for notifications instead of create_task here
                 # to keep this service focused on DB integrity.
                 import asyncio
-
-                from app.core.cache import get_redis
 
                 asyncio.create_task(
                     dispatcher.notify_balance_deducted(
@@ -236,23 +228,14 @@ class BalanceService:
                     from app.models.user import NotificationSettings
 
                     notif_settings = (
-                        db.query(NotificationSettings)
-                        .filter(NotificationSettings.user_id == user.id)
-                        .first()
+                        db.query(NotificationSettings).filter(NotificationSettings.user_id == user.id).first()
                     )
-                    threshold = float(
-                        notif_settings.low_balance_threshold if notif_settings else 1.0
-                    )
-                    alert_enabled = (
-                        notif_settings.email_on_low_balance if notif_settings else True
-                    )
+                    threshold = float(notif_settings.low_balance_threshold if notif_settings else 1.0)
+                    alert_enabled = notif_settings.email_on_low_balance if notif_settings else True
                     if alert_enabled and new_balance <= threshold:
                         from app.services.email_service import email_service
 
-                        display_name = (
-                            getattr(user, "display_name", None)
-                            or user.email.split("@")[0]
-                        )
+                        display_name = getattr(user, "display_name", None) or user.email.split("@")[0]
                         asyncio.create_task(
                             email_service.send_low_balance_alert_email(
                                 user_email=user.email,
