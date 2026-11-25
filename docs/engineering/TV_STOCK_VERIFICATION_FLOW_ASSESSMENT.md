@@ -259,3 +259,32 @@ app/api/core/services.py                     ✅ filter price=null from stock re
 static/js/verification-flow.js               ✅ grey out unavailable, purchasing timer, demandBadge fix
 app/services/stock_monitor.py                ✅ loop sleep 90s, price=null → available=False
 ```
+
+---
+
+## 9. Verification delivery trace and current test status
+
+The customer flow starts at `POST /api/verification/request/stream`. The SSE handler checks provider pricing and wallet balance, asks `ProviderRouter` to purchase (12-second ceiling), commits the verification and debit, then starts `SMSPollingService`. The browser transitions from purchase loading to the assigned number and polls `/api/verification/status/{id}` every 2–5 seconds. For TextVerified, backend polling uses `sms.incoming()`; the TV webhook can instead mark delivery and push `sms_received` over the authenticated notification WebSocket. Terminal failures run the refund service and attempt provider recoup (reactivation first, then report when allowed).
+
+Code inspection identified and fixed these delivery defects in the current checkout:
+
+- The timed-out-purchase SSE handler wrote `started_at` as a Unix integer, while orphan reconciliation only accepted ISO timestamps and deleted the pending key on parse failure. The writer now emits ISO-8601 and the worker accepts both current ISO and legacy epoch values.
+- Webhook delivery previously set only `status` and code fields; it skipped the common SMS receipt flags and the persisted `sms_received` notification. It now uses the shared completion function, creates the notification, and still pushes the immediate WebSocket message only for a confirmed debit.
+- The orphan worker emitted `purchase_healed`, but the verification page had no resume callback and remained on its purchase-loading state. It now fetches the healed verification and resumes the waiting UI.
+- At local expiry the page incorrectly said the user had not been charged and navigated away before confirming the backend's terminal state. It now continues polling for the server result, handles `expired`, and scales progress to the server-provided duration. The refund service now treats `expired` as refundable, matching the status endpoint's terminal-state handling.
+
+Focused validation on this checkout: `test_orphan_reconciliation.py`, `test_tv_webhook.py`, `test_sms_polling.py`, and `test_auto_refund_service.py` — 27 passed, 1 skipped. Python compilation, JavaScript syntax checks, and `git diff --check` passed. The full test suite has not been rerun to completion. The timeout test previously surfaced an un-awaited telemetry coroutine; the telemetry update was changed to await its database write, and the isolated timeout/refund regression now passes.
+
+Additional confirmed gaps requiring follow-up:
+
+- The purchase endpoints price/check availability through the TextVerified service before the multi-provider router selects a provider. That can block requests for countries/services not in TV inventory even when another adapter supports them. Move pricing and capability/availability checks behind provider selection and normalize provider-specific prices.
+- The US provider router returns TextVerified directly when its health metric is healthy; ensure this branch also checks the adapter is enabled and supports the requested country/capability. Router selection must consider country coverage, service, capability, provider balance/health, and failover category, not country alone.
+- The voice page is US-only, uses the legacy JSON request and a fixed 300-second timer, and polls HTTP rather than sharing the SMS SSE/WebSocket lifecycle. Make expiry server-authoritative and route voice/transcription completion, cancellation, refund, and notifications through the same normalized lifecycle.
+- A `sms_and_voice` request is accepted and priced, but an explicit combined capability lifecycle and UI behavior have not been demonstrated. Define whether it waits for either channel, how duplicate arrivals are handled, and whether both are billed once.
+- The WebSocket manager stores connections in process memory. Multi-worker/multi-instance deployments need broker-backed fanout or a documented single-process/sticky-session constraint; otherwise the purchase may be healed/completed on a worker that cannot reach the user's socket.
+- At provider expiry the status endpoint can set status `expired`, while the poller's timeout path uses `failed`. Normalize terminal states, refund reason mapping, notification copy, and ledger outcome. Preserve one idempotent terminal transition under races between polling, webhook, cancellation, and expiry.
+- Voice UI inserts provider code content into `innerHTML` and an inline handler. Render code with `textContent` and bind copy actions through DOM APIs; treat provider messages as untrusted display data.
+
+No live provider purchase, provider report/cancel, or customer notification was triggered. `.env.prod` is absent at the repository root; the local provider router reported no enabled providers. No secret values were read. The user's requested one-purchase timeout trial (maximum $4, one purchase, social/gig/business/shopping categories, with notifications allowed) therefore could not be run. No successful OTP test account was supplied, and none was attempted. Keep live testing blocked until the provider is configured, a real numeric per-purchase ceiling is agreed, and a user-controlled test account is ready for any code-delivery trial. Record only redacted verification IDs and status timestamps; never log OTPs or credentials.
+
+See [VERIFICATION_FLOW_HANDOVER_NOV2026.md](./VERIFICATION_FLOW_HANDOVER_NOV2026.md) for the action plan and acceptance criteria.

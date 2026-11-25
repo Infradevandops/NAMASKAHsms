@@ -2,7 +2,8 @@
 # Provider-agnostic verification & rental surface — SDK foundation
 
 **Created**: November 2026
-**Status**: ✅ Defined
+**Reviewed against implementation**: November 25, 2026
+**Status**: Target contract; implementation gaps are listed below
 **Authority**: This document defines what the Vrenum public API exposes and what it deliberately hides.
 Any new endpoint or SDK method must conform to these objects and naming conventions.
 
@@ -16,6 +17,22 @@ Vrenum is a **multi-provider platform**. TextVerified is provider #1 today.
 The public API and SDK expose **Vrenum's abstraction**, not any provider's.
 A consumer of the Vrenum API must be able to switch providers on the backend
 with zero changes to their integration code.
+
+### Implementation status (November 25, 2026)
+
+This contract describes the intended public surface; it is not evidence that
+every route or behavior is implemented. The current web application mounts
+verification routes under both `/api/verification/...` and
+`/api/v1/verification/...`. The documented short paths such as `/api/v1/verify`
+and `/api/v1/verify/stream` are not the routes found in the current router.
+
+The request schema accepts `sms`, `voice`, and `sms_and_voice`; the contract's
+`combo` value is not the internal request value. If `combo` is retained as the
+public term, map it explicitly to `sms_and_voice` at the API boundary. Current
+SMS and voice customer pages also use different request, timeout, and message
+delivery paths. See
+[VERIFICATION_FLOW_HANDOVER_NOV2026.md](./VERIFICATION_FLOW_HANDOVER_NOV2026.md)
+for the reviewed flow, confirmed fixes in the working tree, and remaining work.
 
 ---
 
@@ -131,11 +148,15 @@ These fields exist internally but are **never exposed** in the public API or SDK
 
 ### Verifications
 
+The following are the current web-app paths. Their `/api/v1` equivalents are
+mounted by the versioned router; these are not the proposed short `/verify`
+paths shown in earlier drafts.
+
 ```http
-POST   /api/v1/verify                    # Create verification
-GET    /api/v1/verify/{id}               # Get status + code
-DELETE /api/v1/verify/{id}               # Cancel (refund if eligible)
-GET    /api/v1/verify/history            # List past verifications
+POST   /api/verification/request          # Create verification (legacy JSON flow)
+POST   /api/verification/request/stream   # Create verification (SSE flow)
+GET    /api/verification/status/{id}       # Get status + code
+POST   /api/verification/cancel/{id}       # Cancel (refund if eligible)
 ```
 
 ### Rentals
@@ -159,7 +180,7 @@ GET    /api/v1/countries                 # Supported countries
 ### Streaming (SSE)
 
 ```http
-POST   /api/v1/verify/stream             # SSE purchase stream
+POST   /api/v1/verification/request/stream  # SSE purchase stream
 ```
 
 SSE events (public):
@@ -173,6 +194,11 @@ SSE events (public):
 | `recording` | Finalising |
 | `complete` | Number assigned — includes `verification_id`, `phone_number`, `ends_at` |
 | `failed` | Purchase failed — includes `reason` and `message` |
+
+These are request-stream events, not a complete lifecycle contract. SMS receipt,
+provider expiry, timeout, refund completion, voice transcription, and push
+delivery need a stable, documented event/status contract before SDK consumers
+can rely on them.
 
 ---
 
