@@ -1,118 +1,134 @@
 # HANDOVER — VRENUM SMS
-# Session: November 24, 2026 — FK Violation Fix + Verify Flow Audit
+# Session: November 25, 2026 — Sprint K, Sprint I, J-010 Verify Flow Redesign
 
-**HEAD**: `f791daf0` on origin/main
-**Written**: November 24, 2026
+**HEAD**: `64954e79` on origin/main
+**Written**: November 25, 2026
 **For**: Next engineer / next session
 
 ---
 
 ## WHAT WAS DONE THIS SESSION
 
-### 1. FK Violation Fix — `verifications_debit_transaction_id_fkey`
+### Sprint K — 8 Unmerged Fixes Re-applied (commit `dbce48c4`)
 
-**Symptom**: Every purchase attempt threw:
-```
-psycopg2.errors.ForeignKeyViolation: insert or update on table "verifications"
-violates foreign key constraint "verifications_debit_transaction_id_fkey"
-DETAIL: Key (debit_transaction_id)=(...) is not present in table "balance_transactions"
-```
+These were previously validated locally by a Copilot static review session but never committed.
 
-**Root cause**: SQLAlchemy's ORM flush queue was emitting `UPDATE verifications SET debit_transaction_id=...` before the `INSERT INTO balance_transactions` within the same transaction. Postgres evaluates FK constraints immediately on each statement, so the UPDATE fired before the referenced row existed.
-
-**Fix history** (3 iterations):
-
-| Commit | Approach | Result |
+| ID | Fix | File |
 |---|---|---|
-| `ec18d847` | Move assignment before `db.flush()` in admin path (`purchase_endpoints.py`) | Fixed admin path only — regular user path still broken |
-| `2376961e` | Flush `balance_tx` first in `balance_service.py` | SQLAlchemy still reordered — flushed all dirty objects including verification |
-| `e36e9854` | `db.flush([balance_tx])` — targeted flush | Same issue — ORM still emitted UPDATE before INSERT |
-| `d8908013` | Raw `db.execute("UPDATE verifications SET ...")` | SQLAlchemy 2.x rejected bare string SQL |
-| `f791daf0` | `db.execute(sa_text("UPDATE verifications SET ..."))` | **FINAL FIX** — bypasses ORM flush ordering entirely |
+| K-001 | Orphan timeout writes ISO timestamp; worker accepts ISO + legacy Unix int | `purchase_endpoints.py`, `orphan_reconciliation.py` |
+| K-002 | TV webhook routes through `_complete_verification()` — full notification/forwarding/Telegram/OneSignal parity | `tv_webhook.py` |
+| K-003 | `_resumeOrphan()` fetches fresh server state before resuming UI | `verification-flow.js` |
+| K-004 | Countdown timer no longer navigates away on expiry — server polling determines terminal state | `verification-flow.js` |
+| K-005 | `expired` added to refundable statuses | `auto_refund_service.py` |
+| K-006 | `completed_at` made timezone-aware before latency arithmetic | `sms_polling_service.py` |
+| K-007 | OTP (`raw_sms_code`) removed from telemetry write | `sms_polling_service.py` |
+| K-008 | Telemetry `update_sms_received` now awaited instead of fire-and-forget | `sms_polling_service.py` |
 
-**Files changed**:
-- `app/services/balance_service.py` — `deduct_credits_for_verification()`: flush `[balance_tx, transaction]` first, then raw `sa_text()` UPDATE for FK
-- `app/api/verification/purchase_endpoints.py` — admin path: moved `verification.debit_transaction_id = balance_tx.id` before `db.flush()`
+### Sprint I — Notification & WebSocket Hardening (all 10 closed)
 
-### 2. Verification Flow UX Bugs Fixed (Sprint J)
+| ID | Resolution |
+|---|---|
+| I-001 | Already correct — `on_sms_received` was awaited |
+| I-002 | Fixed via K-002 — TV webhook now uses shared completion |
+| I-003 | Already correct — URL matched mounted endpoint |
+| I-004 | Already correct — `get_running_loop().create_task()` with RuntimeError guard |
+| I-005 | Fixed `0c5b687d` — `purchase_healed` WS handler added to JS |
+| I-006 | Fixed `862d92b6` — reason codes sanitised at dispatcher boundary |
+| I-007 | Already correct — only one `get_unread_count` definition |
+| I-008 | Already correct — `_channels` initialised in `__init__` |
+| I-009 | Already wired — `cleanup_old_notifications` called in `lifespan.py` |
+| I-010 | Fixed `862d92b6` — `datetime.utcnow()` → `datetime.now(timezone.utc)` in `telegram_service.py` |
 
-| Bug | Fix | Commit |
-|---|---|---|
-| J-001: Step 0+1 stacking — both shown simultaneously | Removed unconditional `updateProgress(1)` from `DOMContentLoaded` | `92812341` |
-| J-009: Orphan recovery hijacking Step 0 | Replaced with dismissible resume banner above Step 0 | `3ddcf4d1` |
-| Browser cache serving stale `verification-flow.js?v=493` | Bumped fallback version to `494` | `8dfef90f` |
+### J-010 — Verify Flow UI Redesign (commit `64954e79`)
 
-### 3. Notification Deep Links
+**Problem**: Two redundant service selectors on Step 1 — inline `Service *` field and the immersive modal both did the same job. Required two clicks to open the modal.
 
-- `create_notification()` accepts optional `link` param
-- SMS received → links to `/history?id=<verification_id>`
-- Payment notifications → links to `/billing-history`
-- History audit drawer TX ID → clickable link to `/billing-history?highlight=<id>`
-- Billing history supports `?highlight=<id>` — scrolls and flashes matching row
+**Solution**: Eliminated Step 1 card entirely. Method click → modal opens immediately.
 
-### 4. UI/Flow Redesign Task Created
+**New flow**:
+```
+Step 0: Choose Method (SMS / Voice / SMS+Voice)
+  └─ Click SMS or SMS+Voice
+       └─ Modal opens IMMEDIATELY
+          ├─ Services loading → skeleton shimmer rows
+          └─ Services ready → real list renders in-place
+               └─ Pick service → modal closes → Step 2 Pricing
+                    └─ Get Number → Step 3: Phone + SMS wait
+```
 
-`docs/status/VERIFY_FLOW_REDESIGN.md` — full investigation and redesign spec for J-010.
+**Key changes** (`verification-flow.js`):
+- `chooseMethod()` → hides Step 0, shows progress, calls `openImmersiveModal('service')` directly
+- `openImmersiveModal()` → shows skeleton loading state immediately if services not ready
+- `loadServices()` → re-renders modal in-place when services finish loading (no flicker)
+- `selectImmersiveItem()` for service → `closeImmersiveModal()` + `confirmService()` directly
+- `_dismissModalAndReset()` → new helper, closing modal without picking returns to Step 0
+- `goBack()` from Step 2 → reopens modal instead of showing Step 1 card
+- `updateProgress()` → Step 1 card always hidden
+- `?service=` param → skips straight to Step 2
+- Version bumped `494` → `495` for cache bust
+
+**Removed from Step 1 card** (HTML still present but never shown):
+- Loading banner
+- Inline `Service *` field
+- `step-1-actions` (Back/Continue buttons)
+- Presets section
 
 ---
 
 ## CURRENT STATE
 
+### Commits this session (oldest → newest)
+| Commit | What |
+|---|---|
+| `dbce48c4` | Sprint K — K-001 through K-008 |
+| `0c5b687d` | K-003, K-004, I-005 JS fixes |
+| `862d92b6` | I-006, I-010 |
+| `64954e79` | J-010 verify flow redesign |
+
 ### Server
-- **Host**: `169.255.57.146` (Linux VM, not DigitalOcean)
-- **App**: Docker Compose at `/root/vrenum/`
-- **Deploy**: `git pull origin main && docker compose restart app` (no auto-deploy SSH key configured)
-- **HEAD on server**: `f791daf0` ✅
+- **Host**: `169.255.57.146`
+- **Deploy**: `ssh root@169.255.57.146` then `cd /root/vrenum && git pull origin main && docker compose restart app`
+- **Server HEAD**: needs pull to `64954e79`
+- **Git tracking**: run `git branch --set-upstream-to=origin/main main` on server once
 
-### Database
-- **Neon PostgreSQL** (pooled): `postgresql://neondb_owner:npg_ipg1faPdmEr6@ep-shy-king-ansjlp5g-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
-- **Alembic head**: `39eb936fe739` (forced via direct DB insert — no pending migrations)
-
-### Redis
-- **Upstash**: `rediss://default:...@amazed-walleye-88295.upstash.io:6379`
-- ⚠️ Orphan reconciliation worker is failing with `invalid username-password pair` — Redis creds not reaching that worker
-
-### Known Background Errors (non-critical, pre-existing)
-| Error | Source | Impact |
-|---|---|---|
-| `column number_rentals.expiry_warned_at does not exist` | Rental expiry monitor | Rentals only |
-| `cannot import name 'AsyncSessionLocal'` | Back-order monitor | Back-orders only |
-| `invalid username-password pair` | Orphan reconciliation (Redis) | Orphan recovery only |
-| `type object 'User' has no attribute 'annual_renewal_at'` | Annual renewal loop | Annual renewals only |
+### FK-001 Status
+Fix deployed (`f791daf0`) but **no successful purchase confirmed** since fix. Still needs end-to-end verification:
+```bash
+docker compose logs app -f 2>&1 | grep -E "ForeignKey|Ledger Synced|balance_service"
+```
+Expected on success: `Ledger Synced for <user_id>: -$X.XX (Ref: <verification_id>)`
 
 ---
 
 ## OPEN TASKS
 
-### 🔴 Critical
-- **J-010**: Verify flow UI redesign — duplicate service selector (inline form + modal doing same job). Full spec in `docs/status/VERIFY_FLOW_REDESIGN.md`
-- **Confirm FK fix works end-to-end** — no purchase has been successfully completed since fix deployed. Need to make a real purchase and confirm `Ledger Synced` appears in logs with no FK error.
+### 🔴 Needs verification
+- **FK-001**: Make a real purchase, confirm `Ledger Synced` in logs with no FK error
 
-### 🟡 Medium
-- Fix Redis creds for orphan reconciliation worker (`app/workers/orphan_reconciliation.py`)
-- Add missing DB column `number_rentals.expiry_warned_at` (Alembic migration needed)
-- Fix `AsyncSessionLocal` import in `app/workers/back_order_monitor.py`
-- Add `annual_renewal_at` to `User` model or remove the loop
+### 🟡 Provider routing gaps (from Copilot review)
+| ID | Issue |
+|---|---|
+| PR-001 | TV availability/price gate runs before provider router — blocks non-TV providers |
+| PR-002 | US healthy-shortcut doesn't check adapter is enabled or supports capability |
+| PR-003 | Voice page uses legacy JSON purchase, fixed 300s timer, not on SSE/WS lifecycle |
+| PR-004 | `sms_and_voice` accepted and priced but combined lifecycle not defined |
+| PR-005 | WebSocket manager in-process memory — multi-worker deployments lose pushes |
+| PR-006 | `expired` vs `failed` terminal state inconsistency across poller/refund/UI |
 
-### 🟢 Low
-- Set git tracking: `git branch --set-upstream-to=origin/main main` on server
-- Cloudflare cache bypass rule active for html/js/css ✅
+### 🟢 Background worker errors (non-critical)
+| Error | Fix |
+|---|---|
+| `column number_rentals.expiry_warned_at does not exist` | Alembic migration |
+| `cannot import name 'AsyncSessionLocal'` in back_order_monitor | Fix import |
+| `invalid username-password pair` — orphan reconciliation Redis | Check Upstash creds in env |
+| `User has no attribute 'annual_renewal_at'` | Add column or remove loop |
 
----
-
-## HOW TO VERIFY THE FK FIX
-
-```bash
-# On server — watch live while making a purchase
-cd /root/vrenum
-docker compose logs app -f 2>&1 | grep -E "ForeignKey|Ledger Synced|balance_service"
-```
-
-Expected on successful purchase:
-```
-Ledger Synced for <user_id>: -$0.90 (Ref: <verification_id>)
-```
-No `ForeignKeyViolation` lines after restart timestamp.
+### Manual / External
+| ID | Action |
+|---|---|
+| A-005 | Telegram E2E — connect @vrenum_sms_bot, trigger verification, confirm SMS forwarded |
+| E-001 | Upgrade Upstash Redis to pay-as-you-go |
+| E-002 | TextVerified IP whitelist — submit server IP `169.255.57.146` |
 
 ---
 
@@ -120,10 +136,15 @@ No `ForeignKeyViolation` lines after restart timestamp.
 
 | File | Role |
 |------|------|
-| `docs/status/ACTIVE_SPRINT.md` | Sprint J task list |
-| `docs/status/VERIFY_FLOW_REDESIGN.md` | **J-010 — UI redesign spec (start here for next session)** |
-| `docs/status/HANDOVER_NOV2026.md` | This file |
-| `app/services/balance_service.py` | FK fix lives here — `deduct_credits_for_verification()` |
-| `app/api/verification/purchase_endpoints.py` | Admin path FK fix + full purchase flow |
-| `static/js/verification-flow.js` | Verify flow JS — J-001, J-009 fixes |
-| `templates/verify_modern.html` | Verify flow template — Step 0/1/2/3 |
+| `docs/status/ACTIVE_SPRINT.md` | Task board |
+| `docs/status/VERIFY_FLOW_REDESIGN.md` | J-010 spec (now implemented) |
+| `docs/engineering/VERIFICATION_FLOW_HANDOVER_NOV2026.md` | Copilot static review — source of Sprint K |
+| `app/services/balance_service.py` | FK fix — `deduct_credits_for_verification()` |
+| `app/api/verification/tv_webhook.py` | K-002 — shared completion |
+| `app/workers/orphan_reconciliation.py` | K-001 — ISO timestamp parsing |
+| `app/services/auto_refund_service.py` | K-005 — expired refund |
+| `app/services/sms_polling_service.py` | K-006/K-007/K-008 |
+| `app/services/notification_dispatcher.py` | I-006 — reason code sanitisation |
+| `app/services/telegram_service.py` | I-010 — timezone-aware datetime |
+| `static/js/verification-flow.js` | J-010 — modal-first flow |
+| `templates/verify_modern.html` | Version bump 495 |
