@@ -25,7 +25,6 @@ from app.services.providers.pvapins_adapter import COUNTRY_MAP as PVAPINS_COUNTR
 from app.services.providers.pvapins_adapter import PVAPinsAdapter
 from app.services.providers.telnyx_adapter import TelnyxAdapter
 from app.services.providers.textverified_adapter import TextVerifiedAdapter
-from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 logger = get_logger(__name__)
 
@@ -134,18 +133,18 @@ class ProviderRouter:
         candidates = []
 
         # --- PHASE 12 TIER-BASED PRE-FILTERING ---
-        # US is specialized (TextVerified preferred for proximity accuracy)
+        # US: prefer TextVerified but only if enabled and capable
         if country_upper == "US":
-            from app.core.textverified_health import get_health_monitor
+            tv = self._get_textverified()
+            if tv.enabled:  # PR-002: check enabled before health shortcut
+                from app.core.textverified_health import get_health_monitor
 
-            metrics = get_health_monitor().get_metrics()
+                metrics = get_health_monitor().get_metrics()
+                if metrics["status"] == "healthy":
+                    return tv, bool(city), None
 
-            # If healthy, return TV immediately
-            if metrics["status"] == "healthy":
-                return self._get_textverified(), bool(city), None
-
-            # If unhealthy/degraded, don't return immediately, allow candidates to compete
-            logger.warning(f"TextVerified US status is {metrics['status']}, evaluating alternatives...")
+                logger.warning(f"TextVerified US status is {metrics['status']}, evaluating alternatives...")
+            # TV disabled or unhealthy — fall through to scored candidates
 
         # Gather enabled and capable providers
         if self._get_textverified().enabled:
@@ -350,32 +349,3 @@ class ProviderRouter:
             return None
 
         return scored_candidates[0][1]
-
-    async def get_provider_balances(self) -> dict:
-        balances = {}
-        for name, adapter_fn in [
-            ("textverified", self._get_textverified),
-            ("telnyx", self._get_telnyx),
-            ("5sim", self._get_fivesim),
-            ("pvapins", self._get_pvapins),
-        ]:
-            adapter = adapter_fn()
-            if adapter.enabled:
-                try:
-                    balances[name] = await adapter.get_balance()
-                except Exception as e:
-                    logger.error(f"Balance check failed for {name}: {e}")
-                    balances[name] = 0.0
-        return balances
-
-    def get_enabled_providers(self) -> list:
-        enabled = []
-        if self._get_textverified().enabled:
-            enabled.append("textverified")
-        if self._get_telnyx().enabled:
-            enabled.append("telnyx")
-        if self._get_fivesim().enabled:
-            enabled.append("5sim")
-        if self._get_pvapins().enabled:
-            enabled.append("pvapins")
-        return enabled

@@ -1,6 +1,6 @@
 """User - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Numeric, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -23,19 +23,13 @@ class User(BaseModel):
     reset_token_expires = Column(DateTime)
 
     # Subscription tier (Task: Versioning)
-    subscription_tier = Column(
-        String(20), default="freemium", nullable=False, index=True
-    )
+    subscription_tier = Column(String(20), default="freemium", nullable=False, index=True)
     tier_upgraded_at = Column(DateTime)  # When user last upgraded
     tier_expires_at = Column(DateTime)  # For subscription expiration
 
     # Pricing enforcement fields
-    bonus_sms_balance = Column(
-        Numeric(10, 4), default=0.0, nullable=False
-    )  # Freemium bonus SMS
-    monthly_quota_used = Column(
-        Numeric(10, 4), default=0.0, nullable=False
-    )  # Current month usage
+    bonus_sms_balance = Column(Numeric(10, 4), default=0.0, nullable=False)  # Freemium bonus SMS
+    monthly_quota_used = Column(Numeric(10, 4), default=0.0, nullable=False)  # Current month usage
     monthly_quota_reset_date = Column(DateTime, nullable=True)  # Last reset date
 
     referral_code = Column(String, unique=True, index=True)
@@ -61,6 +55,7 @@ class User(BaseModel):
     last_login = Column(DateTime, nullable=True)
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     subscription_start_date = Column(DateTime, nullable=True)
+    annual_renewal_at = Column(DateTime, nullable=True)  # Next annual renewal date
 
     # User preferences (language/currency)
     language = Column(String(10), default="en", nullable=False)
@@ -97,36 +92,22 @@ class User(BaseModel):
 
     # Relationships
     notifications = relationship("Notification", back_populates="user")
-    notification_preferences = relationship(
-        "NotificationPreference", back_populates="user"
-    )
+    notification_preferences = relationship("NotificationPreference", back_populates="user")
     device_tokens = relationship("DeviceToken", back_populates="user")
     activities = relationship("Activity", back_populates="user", lazy="select")
     balance_transactions = relationship("BalanceTransaction", back_populates="user")
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
-    enterprise_account = relationship(
-        "EnterpriseAccount", back_populates="user", uselist=False
-    )
+    enterprise_account = relationship("EnterpriseAccount", back_populates="user", uselist=False)
     revenue_shares = relationship("RevenueShare", back_populates="partner")
     payout_requests = relationship("PayoutRequest", back_populates="affiliate")
-    reseller_account = relationship(
-        "ResellerAccount", back_populates="user", uselist=False
-    )
+    reseller_account = relationship("ResellerAccount", back_populates="user", uselist=False)
     # OLD whitelabel relationship removed
     # partner_features = relationship("PartnerFeature", back_populates="partner")
-    telegram_connection = relationship(
-        "TelegramConnection", back_populates="user", uselist=False
-    )
-    telegram_forwarding_rule = relationship(
-        "TelegramForwardingRule", back_populates="user", uselist=False
-    )
+    telegram_connection = relationship("TelegramConnection", back_populates="user", uselist=False)
+    telegram_forwarding_rule = relationship("TelegramForwardingRule", back_populates="user", uselist=False)
     whitelabel_domains = relationship("WhitelabelDomain", back_populates="user")
-    whitelabel_branding = relationship(
-        "WhitelabelBranding", back_populates="user", uselist=False
-    )
-    whitelabel_email_templates = relationship(
-        "WhitelabelEmailTemplate", back_populates="user"
-    )
+    whitelabel_branding = relationship("WhitelabelBranding", back_populates="user", uselist=False)
+    whitelabel_email_templates = relationship("WhitelabelEmailTemplate", back_populates="user")
 
     def __repr__(self) -> str:
         return f"<User email={self.email}>"

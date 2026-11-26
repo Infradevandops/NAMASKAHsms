@@ -284,20 +284,26 @@ async def request_verification(
                     detail="City filtering requires PAYG tier or higher. Upgrade your plan.",
                 )
 
-        # Pre-purchase availability check — fail fast before any charge commits
-        avail = await _tv_service.check_service_available(
-            request.service,
-            capability=request.capability,
-            area_code_requested=bool(area_code),
-        )
-        if not avail["available"]:
-            raise HTTPException(
-                status_code=422,
-                detail=f"No numbers available for '{request.service}' right now. Please try another service.",
+        # Pre-purchase availability check — only gate on TV when TV is enabled
+        # PR-001: skip TV gate for non-US or when TV disabled (other providers may cover it)
+        provider_price = None
+        if _tv_service.enabled:
+            avail = await _tv_service.check_service_available(
+                request.service,
+                capability=request.capability,
+                area_code_requested=bool(area_code),
             )
+            if not avail["available"] and request.country.upper() == "US":
+                # Only hard-block on US where TV is the sole provider
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"No numbers available for '{request.service}' right now. Please try another service.",
+                )
+            provider_price = avail.get("price")
 
         # Fetch real provider price for this specific service
-        provider_price = avail.get("price") or await _get_provider_price(request.service)
+        if not provider_price:
+            provider_price = await _get_provider_price(request.service)
 
         # Calculate cost based on capability type
         if request.capability == "voice":
