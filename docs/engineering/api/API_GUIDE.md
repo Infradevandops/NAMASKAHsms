@@ -64,12 +64,12 @@ Authorization: Bearer <token>
 
 #### Register User
 - **POST** `/api/v1/auth/register`
-- **Body**: `{"email": "user@example.com", "password": "password123"}`
+- **Body**: `{"email": "user@example.com", "password": "<your-password>"}`
 - **Response**: User object with access token
 
 #### Login
 - **POST** `/api/v1/auth/login`
-- **Body**: `{"email": "user@example.com", "password": "password123"}`
+- **Body**: `{"email": "user@example.com", "password": "<your-password>"}`
 - **Response**: User object with access token
 
 ### Verification
@@ -168,7 +168,7 @@ Token is provided in response headers and cookies.
 ```bash
 curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "password123"}'
+  -d '{"email": "user@example.com", "password": "<your-password>"}'
 ```
 
 ### Create Verification

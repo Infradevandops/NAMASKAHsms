@@ -1,7 +1,7 @@
 # 🔐 Vrenum SMS - Security Audit & Deployment Summary
 
-**Date:** October 25, 2026  
-**Status:** ✅ SECURE - Ready for Production  
+**Date:** October 25, 2026
+**Status:** ✅ SECURE - Ready for Production
 **Auditor:** Amazon Q
 
 ---
@@ -50,11 +50,11 @@ The Vrenum SMS application is **secure and ready for production deployment** to 
 
 | Credential | Value (dead) | Rotated |
 |---|---|---|
-| TextVerified API Key | `MSZ9Lr6X...` | ✅ Nov 2026 |
-| PostgreSQL DB Password | `Y5eeFXLV...` | ✅ Nov 2026 |
-| JWT Secret Key | `Namaskah2024...` | ✅ Nov 2026 |
-| Sentry DSN | `2ce37686...@o4510...` | ✅ Nov 2026 |
-| Google OAuth Client ID | `11893866195-...` | ✅ Nov 2026 |
+| TextVerified API Key | `<rotated>` | ✅ Nov 2026 |
+| PostgreSQL DB Password | `<rotated>` | ✅ Nov 2026 |
+| JWT Secret Key | `<rotated>` | ✅ Nov 2026 |
+| Sentry DSN | `<rotated>` | ✅ Nov 2026 |
+| Google OAuth Client ID | `<rotated>` | ✅ Nov 2026 |
 
 All five values are allowlisted in `tools/gitleaks.toml` so secrets-scan CI never flags them again. They are dead credentials with no access to any live system.
 
@@ -427,8 +427,8 @@ The following documents have been created:
 - **Deployment Status:** ✅ READY
 - **Production Status:** ✅ READY
 
-**Reviewed by:** Amazon Q  
-**Date:** October 25, 2026  
+**Reviewed by:** Amazon Q
+**Date:** October 25, 2026
 **Version:** 1.0
 
 ---

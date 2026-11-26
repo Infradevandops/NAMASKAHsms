@@ -25,7 +25,7 @@ Expected: `Ledger Synced for <user_id>: -$X.XX` with no `ForeignKeyViolation`.
 | L-002 | P1 | Cloudflare WebSocket toggle | ⏳ Manual — Cloudflare Dashboard → Network → WebSockets |
 | L-003 | P1 | OTP login E2E test on live server | ⏳ Manual |
 | L-004 | P2 | `margin_reconciliation` missing `timedelta` | ✅ Stale — file does not exist |
-| L-005 | P2 | Credentials in archive/deployment docs (gitleaks) | 🔴 Open — scrub 12 files |
+| L-005 | P2 | Credentials in archive/deployment docs (gitleaks) | ✅ Fixed — 13 files scrubbed |
 | L-006 | P2 | Pre-commit hook not installed | ✅ Stale — `.pre-commit-config.yaml` already has gitleaks |
 | L-007 | P1 | Telegram E2E — 12 ACs unchecked | ⏳ Manual (A-005) |
 | L-008 | P3 | No `transcribing` SSE step for voice | ✅ Fixed (`purchase_endpoints.py`) |
@@ -149,7 +149,7 @@ Expected: `Ledger Synced for <user_id>: -$X.XX` with no `ForeignKeyViolation`.
 | J | Verification flow UX | 7/7 | ✅ Complete |
 | K | Verification fixes | 8/8 | ✅ Complete |
 | I | Notification/WS hardening | 10/10 | ✅ Complete |
-| L | Doc scan findings | 12/14 | 2 open (L-005, L-014) |
+| L | Doc scan findings | 13/14 | 1 open (L-014) |
 | Provider gaps | Routing/lifecycle | 0/6 | 6 open |
 | Background workers | Non-critical errors | 0/4 | 4 open (need server SSH) |
 

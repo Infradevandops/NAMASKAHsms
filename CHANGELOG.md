@@ -2,7 +2,14 @@
 
 All notable changes to the Vrenum SMS project.
 
-## [Verification Flow Hardening] - November 25, 2026
+## [Credential Scrub — Docs] - November 25, 2026
+
+### Security
+- Scrubbed real credentials from 13 docs across `docs/archive/`, `docs/deployment/`, `docs/engineering/`, `docs/operations/` — admin password, TextVerified key, Resend key, Redis hostname, test passwords replaced with `<placeholder>` values
+- Gitleaks pre-commit hook already active — all passes clean
+
+---
+
 
 ### Fixed
 - **K-001**: SSE timeout handler now writes ISO timestamp to orphan pending key (was Unix int — reconciliation worker deleted key on parse failure)

@@ -229,7 +229,7 @@ psql "postgresql://neondb_owner:<NEW_PASSWORD>@ep-shy-king-ansjlp5g-pooler.c-6.u
 
 **Verification**:
 ```bash
-redis-cli -u "rediss://default:<NEW_TOKEN>@profound-yak-85016.upstash.io:6379" PING
+redis-cli -u "rediss://default:<NEW_TOKEN>@<upstash-redis-host>:6379" PING
 ```
 
 **Status**: [ ] Rotated
@@ -368,9 +368,9 @@ Create incident report:
 
 ## Sign-off
 
-**Completed by**: ________________  
-**Date**: ________________  
-**Verified by**: ________________  
+**Completed by**: ________________
+**Date**: ________________
+**Verified by**: ________________
 **Date**: ________________
 
 ---
