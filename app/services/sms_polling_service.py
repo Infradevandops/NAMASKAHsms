@@ -351,15 +351,14 @@ class SMSPollingService:
 
         # Instrumentation
         latency = None
-        if v.created_at:
+        if v.created_at and v.completed_at:
             created_at = v.created_at.replace(tzinfo=timezone.utc) if v.created_at.tzinfo is None else v.created_at
-            latency = int((v.completed_at - created_at).total_seconds())
-
-        asyncio.create_task(
-            PurchaseIntelligenceService.update_sms_received(
-                v.id, True, raw_sms_code=v.sms_code, latency_seconds=latency
+            completed_at = (
+                v.completed_at.replace(tzinfo=timezone.utc) if v.completed_at.tzinfo is None else v.completed_at
             )
-        )
+            latency = int((completed_at - created_at).total_seconds())
+
+        await PurchaseIntelligenceService.update_sms_received(v.id, True, latency_seconds=latency)
 
         # Notify & Forward
         try:

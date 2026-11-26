@@ -38,7 +38,7 @@ class AutoRefundService:
             return None
 
         # PRODUCTION FIX: Allow "error" status for refunds (common failure state)
-        refundable_statuses = ["timeout", "cancelled", "failed", "error"]
+        refundable_statuses = ["timeout", "cancelled", "failed", "error", "expired"]
         if verification.status not in refundable_statuses:
             logger.warning(
                 f"Cannot refund verification {verification_id} with status: {verification.status}. "

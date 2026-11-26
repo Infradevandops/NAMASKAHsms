@@ -135,11 +135,24 @@ async def tv_sms_webhook(request: Request, db: Session = Depends(get_db)):
     if verification.status != "pending":
         return {"ok": True}  # Already completed
 
-    # Update verification record
-    verification.status = "completed"
-    verification.sms_code = parsed_code
-    verification.sms_text = sms_content
-    db.commit()
+    # Route through shared completion — handles receipt flags, forwarding,
+    # Telegram, OneSignal, notifications, event broadcast
+    try:
+        from app.services.sms_polling_service import sms_polling_service
+
+        await sms_polling_service._complete_verification(
+            verification=verification,
+            db=db,
+            sms_text=sms_content,
+            sms_code=parsed_code,
+        )
+    except Exception as e:
+        logger.error(f"TV webhook: shared completion failed for {verification.id}: {e}")
+        # Fall back to direct DB update so we don't lose the SMS
+        verification.status = "completed"
+        verification.sms_code = parsed_code
+        verification.sms_text = sms_content
+        db.commit()
 
     logger.info(
         f"TV webhook: SMS delivered — verification={verification.id} " f"user={verification.user_id} code={parsed_code}"

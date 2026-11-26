@@ -61,12 +61,16 @@ async def _reconcile_once():
         user_id = pending.get("user_id")
         service = pending.get("service")
         cost = float(pending.get("cost", 0))
-        started_at_str = pending.get("started_at", "")
 
         try:
-            started_at = datetime.fromisoformat(started_at_str)
-            if started_at.tzinfo is None:
-                started_at = started_at.replace(tzinfo=timezone.utc)
+            started_at_raw = pending.get("started_at", "")
+            # Accept both ISO string (current) and legacy Unix int
+            if isinstance(started_at_raw, (int, float)):
+                started_at = datetime.fromtimestamp(started_at_raw, tz=timezone.utc)
+            else:
+                started_at = datetime.fromisoformat(str(started_at_raw))
+                if started_at.tzinfo is None:
+                    started_at = started_at.replace(tzinfo=timezone.utc)
         except Exception:
             redis.delete(key)
             continue

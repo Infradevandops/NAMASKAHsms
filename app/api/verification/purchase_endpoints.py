@@ -912,7 +912,7 @@ async def request_verification_stream(
                             "country": request.country,
                             "capability": request.capability,
                             "cost": sms_cost,
-                            "started_at": int(time.time()),
+                            "started_at": datetime.now(timezone.utc).isoformat(),
                         }
                     ),
                 )
