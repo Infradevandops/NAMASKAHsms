@@ -56,6 +56,7 @@ class User(BaseModel):
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     subscription_start_date = Column(DateTime, nullable=True)
     annual_renewal_at = Column(DateTime, nullable=True)  # Next annual renewal date
+    billing_period = Column(String(20), nullable=True, default="monthly")  # monthly | annual
 
     # User preferences (language/currency)
     language = Column(String(10), default="en", nullable=False)
