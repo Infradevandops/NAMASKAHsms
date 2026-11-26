@@ -102,7 +102,7 @@ Remaining work is manual/external only: deploy confirmation, email testing, Tele
 
 ## DEPLOYMENT
 
-- **Production**: vrenum.app (DigitalOcean `169.255.57.146`, Docker Compose)
+- **Production**: vrenum.app (Linux VM, Docker Compose)
 - **Deploy trigger**: CI pass on main → `deploy.yml` fires automatically
 - **Last confirmed live commit**: `e06e91ce` (Nov 6 2026)
 - **Pending deploy**: `d64707b7` (auto-fires on next CI pass)

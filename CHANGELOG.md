@@ -2,7 +2,23 @@
 
 All notable changes to the Vrenum SMS project.
 
-## [Verification Flow UX] - November 23, 2026
+## [Verification Flow Hardening] - November 25, 2026
+
+### Fixed
+- **K-001**: SSE timeout handler now writes ISO timestamp to orphan pending key (was Unix int — reconciliation worker deleted key on parse failure)
+- **K-002**: TV webhook routes through shared `_complete_verification()` — receipt flags, Telegram, OneSignal, notifications, and event broadcast now fire on webhook delivery (was bypassed)
+- **K-003**: `purchase_healed` WebSocket event now has UI resume callback — loads healed verification and resumes waiting screen (user was stuck on purchase-loading screen)
+- **K-004**: UI local expiry no longer claims "not charged" and navigates away before server confirms terminal state — follows server `ends_at`, handles `expired` status
+- **K-005**: `auto_refund_service` now handles `expired` status in `refundable_statuses` (was only `failed/timeout/cancelled/error`)
+- **K-006**: Completion latency normalises naive DB timestamps before subtraction — no more `TypeError` on naive/aware mismatch
+- **K-007**: OTP code removed from `sms_polling_service` success log line (was `code={v.sms_code}` in plaintext)
+- **K-008**: `PurchaseIntelligenceService.update_sms_received` in `auto_refund_service` is now awaited — was `asyncio.create_task()` (fire-and-forget, silently dropped)
+
+### Removed
+- `docs/status/HANDOVER_NOV2026.md` — all open items resolved or migrated to `ACTIVE_SPRINT.md`
+
+---
+
 
 ### Changed
 - **Step 1 loading banner** (`templates/verify_modern.html`, `static/js/verification-flow.js`): After choosing a verification method in Step 0, Step 1 now shows a dark branded loading banner instead of a generic spinner-in-input. Banner headline is method-specific — `"Initiating number for verification / SMS"` or `"Initiating number for verification / SMS + Voice Call"` — with a pink arc spinner and `"Fetching available services from provider"` subtext. `Back` / `Continue →` buttons are hidden until services finish loading, then auto-reveal and the service modal opens automatically. On API error the banner switches to a red-tinted error state.
@@ -46,7 +62,7 @@ All notable changes to the Vrenum SMS project.
 ### In Progress
 - Test coverage improvement: 25% → 60% → 90% target
 - Telegram bot @vrenum_sms_bot — setup complete, pending end-to-end verification
-- TV support ticket open to unblock server IP `169.255.57.146` from Cloudflare
+- TV support ticket open to unblock server IP from Cloudflare
 - Resend webhook endpoint for delivery/bounce events (needs `RESEND_WEBHOOK_SECRET` in `.env.production`)
 - Full outbox dashboard widget in admin panel
 - Digest scheduler preference check at send time (`can_send()` call before each user)

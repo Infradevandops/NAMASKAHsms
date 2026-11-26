@@ -102,7 +102,7 @@ None. All code tasks complete.
 | C-001 | Create Paystack annual plan codes | Paystack dashboard |
 | C-010 | Create Paystack add-on plan | Paystack dashboard |
 | E-001 | Upgrade Upstash Redis to pay-as-you-go | Upstash dashboard |
-| E-002 | TextVerified IP whitelist — submit server IP `169.255.57.146` | TV support ticket |
+| E-002 | TextVerified IP whitelist — submit server IP | TV support ticket |
 
 ---
 

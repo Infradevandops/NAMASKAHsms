@@ -1017,7 +1017,9 @@ async def request_verification_stream(
             )
             return
 
-        # Step 6: complete
+        # Step 6: complete (voice gets transcribing intermediate status)
+        if request.capability == "voice":
+            yield sse("transcribing", message="Transcribing voice message...")
         yield sse(
             "complete",
             verification_id=str(verification.id),

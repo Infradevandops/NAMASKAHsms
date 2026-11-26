@@ -40,7 +40,7 @@ Deploy fires automatically on `success`.
 | A-002 | P1 | Test 8 transactional emails | Resend dashboard + inbox |
 | A-005 | P1 | Telegram E2E — @vrenum_sms_bot | Live server |
 | E-001 | P2 | Upstash Redis → pay-as-you-go | Upstash dashboard |
-| E-002 | P2 | TV IP whitelist — `169.255.57.146` | TV support ticket |
+| E-002 | P2 | TV IP whitelist — submit server IP | TV support ticket |
 | C-001 | P2 | Paystack annual plan codes | Paystack dashboard |
 | C-010 | P2 | Paystack add-on plan | Paystack dashboard |
 

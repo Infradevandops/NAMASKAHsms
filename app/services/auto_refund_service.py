@@ -161,17 +161,13 @@ class AutoRefundService:
             # we can use it as a reference for requested_at if needed,
             # but usually requested_at is when the decision to refund was made.
 
-            import asyncio
-
-            asyncio.create_task(
-                PurchaseIntelligenceService.update_sms_received(
-                    verification_id=str(verification.id),
-                    sms_received=False,  # Still False since it's a refund
-                    refund_reason=reason,
-                    refund_transaction_id=balance_tx.id,
-                    refund_requested_at=verification.refunded_at,  # already set at line 79
-                    refund_processed_at=processed_at,
-                )
+            await PurchaseIntelligenceService.update_sms_received(
+                verification_id=str(verification.id),
+                sms_received=False,
+                refund_reason=reason,
+                refund_transaction_id=balance_tx.id,
+                refund_requested_at=verification.refunded_at,
+                refund_processed_at=processed_at,
             )
 
             new_balance = user.credits

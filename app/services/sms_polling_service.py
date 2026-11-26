@@ -418,7 +418,7 @@ class SMSPollingService:
         except Exception:
             pass
 
-        logger.info(f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}")
+        logger.info(f"✅ SMS received for {v.id} (provider={v.provider})")
 
         # Send verification completed email (non-blocking)
         try:
