@@ -112,12 +112,24 @@ class NotificationDispatcher:
 
     async def notify_verification_failed(self, user_id: str, verification_id: str, service: str, reason: str) -> bool:
         """Notify when verification fails."""
+        _reason_map = {
+            "sms_timeout": "SMS not received in time",
+            "area_code_mismatch": "Area code mismatch",
+            "carrier_mismatch": "Carrier mismatch",
+            "voip_detected": "VOIP number detected",
+            "not_mobile": "Landline number detected",
+            "no_activation_id": "Purchase could not be confirmed",
+            "provider_timeout": "Provider timed out",
+            "insufficient_balance": "Insufficient balance",
+            "database_error": "Service temporarily unavailable",
+        }
+        display_reason = _reason_map.get(reason, reason.replace("_", " ").capitalize() if reason else "Unknown error")
         try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_failed",
                 title="Verification Failed",
-                message=f"{service} verification failed: {reason}",
+                message=f"{service} verification could not be completed: {display_reason}",
             )
 
             self._broadcast_notification(user_id, notification)

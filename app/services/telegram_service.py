@@ -111,7 +111,13 @@ class TelegramService:
 
         # Calculate time since received
         if verification.updated_at:
-            seconds_ago = (datetime.utcnow() - verification.updated_at).total_seconds()
+            now = datetime.now(timezone.utc)
+            updated = (
+                verification.updated_at
+                if verification.updated_at.tzinfo is not None
+                else verification.updated_at.replace(tzinfo=timezone.utc)
+            )
+            seconds_ago = (now - updated).total_seconds()
             if seconds_ago < 60:
                 time_str = f"{int(seconds_ago)} seconds ago"
             else:
