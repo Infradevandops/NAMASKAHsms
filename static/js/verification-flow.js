@@ -89,7 +89,11 @@ function startCountdown(endsAtIso) {
         const rem = Math.max(0, endsAt - Date.now());
         const el = document.getElementById('time-left-display');
         if (el) el.textContent = String(Math.floor(rem/60000)).padStart(2,'0') + ':' + String(Math.floor((rem%60000)/1000)).padStart(2,'0');
-        if (rem <= 0) { clearInterval(VerificationFlow._countdownTimer); stopPolling(); window.toast && window.toast.error('Verification timed out.'); goBack(); }
+        if (rem <= 0) {
+            clearInterval(VerificationFlow._countdownTimer);
+            // Don't navigate away — let server polling determine terminal state and refund
+            // The poller will handle expired/failed status and show the correct message
+        }
     };
     tick(); VerificationFlow._countdownTimer = setInterval(tick, 1000);
 }
@@ -1127,6 +1131,23 @@ document.addEventListener('ws:message', (e) => {
     if (e.detail && e.detail.type === 'sms_received') {
         handleWebSocketSmsReceived(e.detail);
     }
+    // I-005: orphan reconciliation worker healed a purchase — resume waiting UI
+    if (e.detail && e.detail.type === 'purchase_healed') {
+        const d = e.detail;
+        if (!VerificationFlow.verificationId && d.verification_id) {
+            VerificationFlow.verificationId = d.verification_id;
+            localStorage.setItem('active_verification_id', d.verification_id);
+            // Hide purchase-loading card if still showing
+            const loadingCard = document.getElementById('purchase-loading-card');
+            if (loadingCard) loadingCard.style.display = 'none';
+            document.getElementById('phone-number').textContent = formatPhone(d.phone_number || '');
+            if (d.ends_at) startCountdown(d.ends_at);
+            updateProgress(3);
+            startActivityFeed(d.phone_number || '');
+            startPolling();
+            window.toast && window.toast.success('Number secured — waiting for SMS...');
+        }
+    }
     // REV-002 / OPEN-3: reuse available banner
     if (e.detail && e.detail.type === 'reuse_available') {
         showReuseBanner(e.detail);
@@ -1558,15 +1579,44 @@ function resetFlow() {
 
 function _resumeOrphan(orphanId) {
     document.getElementById('orphan-resume-banner')?.remove();
-    document.getElementById('step-0-card').style.display = 'none';
-    document.getElementById('progress-indicator').style.display = 'block';
-    if (VerificationFlow._orphanPhone) {
-        document.getElementById('phone-number').textContent = formatPhone(VerificationFlow._orphanPhone);
-    }
-    if (VerificationFlow._orphanEndsAt) startCountdown(VerificationFlow._orphanEndsAt);
-    updateProgress(3);
-    startPolling();
-    window.toast && window.toast.info('Resuming your active verification.');
+    // Fetch fresh state before resuming — stored phone/endsAt may be stale
+    const token = localStorage.getItem('access_token');
+    fetch(`/api/verification/status/${orphanId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => r.ok ? r.json() : null).then(data => {
+        if (!data || data.status !== 'pending') {
+            localStorage.removeItem('active_verification_id');
+            window.toast && window.toast.info('Verification already completed or expired.');
+            return;
+        }
+        VerificationFlow.verificationId = orphanId;
+        VerificationFlow.createdAt = data.created_at || new Date().toISOString();
+        if (data.ends_at) {
+            VerificationFlow.totalDurationMs =
+                new Date(data.ends_at).getTime() - new Date(VerificationFlow.createdAt).getTime();
+        }
+        document.getElementById('step-0-card').style.display = 'none';
+        document.getElementById('progress-indicator').style.display = 'block';
+        document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
+        const svcName = data.service_name || data.service || '';
+        const svcEl = document.getElementById('scanning-service-name');
+        if (svcEl) svcEl.textContent = svcName;
+        if (data.ends_at) startCountdown(data.ends_at);
+        updateProgress(3);
+        startActivityFeed(data.phone_number);
+        startPolling();
+        window.toast && window.toast.info('Resuming your active verification.');
+    }).catch(() => {
+        // Fallback to stored values if fetch fails
+        document.getElementById('step-0-card').style.display = 'none';
+        document.getElementById('progress-indicator').style.display = 'block';
+        if (VerificationFlow._orphanPhone)
+            document.getElementById('phone-number').textContent = formatPhone(VerificationFlow._orphanPhone);
+        if (VerificationFlow._orphanEndsAt) startCountdown(VerificationFlow._orphanEndsAt);
+        updateProgress(3);
+        startPolling();
+        window.toast && window.toast.info('Resuming your active verification.');
+    });
 }
 
 function _dismissOrphan() {
