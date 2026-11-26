@@ -139,23 +139,12 @@ function chooseMethod(method) {
     }
     VerificationFlow.selectedCapability = method === 'combo' ? 'sms_and_voice' : 'sms';
 
-    // Set branded loading banner text based on chosen method
-    const _methodLabels = {
-        sms: 'Initiating number for verification / SMS',
-        combo: 'Initiating number for verification / SMS + Voice Call',
-    };
-    const banner = document.getElementById('service-loading-banner');
-    const bannerText = document.getElementById('service-loading-banner-text');
-    if (bannerText) bannerText.textContent = _methodLabels[method] || 'Initiating verification…';
-
-    // Show banner, hide action buttons until services load
-    if (banner) banner.style.display = 'block';
-    const actions = document.getElementById('step-1-actions');
-    if (actions) actions.style.display = 'none';
-
+    // Show progress indicator
     document.getElementById('step-0-card').style.display = 'none';
     document.getElementById('progress-indicator').style.display = 'block';
-    document.getElementById('step-1-card').style.display = 'block';
+
+    // Open service modal immediately — show skeleton if services not loaded yet
+    openImmersiveModal('service');
 }
 
 /* Call this whenever tier changes or service is selected.
@@ -211,9 +200,39 @@ let _pinnedServices = JSON.parse(localStorage.getItem('nsk_pinned_services') || 
 let _recentServices = JSON.parse(localStorage.getItem('nsk_recent_services') || '[]');
 
 function openImmersiveModal(type) {
-    // If services still loading, queue the open
-    if (type === 'service' && (!_modalItems['service'] || _modalItems['service'].length === 0)) {
+    // If services still loading, show modal with skeleton state
+    const servicesReady = _modalItems['service'] && _modalItems['service'].length > 0;
+    if (type === 'service' && !servicesReady) {
         VerificationFlow._pendingModalOpen = true;
+        // Show modal immediately with loading skeleton
+        _modalType = type;
+        const container = document.getElementById('immersive-modal-container');
+        container.innerHTML = `
+            <div class="immersive-modal-backdrop" id="modal-backdrop">
+                <div class="immersive-modal">
+                    <div class="modal-header">
+                        <div class="modal-header-title">
+                            <h2>Select Service</h2>
+                            <p>Loading available services…</p>
+                        </div>
+                        <button class="modal-close-btn" onclick="_dismissModalAndReset()">&#x2715;</button>
+                    </div>
+                    <div style="padding:32px 24px;display:flex;flex-direction:column;gap:12px;">
+                        ${Array(6).fill(0).map(() => `
+                            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f3f4f6;">
+                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(90deg,#f3f4f6 0px,#e5e7eb 40px,#f3f4f6 80px);background-size:200px 100%;animation:shimmer 1.4s infinite linear;flex-shrink:0;"></div>
+                                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                                    <div style="height:14px;width:60%;border-radius:4px;background:linear-gradient(90deg,#f3f4f6 0px,#e5e7eb 40px,#f3f4f6 80px);background-size:200px 100%;animation:shimmer 1.4s infinite linear;"></div>
+                                    <div style="height:11px;width:35%;border-radius:4px;background:linear-gradient(90deg,#f3f4f6 0px,#e5e7eb 40px,#f3f4f6 80px);background-size:200px 100%;animation:shimmer 1.4s infinite linear;"></div>
+                                </div>
+                            </div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-backdrop') _dismissModalAndReset();
+        });
         return;
     }
 
@@ -230,7 +249,7 @@ function openImmersiveModal(type) {
                         <h2>${titles[type]}</h2>
                         <p>${subs[type]}${type === 'service' ? ` — ${(_modalItems['service']||[]).length} available` : ''}</p>
                     </div>
-                    <button class="modal-close-btn" onclick="closeImmersiveModal()">✕</button>
+                    <button class="modal-close-btn" onclick="_dismissModalAndReset()">✕</button>
                 </div>
 
                 <div class="modal-search-wrapper">
@@ -267,7 +286,7 @@ function openImmersiveModal(type) {
     `;
 
     document.getElementById('modal-backdrop').addEventListener('click', (e) => {
-        if (e.target.id === 'modal-backdrop') closeImmersiveModal();
+        if (e.target.id === 'modal-backdrop') _dismissModalAndReset();
     });
 
     renderImmersiveList(type);
@@ -279,6 +298,17 @@ function openImmersiveModal(type) {
 
 function closeImmersiveModal() {
     document.getElementById('immersive-modal-container').innerHTML = '';
+}
+
+// Dismiss modal and return to Step 0 (method picker)
+function _dismissModalAndReset() {
+    closeImmersiveModal();
+    // Only reset to Step 0 if no service selected yet
+    if (!VerificationFlow.selectedService) {
+        document.getElementById('step-0-card').style.display = 'block';
+        document.getElementById('progress-indicator').style.display = 'none';
+        VerificationFlow._pendingModalOpen = false;
+    }
 }
 
 function renderImmersiveList(type, query = '') {
@@ -559,16 +589,10 @@ function selectImmersiveItem(value, label, price) {
         localStorage.setItem('nsk_recent_services', JSON.stringify(_recentServices));
         localStorage.setItem('nsk_last_service', value);
 
-        const display = document.getElementById('service-selected-display');
-        const input = document.getElementById('service-search-input');
-
-        input.value = label;
-        display.style.display = 'flex';
-        document.getElementById('service-display').textContent = label;
-        const costEl = document.getElementById('selected-service-cost');
-        if (costEl) costEl.textContent = price > 0 ? formatMoney(price) : '';
-
-        applyTierGating();
+        closeImmersiveModal();
+        // Go straight to Step 2 pricing — no Step 1 card
+        confirmService();
+        return;
 
     } else if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
@@ -654,14 +678,15 @@ function updateProgress(step) {
         if (i < step) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); }
         else if (i === step) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); }
         else { stepEl.classList.remove('active', 'completed'); }
-        cardEl.style.display = i === step ? 'block' : 'none';
+        // Step 1 card is retired — modal handles service selection
+        if (i === 1) { if (cardEl) cardEl.style.display = 'none'; }
+        else { if (cardEl) cardEl.style.display = i === step ? 'block' : 'none'; }
     }
     document.getElementById('progress-fill').style.width = (((step - 1) / 2) * 100) + '%';
 }
 
 function confirmService() {
     if (!VerificationFlow.selectedService) return;
-    // Show Step 2 pricing card with loading state, then fetch live price
     updateProgress(2);
     const costEl = document.getElementById('pricing-cost');
     const balEl = document.getElementById('pricing-balance');
@@ -762,13 +787,47 @@ async function loadServices() {
         const actions = document.getElementById('step-1-actions');
         if (actions) actions.style.display = 'flex';
 
-        // Auto-open modal if user is waiting on step 1 with no service selected
-        if (!VerificationFlow.selectedService && VerificationFlow.currentStep === 1) {
+        // Auto-open modal if pending, or re-render if already open with skeleton
+        if (VerificationFlow._pendingModalOpen || document.getElementById('modal-backdrop')) {
             VerificationFlow._pendingModalOpen = false;
-            openImmersiveModal('service');
-        } else if (VerificationFlow._pendingModalOpen) {
-            VerificationFlow._pendingModalOpen = false;
-            openImmersiveModal('service');
+            // Re-render modal with real data (replaces skeleton)
+            if (document.getElementById('modal-backdrop')) {
+                _modalType = 'service';
+                const container = document.getElementById('immersive-modal-container');
+                const titles = { service: 'Select Service' };
+                container.innerHTML = `
+                    <div class="immersive-modal-backdrop" id="modal-backdrop">
+                        <div class="immersive-modal">
+                            <div class="modal-header">
+                                <div class="modal-header-title">
+                                    <h2>Select Service</h2>
+                                    <p>Select a platform to receive SMS — ${(_modalItems['service']||[]).length} available</p>
+                                </div>
+                                <button class="modal-close-btn" onclick="_dismissModalAndReset()">✕</button>
+                            </div>
+                            <div class="modal-search-wrapper">
+                                <div class="modal-search-field">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                    <input type="text" id="modal-search-input" class="modal-search-input"
+                                           placeholder="Search service..." oninput="filterImmersiveModal(this.value)" autofocus>
+                                </div>
+                                <button class="modal-settings-btn" onclick="toggleModalFilters()" title="Filter">
+                                    <i class="ph ph-sliders-horizontal"></i>
+                                </button>
+                            </div>
+                            <div id="modal-filters-section" class="modal-filter-card" style="display:none;"></div>
+                            <div id="modal-list-content" class="modal-content-list"></div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+                    if (e.target.id === 'modal-backdrop') _dismissModalAndReset();
+                });
+                renderImmersiveList('service');
+                setTimeout(() => document.getElementById('modal-search-input')?.focus(), 100);
+            } else {
+                openImmersiveModal('service');
+            }
         }
 
         // Subscribe to updates
@@ -1504,7 +1563,13 @@ function goBack() {
         VerificationFlow.elapsedSeconds = 0;
         updateProgress(2);
     } else if (VerificationFlow.currentStep === 2) {
-        updateProgress(1);
+        // Back from Step 2 — reopen service modal
+        VerificationFlow.selectedService = null;
+        VerificationFlow.selectedServicePrice = null;
+        document.getElementById('step-2-card').style.display = 'none';
+        document.getElementById('progress-indicator').style.display = 'block';
+        openImmersiveModal('service');
+        return;
     }
 
     const card = document.getElementById(`step-${VerificationFlow.currentStep}-card`);
@@ -1804,29 +1869,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const preService = params.get('service');
     if (preService) {
-        // Skip Step 0 — treat as SMS method pre-selected
+        // Skip Step 0 — treat as SMS method pre-selected, go straight to Step 2
         VerificationFlow.selectedCapability = 'sms';
         document.getElementById('step-0-card').style.display = 'none';
         document.getElementById('progress-indicator').style.display = 'block';
-        const actions = document.getElementById('step-1-actions');
-        if (actions) actions.style.display = 'none';
-        updateProgress(1);
-        // Wait for services to be ready
+        // Wait for services to be ready then auto-select and go to Step 2
         let retries = 0;
         const checkServices = setInterval(() => {
             const items = _modalItems['service'] || [];
-            if (items.length > 0 || retries++ > 10) {
+            if (items.length > 0 || retries++ > 20) {
                 clearInterval(checkServices);
                 const item = items.find(i => i.value.toLowerCase() === preService.toLowerCase());
                 if (item) {
                     selectImmersiveItem(item.value, item.label, item.price);
                 } else {
+                    // Unknown service — set it and go to Step 2 directly
                     VerificationFlow.selectedService = preService;
-                    document.getElementById('service-search-input').value = preService;
-                    document.getElementById('service-display').textContent = preService;
-                    document.getElementById('service-selected-display').style.display = 'flex';
-                    document.getElementById('continue-btn').disabled = false;
-                    if (actions) actions.style.display = 'flex';
+                    VerificationFlow.selectedServicePrice = null;
+                    confirmService();
                 }
             }
         }, 100);
