@@ -36,6 +36,6 @@ prometheus-client==0.19.0
 
 httpx>=0.25.2,<0.28.0  # Pinned to <0.28.0 to avoid breaking starlette TestClient API
 # Note: FastAPI 0.115.4 uses Starlette ~0.41.0 which includes security fixes
-Pillow==11.1.0
+Pillow==13.0.0
 reportlab==4.2.5
 resend>=2.0.0
